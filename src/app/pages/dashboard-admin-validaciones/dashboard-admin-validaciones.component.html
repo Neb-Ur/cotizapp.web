@@ -1,0 +1,1127 @@
+<main class="dashboard-admin">
+  <app-dashboard-menu
+    title="Panel Admin"
+    [userName]="currentUser?.displayName || 'Administrador'"
+    [sections]="sections"
+    [activeSection]="currentSection"
+    [isMobileViewport]="isMobileViewport"
+    [isMobileOpen]="isMobileMenuVisible"
+    extraActionLabel="Actualizar datos"
+    extraActionClass="ghost"
+    (sectionSelected)="setSection($any($event))"
+    (menuClosed)="closeMobileMenu()"
+    (logoutRequested)="logout()"
+    (extraActionRequested)="refreshAll()"
+  />
+
+  <section class="content">
+    <article class="content-header">
+      <div class="title-row">
+        <div>
+          <h1>{{ currentSectionLabel }}</h1>
+          <p>{{ currentSectionDescription }}</p>
+        </div>
+        <button
+          type="button"
+          class="menu-toggle menu-icon"
+          *ngIf="isMobileViewport"
+          (click)="toggleMobileMenu()"
+          aria-label="Abrir o cerrar menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+
+      <p class="saved" *ngIf="notice">{{ notice }}</p>
+      <p class="error" *ngIf="error">{{ error }}</p>
+    </article>
+
+    <article class="panel panel--loading" *ngIf="isInitialLoading || isSectionLoading">
+      <app-ui-loader [label]="isInitialLoading ? 'Cargando resumen de administracion...' : 'Cargando seccion...'" />
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'resumen'">
+      <div class="stats-grid">
+        <section>
+          <h3>Usuarios totales</h3>
+          <p>{{ snapshot.usersTotal }}</p>
+        </section>
+        <section>
+          <h3>Usuarios activos</h3>
+          <p>{{ snapshot.activeUsers }}</p>
+        </section>
+        <section>
+          <h3>Bloqueados</h3>
+          <p>{{ snapshot.blockedUsers }}</p>
+        </section>
+        <section>
+          <h3>Validaciones pendientes</h3>
+          <p>{{ snapshot.validationPending }}</p>
+        </section>
+        <section>
+          <h3>Lotes importados</h3>
+          <p>{{ snapshot.importBatches }}</p>
+        </section>
+        <section>
+          <h3>Catalogo total</h3>
+          <p>{{ snapshot.totalCatalogProducts }}</p>
+        </section>
+      </div>
+
+      <div class="split-grid">
+        <section class="card">
+          <h4>Usuarios por rol</h4>
+          <ul>
+            <li>Maestros: <strong>{{ snapshot.usersByRole.maestro }}</strong></li>
+            <li>Ferreterias: <strong>{{ snapshot.usersByRole.ferreteria }}</strong></li>
+            <li>Admin: <strong>{{ snapshot.usersByRole.admin }}</strong></li>
+          </ul>
+        </section>
+
+        <section class="card">
+          <h4>Estado de cargas</h4>
+          <ul>
+            <li>Filas subidas: <strong>{{ snapshot.importedRows }}</strong></li>
+            <li>Fallidas: <strong>{{ snapshot.failedRows }}</strong></li>
+            <li>Nuevos en validacion: <strong>{{ snapshot.pendingNewRows }}</strong></li>
+            <li>Posibles match: <strong>{{ snapshot.possibleMatchRows }}</strong></li>
+          </ul>
+        </section>
+      </div>
+
+      <div class="quick-actions">
+        <button type="button" (click)="goToSection('metricas')">Ver metricas</button>
+        <button type="button" (click)="goToSection('taxonomia')">Gestionar taxonomia</button>
+        <button type="button" (click)="goToSection('productos')">Mantenedor de productos</button>
+        <button type="button" (click)="goToSection('solicitudes')">Ir a solicitudes</button>
+        <button type="button" (click)="goToSection('lotes')">Revisar lotes</button>
+        <button type="button" (click)="goToSection('usuarios')">Gestionar usuarios</button>
+        <button type="button" (click)="goToSection('operacion')">Ver operacion</button>
+      </div>
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'metricas'">
+      <p class="helper">
+        Metricas MVP del panel admin actualizadas: {{ adminMetrics.generatedAt | date:'dd/MM/yyyy HH:mm' }}
+      </p>
+
+      <div class="stats-grid">
+        <section *ngFor="let metric of adminMvpMetricCards">
+          <h3>{{ metric.label }}</h3>
+          <p>{{ metric.value }}</p>
+        </section>
+      </div>
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'taxonomia'">
+      <div class="taxonomy-shell">
+        <mat-card class="taxonomy-path">
+          <div>
+            <span class="taxonomy-kicker">Jerarquia activa</span>
+            <h4>Ruta de catalogo</h4>
+          </div>
+          <div class="taxonomy-breadcrumbs">
+            <span>{{ categoryLabel(selectedTaxCategoryId) || 'Sin categoria' }}</span>
+            <fa-icon [icon]="faChevronRight"></fa-icon>
+            <span>{{ subcategoryLabel(selectedTaxSubcategoryId) || 'Sin subcategoria' }}</span>
+            <fa-icon [icon]="faChevronRight"></fa-icon>
+            <span>{{ familyLabel(selectedTaxFamilyId) || 'Sin familia' }}</span>
+          </div>
+        </mat-card>
+
+        <div class="taxonomy-grid">
+          <mat-card class="taxonomy-card">
+            <div class="taxonomy-card-head">
+              <div>
+                <span class="taxonomy-section-icon"><fa-icon [icon]="faCategory"></fa-icon></span>
+                <h4>Categorias</h4>
+                <p>Primer nivel de organizacion del catalogo.</p>
+              </div>
+              <span class="taxonomy-count">{{ categoryOptions.length }}</span>
+            </div>
+            <div class="taxonomy-create-row">
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="taxonomy-form-field">
+                <mat-label>Nueva categoria</mat-label>
+                <input matInput type="text" [(ngModel)]="categoryDraftName" />
+              </mat-form-field>
+              <button mat-flat-button type="button" (click)="saveCategory()">{{ categoryEditingId ? 'Guardar' : 'Crear' }}</button>
+              <button mat-stroked-button type="button" class="ghost" *ngIf="categoryEditingId" (click)="resetTaxonomyDrafts()">Cancelar</button>
+            </div>
+            <div class="taxonomy-list">
+              <article class="taxonomy-item" *ngFor="let category of categoryOptions" [class.active]="selectedTaxCategoryId === category.id">
+                <button type="button" class="taxonomy-item-main" (click)="selectTaxCategory(category.id)">
+                  <span class="taxonomy-item-title">{{ category.name }}</span>
+                  <span class="taxonomy-item-meta">Seleccionar categoria</span>
+                </button>
+                <div class="actions compact">
+                  <button mat-icon-button type="button" class="ghost icon-button" (click)="editCategory(category)" aria-label="Editar categoria">
+                    <fa-icon [icon]="faEdit"></fa-icon>
+                  </button>
+                  <button mat-icon-button type="button" class="danger icon-button" (click)="deleteCategory(category)" aria-label="Eliminar categoria">
+                    <fa-icon [icon]="faDelete"></fa-icon>
+                  </button>
+                </div>
+              </article>
+              <div class="empty-taxonomy-state" *ngIf="!categoryOptions.length">
+                Aun no hay categorias creadas.
+              </div>
+            </div>
+          </mat-card>
+
+          <mat-card class="taxonomy-card">
+            <div class="taxonomy-card-head">
+              <div>
+                <span class="taxonomy-section-icon"><fa-icon [icon]="faSitemap"></fa-icon></span>
+                <h4>Subcategorias</h4>
+                <p>Dependen de la categoria activa.</p>
+              </div>
+              <span class="taxonomy-badge">{{ categoryLabel(selectedTaxCategoryId) || 'Selecciona una categoria' }}</span>
+            </div>
+            <div class="taxonomy-create-row">
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="taxonomy-form-field">
+                <mat-label>Nueva subcategoria</mat-label>
+                <input matInput type="text" [(ngModel)]="subcategoryDraftName" [disabled]="!selectedTaxCategoryId" />
+              </mat-form-field>
+              <button mat-flat-button type="button" (click)="saveSubcategory()" [disabled]="!selectedTaxCategoryId">{{ subcategoryEditingId ? 'Guardar' : 'Crear' }}</button>
+              <button mat-stroked-button type="button" class="ghost" *ngIf="subcategoryEditingId" (click)="resetTaxonomyDrafts()">Cancelar</button>
+            </div>
+            <div class="taxonomy-list">
+              <article class="taxonomy-item" *ngFor="let subcategory of selectedTaxSubcategories" [class.active]="selectedTaxSubcategoryId === subcategory.id">
+                <button type="button" class="taxonomy-item-main" (click)="selectTaxSubcategory(subcategory.id)">
+                  <span class="taxonomy-item-title">{{ subcategory.name }}</span>
+                  <span class="taxonomy-item-meta">Subcategoria de {{ categoryLabel(selectedTaxCategoryId) || 'categoria' }}</span>
+                </button>
+                <div class="actions compact">
+                  <button mat-icon-button type="button" class="ghost icon-button" (click)="editSubcategory(subcategory)" aria-label="Editar subcategoria">
+                    <fa-icon [icon]="faEdit"></fa-icon>
+                  </button>
+                  <button mat-icon-button type="button" class="danger icon-button" (click)="deleteSubcategory(subcategory)" aria-label="Eliminar subcategoria">
+                    <fa-icon [icon]="faDelete"></fa-icon>
+                  </button>
+                </div>
+              </article>
+              <div class="empty-taxonomy-state" *ngIf="!selectedTaxSubcategories.length">
+                Selecciona una categoria para ver o crear subcategorias.
+              </div>
+            </div>
+          </mat-card>
+
+          <mat-card class="taxonomy-card">
+            <div class="taxonomy-card-head">
+              <div>
+                <span class="taxonomy-section-icon"><fa-icon [icon]="faFamily"></fa-icon></span>
+                <h4>Familias</h4>
+                <p>Ultimo nivel antes de definir atributos tecnicos.</p>
+              </div>
+              <span class="taxonomy-badge">{{ subcategoryLabel(selectedTaxSubcategoryId) || 'Selecciona una subcategoria' }}</span>
+            </div>
+            <div class="taxonomy-create-row">
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="taxonomy-form-field">
+                <mat-label>Nueva familia</mat-label>
+                <input matInput type="text" [(ngModel)]="familyDraftName" [disabled]="!selectedTaxSubcategoryId" />
+              </mat-form-field>
+              <button mat-flat-button type="button" (click)="saveFamily()" [disabled]="!selectedTaxSubcategoryId">{{ familyEditingId ? 'Guardar' : 'Crear' }}</button>
+              <button mat-stroked-button type="button" class="ghost" *ngIf="familyEditingId" (click)="resetTaxonomyDrafts()">Cancelar</button>
+            </div>
+            <div class="taxonomy-list">
+              <article class="taxonomy-item" *ngFor="let family of selectedTaxFamilies" [class.active]="selectedTaxFamilyId === family.id">
+                <button type="button" class="taxonomy-item-main" (click)="selectTaxFamily(family.id)">
+                  <span class="taxonomy-item-title">{{ family.name }}</span>
+                  <span class="taxonomy-item-meta">Familia dentro de {{ subcategoryLabel(selectedTaxSubcategoryId) || 'subcategoria' }}</span>
+                </button>
+                <div class="actions compact">
+                  <button mat-icon-button type="button" class="ghost icon-button" (click)="editFamily(family)" aria-label="Editar familia">
+                    <fa-icon [icon]="faEdit"></fa-icon>
+                  </button>
+                  <button mat-icon-button type="button" class="danger icon-button" (click)="deleteFamily(family)" aria-label="Eliminar familia">
+                    <fa-icon [icon]="faDelete"></fa-icon>
+                  </button>
+                </div>
+              </article>
+              <div class="empty-taxonomy-state" *ngIf="!selectedTaxFamilies.length">
+                Selecciona una subcategoria para ver o crear familias.
+              </div>
+            </div>
+          </mat-card>
+
+          <mat-card class="taxonomy-card taxonomy-card-wide">
+            <div class="taxonomy-card-head">
+              <div>
+                <span class="taxonomy-section-icon"><fa-icon [icon]="faAttribute"></fa-icon></span>
+                <h4>Atributos de familia</h4>
+                <p>Selecciona una familia, revisa sus atributos actuales y luego agrega o edita los que necesites.</p>
+              </div>
+              <span class="taxonomy-badge">{{ familyLabel(selectedTaxFamilyId) || 'Selecciona una familia' }}</span>
+            </div>
+            <div class="taxonomy-attribute-flow">
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="taxonomy-form-field field-span-2">
+                <mat-label>Familia seleccionada</mat-label>
+                <mat-select [ngModel]="selectedTaxFamilyId" (ngModelChange)="selectTaxFamily($event)" [disabled]="!selectedTaxFamilies.length">
+                  <mat-option value="">Selecciona una familia</mat-option>
+                  <mat-option *ngFor="let family of selectedTaxFamilies" [value]="family.id">{{ family.name }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <ng-container *ngIf="hasSelectedTaxFamily; else taxonomyFamilyRequired">
+                <section class="taxonomy-subpanel field-span-2">
+                  <div class="taxonomy-subpanel-head">
+                    <div>
+                      <h5>Atributos actuales</h5>
+                      <p>Estos son los atributos ya configurados para {{ familyLabel(selectedTaxFamilyId) }}.</p>
+                    </div>
+                    <span class="taxonomy-count">{{ selectedTaxDefinitions.length }}</span>
+                  </div>
+                  <mat-divider></mat-divider>
+                  <div class="table-wrap taxonomy-table-wrap">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Codigo</th>
+                          <th>Etiqueta</th>
+                          <th>Tipo</th>
+                          <th>Orden</th>
+                          <th>Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let definition of selectedTaxDefinitions">
+                          <td>{{ definition.codigo }}</td>
+                          <td>{{ definition.etiqueta }}</td>
+                          <td><span class="taxonomy-type-chip">{{ definition.tipoDato }}</span></td>
+                          <td>{{ definition.orden || '-' }}</td>
+                          <td class="actions compact">
+                            <button mat-icon-button type="button" class="ghost icon-button" (click)="editDefinition(definition)" aria-label="Editar atributo">
+                              <fa-icon [icon]="faEdit"></fa-icon>
+                            </button>
+                            <button mat-icon-button type="button" class="danger icon-button" (click)="deleteDefinition(definition)" aria-label="Eliminar atributo">
+                              <fa-icon [icon]="faDelete"></fa-icon>
+                            </button>
+                          </td>
+                        </tr>
+                        <tr *ngIf="!selectedTaxDefinitions.length">
+                          <td colspan="5" class="empty-taxonomy-table">Esta familia aun no tiene atributos configurados.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+
+                <section class="taxonomy-subpanel field-span-2">
+                  <div class="taxonomy-subpanel-head">
+                    <div>
+                      <h5>{{ definitionDraft.id ? 'Editar atributo' : 'Agregar atributo' }}</h5>
+                      <p>Completa la definicion tecnica que usaran los productos de esta familia.</p>
+                    </div>
+                  </div>
+                  <mat-divider></mat-divider>
+                  <div class="taxonomy-definition-form">
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="taxonomy-form-field">
+                      <mat-label>Codigo interno</mat-label>
+                      <input matInput type="text" [(ngModel)]="definitionDraft.codigo" [disabled]="!selectedTaxFamilyId" placeholder="diametro_mm" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="taxonomy-form-field">
+                      <mat-label>Etiqueta visible</mat-label>
+                      <input matInput type="text" [(ngModel)]="definitionDraft.etiqueta" [disabled]="!selectedTaxFamilyId" placeholder="Diametro" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="taxonomy-form-field">
+                      <mat-label>Tipo de dato</mat-label>
+                      <mat-select [(ngModel)]="definitionDraft.tipoDato" [disabled]="!selectedTaxFamilyId">
+                        <mat-option value="texto">Texto</mat-option>
+                        <mat-option value="numero">Numero</mat-option>
+                        <mat-option value="seleccion">Seleccion</mat-option>
+                        <mat-option value="booleano">Booleano</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="taxonomy-form-field">
+                      <mat-label>Orden de despliegue</mat-label>
+                      <input matInput type="number" min="1" [(ngModel)]="definitionDraft.orden" [disabled]="!selectedTaxFamilyId" placeholder="1" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="taxonomy-form-field field-span-2">
+                      <mat-label>Opciones</mat-label>
+                      <textarea matInput rows="3" [(ngModel)]="definitionDraft.opcionesTexto" [disabled]="!selectedTaxFamilyId || definitionDraft.tipoDato !== 'seleccion'" placeholder="Una opcion por linea"></textarea>
+                    </mat-form-field>
+                    <div class="taxonomy-check-grid field-span-2">
+                      <label class="taxonomy-check-card">
+                        <mat-checkbox [(ngModel)]="definitionDraft.esFiltrable" [disabled]="!selectedTaxFamilyId"></mat-checkbox>
+                        <span>
+                          <strong>Filtrable</strong>
+                          <small>Permite usar este atributo en filtros del catalogo.</small>
+                        </span>
+                      </label>
+                      <label class="taxonomy-check-card">
+                        <mat-checkbox [(ngModel)]="definitionDraft.esObligatorio" [disabled]="!selectedTaxFamilyId"></mat-checkbox>
+                        <span>
+                          <strong>Obligatorio</strong>
+                          <small>Se exigira al crear o editar productos de esta familia.</small>
+                        </span>
+                      </label>
+                    </div>
+                    <div class="actions field-span-2">
+                      <button mat-flat-button type="button" (click)="saveDefinition()" [disabled]="!selectedTaxFamilyId">{{ definitionDraft.id ? 'Guardar atributo' : 'Crear atributo' }}</button>
+                      <button mat-stroked-button type="button" class="ghost" *ngIf="definitionDraft.id" (click)="resetDefinitionDraft()">Cancelar</button>
+                    </div>
+                  </div>
+                </section>
+              </ng-container>
+
+              <ng-template #taxonomyFamilyRequired>
+                <div class="empty-taxonomy-state field-span-2">
+                  Primero selecciona una familia para cargar sus atributos y luego agregar nuevos.
+                </div>
+              </ng-template>
+            </div>
+          </mat-card>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'productos'">
+      <ng-container *ngIf="!masterDetailModalOpen; else masterProductEditor">
+        <div class="toolbar">
+          <label>
+            Categoria
+            <select [(ngModel)]="masterCategoryFilter" (ngModelChange)="onMasterCategoryFilterChange()">
+              <option value="">Todas</option>
+              <option *ngFor="let category of categoryOptions" [value]="category.id">{{ category.name }}</option>
+            </select>
+          </label>
+
+          <label>
+            Subcategoria
+            <select [(ngModel)]="masterSubcategoryFilter" (ngModelChange)="onMasterSubcategoryFilterChange()">
+              <option value="">Todas</option>
+              <option *ngFor="let subcategory of subcategoryOptions" [value]="subcategory.id">{{ subcategory.name }}</option>
+            </select>
+          </label>
+
+          <label>
+            Familia
+            <select [(ngModel)]="masterFamilyFilter">
+              <option value="">Todas</option>
+              <option *ngFor="let family of familyOptions" [value]="family.id">{{ family.name }}</option>
+            </select>
+          </label>
+
+          <label>
+            Buscar
+            <input type="text" [(ngModel)]="masterSearch" placeholder="Nombre, codigo de barra, SKU o marca" />
+          </label>
+
+          <button type="button" class="ghost" (click)="clearMasterFilters()">Limpiar filtros</button>
+        </div>
+
+        <div class="products-toolbar">
+          <p class="helper">Productos maestros encontrados: {{ filteredMasterCatalog.length }}</p>
+          <button type="button" (click)="openMasterProductCreate()">Nuevo producto maestro</button>
+          <button type="button" class="alert-button" (click)="goToSection('solicitudes')">
+            <span class="alert-icon">!</span>
+            Solicitudes pendientes ({{ pendingProductRequestsCount }})
+          </button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>SKU</th>
+                <th>Codigo barra</th>
+                <th>Taxonomia</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let product of filteredMasterCatalog">
+                <td>
+                  <strong>{{ product.name }}</strong>
+                  <p>{{ product.brand }}</p>
+                </td>
+                <td>{{ product.sku }}</td>
+                <td>{{ product.barcode || '-' }}</td>
+                <td>
+                  <p>{{ categoryLabel(product.categoryId) }}</p>
+                  <p>{{ subcategoryLabel(product.subcategoryId) }} · {{ familyLabel(product.familyId) }}</p>
+                </td>
+                <td class="actions">
+                  <button type="button" class="ghost icon-button" (click)="openMasterProductView(product)" aria-label="Ver detalle">👁</button>
+                  <button type="button" class="ghost icon-button" (click)="openMasterProductEdit(product)" aria-label="Editar producto">✏</button>
+                  <button type="button" class="danger icon-button" (click)="deleteMasterProduct(product)" aria-label="Eliminar producto">🗑</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="empty" *ngIf="filteredMasterCatalog.length === 0">No hay productos maestros para este filtro.</p>
+      </ng-container>
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'solicitudes'">
+      <ng-container *ngIf="!requestCreationModalOpen; else requestCreationEditor">
+        <div class="toolbar">
+          <label>
+            Estado
+            <select [(ngModel)]="validationStatusFilter">
+              <option value="pendiente">Pendientes</option>
+              <option value="aprobado">Aprobadas</option>
+              <option value="rechazado">Rechazadas</option>
+              <option value="all">Todas</option>
+            </select>
+          </label>
+
+          <label>
+            Tipo
+            <select [(ngModel)]="validationTypeFilter">
+              <option value="all">Todos</option>
+              <option value="posible_match">Posible match</option>
+              <option value="nuevo_producto">Nuevo producto</option>
+            </select>
+          </label>
+
+          <label>
+            Buscar
+            <input
+              type="text"
+              [(ngModel)]="validationSearch"
+              placeholder="Nombre, codigo, SKU o ferreteria"
+            />
+          </label>
+        </div>
+
+        <p class="helper">
+          Pendientes: {{ pendingRequestsCount }} | Resueltas: {{ resolvedRequestsCount }}
+        </p>
+
+        <article class="request-card" *ngFor="let request of validationRows">
+          <header>
+            <h4>{{ request.type === 'posible_match' ? 'Posible match' : 'Nuevo producto' }}</h4>
+            <span>{{ request.ownerLabel }}</span>
+          </header>
+
+          <p class="meta">
+            {{ request.row.name }} · Codigo de barra {{ request.row.barcode || 'Sin codigo' }} ·
+            Precio {{ formatCurrency(request.row.price) }} · Cantidad {{ request.row.stock }}
+          </p>
+
+          <div class="meta-grid">
+            <span><strong>SKU interno:</strong> {{ request.row.sku }}</span>
+            <span><strong>Marca:</strong> {{ request.row.brand }}</span>
+            <span><strong>Categoria:</strong> {{ categoryLabel(request.row.categoryId) }}</span>
+            <span><strong>Subcategoria:</strong> {{ subcategoryLabel(request.row.subcategoryId) }}</span>
+            <span><strong>Familia:</strong> {{ familyLabel(request.row.familyId) }}</span>
+          </div>
+
+          <section *ngIf="request.suggestions.length > 0">
+            <h5>Sugerencias de match</h5>
+            <label>
+              Producto sugerido
+              <select [(ngModel)]="selectedSuggestionByRequest[request.id]">
+                <option
+                  *ngFor="let suggestion of request.suggestions"
+                  [value]="suggestion.masterProductId"
+                >
+                  {{ suggestion.name }} | {{ suggestion.brand }} | Match {{ (suggestion.score * 100).toFixed(0) }}%
+                </option>
+              </select>
+            </label>
+          </section>
+
+          <label>
+            Nota admin
+            <textarea rows="2" [(ngModel)]="notesByRequest[request.id]" placeholder="Comentario opcional"></textarea>
+          </label>
+
+          <div class="actions">
+            <button
+              type="button"
+              *ngIf="request.status === 'pendiente' && request.suggestions.length > 0"
+              (click)="resolveAsMatch(request)"
+            >
+              Aprobar match
+            </button>
+            <button
+              type="button"
+              *ngIf="request.status === 'pendiente'"
+              (click)="resolveAsNew(request)"
+            >
+              {{ request.suggestions.length > 0 ? 'Forzar nuevo' : 'Aprobar nuevo' }}
+            </button>
+            <button
+              type="button"
+              class="ghost"
+              *ngIf="request.status === 'pendiente'"
+              (click)="openRequestCreationDetail(request)"
+            >
+              Completar ficha y crear
+            </button>
+            <button
+              type="button"
+              class="danger"
+              *ngIf="request.status === 'pendiente'"
+              (click)="rejectValidation(request)"
+            >
+              Rechazar
+            </button>
+            <span class="status-chip" [class.ok]="request.status === 'aprobado'" [class.bad]="request.status === 'rechazado'" *ngIf="request.status !== 'pendiente'">
+              {{ request.status === 'aprobado' ? 'Resuelta: aprobada' : 'Resuelta: rechazada' }}
+            </span>
+          </div>
+        </article>
+
+        <p class="empty" *ngIf="validationRows.length === 0">No hay solicitudes para este filtro.</p>
+      </ng-container>
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'lotes'">
+      <ng-container *ngIf="!reportModalOpen; else reportDetailInline">
+        <div class="toolbar">
+          <label>
+            Ferreteria
+            <select [(ngModel)]="reportOwnerFilter">
+              <option value="all">Todas</option>
+              <option *ngFor="let owner of reportOwnerOptions" [value]="owner.id">{{ owner.label }}</option>
+            </select>
+          </label>
+
+          <label>
+            Buscar lote
+            <input type="text" [(ngModel)]="reportSearch" placeholder="ID lote o ferreteria" />
+          </label>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Lote</th>
+                <th>Ferreteria</th>
+                <th>Filas</th>
+                <th>Subidos</th>
+                <th>Fallidos</th>
+                <th>Nuevos</th>
+                <th>Match</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let report of reportRows">
+                <td>{{ report.batchId }}</td>
+                <td>{{ report.ownerLabel }}</td>
+                <td>{{ report.totalRows }}</td>
+                <td>{{ report.uploadedCount }}</td>
+                <td>{{ report.failedCount }}</td>
+                <td>{{ report.pendingNewCount }}</td>
+                <td>{{ report.possibleMatchCount }}</td>
+                <td class="actions">
+                  <button type="button" class="ghost" (click)="openReport(report)">Ver detalle</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="empty" *ngIf="reportRows.length === 0">No hay lotes con el filtro seleccionado.</p>
+      </ng-container>
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'usuarios'">
+      <ng-container *ngIf="!userModalOpen; else userEditorInline">
+        <div class="toolbar">
+          <label>
+            Rol
+            <select [(ngModel)]="userRoleFilter">
+              <option value="all">Todos</option>
+              <option value="maestro">Maestro</option>
+              <option value="ferreteria">Ferreteria</option>
+              <option value="admin">Admin</option>
+            </select>
+          </label>
+
+          <label>
+            Estado
+            <select [(ngModel)]="userStatusFilter">
+              <option value="all">Todos</option>
+              <option value="activo">Activo</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="bloqueado">Bloqueado</option>
+            </select>
+          </label>
+
+          <label>
+            Buscar
+            <input type="text" [(ngModel)]="userSearch" placeholder="Nombre, correo, negocio" />
+          </label>
+
+          <button type="button" (click)="openUserCreate()">Nuevo usuario</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Correo</th>
+                <th>Nombre</th>
+                <th>Rol</th>
+                <th>Plan</th>
+                <th>Contacto</th>
+                <th>Ciudad</th>
+                <th>Comuna</th>
+                <th>Direccion</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let user of userRows">
+                <td>{{ user.email }}</td>
+                <td>{{ user.displayName }}</td>
+                <td>{{ roleLabel(user.role) }}</td>
+                <td>{{ planLabel(user.subscriptionPlan || 'basico') }}</td>
+                <td>{{ user.phone || '-' }}</td>
+                <td>{{ user.city || '-' }}</td>
+                <td>{{ user.commune || '-' }}</td>
+                <td>{{ user.address || '-' }}</td>
+                <td class="actions">
+                  <button type="button" class="ghost icon-button" (click)="openUserView(user)" aria-label="Ver usuario">👁</button>
+                  <button type="button" class="ghost icon-button" (click)="openUserEdit(user)" aria-label="Editar usuario">✏</button>
+                  <button type="button" class="danger icon-button" (click)="quickBlock(user)" aria-label="Bloquear usuario">⛔</button>
+                  <button type="button" class="danger icon-button" (click)="deleteUser(user)" aria-label="Eliminar usuario">🗑</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="empty" *ngIf="userRows.length === 0">No hay usuarios para este filtro.</p>
+      </ng-container>
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'operacion'">
+      <div class="stats-grid">
+        <section>
+          <h3>Inventario valorizado</h3>
+          <p>{{ formatCurrency(snapshot.totalInventoryValue) }}</p>
+        </section>
+        <section>
+          <h3>Productos publicados</h3>
+          <p>{{ snapshot.publishedCatalogProducts }}</p>
+        </section>
+        <section>
+          <h3>Stock bajo global</h3>
+          <p>{{ snapshot.lowStockProducts }}</p>
+        </section>
+        <section>
+          <h3>Cotizaciones pendientes</h3>
+          <p>{{ snapshot.pendingProjects }}</p>
+        </section>
+        <section>
+          <h3>Cotizaciones aceptadas</h3>
+          <p>{{ snapshot.acceptedProjects }}</p>
+        </section>
+        <section>
+          <h3>Cotizaciones rechazadas</h3>
+          <p>{{ snapshot.rejectedProjects }}</p>
+        </section>
+      </div>
+
+      <div class="split-grid">
+        <section class="card">
+          <h4>Ferreterias con mayor catalogo</h4>
+          <ul>
+            <li *ngFor="let store of snapshot.stores.slice(0, 6)">
+              <span>{{ store.ownerLabel }}</span>
+              <strong>{{ store.totalProducts }} productos</strong>
+              <small>Publicados {{ store.publishedProducts }} · Stock bajo {{ store.lowStockProducts }}</small>
+            </li>
+          </ul>
+        </section>
+
+        <section class="card">
+          <h4>Maestros con mas pendientes</h4>
+          <ul>
+            <li *ngFor="let maestro of snapshot.maestros.slice(0, 6)">
+              <span>{{ maestro.ownerLabel }}</span>
+              <strong>{{ maestro.pendingProjects }} pendientes</strong>
+              <small>Aceptadas {{ maestro.acceptedProjects }} · Rechazadas {{ maestro.rejectedProjects }}</small>
+            </li>
+          </ul>
+        </section>
+      </div>
+    </article>
+
+    <ng-template #masterProductEditor>
+      <section class="inline-editor">
+        <div class="inline-editor-head">
+          <div>
+            <h4>{{ masterDetailReadonly ? 'Detalle producto maestro' : (selectedMasterProduct ? 'Editar producto maestro' : 'Crear producto maestro') }}</h4>
+            <p>Completa o revisa la ficha completa del producto maestro sin salir del mantenedor.</p>
+          </div>
+          <div class="actions">
+            <button type="button" class="ghost" (click)="closeMasterProductModal()">Volver al listado</button>
+            <button type="button" *ngIf="!masterDetailReadonly" (click)="saveMasterProduct()">Guardar cambios</button>
+          </div>
+        </div>
+
+        <section class="request-modal inline-editor-body">
+          <div class="toolbar modal-form-grid">
+            <label>
+              Nombre
+              <input type="text" [(ngModel)]="masterDetailDraft.name" [disabled]="masterDetailReadonly" />
+            </label>
+            <label>
+              Marca
+              <input type="text" [(ngModel)]="masterDetailDraft.brand" [disabled]="masterDetailReadonly" />
+            </label>
+            <label>
+              Codigo barra
+              <input type="text" [(ngModel)]="masterDetailDraft.barcode" [disabled]="masterDetailReadonly" />
+            </label>
+            <label>
+              Tipo producto
+              <input type="text" [(ngModel)]="masterDetailDraft.productType" [disabled]="masterDetailReadonly" />
+            </label>
+
+            <label>
+              Categoria
+              <select [(ngModel)]="masterDetailDraft.categoryId" [disabled]="masterDetailReadonly" (ngModelChange)="onDraftCategoryChange()">
+                <option *ngFor="let category of categoryOptions" [value]="category.id">{{ category.name }}</option>
+              </select>
+            </label>
+            <label>
+              Subcategoria
+              <select [(ngModel)]="masterDetailDraft.subcategoryId" [disabled]="masterDetailReadonly" (ngModelChange)="onDraftSubcategoryChange()">
+                <option *ngFor="let subcategory of draftSubcategoryOptions" [value]="subcategory.id">{{ subcategory.name }}</option>
+              </select>
+            </label>
+            <label>
+              Familia
+              <select [(ngModel)]="masterDetailDraft.familyId" [disabled]="masterDetailReadonly">
+                <option *ngFor="let family of draftFamilyOptions" [value]="family.id">{{ family.name }}</option>
+              </select>
+            </label>
+            <label>
+              Unidad
+              <input type="text" [(ngModel)]="masterDetailDraft.unitLabel" [disabled]="masterDetailReadonly" />
+            </label>
+          </div>
+
+          <div class="toolbar modal-form-grid">
+            <label>
+              Presentacion
+              <input type="text" [(ngModel)]="masterDetailDraft.packagingLabel" [disabled]="masterDetailReadonly" />
+            </label>
+            <label>
+              Peso logistico (kg)
+              <input type="number" min="0" step="0.01" [(ngModel)]="masterDetailDraft.logisticsWeightKg" [disabled]="masterDetailReadonly" />
+            </label>
+            <label>
+              Volumen logistico (m3)
+              <input type="number" min="0" step="0.0001" [(ngModel)]="masterDetailDraft.logisticsVolumeM3" [disabled]="masterDetailReadonly" />
+            </label>
+            <label>
+              Unidades por pallet
+              <input type="number" min="0" step="1" [(ngModel)]="masterDetailDraft.logisticsPalletUnits" [disabled]="masterDetailReadonly" />
+            </label>
+          </div>
+
+          <label>
+            Descripcion corta
+            <textarea rows="2" [(ngModel)]="masterDetailDraft.shortDescription" [disabled]="masterDetailReadonly"></textarea>
+          </label>
+          <label>
+            Descripcion completa
+            <textarea rows="3" [(ngModel)]="masterDetailDraft.descriptionText" [disabled]="masterDetailReadonly"></textarea>
+          </label>
+          <label>
+            Imagen principal (URL)
+            <input type="text" [(ngModel)]="masterDetailDraft.imageUrl" [disabled]="masterDetailReadonly" />
+          </label>
+          <label>
+            Galeria (URLs separadas por coma o salto de linea)
+            <textarea rows="2" [(ngModel)]="masterDetailDraft.galleryText" [disabled]="masterDetailReadonly"></textarea>
+          </label>
+          <label>
+            Bullets (1 por linea)
+            <textarea rows="3" [(ngModel)]="masterDetailDraft.featureBulletsText" [disabled]="masterDetailReadonly"></textarea>
+          </label>
+
+          <section class="attribute-editor" *ngIf="masterAttributeDrafts.length > 0">
+            <h4>Atributos del producto</h4>
+            <div class="request-detail-form">
+              <ng-container *ngFor="let attribute of masterAttributeDrafts">
+                <label *ngIf="attribute.type === 'text'">
+                  {{ attribute.label }}
+                  <input type="text" [(ngModel)]="attribute.valueText" [disabled]="masterDetailReadonly" />
+                </label>
+                <label *ngIf="attribute.type === 'number'">
+                  {{ attribute.label }}
+                  <input type="number" [(ngModel)]="attribute.valueNumber" [disabled]="masterDetailReadonly" />
+                </label>
+                <label *ngIf="attribute.type === 'select'">
+                  {{ attribute.label }}
+                  <select [(ngModel)]="attribute.valueOption" [disabled]="masterDetailReadonly">
+                    <option value="">Selecciona</option>
+                    <option *ngFor="let option of attribute.options" [value]="option">{{ option }}</option>
+                  </select>
+                </label>
+                <label *ngIf="attribute.type === 'boolean'" class="checkbox-line">
+                  <input type="checkbox" [ngModel]="attribute.valueBoolean === true" (ngModelChange)="attribute.valueBoolean = $event" [disabled]="masterDetailReadonly" />
+                  {{ attribute.label }}
+                </label>
+              </ng-container>
+            </div>
+          </section>
+        </section>
+      </section>
+    </ng-template>
+
+    <ng-template #requestCreationEditor>
+      <section class="inline-editor">
+        <div class="inline-editor-head">
+          <div>
+            <h4>Completar solicitud de producto</h4>
+            <p *ngIf="selectedRequestForCreation as request">Solicitud de {{ request.ownerLabel }} para {{ request.row.name }}.</p>
+            <p *ngIf="!selectedRequestForCreation">Completa la ficha para crear el producto maestro.</p>
+          </div>
+          <div class="actions">
+            <button type="button" class="ghost" (click)="closeRequestCreationModal()">Volver a solicitudes</button>
+            <button type="button" (click)="createProductFromRequestDetail()">Crear producto maestro</button>
+          </div>
+        </div>
+
+        <section class="request-modal inline-editor-body">
+          <p class="helper">Completa ficha con variables logisticas, descripcion e imagenes para crear en catalogo maestro.</p>
+          <section class="request-detail-form">
+            <label>
+              Nombre
+              <input type="text" [(ngModel)]="masterDetailDraft.name" />
+            </label>
+            <label>
+              Marca
+              <input type="text" [(ngModel)]="masterDetailDraft.brand" />
+            </label>
+            <label>
+              Codigo barra
+              <input type="text" [(ngModel)]="masterDetailDraft.barcode" />
+            </label>
+            <label>
+              Tipo producto
+              <input type="text" [(ngModel)]="masterDetailDraft.productType" />
+            </label>
+            <label>
+              Categoria
+              <select [(ngModel)]="masterDetailDraft.categoryId" (ngModelChange)="onDraftCategoryChange()">
+                <option *ngFor="let category of categoryOptions" [value]="category.id">{{ category.name }}</option>
+              </select>
+            </label>
+            <label>
+              Subcategoria
+              <select [(ngModel)]="masterDetailDraft.subcategoryId" (ngModelChange)="onDraftSubcategoryChange()">
+                <option *ngFor="let subcategory of draftSubcategoryOptions" [value]="subcategory.id">{{ subcategory.name }}</option>
+              </select>
+            </label>
+            <label>
+              Familia
+              <select [(ngModel)]="masterDetailDraft.familyId">
+                <option *ngFor="let family of draftFamilyOptions" [value]="family.id">{{ family.name }}</option>
+              </select>
+            </label>
+            <label>
+              Unidad
+              <input type="text" [(ngModel)]="masterDetailDraft.unitLabel" />
+            </label>
+            <label>
+              Presentacion
+              <input type="text" [(ngModel)]="masterDetailDraft.packagingLabel" />
+            </label>
+            <label>
+              Peso logistico (kg)
+              <input type="number" min="0" step="0.01" [(ngModel)]="masterDetailDraft.logisticsWeightKg" />
+            </label>
+            <label>
+              Volumen logistico (m3)
+              <input type="number" min="0" step="0.0001" [(ngModel)]="masterDetailDraft.logisticsVolumeM3" />
+            </label>
+            <label>
+              Unidades por pallet
+              <input type="number" min="0" step="1" [(ngModel)]="masterDetailDraft.logisticsPalletUnits" />
+            </label>
+          </section>
+          <label>
+            Descripcion corta
+            <textarea rows="2" [(ngModel)]="masterDetailDraft.shortDescription"></textarea>
+          </label>
+          <label>
+            Descripcion completa
+            <textarea rows="3" [(ngModel)]="masterDetailDraft.descriptionText"></textarea>
+          </label>
+          <label>
+            Imagen principal (URL)
+            <input type="text" [(ngModel)]="masterDetailDraft.imageUrl" />
+          </label>
+          <label>
+            Galeria (URLs separadas por coma o salto de linea)
+            <textarea rows="2" [(ngModel)]="masterDetailDraft.galleryText"></textarea>
+          </label>
+          <label>
+            Bullets (1 por linea)
+            <textarea rows="3" [(ngModel)]="masterDetailDraft.featureBulletsText"></textarea>
+          </label>
+
+          <section class="attribute-editor" *ngIf="masterAttributeDrafts.length > 0">
+            <h4>Atributos del producto</h4>
+            <div class="request-detail-form">
+              <ng-container *ngFor="let attribute of masterAttributeDrafts">
+                <label *ngIf="attribute.type === 'text'">
+                  {{ attribute.label }}
+                  <input type="text" [(ngModel)]="attribute.valueText" />
+                </label>
+                <label *ngIf="attribute.type === 'number'">
+                  {{ attribute.label }}
+                  <input type="number" [(ngModel)]="attribute.valueNumber" />
+                </label>
+                <label *ngIf="attribute.type === 'select'">
+                  {{ attribute.label }}
+                  <select [(ngModel)]="attribute.valueOption">
+                    <option value="">Selecciona</option>
+                    <option *ngFor="let option of attribute.options" [value]="option">{{ option }}</option>
+                  </select>
+                </label>
+                <label *ngIf="attribute.type === 'boolean'" class="checkbox-line">
+                  <input type="checkbox" [ngModel]="attribute.valueBoolean === true" (ngModelChange)="attribute.valueBoolean = $event" />
+                  {{ attribute.label }}
+                </label>
+              </ng-container>
+            </div>
+          </section>
+        </section>
+      </section>
+    </ng-template>
+
+    <ng-template #reportDetailInline>
+      <section class="inline-editor" *ngIf="selectedReport as report">
+        <div class="inline-editor-head">
+          <div>
+            <h4>Detalle lote CSV</h4>
+            <p>{{ report.batchId }} · {{ report.ownerLabel }} · {{ report.totalRows }} fila(s)</p>
+          </div>
+          <div class="actions">
+            <button type="button" class="ghost" (click)="closeReportModal()">Volver a lotes</button>
+          </div>
+        </div>
+
+        <section class="report-modal inline-editor-body">
+          <div class="stats-grid modal-stats">
+            <section>
+              <h3>Subidos</h3>
+              <p>{{ report.uploadedCount }}</p>
+            </section>
+            <section>
+              <h3>Fallidos</h3>
+              <p>{{ report.failedCount }}</p>
+            </section>
+            <section>
+              <h3>Nuevos</h3>
+              <p>{{ report.pendingNewCount }}</p>
+            </section>
+          </div>
+
+          <section class="report-list" *ngIf="reportRowsByOutcome('fallido').length > 0">
+            <h5>Filas fallidas</h5>
+            <ul>
+              <li *ngFor="let row of reportRowsByOutcome('fallido')">{{ row.rawLine }} · {{ row.message }}</li>
+            </ul>
+          </section>
+
+          <section class="report-list" *ngIf="reportRowsByOutcome('posible_match').length > 0">
+            <h5>Posibles match</h5>
+            <ul>
+              <li *ngFor="let row of reportRowsByOutcome('posible_match')">{{ row.name }} · SKU {{ row.sku }}</li>
+            </ul>
+          </section>
+        </section>
+      </section>
+    </ng-template>
+
+    <ng-template #userEditorInline>
+      <section class="inline-editor">
+        <div class="inline-editor-head">
+          <div>
+            <h4>{{ userModalReadonly ? 'Detalle usuario' : (userModalDraft.isNew ? 'Crear usuario' : 'Editar usuario') }}</h4>
+            <p>Gestiona la cuenta, rol, plan y datos de contacto sin salir del panel de usuarios.</p>
+          </div>
+          <div class="actions">
+            <button type="button" class="ghost" (click)="closeUserModal()">Volver a usuarios</button>
+            <button type="button" *ngIf="!userModalReadonly" (click)="saveUserModal()">Guardar</button>
+          </div>
+        </div>
+
+        <section class="request-modal inline-editor-body">
+          <div class="request-detail-form">
+            <label>
+              Correo
+              <input type="email" [(ngModel)]="userModalDraft.email" [disabled]="!userModalDraft.isNew" />
+            </label>
+            <label *ngIf="userModalDraft.isNew">
+              Password
+              <input type="password" [(ngModel)]="userModalDraft.password" />
+            </label>
+            <label>
+              Nombre
+              <input type="text" [(ngModel)]="userModalDraft.displayName" [disabled]="userModalReadonly" />
+            </label>
+            <label>
+              Rol
+              <select [(ngModel)]="userModalDraft.role" [disabled]="userModalReadonly">
+                <option value="maestro">Maestro</option>
+                <option value="ferreteria">Ferreteria</option>
+                <option value="admin">Admin</option>
+              </select>
+            </label>
+            <label>
+              Plan
+              <select [(ngModel)]="userModalDraft.subscriptionPlan" [disabled]="userModalReadonly || userModalDraft.role === 'admin'">
+                <option value="basico">Basico</option>
+                <option value="pro">Pro</option>
+                <option value="premium">Premium</option>
+              </select>
+            </label>
+            <label>
+              Estado
+              <select [(ngModel)]="userModalDraft.accountStatus" [disabled]="userModalReadonly">
+                <option value="activo">Activo</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="bloqueado">Bloqueado</option>
+              </select>
+            </label>
+            <label *ngIf="userModalDraft.role === 'ferreteria'">
+              Nombre comercial
+              <input type="text" [(ngModel)]="userModalDraft.businessName" [disabled]="userModalReadonly && !userModalDraft.isNew" />
+            </label>
+            <label *ngIf="userModalDraft.role === 'ferreteria'">
+              RUT
+              <input type="text" [(ngModel)]="userModalDraft.rut" [disabled]="userModalReadonly && !userModalDraft.isNew" />
+            </label>
+            <label>
+              Contacto
+              <input type="text" [(ngModel)]="userModalDraft.phone" [disabled]="userModalReadonly" />
+            </label>
+            <label>
+              Ciudad
+              <input type="text" [(ngModel)]="userModalDraft.city" [disabled]="userModalReadonly" />
+            </label>
+            <label>
+              Comuna
+              <input type="text" [(ngModel)]="userModalDraft.commune" [disabled]="userModalReadonly" />
+            </label>
+            <label>
+              Direccion
+              <input type="text" [(ngModel)]="userModalDraft.address" [disabled]="userModalReadonly" />
+            </label>
+          </div>
+        </section>
+      </section>
+    </ng-template>
+  </section>
+</main>

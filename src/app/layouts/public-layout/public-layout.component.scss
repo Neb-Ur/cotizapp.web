@@ -1,0 +1,19 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.public-content {
+  min-height: calc(100vh - 76px);
+  position: relative;
+}
+
+.public-content::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), transparent 18%),
+    radial-gradient(circle at top center, rgba(230, 220, 199, 0.34), transparent 32%);
+}

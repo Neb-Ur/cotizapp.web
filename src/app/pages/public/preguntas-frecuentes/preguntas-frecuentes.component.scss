@@ -1,0 +1,88 @@
+:host {
+  display: block;
+}
+
+.faq-page {
+  width: min(1040px, calc(100% - 2rem));
+  margin: 1.2rem auto;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.hero,
+.faq-list,
+.help-card {
+  border-radius: 18px;
+  border: 1px solid var(--border-soft);
+  background: rgba(255, 255, 255, 0.94);
+  padding: 1.25rem;
+}
+
+.hero {
+  background: linear-gradient(132deg, rgba(69, 43, 17, 0.95), rgba(128, 89, 34, 0.88));
+  color: #fff;
+}
+
+.eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  opacity: 0.86;
+}
+
+h1,
+h2 {
+  margin: 0;
+}
+
+.hero h1 {
+  margin-top: 0.45rem;
+  font-size: clamp(1.5rem, 3.8vw, 2.2rem);
+}
+
+.hero p {
+  margin: 0.4rem 0 0;
+}
+
+.faq-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+details {
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  padding: 0.65rem 0.75rem;
+  background: #f8fbff;
+}
+
+summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--navy-900);
+}
+
+details p {
+  margin: 0.5rem 0 0;
+  color: var(--slate-700);
+  line-height: 1.5;
+}
+
+.help-card h2 {
+  color: var(--navy-900);
+}
+
+.help-card p {
+  margin: 0.4rem 0 0.75rem;
+  color: var(--slate-700);
+}
+
+.help-card a {
+  display: inline-flex;
+  border-radius: 10px;
+  background: var(--navy-800);
+  color: #fff;
+  padding: 0.5rem 0.85rem;
+  font-weight: 700;
+}

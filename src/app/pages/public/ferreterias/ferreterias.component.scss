@@ -1,0 +1,261 @@
+:host {
+  display: block;
+}
+
+.public-page {
+  background: var(--surface-0);
+}
+
+/* Hero */
+.pub-hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--ink-950);
+  padding: 5rem 2rem 4.5rem;
+  text-align: center;
+}
+
+.pub-hero-inner {
+  position: relative;
+  z-index: 2;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.pub-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.9rem;
+  border-radius: var(--r-full);
+  border: 1px solid rgba(16,185,129,0.4);
+  background: rgba(16,185,129,0.12);
+  color: var(--emerald);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 1.5rem;
+}
+
+.pub-hero h1 {
+  margin: 0 0 1rem;
+  font-size: clamp(1.9rem, 5vw, 3.2rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: #fff;
+  line-height: 1.12;
+}
+
+.pub-hero p {
+  margin: 0 auto 2rem;
+  max-width: 52ch;
+  font-size: 1.05rem;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.7;
+}
+
+.pub-hero-orb {
+  position: absolute;
+  inset: -100px;
+  background: radial-gradient(ellipse at 70% 50%, rgba(16,185,129,0.15) 0%, transparent 55%);
+  pointer-events: none;
+}
+
+/* Features */
+.pub-features {
+  padding: 4.5rem 2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.pub-features-inner {
+  max-width: 1060px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.feat-card {
+  padding: 1.75rem 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface-0);
+  transition: box-shadow var(--t-base), transform var(--t-base);
+}
+
+.feat-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.feat-num {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--emerald);
+  margin-bottom: 0.9rem;
+}
+
+.feat-card h2 {
+  margin: 0 0 0.55rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink-900);
+  letter-spacing: -0.02em;
+}
+
+.feat-card p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ink-500);
+  line-height: 1.6;
+}
+
+/* Pricing */
+.pub-pricing {
+  padding: 4.5rem 2rem;
+  background: var(--surface-1);
+}
+
+.pub-pricing-inner {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.pricing-card {
+  padding: 2rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  background: var(--surface-0);
+  box-shadow: var(--shadow-md);
+}
+
+.pricing-card h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink-900);
+}
+
+.pricing-card .price {
+  margin: 0.6rem 0 0.4rem;
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--ink-900);
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.pricing-card .price span {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--ink-400);
+}
+
+.pricing-card ul {
+  margin: 0.75rem 0 1.75rem;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pricing-card li {
+  font-size: 0.88rem;
+  color: var(--ink-700);
+  padding-left: 1.3rem;
+  position: relative;
+}
+
+.pricing-card li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--emerald);
+  font-weight: 700;
+}
+
+@media (max-width: 800px) {
+  .pub-features-inner {
+    grid-template-columns: 1fr;
+  }
+}
+
+.eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  opacity: 0.86;
+}
+
+.hero h1 {
+  margin: 0.45rem 0;
+  font-size: clamp(1.6rem, 4vw, 2.5rem);
+}
+
+.hero p {
+  margin: 0;
+  max-width: 70ch;
+  line-height: 1.6;
+}
+
+.cta {
+  margin-top: 1rem;
+  display: inline-flex;
+  border-radius: 12px;
+  padding: 0.6rem 1rem;
+  color: #fff;
+  background: var(--accent-orange);
+  font-weight: 700;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.card-grid section {
+  border: 1px solid var(--border-soft);
+  background: #f8fbff;
+  border-radius: 14px;
+  padding: 0.9rem;
+}
+
+.card-grid h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--navy-900);
+}
+
+.card-grid p {
+  margin: 0.45rem 0 0;
+  color: var(--slate-700);
+}
+
+.pricing h3 {
+  margin: 0;
+  color: var(--navy-900);
+}
+
+.price {
+  margin: 0.3rem 0;
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--navy-800);
+}
+
+.pricing ul {
+  margin: 0;
+  padding-left: 1rem;
+  color: var(--slate-700);
+  line-height: 1.5;
+}
+
+@media (max-width: 880px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,234 @@
+<main class="detail-page">
+  <header class="detail-header">
+    <button type="button" (click)="backToSearch()">Volver al buscador</button>
+    <a routerLink="/">Ir al sitio publico</a>
+  </header>
+
+  <article class="detail-card" *ngIf="detail as product; else noData">
+    <nav class="breadcrumb">
+      <span>{{ product.categoryName }}</span>
+      <span>{{ product.subcategoryName }}</span>
+      <span>{{ product.familyName }}</span>
+      <span>{{ product.productName }}</span>
+    </nav>
+
+    <section class="hero-grid">
+      <div class="gallery-panel">
+        <div class="main-image">
+          <img *ngIf="currentImageUrl" [src]="currentImageUrl" [alt]="product.productName" />
+          <span *ngIf="!currentImageUrl">Imagen del producto</span>
+        </div>
+        <div class="thumb-strip">
+          <button
+            *ngFor="let image of product.gallery; let i = index"
+            type="button"
+            [class.active]="i === selectedImageIndex"
+            (click)="selectImage(i)"
+          >
+            <img [src]="image" [alt]="product.productName + ' vista ' + (i + 1)" />
+          </button>
+        </div>
+      </div>
+
+      <aside class="purchase-panel">
+        <p class="brand">{{ product.brand }}</p>
+        <h1>{{ product.productName }}</h1>
+        <p class="sku">SKU {{ product.sku }}</p>
+        <p class="type">{{ product.productType }}</p>
+        <p class="price-range">
+          {{ formatCurrency(product.minPrice) }} - {{ formatCurrency(product.maxPrice) }}
+        </p>
+        <p class="best-price">
+          Mejor precio en <strong>{{ bestPriceStoreName }}</strong>
+        </p>
+        <div class="stock-chip">
+          Stock referencial: {{ product.stock }} {{ product.unitLabel.toLowerCase() }}
+        </div>
+
+        <section class="quick-stores">
+          <h3>Tiendas disponibles</h3>
+          <p class="quick-stores-hint">Selecciona cotizacion, tienda y cantidad para agregar el producto.</p>
+          <p class="quick-stores-hint">{{ displayStores.length }} ferreterias disponibles</p>
+
+          <label class="quantity-field">
+            Cotizacion destino
+            <select [ngModel]="selectedProjectId" (ngModelChange)="onProjectChange($event)">
+              <option value="">Selecciona una cotizacion</option>
+              <option *ngFor="let project of projects" [value]="project.id">
+                {{ project.name }}
+              </option>
+            </select>
+          </label>
+          <p class="stock-warning" *ngIf="!hasProjects">
+            No tienes cotizaciones pendientes. Ve a "Mis Cotizaciones" y crea una para continuar.
+          </p>
+
+          <div class="location-actions">
+            <button
+              type="button"
+              [class.active]="locationMode === 'user'"
+              (click)="useUserLocation()"
+            >
+              Usar tu locacion
+            </button>
+            <button
+              type="button"
+              [class.active]="locationMode === 'quotation'"
+              (click)="useQuotationLocation()"
+            >
+              Usar locacion de cotizacion
+            </button>
+          </div>
+          <p class="quick-stores-hint" *ngIf="locationNotice">{{ locationNotice }}</p>
+
+          <label class="quantity-field">
+            Ordenar por precio
+            <select [ngModel]="priceSort" (ngModelChange)="onPriceSortChange($event)">
+              <option value="price-asc">Menor a mayor</option>
+              <option value="price-desc">Mayor a menor</option>
+            </select>
+          </label>
+
+          <label class="quantity-field">
+            Cantidad ({{ quantityLabel.toLowerCase() }})
+            <input
+              type="number"
+              min="1"
+              [ngModel]="selectedQuantity"
+              (ngModelChange)="onQuantityChange($event)"
+            />
+          </label>
+
+          <article class="coverage-card" *ngIf="hasCoverageCalculator">
+            <h4>Calculadora de rendimiento</h4>
+            <p>{{ coverageDescription }}</p>
+            <div class="coverage-grid">
+              <label class="quantity-field">
+                Cantidad a cubrir ({{ product.coverageConfig?.quantityInputUnit }})
+                <input
+                  type="number"
+                  min="0"
+                  [ngModel]="coverQuantity"
+                  (ngModelChange)="onCoverQuantityChange($event)"
+                />
+              </label>
+
+              <label class="quantity-field" *ngIf="shouldAskDepthCm">
+                Profundidad (cm)
+                <input
+                  type="number"
+                  min="0"
+                  [ngModel]="coverDepthCm"
+                  (ngModelChange)="onDepthChange($event)"
+                />
+              </label>
+            </div>
+
+            <p class="coverage-result" *ngIf="neededPackagesByCoverage > 0">
+              Necesitas aprox. <strong>{{ neededPackagesByCoverage }} {{ quantityLabel.toLowerCase() }}</strong>.
+            </p>
+          </article>
+
+          <ul>
+            <li
+              *ngFor="let store of displayStores"
+              [class.selected]="store.storeName === selectedStoreName"
+              (click)="selectStore(store.storeName)"
+            >
+              <label class="store-select">
+                <input
+                  type="radio"
+                  name="store-selection"
+                  [value]="store.storeName"
+                  [ngModel]="selectedStoreName"
+                  (ngModelChange)="selectStore($event)"
+                />
+                <div>
+                  <p class="store-name">{{ store.storeName }}</p>
+                  <p class="store-stock">Stock: {{ store.stock }} {{ product.unitLabel.toLowerCase() }}</p>
+                  <p class="store-distance" *ngIf="showDistances">Distancia: {{ store.distanceKm | number: '1.1-1' }} km</p>
+                </div>
+              </label>
+              <p class="store-price">{{ formatCurrency(store.price) }}</p>
+            </li>
+          </ul>
+
+          <p class="selected-total" *ngIf="canShowAddToQuotation">
+            Total estimado: {{ formatCurrency(selectedTotal) }}
+          </p>
+          <p class="stock-warning" *ngIf="exceedsSelectedStock && selectedStore">
+            La cantidad supera el stock de {{ selectedStore.storeName }} (stock: {{ selectedStore.stock }}).
+          </p>
+          <p class="quick-stores-hint" *ngIf="selectedStore && !selectedProjectId">
+            Selecciona una cotizacion para habilitar el agregado.
+          </p>
+
+          <button type="button" class="add-quote-button" *ngIf="canShowAddToQuotation" (click)="addToQuotation()">
+            Agregar a cotizacion
+          </button>
+          <p class="quote-feedback" *ngIf="quoteFeedback">{{ quoteFeedback }}</p>
+        </section>
+      </aside>
+    </section>
+
+    <section class="tab-header">
+      <button type="button" [class.active]="activeTab === 'descripcion'" (click)="setTab('descripcion')">
+        Descripcion y especificaciones
+      </button>
+      <button type="button" [class.active]="activeTab === 'adicional'" (click)="setTab('adicional')">
+        Informacion adicional
+      </button>
+    </section>
+
+    <section class="content-grid" *ngIf="activeTab === 'descripcion'">
+      <article class="sheet-card">
+        <h2>Ficha tecnica</h2>
+        <table class="sheet-table">
+          <tbody>
+            <tr *ngFor="let row of product.technicalSheet">
+              <th>{{ row.label }}</th>
+              <td>{{ row.value }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="description-card">
+        <h2>Descripcion</h2>
+        <p class="intro">{{ product.shortDescription }}</p>
+        <div class="description-block" *ngFor="let block of product.descriptionBlocks">
+          <h3 *ngIf="block.title">{{ block.title }}</h3>
+          <p>{{ block.text }}</p>
+        </div>
+
+        <h3>Caracteristicas</h3>
+        <ul>
+          <li *ngFor="let feature of product.featureBullets">{{ feature }}</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="extra-sections" *ngIf="activeTab === 'adicional'">
+      <article class="extra-item" *ngFor="let section of product.extraSections">
+        <button type="button" class="extra-trigger" (click)="toggleExtraSection(section.id)">
+          <span>{{ section.title }}</span>
+          <span>{{ isExtraSectionOpen(section.id) ? '−' : '+' }}</span>
+        </button>
+        <div class="extra-content" *ngIf="isExtraSectionOpen(section.id)">
+          <ul>
+            <li *ngFor="let point of section.points">{{ point }}</li>
+          </ul>
+        </div>
+      </article>
+    </section>
+
+  </article>
+
+  <ng-template #noData>
+    <article class="detail-card">
+      <h1>No se encontro el producto</h1>
+      <p>Vuelve al buscador para seleccionar otro producto.</p>
+      <button type="button" (click)="backToSearch()">Volver</button>
+    </article>
+  </ng-template>
+</main>

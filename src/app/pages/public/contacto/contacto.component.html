@@ -1,0 +1,50 @@
+<section class="wrapper">
+  <article class="card">
+    <h1>Contacto</h1>
+    <p>Escribenos y te ayudamos con onboarding, soporte y activacion de cuenta.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label>
+        Nombre
+        <input formControlName="name" type="text" placeholder="Tu nombre" />
+        <small *ngIf="hasError('name')">Ingresa al menos 2 caracteres.</small>
+      </label>
+
+      <label>
+        Email
+        <input formControlName="email" type="email" placeholder="correo@dominio.com" />
+        <small *ngIf="hasError('email')">Correo invalido.</small>
+      </label>
+
+      <label>
+        Tipo
+        <select formControlName="type">
+          <option>Maestro</option>
+          <option>Ferreteria</option>
+          <option>Otro</option>
+        </select>
+      </label>
+
+      <label>
+        Mensaje
+        <textarea formControlName="message" rows="5" placeholder="Cuentanos en que te ayudamos"></textarea>
+        <small *ngIf="hasError('message')">Describe tu solicitud en al menos 8 caracteres.</small>
+      </label>
+
+      <button type="submit">Enviar</button>
+    </form>
+
+    <p class="success" *ngIf="sent">Mensaje enviado. Te responderemos a la brevedad.</p>
+  </article>
+
+  <article class="card info">
+    <h2>Canales directos</h2>
+    <p><strong>Email soporte:</strong> soporte&#64;construcomparador.cl</p>
+    <p><strong>WhatsApp:</strong> +56 9 5555 8888</p>
+    <p><strong>Horario:</strong> Lunes a Viernes de 09:00 a 18:00</p>
+    <p><strong>Base legal:</strong></p>
+    <p><a routerLink="/terminos-condiciones">Terminos y condiciones</a></p>
+    <p><a routerLink="/privacidad">Politica de privacidad</a></p>
+    <p><a routerLink="/preguntas-frecuentes">Preguntas frecuentes</a></p>
+  </article>
+</section>

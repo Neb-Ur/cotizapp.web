@@ -1,0 +1,57 @@
+:host {
+  display: block;
+}
+
+.legal-page {
+  width: min(1040px, calc(100% - 2rem));
+  margin: 1.2rem auto;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.hero,
+.content-card {
+  border-radius: 18px;
+  border: 1px solid var(--border-soft);
+  background: rgba(255, 255, 255, 0.94);
+  padding: 1.25rem;
+}
+
+.hero {
+  background: linear-gradient(132deg, rgba(33, 49, 76, 0.95), rgba(58, 82, 121, 0.9));
+  color: #fff;
+}
+
+.eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  opacity: 0.86;
+}
+
+h1 {
+  margin: 0.45rem 0;
+  font-size: clamp(1.5rem, 3.6vw, 2.2rem);
+}
+
+h2 {
+  margin: 0;
+  color: var(--navy-900);
+}
+
+.content-card section + section {
+  margin-top: 1rem;
+}
+
+.content-card p {
+  margin: 0.45rem 0 0;
+  line-height: 1.55;
+  color: var(--slate-700);
+}
+
+.updated {
+  margin: 0;
+  color: var(--slate-600);
+  font-size: 0.9rem;
+}

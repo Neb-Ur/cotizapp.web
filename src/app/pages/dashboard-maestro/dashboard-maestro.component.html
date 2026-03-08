@@ -1,0 +1,542 @@
+<main class="dashboard">
+  <app-dashboard-menu
+    title="Panel Maestro"
+    [userName]="user?.displayName || ''"
+    [sections]="sections"
+    [activeSection]="currentSection"
+    [isMobileViewport]="isMobileViewport"
+    [isMobileOpen]="isMobileMenuVisible"
+    (sectionSelected)="setSection($any($event))"
+    (menuClosed)="closeMobileMenu()"
+    (logoutRequested)="logout()"
+  />
+
+  <section class="content">
+    <header class="content-header">
+      <div class="title-row">
+        <button
+          *ngIf="isMobileViewport"
+          type="button"
+          class="menu-toggle menu-icon"
+          (click)="toggleMobileMenu()"
+          aria-label="Abrir menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div>
+          <h1>{{ currentSectionLabel }}</h1>
+          <p>{{ currentSectionDescription }}</p>
+        </div>
+      </div>
+    </header>
+
+    <article class="panel panel--loading" *ngIf="isInitialLoading || isSectionLoading">
+      <app-ui-loader [label]="isInitialLoading ? 'Cargando inicio del maestro...' : 'Cargando seccion...'" />
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'inicio'">
+      <div class="stats-grid">
+        <section>
+          <h3>Cotizaciones activas</h3>
+          <p>{{ activeProjects }}</p>
+        </section>
+        <section>
+          <h3>Ahorro estimado</h3>
+          <p>{{ formatCurrency(estimatedSaving) }}</p>
+        </section>
+        <section>
+          <h3>Busquedas frecuentes</h3>
+          <ul>
+            <li *ngFor="let term of topSearches">{{ term }}</li>
+          </ul>
+        </section>
+      </div>
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'buscar'">
+      <div class="filters-grid">
+        <label>
+          Categoria
+          <input
+            list="category-options"
+            [(ngModel)]="categorySearch"
+            (ngModelChange)="onCategoryInput($event)"
+            type="text"
+            placeholder="Selecciona una categoria"
+          />
+          <datalist id="category-options">
+            <option *ngFor="let option of categoryOptions" [value]="option.name"></option>
+          </datalist>
+        </label>
+
+        <label>
+          Subcategoria
+          <input
+            list="subcategory-options"
+            [(ngModel)]="subcategorySearch"
+            (ngModelChange)="onSubcategoryInput($event)"
+            type="text"
+            [disabled]="!selectedCategoryId"
+            placeholder="Selecciona una subcategoria"
+          />
+          <datalist id="subcategory-options">
+            <option *ngFor="let option of subcategoryOptions" [value]="option.name"></option>
+          </datalist>
+        </label>
+
+        <label>
+          Familia
+          <input
+            list="family-options"
+            [(ngModel)]="familySearch"
+            (ngModelChange)="onFamilyInput($event)"
+            type="text"
+            [disabled]="!selectedSubcategoryId"
+            placeholder="Selecciona una familia"
+          />
+          <datalist id="family-options">
+            <option *ngFor="let option of familyOptions" [value]="option.name"></option>
+          </datalist>
+        </label>
+
+        <div class="filters-actions">
+          <button type="button" (click)="clearSearchFilters()">Limpiar filtros</button>
+        </div>
+      </div>
+
+      <label class="top-product-search">
+        Buscar producto
+        <input
+          [(ngModel)]="tableProductSearch"
+          (ngModelChange)="onTableFilterChange()"
+          type="text"
+          placeholder="Ej: sabana, king, algodon"
+        />
+      </label>
+
+      <div class="active-filters">
+        <span *ngIf="selectedCategoryId">Categoria: {{ selectedCategoryName }}</span>
+        <span *ngIf="selectedSubcategoryId">Subcategoria: {{ selectedSubcategoryName }}</span>
+        <span *ngIf="selectedFamilyId">Familia: {{ selectedFamilyName }}</span>
+        <span *ngIf="!selectedCategoryId && !selectedSubcategoryId && !selectedFamilyId">Sin filtros jerarquicos aplicados</span>
+      </div>
+
+      <p class="table-context">{{ productTableTitle }}</p>
+      <p class="project-pick-context" *ngIf="isPickingProductForProject">
+        Estas agregando productos a tu cotizacion. Selecciona un producto y usa "Agregar a la cotizacion".
+      </p>
+
+      <div class="filter-toggle-bar" *ngIf="showProductFilterPanel">
+        <button type="button" (click)="toggleProductFilters()">
+          {{ productFiltersOpen ? 'Ocultar filtros' : 'Ver filtros' }}
+        </button>
+      </div>
+
+      <div class="results-layout" [class.with-sidebar]="showOpenedProductFilterPanel">
+        <aside class="table-filter-panel" *ngIf="showOpenedProductFilterPanel">
+          <header>
+            <h3>Filtros de productos</h3>
+            <p>Selecciona opciones simples para encontrar rapido.</p>
+          </header>
+
+          <section class="filter-group">
+            <button type="button" class="filter-toggle" (click)="toggleFilterSection('brand')">
+              <span>Marca</span>
+              <span>{{ filterSectionOpen.brand ? '▾' : '▸' }}</span>
+            </button>
+
+            <div class="filter-body" *ngIf="filterSectionOpen.brand">
+              <input
+                [(ngModel)]="brandSearch"
+                (ngModelChange)="onTableFilterChange()"
+                type="text"
+                placeholder="Buscar marca..."
+              />
+
+              <label class="check-row" *ngFor="let option of visibleBrandOptions">
+                <input
+                  type="checkbox"
+                  [ngModel]="selectedBrands.includes(option.value)"
+                  (ngModelChange)="toggleBrand(option.value, $event)"
+                />
+                <span>{{ option.value }} ({{ option.count }})</span>
+              </label>
+
+              <button
+                *ngIf="brandOptions.length > 5"
+                type="button"
+                class="show-more"
+                (click)="setShowAllBrands(!showAllBrands)"
+              >
+                {{ showAllBrands ? 'Mostrar menos' : 'Mostrar mas' }}
+              </button>
+            </div>
+          </section>
+
+          <section class="filter-group">
+            <button type="button" class="filter-toggle" (click)="toggleFilterSection('seller')">
+              <span>Vendido por</span>
+              <span>{{ filterSectionOpen.seller ? '▾' : '▸' }}</span>
+            </button>
+
+            <div class="filter-body" *ngIf="filterSectionOpen.seller">
+              <label class="check-row" *ngFor="let option of sellerOptions">
+                <input
+                  type="checkbox"
+                  [ngModel]="selectedSellers.includes(option.value)"
+                  (ngModelChange)="toggleSeller(option.value, $event)"
+                />
+                <span>{{ option.value }} ({{ option.count }})</span>
+              </label>
+            </div>
+          </section>
+
+          <section class="filter-group">
+            <button type="button" class="filter-toggle" (click)="toggleFilterSection('price')">
+              <span>Precio</span>
+              <span>{{ filterSectionOpen.price ? '▾' : '▸' }}</span>
+            </button>
+
+            <div class="filter-body" *ngIf="filterSectionOpen.price">
+              <label class="check-row" *ngFor="let option of priceRanges">
+                <input
+                  type="checkbox"
+                  [ngModel]="selectedPriceRanges.includes(option.id)"
+                  (ngModelChange)="togglePriceRange(option.id, $event)"
+                />
+                <span>{{ option.label }}</span>
+              </label>
+            </div>
+          </section>
+
+          <section class="filter-group">
+            <button type="button" class="filter-toggle" (click)="toggleFilterSection('type')">
+              <span>Tipo de producto</span>
+              <span>{{ filterSectionOpen.type ? '▾' : '▸' }}</span>
+            </button>
+
+            <div class="filter-body" *ngIf="filterSectionOpen.type">
+              <label class="check-row" *ngFor="let option of visibleProductTypeOptions">
+                <input
+                  type="checkbox"
+                  [ngModel]="selectedProductTypes.includes(option.value)"
+                  (ngModelChange)="toggleProductType(option.value, $event)"
+                />
+                <span>{{ option.value }} ({{ option.count }})</span>
+              </label>
+
+              <button
+                *ngIf="productTypeOptions.length > 5"
+                type="button"
+                class="show-more"
+                (click)="setShowAllTypes(!showAllTypes)"
+              >
+                {{ showAllTypes ? 'Mostrar menos' : 'Mostrar mas' }}
+              </button>
+            </div>
+          </section>
+
+          <button type="button" class="clear-product-filters" (click)="clearProductFilters()">
+            Limpiar filtros de productos
+          </button>
+        </aside>
+
+        <div>
+          <div class="product-cards" *ngIf="filteredFamilyProducts.length > 0; else emptyCards">
+            <article class="product-card" *ngFor="let row of paginatedFamilyProducts">
+              <div class="product-main">
+                <div class="product-image-slot">
+                  <img *ngIf="row.imageUrl" [src]="row.imageUrl" [alt]="row.productName" />
+                  <span *ngIf="!row.imageUrl">Imagen</span>
+                </div>
+
+                <div class="product-text">
+                  <h4>{{ row.productName }}</h4>
+                  <p><strong>Marca:</strong> {{ row.brand }}</p>
+                  <p><strong>Tipo:</strong> {{ row.productType }}</p>
+                </div>
+              </div>
+
+              <div class="product-meta">
+                <p class="price-range">{{ formatCurrency(row.minPrice) }} - {{ formatCurrency(row.maxPrice) }}</p>
+                <p>Disponible en {{ row.storeCount }} ferreterias</p>
+              </div>
+
+              <div class="product-card-actions">
+                <button type="button" class="details-button" (click)="viewProductDetails(row.productName)">Ver detalles</button>
+                <button
+                  type="button"
+                  class="add-project-button"
+                  *ngIf="isPickingProductForProject"
+                  (click)="addProductToProject(row.productName)"
+                >
+                  Agregar a la cotizacion
+                </button>
+              </div>
+            </article>
+          </div>
+
+          <ng-template #emptyCards>
+            <p class="cards-empty">{{ emptyProductTableMessage }}</p>
+          </ng-template>
+
+          <div class="table-pagination" *ngIf="filteredFamilyProducts.length > 0">
+            <p>
+              Mostrando {{ pageStart }} - {{ pageEnd }} de {{ filteredFamilyProducts.length }}
+            </p>
+            <div class="pager-actions">
+              <label class="rows-select">
+                Filas
+                <select [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange($event)">
+                  <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+                </select>
+              </label>
+              <button type="button" (click)="previousPage()" [disabled]="currentPage === 1">Anterior</button>
+              <button
+                type="button"
+                *ngFor="let page of pageNumbers"
+                [class.active]="page === currentPage"
+                (click)="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+              <button type="button" (click)="nextPage()" [disabled]="currentPage === totalPages">Siguiente</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'cotizaciones'">
+      <div class="projects-topbar">
+        <div>
+          <h3>Mis cotizaciones pendientes</h3>
+          <p style="margin: 0.25rem 0 0; color: #4a5568;">{{ pendingQuotaText }}</p>
+        </div>
+        <button type="button" (click)="goToNewProject()">Agregar cotizacion</button>
+      </div>
+      <p *ngIf="quotationNotice" style="margin: 0.45rem 0 0; color: #9b1f1f; font-weight: 700;">{{ quotationNotice }}</p>
+
+      <section class="projects-table-section">
+        <div class="table-wrap" *ngIf="pendingProjects.length > 0; else emptyProjectsCrud">
+          <table>
+            <thead>
+              <tr>
+                <th>Cotizacion</th>
+                <th>Fecha</th>
+                <th>Items</th>
+                <th>Total optimo</th>
+                <th>Ahorro</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let project of pendingProjects">
+                <td>{{ project.name }}</td>
+                <td>{{ project.createdAt | date: 'short' }}</td>
+                <td>{{ project.items.length }}</td>
+                <td>{{ formatCurrency(project.totalOptimal) }}</td>
+                <td>{{ formatCurrency(project.saving) }}</td>
+                <td>
+                  <div class="row-actions">
+                    <button type="button" class="secondary" (click)="goToProjectDetail(project.id)">Ver detalle</button>
+                    <button type="button" class="danger" (click)="deleteProject(project.id)">Eliminar</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <ng-template #emptyProjectsCrud>
+          <p>No tienes cotizaciones pendientes.</p>
+        </ng-template>
+      </section>
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'historial'">
+      <h3>Historial de cotizaciones</h3>
+
+      <div *ngIf="!canAccessHistory" style="border: 1px solid #ffd29c; background: #fff7ec; border-radius: 12px; padding: 0.75rem;">
+        <p style="margin: 0; color: #8b4a00; font-weight: 700;">
+          Tu {{ currentPlanView.title }} no incluye historial. Cambia a Plan Pro o Premium para habilitarlo.
+        </p>
+      </div>
+
+      <div class="history-grid" *ngIf="canAccessHistory && completedProjects.length > 0; else emptyHistory">
+        <article *ngFor="let project of completedProjects">
+          <h4>{{ project.name }}</h4>
+          <p>{{ project.createdAt | date: 'short' }}</p>
+          <p>
+            Estado:
+            <strong [style.color]="project.status === 'aceptada' ? '#17613f' : '#9b1f1f'">
+              {{ projectStatusLabel(project.status) }}
+            </strong>
+          </p>
+          <p>Cierre: {{ project.statusUpdatedAt | date: 'short' }}</p>
+          <p>Items: {{ project.items.length }}</p>
+          <p>Total optimo: {{ formatCurrency(project.totalOptimal) }}</p>
+          <p>Ahorro: {{ formatCurrency(project.saving) }}</p>
+          <div class="row-actions" style="margin-top: 0.5rem;">
+            <button type="button" class="secondary" (click)="goToProjectDetail(project.id)">Ver detalle</button>
+          </div>
+        </article>
+      </div>
+
+      <ng-template #emptyHistory>
+        <p *ngIf="canAccessHistory">Aun no tienes cotizaciones aceptadas o rechazadas.</p>
+      </ng-template>
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'perfil'">
+      <div class="profile-header">
+        <div>
+          <h3>Perfil Maestro</h3>
+          <p>Datos para validacion interna, contacto y operacion del sistema.</p>
+        </div>
+        <p class="profile-status" [class.complete]="completedProfileRequiredFields === requiredProfileFieldCount">
+          Validacion base: {{ completedProfileRequiredFields }}/{{ requiredProfileFieldCount }}
+        </p>
+      </div>
+
+      <div class="profile-grid">
+        <section class="profile-card">
+          <h4>Identidad profesional</h4>
+          <label>
+            Nombre
+            <input [(ngModel)]="profileDraft.displayName" type="text" placeholder="Ej: Juan Perez Soto" />
+          </label>
+          <label>
+            RUT
+            <input [value]="profileDraft.rut || 'Sin RUT registrado'" type="text" disabled />
+          </label>
+          <label>
+            Especialidad principal
+            <input [(ngModel)]="profileDraft.specialty" type="text" placeholder="Ej: Obra gruesa, electricidad" />
+          </label>
+        </section>
+
+        <section class="profile-card">
+          <h4>Contacto</h4>
+          <label>
+            Correo de acceso
+            <input [value]="user?.email || ''" type="text" disabled />
+          </label>
+          <label>
+            Telefono principal
+            <input [(ngModel)]="profileDraft.phone" type="text" placeholder="Ej: +56 9 1234 5678" />
+          </label>
+          <label>
+            Telefono secundario
+            <input [(ngModel)]="profileDraft.secondaryPhone" type="text" placeholder="Opcional" />
+          </label>
+          <label>
+            Metodo preferido de contacto
+            <select [(ngModel)]="profileDraft.preferredContactMethod">
+              <option *ngFor="let method of profileContactMethods" [value]="method.id">{{ method.label }}</option>
+            </select>
+          </label>
+        </section>
+
+        <section class="profile-card">
+          <h4>Ubicacion base</h4>
+          <label>
+            Ciudad
+            <input [(ngModel)]="profileDraft.city" type="text" placeholder="Ej: Santiago" />
+          </label>
+          <label>
+            Comuna
+            <input [(ngModel)]="profileDraft.commune" type="text" placeholder="Ej: Maipu" />
+          </label>
+          <label>
+            Direccion base
+            <input [(ngModel)]="profileDraft.address" type="text" placeholder="Ej: Av. Central 1234" />
+          </label>
+        </section>
+      </div>
+
+      <div class="profile-actions">
+        <button type="button" (click)="saveProfile()">Guardar cambios</button>
+        <button type="button" class="secondary" (click)="resetProfileDraft()">Restaurar datos actuales</button>
+      </div>
+      <p class="saved" *ngIf="profileSaved">Perfil actualizado.</p>
+      <p class="profile-error" *ngIf="profileError" style="color: #9b1f1f; font-weight: 700;">{{ profileError }}</p>
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'suscripcion'">
+      <div class="subscription-shell">
+        <div class="subscription-overview">
+          <div>
+            <p class="subscription-overview__eyebrow">Suscripcion activa</p>
+            <h3 class="subscription-overview__title">{{ currentPlanView.title }}</h3>
+          </div>
+          <div class="subscription-overview__meta">
+            <span class="subscription-overview__pill">Estado activo</span>
+            <p>{{ currentPlanView.maxPendingLabel }}</p>
+          </div>
+        </div>
+
+        <div
+          class="subscription-grid"
+          [style.gridTemplateColumns]="isMobileViewport ? '1fr' : 'repeat(3, minmax(0, 1fr))'"
+        >
+          <article
+            *ngFor="let plan of subscriptionPlans"
+            class="plan-card"
+            [class.is-current]="currentSubscriptionPlan === plan.id"
+            [class.is-featured]="plan.id === 'pro'"
+            [class.is-premium]="plan.id === 'premium'"
+          >
+            <div class="plan-card__glow"></div>
+
+            <div class="plan-card__head">
+              <div>
+                <p class="plan-card__eyebrow" *ngIf="plan.id === 'pro'; else maestroPlanTier">Recomendado</p>
+                <ng-template #maestroPlanTier>
+                  <p class="plan-card__eyebrow">{{ plan.id === 'premium' ? 'Escala total' : 'Entrada' }}</p>
+                </ng-template>
+                <h4>{{ plan.title }}</h4>
+              </div>
+
+              <span class="plan-card__badge" *ngIf="currentSubscriptionPlan === plan.id">
+                Actual
+              </span>
+            </div>
+
+            <p class="plan-card__price">{{ plan.priceLabel }}</p>
+            <p class="plan-card__description">{{ plan.description }}</p>
+
+            <div class="plan-card__features">
+              <p class="plan-card__feature plan-card__feature--strong">{{ plan.maxPendingLabel }}</p>
+              <p class="plan-card__feature">
+                Historial
+                <strong>{{ plan.hasHistory ? 'Incluido' : 'No incluido' }}</strong>
+              </p>
+              <p class="plan-card__feature">
+                Comparacion
+                <strong>{{ plan.hasHistory ? 'Completa' : 'Basica' }}</strong>
+              </p>
+            </div>
+
+            <div class="plan-card__footer">
+              <button
+                type="button"
+                class="plan-card__action"
+                [class.is-disabled]="currentSubscriptionPlan === plan.id"
+                [disabled]="currentSubscriptionPlan === plan.id"
+                (click)="changeSubscriptionPlan(plan.id)"
+              >
+                {{ currentSubscriptionPlan === plan.id ? 'Plan actual' : 'Cambiar plan' }}
+              </button>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <p class="saved" *ngIf="subscriptionNotice">{{ subscriptionNotice }}</p>
+    </article>
+  </section>
+</main>

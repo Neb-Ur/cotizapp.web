@@ -1,0 +1,47 @@
+:host {
+  display: block;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(7, 21, 39, 0.45);
+  z-index: 100;
+  padding: 1rem;
+}
+
+.dialog {
+  width: min(560px, 100%);
+  border-radius: 16px;
+  border: 1px solid var(--border-soft);
+  background: #fff;
+  overflow: hidden;
+}
+
+header {
+  padding: 0.8rem 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+h3 {
+  margin: 0;
+  color: var(--navy-900);
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  background: var(--navy-800);
+  color: #fff;
+  font-weight: 600;
+}
+
+.content {
+  padding: 0.9rem;
+}

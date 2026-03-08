@@ -1,0 +1,115 @@
+[debug] [2026-03-05T21:34:40.510Z] ----------------------------------------------------------------------
+[debug] [2026-03-05T21:34:40.510Z] ----------------------------------------------------------------------
+[debug] [2026-03-05T21:34:40.512Z] Command:       /usr/local/lib/node_modules/firebase-tools/lib/bin/firebase.js /Users/rabenavidess/.cache/firebase/tools/lib/node_modules/firebase-tools/lib/bin/firebase projects:list --json
+[debug] [2026-03-05T21:34:40.513Z] CLI Version:   13.10.2
+[debug] [2026-03-05T21:34:40.513Z] Platform:      darwin
+[debug] [2026-03-05T21:34:40.513Z] Node Version:  v18.5.0
+[debug] [2026-03-05T21:34:40.515Z] Time:          Thu Mar 05 2026 18:34:40 GMT-0300 (Chile Summer Time)
+[debug] [2026-03-05T21:34:40.515Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-03-05T21:34:40.519Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-03-05T21:34:40.656Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-03-05T21:34:40.656Z] > authorizing via signed-in user (rubenandres462@gmail.com)
+[debug] [2026-03-05T21:34:40.659Z] > refreshing access token with scopes: []
+[debug] [2026-03-05T21:34:40.661Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-03-05T21:34:40.661Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-03-05T21:34:40.512Z] Command:       /usr/local/lib/node_modules/firebase-tools/lib/bin/firebase.js /Users/rabenavidess/.cache/firebase/tools/lib/node_modules/firebase-tools/lib/bin/firebase apps:list WEB --project cotizacion-77802 --json
+[debug] [2026-03-05T21:34:40.513Z] CLI Version:   13.10.2
+[debug] [2026-03-05T21:34:40.513Z] Platform:      darwin
+[debug] [2026-03-05T21:34:40.513Z] Node Version:  v18.5.0
+[debug] [2026-03-05T21:34:40.515Z] Time:          Thu Mar 05 2026 18:34:40 GMT-0300 (Chile Summer Time)
+[debug] [2026-03-05T21:34:40.515Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-03-05T21:34:40.519Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-03-05T21:34:40.656Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-03-05T21:34:40.656Z] > authorizing via signed-in user (rubenandres462@gmail.com)
+[debug] [2026-03-05T21:34:40.659Z] > refreshing access token with scopes: []
+[debug] [2026-03-05T21:34:40.661Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-03-05T21:34:40.661Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-03-05T21:34:40.738Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-03-05T21:34:40.740Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-03-05T21:34:40.738Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-03-05T21:34:40.797Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/cotizacion-77802/webApps pageSize=100
+[debug] [2026-03-05T21:34:40.741Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-03-05T21:34:40.818Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2026-03-05T21:34:41.072Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2026-03-05T21:34:41.090Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2026-03-05T21:34:41.072Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2026-03-05T21:34:41.090Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2026-03-05T21:34:41.433Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/cotizacion-77802/webApps 200
+[debug] [2026-03-05T21:34:41.434Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/cotizacion-77802/webApps {"apps":[{"name":"projects/cotizacion-77802/webApps/1:209899693110:web:a737622604086603136497","appId":"1:209899693110:web:a737622604086603136497","displayName":"CotizacionWeb","projectId":"cotizacion-77802","webId":"NzVmNWNkOTctNzZmYy00NWZhLTg5NDgtYzEzMWQxMWU4NTJh","apiKeyId":"fadc138b-109b-422e-9775-e75b284de3e3","state":"ACTIVE","expireTime":"1970-01-01T00:00:00Z","etag":"1_bb2728a1-ab23-41d1-bb6f-0dcbb45cd324"}]}
+[info] ┌──────────────────┬───────────────────────────────────────────┬──────────┐
+│ App Display Name │ App ID                                    │ Platform │
+├──────────────────┼───────────────────────────────────────────┼──────────┤
+│ CotizacionWeb    │ 1:209899693110:web:a737622604086603136497 │ WEB      │
+└──────────────────┴───────────────────────────────────────────┴──────────┘
+[info] 
+[info] 1 app(s) total.
+[debug] [2026-03-05T21:34:42.202Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2026-03-05T21:34:42.202Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[info] ┌────────────────────────┬────────────────────────────┬────────────────┬──────────────────────┐
+│ Project Display Name   │ Project ID                 │ Project Number │ Resource Location ID │
+├────────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ aiepCote               │ aiepcote                   │ 198850368007   │ [Not specified]      │
+├────────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ aiepTrabajo            │ aieptrabajo                │ 190983014463   │ us-central           │
+├────────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ AlexisYMichelle        │ alexisymichelle-fdd80      │ 130159211976   │ [Not specified]      │
+├────────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ arkits                 │ arkits-a916d               │ 90451576411    │ [Not specified]      │
+├────────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ BastianYDani           │ bastianydani-95e93         │ 938240295055   │ [Not specified]      │
+├────────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ Cotizacion             │ cotizacion-77802 (current) │ 209899693110   │ [Not specified]      │
+├────────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ fixora                 │ fixora-abfd0               │ 136726790396   │ [Not specified]      │
+├────────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ invitaciones           │ invitaciones-e8d15         │ 358035898830   │ [Not specified]      │
+├────────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ JoseYJazmin            │ joseyjazmin-de252          │ 5433830051     │ [Not specified]      │
+├────────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ Nebur                  │ nebur-427303               │ 1081097863797  │ [Not specified]      │
+├────────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ padelService           │ padelservice-b6558         │ 52107031682    │ [Not specified]      │
+├────────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ rrhh                   │ rrhh-3e45e                 │ 481080478630   │ [Not specified]      │
+├────────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ Ruben-Y-Araceli        │ ruben-y-araceli            │ 1081903131100  │ [Not specified]      │
+├────────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ service                │ service-955bb              │ 181881569595   │ [Not specified]      │
+├────────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ servicio-agil-app      │ servicio-agil-app          │ 658123190763   │ [Not specified]      │
+├────────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ servicio-agil-santiago │ servicio-agil-santiago     │ 1095050715765  │ [Not specified]      │
+└────────────────────────┴────────────────────────────┴────────────────┴──────────────────────┘
+[info] 
+[info] 16 project(s) total.
+[debug] [2026-03-05T21:34:52.030Z] ----------------------------------------------------------------------
+[debug] [2026-03-05T21:34:52.033Z] Command:       /usr/local/lib/node_modules/firebase-tools/lib/bin/firebase.js /Users/rabenavidess/.cache/firebase/tools/lib/node_modules/firebase-tools/lib/bin/firebase apps:sdkconfig WEB 1:209899693110:web:a737622604086603136497 --project cotizacion-77802
+[debug] [2026-03-05T21:34:52.034Z] CLI Version:   13.10.2
+[debug] [2026-03-05T21:34:52.034Z] Platform:      darwin
+[debug] [2026-03-05T21:34:52.034Z] Node Version:  v18.5.0
+[debug] [2026-03-05T21:34:52.035Z] Time:          Thu Mar 05 2026 18:34:52 GMT-0300 (Chile Summer Time)
+[debug] [2026-03-05T21:34:52.035Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-03-05T21:34:52.107Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-03-05T21:34:52.108Z] > authorizing via signed-in user (rubenandres462@gmail.com)
+[debug] [2026-03-05T21:34:52.112Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:209899693110:web:a737622604086603136497/config [none]
+[debug] [2026-03-05T21:34:53.143Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:209899693110:web:a737622604086603136497/config 200
+[debug] [2026-03-05T21:34:53.143Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:209899693110:web:a737622604086603136497/config {"projectId":"cotizacion-77802","appId":"1:209899693110:web:a737622604086603136497","storageBucket":"cotizacion-77802.firebasestorage.app","apiKey":"AIzaSyB-O2h6UBZsRAJNEKQOydp0dR9OBlYU1TA","authDomain":"cotizacion-77802.firebaseapp.com","messagingSenderId":"209899693110","measurementId":"G-YLQKF4N0JS","projectNumber":"209899693110","version":"2"}
+[info] // Copy and paste this into your JavaScript code to initialize the Firebase SDK.
+// You will also need to load the Firebase SDK.
+// See https://firebase.google.com/docs/web/setup for more details.
+
+firebase.initializeApp({
+  "projectId": "cotizacion-77802",
+  "appId": "1:209899693110:web:a737622604086603136497",
+  "storageBucket": "cotizacion-77802.firebasestorage.app",
+  "apiKey": "AIzaSyB-O2h6UBZsRAJNEKQOydp0dR9OBlYU1TA",
+  "authDomain": "cotizacion-77802.firebaseapp.com",
+  "messagingSenderId": "209899693110",
+  "measurementId": "G-YLQKF4N0JS",
+  "projectNumber": "209899693110",
+  "version": "2"
+});
+

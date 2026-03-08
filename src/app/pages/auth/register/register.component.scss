@@ -1,0 +1,340 @@
+:host {
+  display: block;
+}
+
+.register-page {
+  min-height: 100vh;
+  background:
+    linear-gradient(140deg, rgba(243, 237, 225, 0.9), rgba(244, 247, 251, 0.92)),
+    radial-gradient(circle at top right, rgba(10, 148, 168, 0.10), transparent 26%);
+  display: grid;
+  place-items: center;
+  padding: 2.5rem 1.25rem;
+}
+
+.auth-card {
+  width: min(480px, 100%);
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  border-radius: var(--r-xl);
+  padding: 2.25rem 2.5rem;
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(20px);
+}
+
+.auth-card--wide {
+  width: min(800px, 100%);
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--ink-500);
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  margin-bottom: 1.75rem;
+  transition: color var(--t-fast);
+  text-decoration: none;
+}
+
+.back-link:hover {
+  color: var(--ink-900);
+}
+
+.auth-header {
+  margin-bottom: 1.75rem;
+}
+
+.auth-header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--ink-900);
+}
+
+.auth-header p {
+  margin: 0.4rem 0 0;
+  font-size: 0.9rem;
+  color: var(--ink-500);
+}
+
+.role-pill {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--r-full);
+  background: var(--orange-muted);
+  color: var(--orange-hover);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.75rem;
+}
+
+.role-pill--green {
+  background: var(--emerald-muted);
+  color: var(--emerald-hover);
+}
+
+/* Role selector */
+.role-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.role-btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1.25rem;
+  border: 1.5px solid var(--border-med);
+  border-radius: var(--r-lg);
+  background: rgba(255, 255, 255, 0.76);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
+}
+
+.role-btn:hover {
+  border-color: var(--ink-900);
+  background: #fff;
+  box-shadow: var(--shadow-md);
+}
+
+.role-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-sm);
+  font-weight: 900;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.role-icon--orange {
+  background: var(--orange-muted);
+  color: var(--orange);
+}
+
+.role-icon--green {
+  background: var(--emerald-muted);
+  color: var(--emerald);
+}
+
+.role-btn div {
+  flex: 1;
+}
+
+.role-btn h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink-900);
+}
+
+.role-btn span:last-of-type {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.82rem;
+  color: var(--ink-500);
+}
+
+.role-arrow {
+  color: var(--ink-300);
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* Form layout */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.auth-form--grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  padding: 1.2rem;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field--full {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field label,
+.field--full label {
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--ink-700);
+}
+
+.field input,
+.field select,
+.field--full input,
+.field--full select {
+  padding: 0.7rem 0.9rem;
+  border: 1.5px solid var(--border-med);
+  border-radius: var(--r-sm);
+  background: var(--surface-1);
+  color: var(--ink-900);
+  font-size: 0.92rem;
+  transition: border-color var(--t-fast), background var(--t-fast);
+  outline: none;
+}
+
+.field input:focus,
+.field select:focus,
+.field--full input:focus,
+.field--full select:focus {
+  border-color: var(--ink-900);
+  background: var(--surface-0);
+}
+
+.location-field {
+  width: 100%;
+  display: block;
+}
+
+:host ::ng-deep .location-field .mat-mdc-text-field-wrapper {
+  background: var(--surface-1);
+  border-radius: var(--r-sm);
+  padding: 0 !important;
+  height: auto;
+}
+
+:host ::ng-deep .location-field .mdc-notched-outline__leading,
+:host ::ng-deep .location-field .mdc-notched-outline__notch,
+:host ::ng-deep .location-field .mdc-notched-outline__trailing {
+  border-color: var(--border-med) !important;
+}
+
+:host ::ng-deep .location-field.mat-focused .mdc-notched-outline__leading,
+:host ::ng-deep .location-field.mat-focused .mdc-notched-outline__notch,
+:host ::ng-deep .location-field.mat-focused .mdc-notched-outline__trailing {
+  border-color: var(--ink-900) !important;
+}
+
+:host ::ng-deep .location-field .mat-mdc-form-field-flex {
+  align-items: stretch;
+}
+
+:host ::ng-deep .location-field .mat-mdc-form-field-infix {
+  min-height: 0;
+  padding: 0 !important;
+  width: auto;
+}
+
+:host ::ng-deep .location-field .mdc-text-field--outlined .mdc-notched-outline__notch {
+  border-right: none;
+}
+
+:host ::ng-deep .location-field input.mat-mdc-input-element {
+  margin: 0;
+  padding: 0.7rem 0.9rem !important;
+  min-height: auto;
+  line-height: 1.35;
+  color: var(--ink-900);
+  background: transparent;
+  caret-color: var(--ink-900);
+}
+
+:host ::ng-deep .location-field input.mat-mdc-input-element::placeholder {
+  color: var(--ink-400);
+}
+
+:host ::ng-deep .location-field .mat-mdc-form-field-focus-overlay {
+  display: none;
+}
+
+:host ::ng-deep .location-field.mat-form-field-disabled .mat-mdc-text-field-wrapper,
+:host ::ng-deep .location-field .mdc-text-field--disabled {
+  opacity: 0.72;
+  background: rgba(231, 237, 244, 0.55);
+}
+
+:host ::ng-deep .location-field .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+:host ::ng-deep div.mat-mdc-autocomplete-panel {
+  border-radius: 16px;
+  border: 1px solid var(--border-med);
+  box-shadow: var(--shadow-lg);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(18px);
+}
+
+:host ::ng-deep .mat-mdc-option {
+  min-height: 44px;
+  font-size: 0.92rem;
+}
+
+.field small,
+.field--full small {
+  font-size: 0.78rem;
+  color: #dc2626;
+}
+
+.btn-full {
+  width: 100%;
+  justify-content: center;
+}
+
+.form-error {
+  margin: 0.3rem 0 0;
+  font-size: 0.82rem;
+  color: #dc2626;
+}
+
+.form-actions {
+  margin-top: 0.5rem;
+}
+
+.auth-switch {
+  margin: 1.25rem 0 0;
+  font-size: 0.88rem;
+  color: var(--ink-500);
+}
+
+.auth-switch a {
+  color: var(--ink-900);
+  font-weight: 700;
+}
+
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 620px) {
+  .auth-form--grid {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-card {
+    padding: 1.75rem 1.5rem;
+  }
+}

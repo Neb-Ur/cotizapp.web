@@ -1,0 +1,58 @@
+<button
+  type="button"
+  class="mobile-overlay"
+  *ngIf="isMobileViewport && isMobileOpen"
+  (click)="closeMenu()"
+  aria-label="Cerrar menu"
+></button>
+
+<aside
+  class="sidebar"
+  [class.mobile-drawer]="isMobileViewport"
+  [class.mobile-open]="isMobileViewport && isMobileOpen"
+>
+  <div class="panel-chip">Panel operativo</div>
+
+  <div class="sidebar-head">
+    <div class="sidebar-title-group">
+      <div class="user-avatar">{{ userName ? userName[0] : 'U' }}</div>
+      <div>
+        <h2>{{ title }}</h2>
+        <p class="user">{{ userName }}</p>
+      </div>
+    </div>
+    <button
+      class="sidebar-close"
+      *ngIf="isMobileViewport"
+      type="button"
+      (click)="closeMenu()"
+      aria-label="Cerrar menu"
+    >
+      ×
+    </button>
+  </div>
+
+  <nav>
+    <button
+      *ngFor="let section of sections"
+      type="button"
+      [class.active]="activeSection === section.id"
+      (click)="selectSection(section.id)"
+    >
+      {{ section.label }}
+    </button>
+  </nav>
+
+  <div class="sidebar-actions">
+    <button
+      *ngIf="extraActionLabel"
+      type="button"
+      [class]="extraActionClass"
+      (click)="triggerExtraAction()"
+    >
+      {{ extraActionLabel }}
+    </button>
+    <a routerLink="/" (click)="closeMenu()">Ir al sitio</a>
+    <button type="button" (click)="logout()">Cerrar sesion</button>
+  </div>
+</aside>

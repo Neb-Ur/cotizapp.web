@@ -1,0 +1,20 @@
+<section class="faq-page">
+  <article class="hero">
+    <p class="eyebrow">Ayuda rapida</p>
+    <h1>Preguntas frecuentes</h1>
+    <p>Resolvimos las dudas mas comunes sobre funcionamiento, planes y soporte.</p>
+  </article>
+
+  <article class="faq-list">
+    <details *ngFor="let item of faqItems">
+      <summary>{{ item.question }}</summary>
+      <p>{{ item.answer }}</p>
+    </details>
+  </article>
+
+  <article class="help-card">
+    <h2>No encontraste tu respuesta?</h2>
+    <p>Escribenos por el formulario de contacto y te ayudamos segun tu tipo de cuenta.</p>
+    <a routerLink="/contacto">Ir a contacto</a>
+  </article>
+</section>

@@ -1,0 +1,44 @@
+<button
+  type="button"
+  class="nav-overlay"
+  *ngIf="menuOpen"
+  (click)="closeMenu()"
+  aria-label="Cerrar menu"
+></button>
+
+<header class="navbar">
+  <a class="brand" routerLink="/" (click)="closeMenu()">
+    <span class="brand-mark">C</span>
+    <span class="brand-copy">
+      <span class="brand-kicker">Marketplace ferretero</span>
+      <span class="brand-name">Constru<strong>Comparador</strong></span>
+    </span>
+  </a>
+
+  <nav class="links" [class.open]="menuOpen">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Inicio</a>
+    <a routerLink="/maestros" routerLinkActive="active" (click)="closeMenu()">Maestros</a>
+    <a routerLink="/ferreterias" routerLinkActive="active" (click)="closeMenu()">Ferreterias</a>
+    <a routerLink="/preguntas-frecuentes" routerLinkActive="active" (click)="closeMenu()">FAQ</a>
+
+    <ng-container *ngIf="!isLogged; else loggedActions">
+      <div class="auth-group">
+        <a class="nav-login" routerLink="/login" (click)="closeMenu()">Iniciar sesión</a>
+        <a class="btn btn-primary btn-sm" routerLink="/registro" (click)="closeMenu()">Comenzar gratis</a>
+      </div>
+    </ng-container>
+
+    <ng-template #loggedActions>
+      <div class="auth-group">
+        <a [routerLink]="dashboardUrl" class="nav-login" (click)="closeMenu()">Dashboard</a>
+        <button type="button" class="btn btn-outline btn-sm" (click)="logout()">Salir</button>
+      </div>
+    </ng-template>
+  </nav>
+
+  <button class="hamburger" type="button" (click)="toggleMenu()" aria-label="Abrir menu" [class.open]="menuOpen">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+</header>

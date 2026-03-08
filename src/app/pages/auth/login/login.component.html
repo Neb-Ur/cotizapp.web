@@ -1,0 +1,73 @@
+<main class="auth-page">
+  <!-- Left panel -->
+  <aside class="auth-panel">
+    <div class="panel-inner">
+      <div class="panel-brand">
+        <span class="brand-mark">C</span>
+        <span>ConstruComparador</span>
+      </div>
+      <blockquote class="panel-quote">
+        “Antes perdia horas comparando precios.
+        Ahora cierro presupuestos en minutos.”
+      </blockquote>
+      <p class="panel-author">Rubén M. — Maestro independiente</p>
+    </div>
+    <div class="panel-orb panel-orb-1"></div>
+    <div class="panel-orb panel-orb-2"></div>
+  </aside>
+
+  <!-- Right: form -->
+  <section class="auth-card">
+    <a routerLink="/" class="back-link">
+      <span>&larr;</span> Volver al inicio
+    </a>
+
+    <div class="auth-header">
+      <h1>Bienvenido</h1>
+      <p>Accede a tu cuenta para continuar.</p>
+    </div>
+
+    <div class="support-banner" *ngIf="supportBannerMessage">
+      {{ supportBannerMessage }}
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form" [class.auth-form--loading]="isSubmitting" [attr.aria-busy]="isSubmitting">
+      <div class="auth-form-loader" *ngIf="isSubmitting">
+        <app-ui-loader label="Validando acceso y cargando tu información..." />
+      </div>
+
+      <div class="field">
+        <label>Email</label>
+        <input type="email" formControlName="email" placeholder="correo@dominio.com" [disabled]="isSubmitting" />
+        <small *ngIf="hasError('email')">Ingresa un correo válido.</small>
+      </div>
+
+      <div class="field">
+        <label>Contraseña</label>
+        <input type="password" formControlName="password" placeholder="Mínimo 6 caracteres" [disabled]="isSubmitting" />
+        <small *ngIf="hasError('password')">Mínimo 6 caracteres.</small>
+      </div>
+
+      <div class="field-row">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="remember" [disabled]="isSubmitting" />
+          Recordarme
+        </label>
+        <a routerLink="/recuperar-clave" class="forgot-link" [class.is-disabled]="isSubmitting">Olvidé mi contraseña</a>
+      </div>
+
+      <button class="btn btn-dark btn-full" type="submit" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Ingresando...' : 'Iniciar sesión' }}
+      </button>
+      <p class="form-error" *ngIf="errorMessage">{{ errorMessage }}</p>
+    </form>
+
+    <p class="auth-switch">No tienes cuenta? <a routerLink="/registro">Crear cuenta gratis</a></p>
+
+    <div class="demo-hints">
+      <p>Demo maestro: maestro&#64;demo.cl / 123456</p>
+      <p>Demo ferreteria: ferreteria&#64;demo.cl / 123456</p>
+      <p>Demo admin: admin&#64;demo.cl / 123456</p>
+    </div>
+  </section>
+</main>

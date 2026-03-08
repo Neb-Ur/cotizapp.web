@@ -1,0 +1,186 @@
+<main class="project-detail-page">
+  <header class="page-header">
+    <button type="button" (click)="backToProjects()">Volver a mis cotizaciones</button>
+    <div class="page-title">
+      <h1>{{ isNewProject ? 'Nueva cotizacion' : 'Detalle de cotizacion' }}</h1>
+      <p>
+        {{ isNewProject
+          ? 'Completa los datos base y luego agrega productos desde el buscador.'
+          : 'Revisa, ajusta y exporta tu cotizacion de materiales.' }}
+      </p>
+      <p *ngIf="!isNewProject" style="margin: 0.35rem 0 0; font-weight: 700;">
+        Estado:
+        <span [style.color]="projectStatus === 'aceptada' ? '#17613f' : projectStatus === 'rechazada' ? '#9b1f1f' : '#8b4a00'">
+          {{ projectStatusLabel }}
+        </span>
+      </p>
+    </div>
+  </header>
+
+  <article class="detail-card">
+    <section class="editor-grid" [class.single]="isNewProject">
+      <article class="editor-panel">
+        <h2>Datos de la cotizacion</h2>
+        <label>
+          Titulo
+          <input [(ngModel)]="projectName" [disabled]="!canEditQuotation" type="text" placeholder="Ej: Ampliacion quincho" />
+        </label>
+        <label>
+          Direccion de obra
+          <input [(ngModel)]="projectAddress" [disabled]="!canEditQuotation" type="text" placeholder="Ej: Av. Principal 1234, Maipu" />
+        </label>
+
+        <div class="actions">
+          <button type="button" [disabled]="!canEditQuotation" (click)="saveProject()">
+            {{ isNewProject ? 'Guardar cotizacion' : 'Actualizar cotizacion' }}
+          </button>
+          <button type="button" class="export" [disabled]="!hasQuotation" (click)="exportQuotation()">
+            Exportar cotizacion PDF
+          </button>
+        </div>
+
+        <div class="actions" *ngIf="!isNewProject && projectStatus === 'pendiente' && hasQuotation">
+          <button type="button" style="background: #17613f; color: #fff;" (click)="markQuotationAccepted()">
+            Cotizacion aceptada
+          </button>
+          <button type="button" style="background: #9b1f1f; color: #fff;" (click)="markQuotationRejected()">
+            Cotizacion rechazada
+          </button>
+        </div>
+
+        <p *ngIf="!canEditQuotation" style="margin: 0.35rem 0 0; color: #8b4a00; font-weight: 700;">
+          Esta cotizacion esta cerrada y ya no permite edicion.
+        </p>
+
+        <p class="saved" *ngIf="saveNotice">{{ saveNotice }}</p>
+      </article>
+
+      <article class="summary">
+        <h2>Resumen general</h2>
+        <div class="summary-kpis">
+          <p>
+            <span>Items cargados</span>
+            <strong>{{ validItemCount }}</strong>
+          </p>
+          <p>
+            <span>Cantidad total</span>
+            <strong>{{ totalQuantity }}</strong>
+          </p>
+          <p>
+            <span>Subtotal neto</span>
+            <strong>{{ formatCurrency(netTotal) }}</strong>
+          </p>
+          <p>
+            <span>IVA (19%)</span>
+            <strong>{{ formatCurrency(ivaAmount) }}</strong>
+          </p>
+          <p class="highlight">
+            <span>Total final</span>
+            <strong>{{ formatCurrency(totalWithIva) }}</strong>
+          </p>
+        </div>
+
+        <div class="store-summary" *ngIf="!isNewProject && comparisonStrategies.length > 0">
+          <h3>Comparacion de compra</h3>
+          <p *ngFor="let strategy of comparisonStrategies">
+            <strong>{{ strategy.title }}:</strong>
+            {{ strategy.subtitle }} -
+            {{ formatCurrency(strategy.total) }}
+            <span *ngIf="strategy.saving !== undefined"> | Ahorras {{ formatCurrency(strategy.saving || 0) }}</span>
+            <span *ngIf="strategy.distanceKm !== undefined"> | {{ strategy.distanceKm | number: '1.1-1' }} km</span>
+          </p>
+        </div>
+        <p *ngIf="!isNewProject && !canViewAdvancedComparison" style="margin: 0.6rem 0 0; color: #8b4a00; font-weight: 700;">
+          La comparacion avanzada esta disponible desde Plan Pro.
+        </p>
+      </article>
+    </section>
+
+    <section class="quotation-table-card">
+      <div class="quote-table-header">
+        <div>
+          <h2>Detalle de cotizacion</h2>
+          <p>Administra productos, cantidades y costo unitario.</p>
+        </div>
+        <button type="button" class="secondary" [disabled]="!canEditQuotation" (click)="goToSearchForProduct()">Agregar item</button>
+      </div>
+      <div class="table-wrap" *ngIf="hasItemsInTable; else emptyQuotation">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre de producto</th>
+              <th>Cantidad</th>
+              <th>Precio unitario</th>
+              <th>Total</th>
+              <th>Accion</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of projectItems; let i = index">
+              <td>
+                <select [(ngModel)]="item.productName" [disabled]="!canEditQuotation">
+                  <option value="">Selecciona producto</option>
+                  <option *ngFor="let option of productOptions" [value]="option">{{ option }}</option>
+                </select>
+                <p class="line-meta">Mejor tienda: {{ getRowBestStore(item) }}</p>
+              </td>
+              <td>
+                <input [(ngModel)]="item.quantity" [disabled]="!canEditQuotation" type="number" min="1" placeholder="Cantidad" />
+              </td>
+              <td>{{ formatCurrency(getRowUnitPrice(item)) }}</td>
+              <td>{{ formatCurrency(getRowTotal(item)) }}</td>
+              <td>
+                <button type="button" class="danger small" [disabled]="!canEditQuotation" (click)="removeProjectItem(i)">Quitar</button>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="totals-row">
+              <th colspan="3">Subtotal neto</th>
+              <td>{{ formatCurrency(netTotal) }}</td>
+              <td></td>
+            </tr>
+            <tr class="totals-row">
+              <th colspan="3">IVA (19%)</th>
+              <td>{{ formatCurrency(ivaAmount) }}</td>
+              <td></td>
+            </tr>
+            <tr class="totals-row total-final">
+              <th colspan="3">Total final</th>
+              <td>{{ formatCurrency(totalWithIva) }}</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <ng-template #emptyQuotation>
+        <div class="empty-state">
+          <p class="empty-title">Aun no hay productos en esta cotizacion.</p>
+          <p>Empieza a agregar productos desde el buscador para armar el presupuesto.</p>
+        </div>
+      </ng-template>
+    </section>
+
+    <section class="store-totals-card" *ngIf="!isNewProject && quotation.totalsByStore.length > 0">
+      <h2>Totales por ferreteria</h2>
+      <p class="section-note">Comparativo rapido para elegir la tienda mas conveniente.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Ferreteria</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of quotation.totalsByStore">
+              <td>{{ row.storeName }}</td>
+              <td>{{ formatCurrency(row.total) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </article>
+</main>

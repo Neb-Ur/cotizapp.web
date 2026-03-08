@@ -1,0 +1,26 @@
+import { Router } from 'express';
+import { adminRouter } from './admin.routes.js';
+import { authRouter } from './auth.routes.js';
+import { busquedaRouter } from './busqueda.routes.js';
+import { catalogoFerreteriaRouter } from './catalogo-ferreteria.routes.js';
+import { metricasRouter } from './metricas.routes.js';
+import { planesRouter } from './planes.routes.js';
+import { productosMaestroRouter } from './productos-maestro.routes.js';
+import { solicitudesRouter } from './solicitudes.routes.js';
+import { taxonomiaRouter } from './taxonomia.routes.js';
+
+export const apiRouter = Router();
+
+apiRouter.get('/health', (_req, res) => {
+  res.status(200).json({ ok: true, data: { status: 'ok', service: 'appconstruct-backend' } });
+});
+
+apiRouter.use('/auth', authRouter);
+apiRouter.use(adminRouter);
+apiRouter.use(taxonomiaRouter);
+apiRouter.use(productosMaestroRouter);
+apiRouter.use(catalogoFerreteriaRouter);
+apiRouter.use(solicitudesRouter);
+apiRouter.use(busquedaRouter);
+apiRouter.use(metricasRouter);
+apiRouter.use(planesRouter);

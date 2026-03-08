@@ -1,0 +1,813 @@
+<main class="dashboard">
+  <app-dashboard-menu
+    title="Panel Ferreteria"
+    [userName]="user?.displayName || ''"
+    [sections]="sections"
+    [activeSection]="currentSection"
+    [isMobileViewport]="isMobileViewport"
+    [isMobileOpen]="isMobileMenuVisible"
+    (sectionSelected)="setSection($any($event))"
+    (menuClosed)="closeMobileMenu()"
+    (logoutRequested)="logout()"
+  />
+
+  <section class="content">
+    <header class="content-header">
+      <div class="title-row">
+        <button
+          *ngIf="isMobileViewport"
+          type="button"
+          class="menu-toggle menu-icon"
+          (click)="toggleMobileMenu()"
+          aria-label="Abrir menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div>
+          <h1>{{ currentSectionLabel }}</h1>
+          <p>{{ currentSectionDescription }}</p>
+        </div>
+      </div>
+    </header>
+
+    <article class="panel panel--loading" *ngIf="isInitialLoading || isSectionLoading">
+      <app-ui-loader [label]="isInitialLoading ? 'Cargando inicio de ferreteria...' : 'Cargando seccion...'" />
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'inicio'">
+      <div class="stats-grid">
+        <section>
+          <h3>Productos publicados</h3>
+          <p>{{ totalProducts }}</p>
+        </section>
+        <section>
+          <h3>Stock bajo</h3>
+          <p>{{ lowStock }}</p>
+        </section>
+        <section>
+          <h3>Precio promedio</h3>
+          <p>{{ formatCurrency(avgPrice) }}</p>
+        </section>
+      </div>
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'catalogo'">
+      <h3>Mi Catalogo</h3>
+      <p style="margin: 0.3rem 0 0; color: #4a5568;">{{ catalogQuotaText }}</p>
+      <p *ngIf="catalogNotice" class="saved">{{ catalogNotice }}</p>
+      <p *ngIf="catalogInlineError" style="margin: 0.35rem 0 0; color: #9b1f1f; font-weight: 700;">{{ catalogInlineError }}</p>
+      <div class="catalog-filters-grid">
+        <label>
+          Categoria
+          <input
+            type="text"
+            list="catalog-category-options"
+            [ngModel]="catalogCategoryQuery"
+            (ngModelChange)="onCatalogCategoryAutocomplete($event)"
+            placeholder="Filtrar categoria"
+          />
+          <datalist id="catalog-category-options">
+            <option *ngFor="let option of catalogFilterCategoryOptions" [value]="option.name"></option>
+          </datalist>
+        </label>
+
+        <label>
+          Subcategoria
+          <input
+            type="text"
+            list="catalog-subcategory-options"
+            [ngModel]="catalogSubcategoryQuery"
+            (ngModelChange)="onCatalogSubcategoryAutocomplete($event)"
+            [disabled]="!catalogFilterCategoryId"
+            placeholder="Filtrar subcategoria"
+          />
+          <datalist id="catalog-subcategory-options">
+            <option *ngFor="let option of catalogFilterSubcategoryOptions" [value]="option.name"></option>
+          </datalist>
+        </label>
+
+        <label>
+          Familia
+          <input
+            type="text"
+            list="catalog-family-options"
+            [ngModel]="catalogFamilyQuery"
+            (ngModelChange)="onCatalogFamilyAutocomplete($event)"
+            [disabled]="!catalogFilterSubcategoryId"
+            placeholder="Filtrar familia"
+          />
+          <datalist id="catalog-family-options">
+            <option *ngFor="let option of catalogFilterFamilyOptions" [value]="option.name"></option>
+          </datalist>
+        </label>
+
+        <label>
+          Producto (autocompletable)
+          <input
+            type="text"
+            list="catalog-product-options"
+            [ngModel]="catalogProductQuery"
+            (ngModelChange)="onCatalogProductInput($event)"
+            placeholder="Nombre, SKU o codigo de barras"
+          />
+          <datalist id="catalog-product-options">
+            <option *ngFor="let option of catalogProductAutocompleteOptions" [value]="option"></option>
+          </datalist>
+        </label>
+      </div>
+
+      <div class="catalog-filter-actions">
+        <button type="button" class="ghost" (click)="clearCatalogFilters()">Limpiar filtros</button>
+      </div>
+
+      <div class="table-wrap" *ngIf="filteredCatalog.length > 0; else emptyCatalog">
+        <table>
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Familia</th>
+              <th>SKU</th>
+              <th>Estado</th>
+              <th>Precio</th>
+              <th>Stock</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let product of paginatedCatalog">
+              <td>{{ product.name }}</td>
+              <td>{{ familyName(product.familyId) }}</td>
+              <td>
+                <input
+                  *ngIf="catalogInlineEditId === product.id; else skuRead"
+                  type="text"
+                  [(ngModel)]="catalogInlineDraft.sku"
+                  placeholder="SKU"
+                />
+                <ng-template #skuRead>{{ product.sku }}</ng-template>
+              </td>
+              <td>{{ product.isPublished ? 'Publicado' : 'Borrador' }}</td>
+              <td>
+                <input
+                  *ngIf="catalogInlineEditId === product.id; else priceRead"
+                  type="number"
+                  min="1"
+                  [(ngModel)]="catalogInlineDraft.price"
+                />
+                <ng-template #priceRead>{{ formatCurrency(product.price) }}</ng-template>
+              </td>
+              <td>
+                <input
+                  *ngIf="catalogInlineEditId === product.id; else stockRead"
+                  type="number"
+                  min="0"
+                  [(ngModel)]="catalogInlineDraft.stock"
+                />
+                <ng-template #stockRead>{{ product.stock }}</ng-template>
+              </td>
+              <td class="actions">
+                <ng-container *ngIf="catalogInlineEditId === product.id; else catalogRowActions">
+                  <button type="button" (click)="saveCatalogInlineEdit(product)">Guardar</button>
+                  <button type="button" class="ghost" (click)="cancelCatalogInlineEdit()">Cancelar</button>
+                </ng-container>
+                <ng-template #catalogRowActions>
+                  <button
+                    type="button"
+                    class="icon-btn ghost"
+                    title="Ver detalle"
+                    aria-label="Ver detalle"
+                    (click)="toggleCatalogDetail(product)"
+                  >
+                    &#128065;
+                  </button>
+                  <button
+                    type="button"
+                    class="icon-btn"
+                    title="Editar SKU, precio y stock"
+                    aria-label="Editar SKU, precio y stock"
+                    (click)="startCatalogInlineEdit(product)"
+                  >
+                    &#9998;
+                  </button>
+                  <button
+                    type="button"
+                    class="icon-btn danger"
+                    title="Eliminar producto"
+                    aria-label="Eliminar producto"
+                    (click)="requestDeleteCatalog(product)"
+                  >
+                    &#128465;
+                  </button>
+                </ng-template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="catalog-pagination" *ngIf="filteredCatalog.length > 0">
+        <p>
+          Mostrando {{ catalogPageStart }} - {{ catalogPageEnd }} de {{ filteredCatalog.length }} producto(s)
+        </p>
+        <div class="pager-actions">
+          <label class="rows-select">
+            Filas
+            <select [ngModel]="catalogPageSize" (ngModelChange)="onCatalogPageSizeChange($event)">
+              <option *ngFor="let size of catalogPageSizeOptions" [value]="size">{{ size }}</option>
+            </select>
+          </label>
+          <button type="button" class="ghost" (click)="previousCatalogPage()" [disabled]="catalogPage <= 1">Anterior</button>
+          <button
+            type="button"
+            class="ghost"
+            *ngFor="let page of catalogPageNumbers"
+            [class.active-page]="page === catalogPage"
+            (click)="goToCatalogPage(page)"
+          >
+            {{ page }}
+          </button>
+          <button type="button" class="ghost" (click)="nextCatalogPage()" [disabled]="catalogPage >= catalogTotalPages">Siguiente</button>
+        </div>
+      </div>
+
+      <article class="catalog-detail-card" *ngIf="selectedCatalogProduct as selected">
+        <div class="catalog-detail-head">
+          <h4>Detalle del producto (solo lectura)</h4>
+          <button type="button" class="ghost" (click)="closeCatalogDetail()">Cerrar</button>
+        </div>
+
+        <p style="margin: 0; color: var(--navy-900); font-size: 1.1rem; font-weight: 800;">{{ selected.name }}</p>
+        <p style="margin: 0.2rem 0 0; color: var(--slate-700);">
+          {{ selected.brand }} | {{ categoryName(selected.categoryId) }} / {{ subcategoryName(selected.subcategoryId) }} / {{ familyName(selected.familyId) }}
+        </p>
+
+        <div class="master-meta-grid">
+          <span><strong>SKU:</strong> {{ selected.sku }}</span>
+          <span><strong>Estado:</strong> {{ selected.isPublished ? 'Publicado' : 'Borrador' }}</span>
+          <span><strong>Tipo:</strong> {{ selected.productType }}</span>
+          <span><strong>Unidad:</strong> {{ selected.unitLabel }}</span>
+          <span><strong>Presentacion:</strong> {{ selected.packagingLabel }}</span>
+          <span><strong>Precio:</strong> {{ formatCurrency(selected.price) }}</span>
+          <span><strong>Stock:</strong> {{ selected.stock }}</span>
+        </div>
+
+        <p *ngIf="selected.shortDescription" style="margin: 0.3rem 0 0; color: var(--slate-700);">
+          {{ selected.shortDescription }}
+        </p>
+
+        <div class="catalog-detail-grid">
+          <section class="master-spec-preview">
+            <h5>Especificaciones por familia</h5>
+            <table *ngIf="catalogSpecRows(selected).length > 0; else noSpecRows">
+              <tbody>
+                <tr *ngFor="let row of catalogSpecRows(selected)">
+                  <th>{{ row.label }}</th>
+                  <td>{{ row.value }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <ng-template #noSpecRows>
+              <p style="margin: 0; color: var(--slate-700);">Sin especificaciones registradas.</p>
+            </ng-template>
+          </section>
+
+          <section class="master-spec-preview">
+            <h5>Ficha tecnica</h5>
+            <table *ngIf="selected.technicalSheet.length > 0; else noCatalogTechSheet">
+              <tbody>
+                <tr *ngFor="let row of selected.technicalSheet">
+                  <th>{{ row.label }}</th>
+                  <td>{{ row.value }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <ng-template #noCatalogTechSheet>
+              <p style="margin: 0; color: var(--slate-700);">Sin ficha tecnica registrada.</p>
+            </ng-template>
+          </section>
+        </div>
+
+        <section *ngIf="selected.featureBullets.length > 0">
+          <h5 style="margin: 0; color: var(--navy-900);">Caracteristicas</h5>
+          <ul class="template-usage-list">
+            <li *ngFor="let bullet of selected.featureBullets">{{ bullet }}</li>
+          </ul>
+        </section>
+      </article>
+
+      <ng-template #emptyCatalog>
+        <p *ngIf="catalog.length === 0">Aun no tienes productos cargados en el catalogo.</p>
+        <p *ngIf="catalog.length > 0">No hay productos para los filtros seleccionados.</p>
+      </ng-template>
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'subir'">
+      <div class="upload-mode-toggle">
+        <button type="button" [class.active]="uploadMode === 'buscar'" (click)="setUploadMode('buscar')">
+          Buscar en catalogo maestro
+        </button>
+        <button type="button" [class.active]="uploadMode === 'solicitud'" (click)="setUploadMode('solicitud')">
+          Solicitar creacion
+        </button>
+      </div>
+
+      <section class="upload-search-card" *ngIf="uploadMode === 'buscar'">
+        <h3>Agregar producto desde catalogo maestro</h3>
+        <p>
+          Filtra por nombre, categoria, subcategoria o familia. Solo veras productos del catalogo maestro que aun no estan en tu tienda.
+        </p>
+
+        <div class="catalog-filters-grid">
+          <label>
+            Categoria
+            <input
+              type="text"
+              list="upload-category-options"
+              [ngModel]="uploadCategoryQuery"
+              (ngModelChange)="onUploadCategoryAutocomplete($event)"
+              placeholder="Filtrar categoria"
+            />
+            <datalist id="upload-category-options">
+              <option *ngFor="let option of uploadCategoryOptions" [value]="option.name"></option>
+            </datalist>
+          </label>
+
+          <label>
+            Subcategoria
+            <input
+              type="text"
+              list="upload-subcategory-options"
+              [ngModel]="uploadSubcategoryQuery"
+              (ngModelChange)="onUploadSubcategoryAutocomplete($event)"
+              [disabled]="!uploadFilterCategoryId"
+              placeholder="Filtrar subcategoria"
+            />
+            <datalist id="upload-subcategory-options">
+              <option *ngFor="let option of uploadSubcategoryOptions" [value]="option.name"></option>
+            </datalist>
+          </label>
+
+          <label>
+            Familia
+            <input
+              type="text"
+              list="upload-family-options"
+              [ngModel]="uploadFamilyQuery"
+              (ngModelChange)="onUploadFamilyAutocomplete($event)"
+              [disabled]="!uploadFilterSubcategoryId"
+              placeholder="Filtrar familia"
+            />
+            <datalist id="upload-family-options">
+              <option *ngFor="let option of uploadFamilyOptions" [value]="option.name"></option>
+            </datalist>
+          </label>
+
+          <label>
+            Buscar por nombre o codigo de barra
+            <input
+              type="text"
+              [ngModel]="masterProductQuery"
+              (ngModelChange)="onMasterProductAutocomplete($event)"
+              placeholder="Ej: Cemento Portland 25kg o 7801234567890"
+            />
+          </label>
+
+          <label>
+            Acciones
+            <button type="button" class="ghost" (click)="clearUploadTaxonomyFilters()">Reiniciar filtros</button>
+          </label>
+        </div>
+
+        <p *ngIf="masterCatalogLoadError" style="margin: 0.4rem 0 0; color: #9b1f1f; font-weight: 700;">{{ masterCatalogLoadError }}</p>
+        <p *ngIf="relationError" style="margin: 0.4rem 0 0; color: #9b1f1f; font-weight: 700;">{{ relationError }}</p>
+        <p *ngIf="relationNotice" class="saved">{{ relationNotice }}</p>
+        <p *ngIf="isLoadingMasterCatalog" style="margin: 0.2rem 0 0; color: #4a5568;">
+          Cargando catalogo maestro...
+        </p>
+        <p *ngIf="masterCatalogLoaded && !isLoadingMasterCatalog && filteredMasterCatalogRows.length === 0 && !relationError && !masterCatalogLoadError" style="margin: 0.2rem 0 0; color: #4a5568;">
+          No hay productos pendientes con esos filtros.
+        </p>
+
+        <article class="master-preview-card" *ngIf="filteredMasterCatalogRows.length > 0">
+          <div class="master-selection-header">
+            <div>
+              <h4>Catalogo maestro disponible</h4>
+              <p style="margin: 0.2rem 0 0; color: var(--slate-700);">
+                {{ masterCatalogTotal }} encontrado(s) | mostrando {{ masterCatalogPageStart }} - {{ masterCatalogPageEnd }} | {{ selectedMasterCatalogCount }} seleccionado(s)
+              </p>
+            </div>
+            <div class="master-selection-actions">
+              <button type="button" class="ghost" (click)="selectAllVisibleMasterProducts()">Seleccionar pagina</button>
+              <button type="button" class="ghost" (click)="clearSelectedMasterProducts()">Limpiar pagina</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="master-selection-table">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Imagen</th>
+                  <th>Producto</th>
+                  <th>Categoria</th>
+                  <th>Subcategoria</th>
+                  <th>Familia</th>
+                  <th>Precio</th>
+                  <th>Stock</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  *ngFor="let product of paginatedMasterCatalogRows"
+                  [class.master-selection-row--active]="isMasterProductSelected(product)"
+                >
+                  <td>
+                    <input
+                      type="checkbox"
+                      [checked]="isMasterProductSelected(product)"
+                      (change)="toggleMasterProductSelection(product, $any($event.target).checked)"
+                    />
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      class="master-thumb-button"
+                      (click)="openMasterProductGallery(product)"
+                      [attr.aria-label]="'Ver fotos de ' + product.name"
+                    >
+                      <img
+                        class="master-thumb"
+                        [src]="product.imageUrl || 'https://via.placeholder.com/80x80?text=Producto'"
+                        [alt]="product.name"
+                      />
+                      <span class="master-thumb-zoom" aria-hidden="true">+</span>
+                    </button>
+                  </td>
+                  <td>
+                    <div class="master-product-cell">
+                      <strong>{{ product.name }}</strong>
+                      <span>{{ product.brand }}</span>
+                    </div>
+                  </td>
+                  <td>{{ categoryName(product.categoryId) }}</td>
+                  <td>{{ subcategoryName(product.subcategoryId) }}</td>
+                  <td>{{ familyName(product.familyId) }}</td>
+                  <td>
+                    <input
+                      type="number"
+                      min="1"
+                      [disabled]="!isMasterProductSelected(product)"
+                      [ngModel]="masterSelectionPrice(product)"
+                      (ngModelChange)="updateMasterSelectionPrice(product, $event)"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      min="0"
+                      [disabled]="!isMasterProductSelected(product)"
+                      [ngModel]="masterSelectionStock(product)"
+                      (ngModelChange)="updateMasterSelectionStock(product, $event)"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="catalog-pagination master-catalog-pagination" *ngIf="filteredMasterCatalogRows.length > 0">
+            <p>
+              Mostrando {{ masterCatalogPageStart }} - {{ masterCatalogPageEnd }} de {{ masterCatalogTotal }} producto(s)
+            </p>
+            <div class="pager-actions">
+              <label class="rows-select">
+                Filas
+                <select [ngModel]="masterCatalogPageSize" (ngModelChange)="onMasterCatalogPageSizeChange($event)">
+                  <option *ngFor="let size of masterCatalogPageSizeOptions" [value]="size">{{ size }}</option>
+                </select>
+              </label>
+              <button type="button" class="ghost" (click)="previousMasterCatalogPage()" [disabled]="resolvedMasterCatalogPage <= 1">Anterior</button>
+              <button
+                type="button"
+                class="ghost"
+                *ngFor="let page of masterCatalogPageNumbers"
+                [class.active-page]="page === resolvedMasterCatalogPage"
+                (click)="goToMasterCatalogPage(page)"
+              >
+                {{ page }}
+              </button>
+              <button type="button" class="ghost" (click)="nextMasterCatalogPage()" [disabled]="resolvedMasterCatalogPage >= masterCatalogTotalPages">Siguiente</button>
+            </div>
+          </div>
+
+          <div class="bulk-save-bar">
+            <p style="margin: 0; color: var(--slate-700);">
+              Al guardar, cada producto seleccionado se crea en tu catalogo como `productoFerreteria`.
+            </p>
+            <button
+              type="button"
+              (click)="saveSelectedMasterProducts()"
+              [disabled]="selectedMasterCatalogCount === 0 || isSavingMasterSelection"
+            >
+              {{ isSavingMasterSelection ? 'Guardando...' : 'Guardar seleccionados' }}
+            </button>
+          </div>
+        </article>
+
+        <button type="button" class="ghost-link" (click)="setUploadMode('solicitud')">
+          No existe en catalogo maestro, solicitar creacion
+        </button>
+      </section>
+
+      <div class="upload-grid" *ngIf="uploadMode === 'solicitud'">
+        <section>
+          <h3>Solicitar creacion de producto</h3>
+          <p>Si no existe en el catalogo maestro, envianos solo estos datos y admin lo crea/asigna.</p>
+          <button type="button" class="ghost-link" (click)="setUploadMode('buscar')">
+            Volver a buscar en catalogo maestro
+          </button>
+
+          <p *ngIf="requestError" style="margin: 0.4rem 0 0; color: #9b1f1f; font-weight: 700;">{{ requestError }}</p>
+          <p *ngIf="requestNotice" class="saved">{{ requestNotice }}</p>
+
+          <div class="form-grid">
+            <label>
+              Nombre del producto
+              <input [(ngModel)]="requestDraft.name" type="text" placeholder="Ej: Disco corte metal 7''" />
+            </label>
+
+            <label>
+              Codigo de barras
+              <input [(ngModel)]="requestDraft.barcode" type="text" placeholder="Solo numeros (8 a 14 digitos)" />
+            </label>
+
+            <label>
+              Cantidad inicial
+              <input [(ngModel)]="requestDraft.quantity" type="number" min="1" />
+            </label>
+
+            <label>
+              Precio para tu ferreteria
+              <input [(ngModel)]="requestDraft.price" type="number" min="1" />
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" (click)="submitProductRequest()">Enviar solicitud a admin</button>
+          </div>
+        </section>
+      </div>
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'metricas'">
+      <h3>Metricas</h3>
+      <div class="metrics-kpi-grid">
+        <section class="kpi-card">
+          <h4>Productos publicados</h4>
+          <p>{{ publishedProducts }}</p>
+        </section>
+        <section class="kpi-card">
+          <h4>Total en catalogo</h4>
+          <p>{{ catalogProductsCount }}</p>
+        </section>
+        <section class="kpi-card">
+          <h4>Stock bajo</h4>
+          <p>{{ lowStock }}</p>
+        </section>
+        <section class="kpi-card">
+          <h4>Sin stock</h4>
+          <p>{{ outOfStockProducts }}</p>
+        </section>
+        <section class="kpi-card">
+          <h4>Precio promedio</h4>
+          <p>{{ formatCurrency(avgPrice) }}</p>
+        </section>
+        <section class="kpi-card">
+          <h4>Alcance de cotizaciones</h4>
+          <p>{{ quotationReach }}</p>
+        </section>
+      </div>
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'perfil'">
+      <h3>Perfil de ferreteria</h3>
+      <div class="form-grid">
+        <label>
+          Nombre visible
+          <input [(ngModel)]="profileDraft.displayName" type="text" />
+        </label>
+        <label>
+          Nombre negocio
+          <input [(ngModel)]="profileDraft.businessName" type="text" />
+        </label>
+        <label>
+          Telefono
+          <input [(ngModel)]="profileDraft.phone" type="text" />
+        </label>
+        <label>
+          Ciudad
+          <input [(ngModel)]="profileDraft.city" type="text" />
+        </label>
+        <label>
+          Comuna
+          <input [(ngModel)]="profileDraft.commune" type="text" />
+        </label>
+        <label>
+          Direccion
+          <input [(ngModel)]="profileDraft.address" type="text" />
+        </label>
+      </div>
+
+      <button type="button" (click)="saveProfile()">Guardar perfil</button>
+      <p class="saved" *ngIf="profileSaved">Perfil actualizado.</p>
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'suscripcion'">
+      <div class="subscription-shell">
+        <div class="subscription-overview">
+          <div>
+            <p class="subscription-overview__eyebrow">Suscripcion activa</p>
+            <h3 class="subscription-overview__title">{{ currentPlanView.title }}</h3>
+          </div>
+          <div class="subscription-overview__meta">
+            <span class="subscription-overview__pill">Operativa activa</span>
+            <p>{{ currentPlanView.maxCatalogLabel }}</p>
+          </div>
+        </div>
+
+        <div
+          class="subscription-grid"
+          [style.gridTemplateColumns]="isMobileViewport ? '1fr' : 'repeat(3, minmax(0, 1fr))'"
+        >
+          <article
+            *ngFor="let plan of subscriptionPlans"
+            class="plan-card"
+            [class.is-current]="currentPlan === plan.id"
+            [class.is-featured]="plan.id === 'pro'"
+            [class.is-premium]="plan.id === 'premium'"
+          >
+            <div class="plan-card__glow"></div>
+
+            <div class="plan-card__head">
+              <div>
+                <p class="plan-card__eyebrow" *ngIf="plan.id === 'pro'; else ferreteriaPlanTier">Recomendado</p>
+                <ng-template #ferreteriaPlanTier>
+                  <p class="plan-card__eyebrow">{{ plan.id === 'premium' ? 'Alto volumen' : 'Inicio' }}</p>
+                </ng-template>
+                <h4>{{ plan.title }}</h4>
+              </div>
+
+              <span class="plan-card__badge" *ngIf="currentPlan === plan.id">
+                Actual
+              </span>
+            </div>
+
+            <p class="plan-card__price">{{ plan.priceLabel }}</p>
+            <p class="plan-card__description">{{ plan.description }}</p>
+
+            <div class="plan-card__features">
+              <p class="plan-card__feature plan-card__feature--strong">{{ plan.maxCatalogLabel }}</p>
+              <p class="plan-card__feature">
+                CSV
+                <strong>{{ plan.csvLabel.replace('CSV ', '') }}</strong>
+              </p>
+              <p class="plan-card__feature">
+                Metricas
+                <strong>{{ plan.metricsLabel.replace('Metricas ', '') }}</strong>
+              </p>
+            </div>
+
+            <div class="plan-card__footer">
+              <button
+                type="button"
+                class="plan-card__action"
+                [class.is-disabled]="currentPlan === plan.id"
+                [disabled]="currentPlan === plan.id"
+                (click)="changeSubscriptionPlan(plan.id)"
+              >
+                {{ currentPlan === plan.id ? 'Plan actual' : 'Cambiar plan' }}
+              </button>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <p class="saved" *ngIf="subscriptionNotice">{{ subscriptionNotice }}</p>
+    </article>
+  </section>
+
+  <app-ui-modal
+    [open]="deleteCatalogModalOpen"
+    title="Confirmar eliminacion"
+    (closed)="closeDeleteCatalogModal()"
+  >
+    <section class="confirm-delete-modal">
+      <p>
+        ¿Estas seguro de eliminar
+        <strong>{{ catalogDeleteCandidate?.name || 'este producto' }}</strong>?
+      </p>
+      <div class="confirm-delete-actions">
+        <button type="button" class="danger" (click)="confirmDeleteCatalog()">Si, eliminar</button>
+        <button type="button" class="ghost" (click)="closeDeleteCatalogModal()">No, volver</button>
+      </div>
+    </section>
+  </app-ui-modal>
+
+  <app-ui-modal
+    [open]="importSummaryModalOpen"
+    title="Resultado carga masiva"
+    (closed)="closeImportSummaryModal()"
+  >
+    <section *ngIf="importSummary as summary" class="import-modal-content">
+      <p class="import-subtitle">
+        Lote {{ summary.batchId }} · {{ summary.totalRows }} fila(s) procesadas.
+      </p>
+
+      <div class="import-summary-grid">
+        <article>
+          <h4>Subidos</h4>
+          <p>{{ summary.uploadedCount }}</p>
+        </article>
+        <article>
+          <h4>Fallidos</h4>
+          <p>{{ summary.failedCount }}</p>
+        </article>
+        <article>
+          <h4>Nuevos en validacion</h4>
+          <p>{{ summary.pendingNewCount }}</p>
+        </article>
+        <article>
+          <h4>Posibles match</h4>
+          <p>{{ summary.possibleMatchCount }}</p>
+        </article>
+      </div>
+
+      <section class="import-group" *ngIf="importRows('subido').length > 0">
+        <h5>Subidos correctamente</h5>
+        <ul>
+          <li *ngFor="let row of importRows('subido')">
+            <strong>{{ row.name }}</strong> · SKU {{ row.sku }} · {{ row.message }}
+          </li>
+        </ul>
+      </section>
+
+      <section class="import-group" *ngIf="importRows('fallido').length > 0">
+        <h5>Fallidos</h5>
+        <ul>
+          <li *ngFor="let row of importRows('fallido')">
+            <strong>{{ row.rawLine }}</strong> · {{ row.message }}
+          </li>
+        </ul>
+      </section>
+
+      <section class="import-group" *ngIf="importRows('nuevo_validacion').length > 0">
+        <h5>Nuevos pendientes de admin</h5>
+        <ul>
+          <li *ngFor="let row of importRows('nuevo_validacion')">
+            <strong>{{ row.name }}</strong> · SKU {{ row.sku }} · {{ row.message }}
+          </li>
+        </ul>
+      </section>
+
+      <section class="import-group" *ngIf="importRows('posible_match').length > 0">
+        <h5>Posibles match (pendiente admin)</h5>
+        <ul>
+          <li *ngFor="let row of importRows('posible_match')">
+            <strong>{{ row.name }}</strong> · SKU {{ row.sku }} ·
+            {{ row.suggestions.length }} sugerencia(s)
+          </li>
+        </ul>
+      </section>
+    </section>
+  </app-ui-modal>
+
+  <app-ui-modal
+    [open]="galleryPreviewModalOpen"
+    [title]="galleryPreviewProduct?.name || 'Fotos del producto'"
+    (closed)="closeMasterProductGallery()"
+  >
+    <section *ngIf="galleryPreviewProduct as product" class="gallery-preview-modal">
+      <p class="gallery-preview-modal__meta">
+        {{ product.brand }} · {{ galleryPreviewImages.length }} foto(s)
+      </p>
+
+      <div class="gallery-preview-modal__hero" *ngIf="galleryPreviewActiveImage">
+        <img [src]="galleryPreviewActiveImage" [alt]="product.name" />
+      </div>
+
+      <div class="gallery-preview-modal__thumbs" *ngIf="galleryPreviewImages.length > 1">
+        <button
+          *ngFor="let image of galleryPreviewImages; let index = index"
+          type="button"
+          class="gallery-preview-modal__thumb"
+          [class.is-active]="index === galleryPreviewActiveIndex"
+          (click)="selectGalleryPreviewImage(index)"
+        >
+          <img [src]="image" [alt]="product.name + ' foto ' + (index + 1)" />
+        </button>
+      </div>
+    </section>
+  </app-ui-modal>
+</main>
