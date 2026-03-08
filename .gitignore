@@ -10,6 +10,9 @@
 /node_modules
 npm-debug.log
 yarn-error.log
+pnpm-debug.log
+firebase-debug.log
+*.log
 
 # IDEs and editors
 .idea/
@@ -27,6 +30,7 @@ yarn-error.log
 !.vscode/launch.json
 !.vscode/extensions.json
 .history/*
+.fleet/
 
 # Miscellaneous
 /.angular/cache
@@ -36,7 +40,16 @@ yarn-error.log
 /libpeerconnection.log
 testem.log
 /typings
+.cache/
+
+# Local env
+.env
+.env.local
+.env.*.local
+!.env.example
 
 # System files
 .DS_Store
 Thumbs.db
+*.swp
+*.swo
