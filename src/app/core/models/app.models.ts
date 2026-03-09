@@ -8,6 +8,7 @@ export interface SessionUser {
   id: string;
   ferreteriaId?: string;
   email: string;
+  referralCode?: string;
   displayName: string;
   role: UserRole;
   subscriptionPlan?: SubscriptionPlan;
@@ -41,6 +42,7 @@ export interface RegisterPayload {
   name: string;
   email: string;
   password: string;
+  referralCode?: string;
   phone: string;
   city: string;
   commune: string;

@@ -44,6 +44,7 @@ export class RegisterComponent {
     name: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
+    referralCode: [''],
     phone: ['', [Validators.required, Validators.minLength(8)]],
     region: ['', [Validators.required, Validators.minLength(2)]],
     regionId: ['', Validators.required],
@@ -147,6 +148,7 @@ export class RegisterComponent {
       name: normalizedName,
       email: values.email,
       password: values.password,
+      referralCode: values.referralCode.trim() || undefined,
       phone: values.phone,
       region: values.region.trim(),
       city: values.city.trim(),
@@ -173,6 +175,7 @@ export class RegisterComponent {
     'name'
     | 'email'
     | 'password'
+    | 'referralCode'
     | 'phone'
     | 'region'
     | 'city'

@@ -85,6 +85,11 @@
       </div>
 
       <div class="field">
+        <label>Ingresa código de referencia</label>
+        <input formControlName="referralCode" type="text" placeholder="Opcional. Ej: MAES_1234 o FERR_1234" />
+      </div>
+
+      <div class="field">
         <label>Teléfono</label>
         <input formControlName="phone" type="text" placeholder="+56 9 ..." />
         <small *ngIf="hasError('phone')">Ingresa un teléfono válido.</small>

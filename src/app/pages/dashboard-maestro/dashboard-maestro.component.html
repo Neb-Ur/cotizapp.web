@@ -458,11 +458,59 @@
         </section>
       </div>
 
+      <section class="referral-card">
+        <div class="referral-card__header">
+          <div>
+            <span class="referral-card__eyebrow">Programa de referidos</span>
+            <h4>Comparte tu codigo y suma beneficios futuros</h4>
+            <p>Tu invitado lo ingresa al registrarse y queda asociado a tu cuenta para futuras campanas.</p>
+          </div>
+          <div class="referral-card__header-actions">
+            <button type="button" class="secondary" (click)="refreshReferralCode()" [disabled]="isRefreshingReferralCode">
+              {{ isRefreshingReferralCode ? 'Actualizando...' : 'Actualizar codigo' }}
+            </button>
+            <button type="button" class="secondary" (click)="toggleReferralBenefits()">
+              {{ showReferralBenefits ? 'Ocultar beneficios' : 'Ver beneficios' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="referral-card__body">
+          <div class="referral-card__main">
+            <p class="referral-card__label">Tu codigo</p>
+            <div class="referral-card__code-box" [class.is-empty]="!user?.referralCode">
+              {{ user?.referralCode || 'Aun no disponible' }}
+            </div>
+            <p class="referral-card__hint">Compartelo por WhatsApp o copialo para invitar a otros usuarios.</p>
+          </div>
+
+          <div class="referral-card__actions-panel">
+            <div class="referral-card__actions">
+              <button type="button" (click)="copyReferralCode()" [disabled]="!user?.referralCode || isRefreshingReferralCode">Copiar codigo</button>
+              <button
+                type="button"
+                class="secondary"
+                (click)="shareReferralCodeViaWhatsApp()"
+                [disabled]="!user?.referralCode || isRefreshingReferralCode"
+              >
+                Enviar por WhatsApp
+              </button>
+            </div>
+            <p class="referral-card__meta">Formato unico de maestro: MAES_0000.</p>
+          </div>
+        </div>
+
+        <ul class="referral-benefits" *ngIf="showReferralBenefits">
+          <li *ngFor="let benefit of referralBenefits">{{ benefit }}</li>
+        </ul>
+      </section>
+
       <div class="profile-actions">
         <button type="button" (click)="saveProfile()">Guardar cambios</button>
         <button type="button" class="secondary" (click)="resetProfileDraft()">Restaurar datos actuales</button>
       </div>
       <p class="saved" *ngIf="profileSaved">Perfil actualizado.</p>
+      <p class="saved" *ngIf="referralNotice">{{ referralNotice }}</p>
       <p class="profile-error" *ngIf="profileError" style="color: #9b1f1f; font-weight: 700;">{{ profileError }}</p>
     </article>
 

@@ -173,6 +173,14 @@ export class DashboardMaestroComponent implements OnInit {
   protected profileError = '';
   protected quotationNotice = '';
   protected subscriptionNotice = '';
+  protected referralNotice = '';
+  protected isRefreshingReferralCode = false;
+  protected showReferralBenefits = false;
+  protected readonly referralBenefits = [
+    'Bonos por referidos que completen su registro.',
+    'Beneficios exclusivos por compras o cotizaciones activadas.',
+    'Prioridad en futuras promociones y campañas de fidelizacion.'
+  ];
   protected readonly profileContactMethods: Array<{ id: PreferredContactMethod; label: string }> = [
     { id: 'whatsapp', label: 'WhatsApp' },
     { id: 'llamada', label: 'Llamada telefonica' },
@@ -710,6 +718,53 @@ export class DashboardMaestroComponent implements OnInit {
     this.hydrateProfileDraft();
   }
 
+  protected toggleReferralBenefits(): void {
+    this.showReferralBenefits = !this.showReferralBenefits;
+  }
+
+  protected async copyReferralCode(): Promise<void> {
+    let code = this.user?.referralCode?.trim();
+    if (!code) {
+      await this.refreshReferralCode();
+      code = this.user?.referralCode?.trim();
+    }
+    if (!code) {
+      return;
+    }
+
+    await this.copyText(code);
+    this.referralNotice = 'Codigo copiado.';
+    this.clearReferralNoticeLater();
+  }
+
+  protected shareReferralCodeViaWhatsApp(): void {
+    const code = this.user?.referralCode?.trim();
+    if (!code || typeof window === 'undefined') {
+      return;
+    }
+
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(this.buildReferralShareMessage(code))}`;
+    window.open(whatsappUrl, '_blank', 'noopener');
+  }
+
+  protected async refreshReferralCode(): Promise<void> {
+    this.isRefreshingReferralCode = true;
+    this.referralNotice = '';
+    try {
+      const user = await this.authService.refreshCurrentUser();
+      this.hydrateProfileDraft();
+      this.referralNotice = user.referralCode
+        ? 'Codigo actualizado.'
+        : 'Aun no fue posible obtener tu codigo. Recarga la pagina o revisa el backend.';
+      this.clearReferralNoticeLater();
+    } catch (error) {
+      this.referralNotice = error instanceof Error ? error.message : 'No fue posible cargar tu codigo.';
+      this.clearReferralNoticeLater();
+    } finally {
+      this.isRefreshingReferralCode = false;
+    }
+  }
+
   protected async changeSubscriptionPlan(plan: SubscriptionPlan): Promise<void> {
     if (!this.user || this.currentSubscriptionPlan === plan) {
       return;
@@ -952,6 +1007,13 @@ export class DashboardMaestroComponent implements OnInit {
       }
 
       if (section === 'perfil') {
+        if (force || !this.user?.referralCode?.trim()) {
+          try {
+            await this.authService.refreshCurrentUser();
+          } catch {
+            // El perfil puede seguir cargando con la sesion local aunque falle el refresh.
+          }
+        }
         this.hydrateProfileDraft();
       }
 
@@ -1089,5 +1151,37 @@ export class DashboardMaestroComponent implements OnInit {
     if (!this.isMobileViewport) {
       this.isMobileMenuVisible = false;
     }
+  }
+
+  private buildReferralShareMessage(code: string): string {
+    const baseUrl = typeof window === 'undefined' ? 'https://appconstruct.cl' : `${window.location.origin}/registro`;
+    return `Hola! Te invito a unirte a ConstruComparador. Usa mi codigo de referido ${code} al registrarte. Descarga o entra aqui: ${baseUrl}`;
+  }
+
+  private async copyText(value: string): Promise<void> {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(value);
+      return;
+    }
+
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = value;
+    textarea.setAttribute('readonly', 'true');
+    textarea.style.position = 'absolute';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  }
+
+  private clearReferralNoticeLater(): void {
+    setTimeout(() => {
+      this.referralNotice = '';
+    }, 1800);
   }
 }
