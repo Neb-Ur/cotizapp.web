@@ -178,6 +178,13 @@ export class DashboardFerreteriaComponent implements OnInit {
   protected csvError = '';
   protected csvNotice = '';
   protected subscriptionNotice = '';
+  protected referralNotice = '';
+  protected showReferralBenefits = false;
+  protected readonly referralBenefits = [
+    'Bonos por referidos que completen su registro.',
+    'Beneficios exclusivos por activacion y primeras cargas de catalogo.',
+    'Prioridad en futuras promociones y campanas de fidelizacion.'
+  ];
   protected importSummaryModalOpen = false;
   protected importSummary: CatalogImportReport | null = null;
 
@@ -1309,6 +1316,31 @@ export class DashboardFerreteriaComponent implements OnInit {
     }
   }
 
+  protected toggleReferralBenefits(): void {
+    this.showReferralBenefits = !this.showReferralBenefits;
+  }
+
+  protected async copyReferralCode(): Promise<void> {
+    const code = this.user?.referralCode?.trim();
+    if (!code) {
+      return;
+    }
+
+    await this.copyText(code);
+    this.referralNotice = 'Codigo copiado.';
+    this.clearReferralNoticeLater();
+  }
+
+  protected shareReferralCodeViaWhatsApp(): void {
+    const code = this.user?.referralCode?.trim();
+    if (!code || typeof window === 'undefined') {
+      return;
+    }
+
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(this.buildReferralShareMessage(code))}`;
+    window.open(whatsappUrl, '_blank', 'noopener');
+  }
+
   protected logout(): void {
     this.closeMobileMenu();
     this.authService.logout();
@@ -1410,6 +1442,13 @@ export class DashboardFerreteriaComponent implements OnInit {
       }
 
       if (section === 'perfil') {
+        if (force || !this.user?.referralCode?.trim()) {
+          try {
+            await this.authService.refreshCurrentUser();
+          } catch {
+            // El perfil puede seguir usando la sesion local si falla el refresh remoto.
+          }
+        }
         this.syncProfileDraftFromUser();
       }
 
@@ -1918,5 +1957,37 @@ export class DashboardFerreteriaComponent implements OnInit {
     if (!this.isMobileViewport) {
       this.isMobileMenuVisible = false;
     }
+  }
+
+  private buildReferralShareMessage(code: string): string {
+    const baseUrl = typeof window === 'undefined' ? 'https://appconstruct.cl/registro' : `${window.location.origin}/registro`;
+    return `Hola! Te invito a unirte a ConstruComparador. Usa mi codigo de referido ${code} al registrarte. Descarga o entra aqui: ${baseUrl}`;
+  }
+
+  private async copyText(value: string): Promise<void> {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(value);
+      return;
+    }
+
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = value;
+    textarea.setAttribute('readonly', 'true');
+    textarea.style.position = 'absolute';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  }
+
+  private clearReferralNoticeLater(): void {
+    setTimeout(() => {
+      this.referralNotice = '';
+    }, 1800);
   }
 }

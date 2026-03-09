@@ -677,6 +677,151 @@ td {
   align-content: start;
 }
 
+.referral-card {
+  margin-top: 0.9rem;
+  border-radius: 22px;
+  border: 1px solid rgba(34, 70, 120, 0.12);
+  background:
+    radial-gradient(circle at top right, rgba(35, 77, 140, 0.12), transparent 32%),
+    linear-gradient(180deg, #f7fbff 0%, #ffffff 100%);
+  padding: 1.15rem;
+  box-shadow: 0 16px 36px rgba(18, 41, 74, 0.08);
+  display: grid;
+  gap: 1rem;
+}
+
+.referral-card__eyebrow {
+  display: inline-flex;
+  margin-bottom: 0.45rem;
+  padding: 0.28rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(37, 75, 136, 0.09);
+  color: var(--navy-800);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.referral-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.referral-card__header h4,
+.referral-card__header p {
+  margin: 0;
+}
+
+.referral-card__header p {
+  margin-top: 0.25rem;
+  color: var(--slate-700);
+}
+
+.referral-card__header-actions {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.referral-card__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.9fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.referral-card__main,
+.referral-card__actions-panel {
+  border: 1px solid rgba(34, 70, 120, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.82);
+  padding: 0.95rem 1rem;
+}
+
+.referral-card__main {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.referral-card__label,
+.referral-card__hint,
+.referral-card__meta {
+  margin: 0;
+}
+
+.referral-card__label {
+  color: var(--navy-900);
+  font-weight: 700;
+}
+
+.referral-card__code-box {
+  min-height: 76px;
+  border-radius: 18px;
+  border: 1px solid rgba(34, 70, 120, 0.14);
+  background: linear-gradient(135deg, #17345f 0%, #274f8a 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0.9rem 1rem;
+  font-size: clamp(1.4rem, 2vw, 2rem);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.referral-card__code-box.is-empty {
+  background: #eef3f9;
+  color: var(--slate-700);
+  letter-spacing: normal;
+  font-size: 1.1rem;
+}
+
+.referral-card__hint {
+  color: var(--slate-700);
+}
+
+.referral-card__actions-panel {
+  display: grid;
+  gap: 0.85rem;
+  align-content: center;
+}
+
+.referral-card__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.referral-card__actions button {
+  min-width: 180px;
+}
+
+.referral-card__meta {
+  color: var(--slate-700);
+  font-size: 0.92rem;
+}
+
+.referral-benefits {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.referral-benefits li {
+  border-radius: 14px;
+  border: 1px solid rgba(34, 70, 120, 0.1);
+  background: rgba(248, 251, 255, 0.95);
+  padding: 0.8rem 0.9rem;
+  color: var(--slate-700);
+}
+
 label {
   display: grid;
   gap: 0.3rem;
@@ -975,6 +1120,10 @@ button.plan-card__action.is-disabled {
   .subscription-overview__meta p {
     text-align: left;
   }
+
+  .referral-card__body {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 680px) {
@@ -997,5 +1146,26 @@ button.plan-card__action.is-disabled {
 
   .pager-actions {
     width: 100%;
+  }
+
+  .referral-card {
+    padding: 0.95rem;
+  }
+
+  .referral-card__header-actions,
+  .referral-card__actions {
+    width: 100%;
+  }
+
+  .referral-card__header-actions button,
+  .referral-card__actions button,
+  .referral-card__actions button.secondary {
+    width: 100%;
+  }
+
+  .referral-card__code-box {
+    min-height: 68px;
+    font-size: 1.25rem;
+    letter-spacing: 0.1em;
   }
 }

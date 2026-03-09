@@ -22,6 +22,7 @@ interface ApiAuthUser {
   rol: UserRole;
   nombre: string;
   correo: string;
+  codigoRef?: string;
   telefono?: string;
   telefonoSecundario?: string;
   ciudad?: string;
@@ -85,6 +86,7 @@ export class AuthService {
           nombre: payload.name.trim(),
           correo: payload.email.trim().toLowerCase(),
           password: payload.password,
+          codigoReferencia: payload.referralCode?.trim() || undefined,
           telefono: payload.phone.trim(),
           ciudad: payload.city.trim(),
           comuna: payload.commune.trim(),
@@ -136,6 +138,27 @@ export class AuthService {
       return merged;
     } catch (error) {
       throw new Error(this.extractErrorMessage(error, 'No fue posible actualizar el perfil.'));
+    }
+  }
+
+  async refreshCurrentUser(): Promise<SessionUser> {
+    const token = this.tokenState();
+    const current = this.currentUserState();
+    if (!token) {
+      throw new Error('No hay sesion activa.');
+    }
+
+    try {
+      const remote = await this.fetchCurrentUser(token);
+      const merged: SessionUser = {
+        ...current,
+        ...remote
+      };
+      this.currentUserState.set(merged);
+      this.persistSession(merged, token);
+      return merged;
+    } catch (error) {
+      throw new Error(this.extractErrorMessage(error, 'No fue posible actualizar la sesion.'));
     }
   }
 
@@ -401,6 +424,7 @@ export class AuthService {
       id: user.id,
       ferreteriaId: user.ferreteriaId,
       email: user.correo,
+      referralCode: user.codigoRef,
       displayName: user.nombreComercial?.trim() ? user.nombreComercial : user.nombre,
       legalFullName: user.nombre,
       role: user.rol,
@@ -456,6 +480,7 @@ export class AuthService {
       rol: user.role,
       nombre: user.legalFullName || user.displayName,
       correo: user.email,
+      codigoRef: user.referralCode,
       telefono: user.phone,
       telefonoSecundario: user.secondaryPhone,
       ciudad: user.city,

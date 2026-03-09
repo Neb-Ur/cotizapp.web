@@ -1462,6 +1462,8 @@ export class MockApiService {
       } catch {
         // noop
       }
+
+      this.ensureMockMaestroBrowseSeed();
     })();
 
     return this.searchPromise;
@@ -1490,9 +1492,322 @@ export class MockApiService {
       } catch {
         // noop
       }
+
+      this.ensureMockMaestroBrowseSeed();
     })();
 
     return this.masterPromise;
+  }
+
+  private ensureMockMaestroBrowseSeed(): void {
+    if (this.categories.length === 0 || this.subcategories.length === 0 || this.families.length === 0) {
+      return;
+    }
+
+    const usedFamilies = new Set<string>();
+    const seeds = [
+      {
+        slug: 'cemento-portland',
+        name: 'Cemento Portland Alta Resistencia 25kg',
+        brand: 'Construmax',
+        shortDescription: 'Cemento gris para hormigones, radieres y trabajos estructurales.',
+        keywords: ['cemento', 'mortero', 'constru'],
+        techRows: [
+          { label: 'Peso', value: '25 kg' },
+          { label: 'Resistencia', value: 'Alta' },
+          { label: 'Aplicacion', value: 'Hormigon y radier' }
+        ],
+        features: [
+          'Buen tiempo abierto para mezcla en obra.',
+          'Compatible con aplicaciones estructurales y radieres.',
+          'Formato de saco facil de manipular.'
+        ],
+        extraSections: [
+          { id: 'cemento-uso', title: 'Uso recomendado', points: ['Radieres', 'Fundaciones menores', 'Pilares y cadenas'] },
+          { id: 'cemento-cuidados', title: 'Cuidados', points: ['Mantener en lugar seco', 'Cerrar el saco despues de abrir', 'No mezclar con producto humedo'] }
+        ],
+        coverageConfig: {
+          quantityInputUnit: 'm3',
+          yieldPerPackage: 0.012,
+          yieldUnit: 'm3' as const,
+          requiresDepthCm: false,
+          description: 'Calcula una cantidad estimada de sacos segun el volumen de mezcla requerido.'
+        }
+      },
+      {
+        slug: 'mortero-reparacion',
+        name: 'Mortero Predosificado Reparacion Rapida 25kg',
+        brand: 'ObraPro',
+        shortDescription: 'Mortero de reparacion para nivelacion, relleno y remates en obra.',
+        keywords: ['mortero', 'adhesivo', 'frague'],
+        techRows: [
+          { label: 'Peso', value: '25 kg' },
+          { label: 'Rendimiento', value: '1.6 kg/mm/m2' },
+          { label: 'Color', value: 'Gris cemento' }
+        ],
+        features: [
+          'Predosificado para preparacion rapida.',
+          'Buena adherencia sobre hormigon y albanileria.',
+          'Ideal para reparaciones y afinados.'
+        ],
+        extraSections: [
+          { id: 'mortero-prep', title: 'Preparacion', points: ['Agregar agua limpia', 'Mezclar hasta homogenizar', 'Aplicar sobre superficie firme'] },
+          { id: 'mortero-aplicacion', title: 'Aplicaciones comunes', points: ['Reparacion de bordes', 'Parcheo', 'Nivelacion puntual'] }
+        ],
+        coverageConfig: {
+          quantityInputUnit: 'm2',
+          yieldPerPackage: 3,
+          yieldUnit: 'm2' as const,
+          requiresDepthCm: true,
+          defaultDepthCm: 1,
+          description: 'Calcula sacos estimados segun superficie y espesor de aplicacion.'
+        }
+      },
+      {
+        slug: 'ladrillo-princesa',
+        name: 'Ladrillo Princesa Maquina 29x14x7 cm',
+        brand: 'Ceramicas del Valle',
+        shortDescription: 'Ladrillo ceramico para muros y tabiques con terminacion uniforme.',
+        keywords: ['ladrillo', 'constru', 'alba'],
+        techRows: [
+          { label: 'Formato', value: '29x14x7 cm' },
+          { label: 'Material', value: 'Ceramico' },
+          { label: 'Uso', value: 'Muro y tabique' }
+        ],
+        features: [
+          'Buena estabilidad dimensional.',
+          'Terminacion pareja para obra gruesa.',
+          'Apto para levantamiento de tabiques y cierres.'
+        ],
+        extraSections: [
+          { id: 'ladrillo-rend', title: 'Rendimiento referencial', points: ['Aprox. 48 unidades por m2', 'Depende de junta y aparejo'] },
+          { id: 'ladrillo-log', title: 'Logistica', points: ['Manipular sobre pallet', 'Evitar golpes en cantos'] }
+        ]
+      },
+      {
+        slug: 'cable-thhn',
+        name: 'Cable Electrico THHN 2.5 mm Rojo 100 m',
+        brand: 'ElectroSur',
+        shortDescription: 'Cable unipolar para instalaciones domiciliarias y canalizadas.',
+        keywords: ['cable', 'electric', 'enchufe', 'interruptor'],
+        techRows: [
+          { label: 'Seccion', value: '2.5 mm2' },
+          { label: 'Color', value: 'Rojo' },
+          { label: 'Largo', value: '100 m' }
+        ],
+        features: [
+          'Aislamiento resistente para canalizacion.',
+          'Flexible para tendidos interiores.',
+          'Ideal para circuitos domiciliarios.'
+        ],
+        extraSections: [
+          { id: 'cable-uso', title: 'Usos habituales', points: ['Enchufes', 'Iluminacion', 'Distribucion interior'] },
+          { id: 'cable-nota', title: 'Consideraciones', points: ['Verificar normativa local', 'Dimensionar segun carga'] }
+        ]
+      },
+      {
+        slug: 'esmalte-agua',
+        name: 'Esmalte al Agua Interior Exterior Blanco 1 galon',
+        brand: 'ColorHaus',
+        shortDescription: 'Pintura lavable de terminacion satinada para muros y maderas.',
+        keywords: ['esmalte', 'pintura', 'latex'],
+        techRows: [
+          { label: 'Contenido', value: '1 galon' },
+          { label: 'Terminacion', value: 'Satinada' },
+          { label: 'Color', value: 'Blanco' }
+        ],
+        features: [
+          'Lavable y de secado rapido.',
+          'Buena cubricion sobre superficies preparadas.',
+          'Apta para interior y exterior protegido.'
+        ],
+        extraSections: [
+          { id: 'esmalte-rend', title: 'Rendimiento', points: ['35 a 40 m2 por mano', 'Depende de absorcion del sustrato'] },
+          { id: 'esmalte-prep', title: 'Preparacion de superficie', points: ['Limpiar polvo y grasa', 'Aplicar sellador si corresponde'] }
+        ],
+        coverageConfig: {
+          quantityInputUnit: 'm2',
+          yieldPerPackage: 38,
+          yieldUnit: 'm2' as const,
+          requiresDepthCm: false,
+          description: 'Calcula una cantidad estimada segun la superficie a pintar por mano.'
+        }
+      },
+      {
+        slug: 'porcelanato-marmolado',
+        name: 'Porcelanato Marmolado Beige 60x60 cm Caja 1.44 m2',
+        brand: 'Terranova',
+        shortDescription: 'Porcelanato pulido para pisos interiores con look marmolado.',
+        keywords: ['porcelanato', 'ceramica', 'piso', 'piedra'],
+        techRows: [
+          { label: 'Formato', value: '60x60 cm' },
+          { label: 'Cobertura por caja', value: '1.44 m2' },
+          { label: 'Acabado', value: 'Pulido' }
+        ],
+        features: [
+          'Formato grande para espacios amplios.',
+          'Acabado elegante tipo marmol.',
+          'Ideal para living, comedor y hall.'
+        ],
+        extraSections: [
+          { id: 'porcelanato-instalacion', title: 'Instalacion', points: ['Usar adhesivo para porcelanato', 'Considerar crucetas y nivelacion'] },
+          { id: 'porcelanato-mant', title: 'Mantencion', points: ['Limpieza con productos neutros', 'Evitar abrasivos'] }
+        ],
+        coverageConfig: {
+          quantityInputUnit: 'm2',
+          yieldPerPackage: 1.44,
+          yieldUnit: 'm2' as const,
+          requiresDepthCm: false,
+          description: 'Calcula cajas estimadas segun la superficie a revestir.'
+        }
+      }
+    ];
+
+    for (const [index, seed] of seeds.entries()) {
+      const taxonomy = this.resolveMockTaxonomy(seed.keywords, usedFamilies, index);
+      if (!taxonomy) {
+        continue;
+      }
+
+      const masterId = `mock-master-${seed.slug}`;
+      if (!this.masterCatalog.some((item) => (item.masterProductId || item.id) === masterId)) {
+        this.masterCatalog.push({
+          id: masterId,
+          masterProductId: masterId,
+          name: seed.name,
+          barcode: `7800000${String(index + 1).padStart(6, '0')}`,
+          categoryId: taxonomy.category.id,
+          subcategoryId: taxonomy.subcategory.id,
+          familyId: taxonomy.family.id,
+          brand: seed.brand,
+          productType: seed.shortDescription,
+          unitLabel: 'Unidad',
+          packagingLabel: 'Unidad',
+          price: 0,
+          stock: 0,
+          sku: `MOCK-${String(index + 1).padStart(3, '0')}`,
+          imageUrl: this.mockImage(seed.name, 'hero'),
+          isPublished: true,
+          shortDescription: seed.shortDescription,
+          descriptionBlocks: [{ title: 'Resumen', text: seed.shortDescription }],
+          featureBullets: [...seed.features],
+          technicalSheet: [...seed.techRows],
+          extraSections: [...seed.extraSections],
+          gallery: [
+            this.mockImage(seed.name, 'hero'),
+            this.mockImage(seed.name, 'detail'),
+            this.mockImage(seed.name, 'usage')
+          ],
+          specValues: {},
+          templateVersion: 1
+        });
+      }
+
+      if (!this.searchRows.some((row) => row.productoMaestroId === masterId)) {
+        const offers = [
+          { storeName: 'Ferreteria Norte', price: 6590 + (index * 1350), distanceKm: 2.4 + (index * 0.2), stock: 18 + index * 3 },
+          { storeName: 'Materiales Pro', price: 6890 + (index * 1500), distanceKm: 4.1 + (index * 0.3), stock: 11 + index * 2 },
+          { storeName: 'CasaObra Express', price: 7190 + (index * 1600), distanceKm: 6.3 + (index * 0.4), stock: 7 + index }
+        ];
+
+        offers.forEach((offer, offerIndex) => {
+          this.searchRows.push({
+            productName: seed.name,
+            storeName: offer.storeName,
+            price: offer.price,
+            distanceKm: Number(offer.distanceKm.toFixed(1)),
+            balanceScore: Math.max(70, 96 - (offerIndex * 7) - index),
+            categoryId: taxonomy.category.id,
+            categoryName: taxonomy.category.name,
+            subcategoryId: taxonomy.subcategory.id,
+            subcategoryName: taxonomy.subcategory.name,
+            familyId: taxonomy.family.id,
+            familyName: taxonomy.family.name,
+            productoMaestroId: masterId,
+            productoFerreteriaId: `mock-offer-${seed.slug}-${offerIndex + 1}`,
+            sku: `MOCK-${String(index + 1).padStart(3, '0')}-${offerIndex + 1}`,
+            stock: offer.stock
+          });
+        });
+      }
+
+      this.productDetailByName.set(seed.name.toLowerCase(), {
+        productName: seed.name,
+        imageUrl: this.mockImage(seed.name, 'hero'),
+        gallery: [
+          this.mockImage(seed.name, 'hero'),
+          this.mockImage(seed.name, 'detail'),
+          this.mockImage(seed.name, 'usage')
+        ],
+        sku: `MOCK-${String(index + 1).padStart(3, '0')}`,
+        unitLabel: 'Unidad',
+        packagingLabel: seed.coverageConfig ? 'Caja / Saco / Envase' : 'Unidad',
+        stock: this.searchRows
+          .filter((row) => row.productoMaestroId === masterId)
+          .reduce((acc, row) => acc + row.stock, 0),
+        brand: seed.brand,
+        productType: seed.shortDescription,
+        categoryName: taxonomy.category.name,
+        subcategoryName: taxonomy.subcategory.name,
+        familyName: taxonomy.family.name,
+        description: `${seed.shortDescription} Producto demo cargado para revisar el flujo de comparacion, detalle y cotizacion en el dashboard del maestro.`,
+        shortDescription: seed.shortDescription,
+        featureBullets: [...seed.features],
+        descriptionBlocks: [
+          { title: 'Que incluye', text: seed.shortDescription },
+          { title: 'Por que revisarlo', text: 'Este producto tiene datos mock para probar tarjetas, comparacion de tiendas, calculadora y flujo de cotizacion.' }
+        ],
+        technicalSheet: [...seed.techRows],
+        extraSections: [...seed.extraSections],
+        minPrice: Math.min(...this.searchRows.filter((row) => row.productoMaestroId === masterId).map((row) => row.price)),
+        maxPrice: Math.max(...this.searchRows.filter((row) => row.productoMaestroId === masterId).map((row) => row.price)),
+        stores: this.searchRows
+          .filter((row) => row.productoMaestroId === masterId)
+          .map((row) => ({
+            storeName: row.storeName,
+            price: row.price,
+            distanceKm: row.distanceKm,
+            stock: row.stock
+          })),
+        coverageConfig: seed.coverageConfig
+      });
+    }
+
+    this.masterCatalog.sort((left, right) => left.name.localeCompare(right.name));
+    this.searchRows.sort((left, right) => left.productName.localeCompare(right.productName) || left.price - right.price);
+  }
+
+  private resolveMockTaxonomy(
+    keywords: string[],
+    usedFamilies: Set<string>,
+    fallbackIndex: number
+  ): { category: TaxonomyOption; subcategory: TaxonomyOption; family: TaxonomyOption } | null {
+    const normalizedKeywords = keywords.map((keyword) => keyword.toLowerCase());
+    const preferredFamily = this.families.find((family) =>
+      !usedFamilies.has(family.id)
+      && normalizedKeywords.some((keyword) => family.name.toLowerCase().includes(keyword))
+    );
+    const fallbackFamily = this.families.filter((family) => !usedFamilies.has(family.id))[fallbackIndex]
+      || this.families.find((family) => !usedFamilies.has(family.id))
+      || this.families[fallbackIndex]
+      || this.families[0];
+    const family = preferredFamily || fallbackFamily;
+    if (!family) {
+      return null;
+    }
+
+    const subcategory = this.subcategories.find((item) => item.id === family.parentId);
+    const category = this.categories.find((item) => item.id === subcategory?.parentId);
+    if (!subcategory || !category) {
+      return null;
+    }
+
+    usedFamilies.add(family.id);
+    return { category, subcategory, family };
+  }
+
+  private mockImage(productName: string, variant: string): string {
+    return `https://placehold.co/900x700/f3f6fb/17345f/png?text=${encodeURIComponent(`${productName} ${variant}`)}`;
   }
 
   private ensureProjectsLoaded(ownerId: string, force = false): Promise<void> {

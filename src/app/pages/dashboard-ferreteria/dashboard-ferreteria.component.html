@@ -620,8 +620,40 @@
         </label>
       </div>
 
+      <section class="referral-card">
+        <div class="referral-card__header">
+          <div>
+            <h4>Codigo de referidos</h4>
+            <p>Compartelo con otras ferreterias o contactos del rubro para futuras campanas de beneficios.</p>
+          </div>
+
+          <button type="button" class="secondary" (click)="toggleReferralBenefits()">
+            {{ showReferralBenefits ? 'Ocultar beneficios' : 'Ver beneficios' }}
+          </button>
+        </div>
+
+        <div class="referral-card__body">
+          <label class="referral-card__code">
+            Codigo
+            <input [value]="user?.referralCode || ''" type="text" readonly />
+          </label>
+
+          <div class="referral-card__actions">
+            <button type="button" (click)="copyReferralCode()" [disabled]="!user?.referralCode">Copiar codigo</button>
+            <button type="button" class="secondary" (click)="shareReferralCodeViaWhatsApp()" [disabled]="!user?.referralCode">
+              Enviar por WhatsApp
+            </button>
+          </div>
+        </div>
+
+        <ul class="referral-benefits" *ngIf="showReferralBenefits">
+          <li *ngFor="let benefit of referralBenefits">{{ benefit }}</li>
+        </ul>
+      </section>
+
       <button type="button" (click)="saveProfile()">Guardar perfil</button>
       <p class="saved" *ngIf="profileSaved">Perfil actualizado.</p>
+      <p class="saved" *ngIf="referralNotice">{{ referralNotice }}</p>
     </article>
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'suscripcion'">
