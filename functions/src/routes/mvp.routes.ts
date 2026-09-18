@@ -275,16 +275,12 @@ mvpRouter.post('/auth/register', requireAuth, async (req, res) => {
     nombre: normalizeText(req.body?.nombre),
     correo: (firebaseUser.email || normalizeText(req.body?.correo)).toLowerCase(),
     telefono: normalizeText(req.body?.telefono),
-    telefonoSecundario: normalizeText(req.body?.telefonoSecundario),
     region: normalizeText(req.body?.region),
     ciudad: normalizeText(req.body?.ciudad),
     comuna: normalizeText(req.body?.comuna),
     direccion: normalizeText(req.body?.direccion),
     estadoCuenta: role === 'ferreteria' ? 'pendiente' : 'activo',
-    creadoEn: nowIso(),
-    especialidad: normalizeText(req.body?.especialidad),
-    anosExperiencia: numberValue(req.body?.anosExperiencia),
-    metodoContactoPreferido: req.body?.metodoContactoPreferido || 'whatsapp'
+    creadoEn: nowIso()
   };
 
   if (!userPayload.nombre || !userPayload.correo) {
@@ -319,11 +315,7 @@ mvpRouter.get('/auth/me', requireAuth, async (req, res) => {
 
 mvpRouter.patch('/auth/me', requireAuth, async (req, res) => {
   if (!req.authUserId) return fail(res, 'AUTH_REQUIRED', 'Debes iniciar sesion.', 401);
-  const allowed = [
-    'nombre', 'telefono', 'telefonoSecundario', 'region', 'ciudad', 'comuna', 'direccion',
-    'especialidad', 'anosExperiencia', 'metodoContactoPreferido', 'contactoEmergenciaNombre',
-    'contactoEmergenciaTelefono'
-  ];
+  const allowed = ['nombre', 'telefono', 'region', 'ciudad', 'comuna', 'direccion'];
   const patch: Record<string, unknown> = {};
   allowed.forEach((key) => {
     if (req.body?.[key] !== undefined) patch[key] = req.body[key];
@@ -909,22 +901,3 @@ mvpRouter.delete('/admin/usuarios/:id', requireAuth, requireRole('admin'), async
   try { await adminAuth.deleteUser(req.params.id); } catch { /* profile may predate Firebase Auth */ }
   return ok(res, { deleted: true });
 });
-
-mvpRouter.get('/admin/metricas', requireAuth, requireRole('admin'), async (_req, res) => {
-  const [users, products, requests, projects] = await Promise.all([
-    rows(COLLECTIONS.users), rows(COLLECTIONS.masterProducts), rows(COLLECTIONS.productRequests), rows(COLLECTIONS.projects)
-  ]);
-  return ok(res, {
-    totalUsuarios: users.length,
-    nuevosUsuarios: users.filter((item) => Date.parse(item.creadoEn || '') >= Date.now() - 30 * 86400000).length,
-    usuariosActivos: users.filter((item) => item.estadoCuenta !== 'bloqueado').length,
-    maestros: users.filter((item) => item.rol === 'maestro').length,
-    ferreterias: users.filter((item) => item.rol === 'ferreteria').length,
-    cotizaciones: projects.length,
-    cotizacionesRechazadas: projects.filter((item) => item.status === 'rechazada').length,
-    cotizacionesAceptadas: projects.filter((item) => item.status === 'aceptada').length,
-    productosMaestro: products.length,
-    solicitudesPendientes: requests.filter((item) => item.estado === 'pendiente').length
-  });
-});
-
