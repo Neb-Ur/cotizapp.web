@@ -1,7 +1,10 @@
 {
   "functions": {
     "source": "functions",
-    "runtime": "nodejs22"
+    "runtime": "nodejs22",
+    "predeploy": [
+      "npm --prefix functions run build"
+    ]
   },
   "firestore": {
     "rules": "firestore.rules",
@@ -10,8 +13,7 @@
   "hosting": {
     "public": "dist/cotizacion-web/browser",
     "predeploy": [
-      "npm run build",
-      "npm run functions:build"
+      "npm run build"
     ],
     "ignore": [
       "firebase.json",
