@@ -1,5 +1,4 @@
 import { randomUUID } from 'node:crypto';
-import { readFileSync } from 'node:fs';
 import { Router, type Request, type Response } from 'express';
 import { adminAuth, db } from '../lib/firebase.js';
 import { requireAuth, requireRole } from '../lib/auth.js';
@@ -334,37 +333,6 @@ mvpRouter.patch('/auth/me', requireAuth, async (req, res) => {
 });
 
 mvpRouter.post('/auth/logout', requireAuth, async (_req, res) => ok(res, { success: true }));
-
-// Chile locations bundled with the Functions source.
-function locationsData(): any {
-  const url = new URL('../../data/chile-locations.json', import.meta.url);
-  return JSON.parse(readFileSync(url, 'utf-8'));
-}
-
-mvpRouter.get('/ubicaciones/regiones', (req, res) => {
-  const q = normalizeText(req.query['q']).toLowerCase();
-  const data = locationsData().regions
-    .filter((item: any) => !q || item.name.toLowerCase().includes(q));
-  return ok(res, data);
-});
-
-mvpRouter.get('/ubicaciones/ciudades', (req, res) => {
-  const regionId = normalizeText(req.query['regionId']);
-  const q = normalizeText(req.query['q']).toLowerCase();
-  const data = locationsData().cities
-    .filter((item: any) => !regionId || item.regionId === regionId)
-    .filter((item: any) => !q || item.name.toLowerCase().includes(q));
-  return ok(res, data);
-});
-
-mvpRouter.get('/ubicaciones/comunas', (req, res) => {
-  const cityId = normalizeText(req.query['cityId']);
-  const q = normalizeText(req.query['q']).toLowerCase();
-  const data = locationsData().communes
-    .filter((item: any) => !cityId || item.cityId === cityId)
-    .filter((item: any) => !q || item.name.toLowerCase().includes(q));
-  return ok(res, data);
-});
 
 // Taxonomy.
 mvpRouter.get('/categorias', async (_req, res) => ok(res, (await rows(COLLECTIONS.categories)).sort((a, b) => a.nombre.localeCompare(b.nombre))));
