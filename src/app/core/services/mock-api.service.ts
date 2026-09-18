@@ -761,7 +761,6 @@ export class MockApiService {
     ownerId: string,
     ownerLabel: string,
     csvContent: string,
-    _plan: SubscriptionPlan,
     _defaults: {
       categoryId: string;
       subcategoryId: string;
@@ -969,8 +968,7 @@ export class MockApiService {
     ownerId: string,
     name: string,
     items: ProjectItem[],
-    address = '',
-    _plan?: SubscriptionPlan
+    address = ''
   ): Promise<ProjectSummary> {
     const created = await this.apiPost<any>(`/maestros/${ownerId}/proyectos`, {
       nombre: name.trim(),
