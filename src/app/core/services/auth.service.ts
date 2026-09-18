@@ -39,7 +39,6 @@ interface ApiAuthUser {
   nombre: string;
   correo: string;
   telefono?: string;
-  telefonoSecundario?: string;
   ciudad?: string;
   comuna?: string;
   region?: string;
@@ -48,11 +47,6 @@ interface ApiAuthUser {
   creadoEn?: string;
   nombreComercial?: string;
   rut?: string;
-  contactoEmergenciaNombre?: string;
-  contactoEmergenciaTelefono?: string;
-  especialidad?: string;
-  anosExperiencia?: number;
-  metodoContactoPreferido?: 'whatsapp' | 'llamada' | 'email';
 }
 
 @Injectable({ providedIn: 'root' })
@@ -108,9 +102,7 @@ export class AuthService {
           region: payload.region.trim(),
           direccion: payload.address.trim(),
           nombreComercial: payload.businessName?.trim() || undefined,
-          rut: payload.rut?.trim() || undefined,
-          especialidad: payload.specialty?.trim() || undefined,
-          anosExperiencia: payload.experienceYears
+          rut: payload.rut?.trim() || undefined
         }, {
           headers: this.authHeaders(token)
         })
@@ -385,24 +377,17 @@ export class AuthService {
       ferreteriaId: user.ferreteriaId,
       email: user.correo,
       displayName: user.nombreComercial?.trim() ? user.nombreComercial : user.nombre,
-      legalFullName: user.nombre,
       role: user.rol,
       accountStatus: user.estadoCuenta || 'activo',
       adminValidated: user.estadoCuenta !== 'bloqueado',
       createdAt: user.creadoEn,
       phone: user.telefono,
-      secondaryPhone: user.telefonoSecundario,
       city: user.ciudad,
       commune: user.comuna,
       region: user.region,
       address: user.direccion,
       businessName: user.nombreComercial,
-      rut: user.rut,
-      emergencyContactName: user.contactoEmergenciaNombre,
-      emergencyContactPhone: user.contactoEmergenciaTelefono,
-      specialty: user.especialidad,
-      experienceYears: user.anosExperiencia,
-      preferredContactMethod: user.metodoContactoPreferido
+      rut: user.rut
     };
   }
 
@@ -418,10 +403,9 @@ export class AuthService {
       id: user.id,
       ferreteriaId: user.ferreteriaId,
       rol: user.role,
-      nombre: user.legalFullName || user.displayName,
+      nombre: user.displayName,
       correo: user.email,
       telefono: user.phone,
-      telefonoSecundario: user.secondaryPhone,
       ciudad: user.city,
       comuna: user.commune,
       region: user.region,
@@ -430,30 +414,19 @@ export class AuthService {
       creadoEn: user.createdAt,
       nombreComercial: user.businessName,
       rut: user.rut,
-      contactoEmergenciaNombre: user.emergencyContactName,
-      contactoEmergenciaTelefono: user.emergencyContactPhone,
-      especialidad: user.specialty,
-      anosExperiencia: user.experienceYears,
-      metodoContactoPreferido: user.preferredContactMethod
     };
   }
 
   private mapProfilePatchToApiPayload(partial: Partial<SessionUser>): Record<string, unknown> {
     const payload: Record<string, unknown> = {};
-    if (partial.displayName !== undefined || partial.legalFullName !== undefined) payload['nombre'] = partial.legalFullName || partial.displayName || '';
+    if (partial.displayName !== undefined) payload['nombre'] = partial.displayName;
     if (partial.phone !== undefined) payload['telefono'] = partial.phone;
-    if (partial.secondaryPhone !== undefined) payload['telefonoSecundario'] = partial.secondaryPhone;
     if (partial.city !== undefined) payload['ciudad'] = partial.city;
     if (partial.commune !== undefined) payload['comuna'] = partial.commune;
     if (partial.region !== undefined) payload['region'] = partial.region;
     if (partial.address !== undefined) payload['direccion'] = partial.address;
     if (partial.businessName !== undefined) payload['nombreComercial'] = partial.businessName;
     if (partial.rut !== undefined) payload['rut'] = partial.rut;
-    if (partial.specialty !== undefined) payload['especialidad'] = partial.specialty;
-    if (partial.experienceYears !== undefined) payload['anosExperiencia'] = partial.experienceYears;
-    if (partial.preferredContactMethod !== undefined) payload['metodoContactoPreferido'] = partial.preferredContactMethod;
-    if (partial.emergencyContactName !== undefined) payload['contactoEmergenciaNombre'] = partial.emergencyContactName;
-    if (partial.emergencyContactPhone !== undefined) payload['contactoEmergenciaTelefono'] = partial.emergencyContactPhone;
     return payload;
   }
 
