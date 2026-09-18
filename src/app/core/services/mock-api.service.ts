@@ -1235,60 +1235,97 @@ export class MockApiService {
   buildProjectQuotation(items: ProjectItem[]): ProjectQuotationView {
     this.ensureSearchRowsLoaded();
 
-    const lines = items
+    const normalizedItems = items
       .filter((item) => item.productName.trim())
-      .map((item) => {
-        const best = this.searchRows
-          .filter((row) => row.productName.toLowerCase() === item.productName.trim().toLowerCase())
-          .sort((a, b) => a.price - b.price)[0];
+      .map((item) => ({
+        productName: item.productName.trim(),
+        quantity: Math.max(1, Math.floor(Number(item.quantity) || 1))
+      }));
 
-        const unitPrice = best?.price || 0;
-        const quantity = Math.max(0, Math.floor(Number(item.quantity) || 0));
+    const lines = normalizedItems.map((item) => {
+      const candidates = this.searchRows
+        .filter((row) =>
+          row.productName.toLowerCase() === item.productName.toLowerCase()
+          && row.stock >= item.quantity
+        )
+        .sort((a, b) => a.price - b.price);
 
-        return {
-          productName: item.productName,
-          quantity,
-          bestStoreName: best?.storeName || 'Sin datos',
-          unitPrice,
-          subtotal: unitPrice * quantity
-        };
-      });
+      const best = candidates[0];
+      const unitPrice = best?.price || 0;
 
-    const totalsMap = new Map<string, number>();
-    lines.forEach((line) => {
-      totalsMap.set(line.bestStoreName, (totalsMap.get(line.bestStoreName) || 0) + line.subtotal);
+      return {
+        productName: item.productName,
+        quantity: item.quantity,
+        bestStoreName: best?.storeName || 'Sin datos',
+        unitPrice,
+        subtotal: unitPrice * item.quantity
+      };
     });
 
-    const totalsByStore = Array.from(totalsMap.entries()).map(([storeName, total]) => ({ storeName, total }));
-    const bestStore = [...totalsByStore].sort((a, b) => a.total - b.total)[0] || {
-      storeName: 'Sin datos',
-      total: 0
+    const optimalTotal = lines.reduce((acc, line) => acc + line.subtotal, 0);
+    const storeNames = Array.from(new Set(this.searchRows.map((row) => row.storeName)));
+
+    const totalsByStore = storeNames
+      .map((storeName) => {
+        let total = 0;
+
+        for (const item of normalizedItems) {
+          const offer = this.searchRows
+            .filter((row) =>
+              row.storeName === storeName
+              && row.productName.toLowerCase() === item.productName.toLowerCase()
+              && row.stock >= item.quantity
+            )
+            .sort((a, b) => a.price - b.price)[0];
+
+          if (!offer) {
+            return null;
+          }
+
+          total += offer.price * item.quantity;
+        }
+
+        return { storeName, total };
+      })
+      .filter((item): item is ProjectStoreTotal => item !== null)
+      .sort((a, b) => a.total - b.total);
+
+    const bestStore = totalsByStore[0] || {
+      storeName: 'No disponible en una sola tienda',
+      total: optimalTotal
     };
 
     return {
       lines,
       totalsByStore,
       bestStore,
-      optimalTotal: lines.reduce((acc, line) => acc + line.subtotal, 0),
-      mixedSaving: 0
+      optimalTotal,
+      mixedSaving: Math.max(0, bestStore.total - optimalTotal)
     };
   }
 
   getProjectComparisonStrategies(items: ProjectItem[], _projectAddress = ''): ProjectComparisonStrategy[] {
     const quotation = this.buildProjectQuotation(items);
+    const storesUsed = new Set(
+      quotation.lines
+        .map((line) => line.bestStoreName)
+        .filter((name) => name && name !== 'Sin datos')
+    ).size;
+
     return [
       {
         id: 'cheapest',
-        title: 'Tienda mas barata',
-        subtitle: quotation.bestStore.storeName,
-        total: quotation.bestStore.total,
-        saving: 0
+        title: 'Menor precio combinado',
+        subtitle: storesUsed === 1 ? '1 ferreteria' : `${storesUsed} ferreterias`,
+        total: quotation.optimalTotal,
+        saving: quotation.mixedSaving
       },
       {
         id: 'same-store',
-        title: 'Todo en la misma tienda',
+        title: 'Todo en una ferreteria',
         subtitle: quotation.bestStore.storeName,
-        total: quotation.bestStore.total
+        total: quotation.bestStore.total,
+        saving: 0
       }
     ];
   }
@@ -1301,84 +1338,33 @@ export class MockApiService {
     return this.ferreteriaPlanCapabilities[plan] || this.ferreteriaPlanCapabilities.basico;
   }
 
-  canCreatePendingProject(ownerId: string, plan: SubscriptionPlan): {
+  canCreatePendingProject(ownerId: string, _plan: SubscriptionPlan): {
     allowed: boolean;
     pendingCount: number;
     limit: number | null;
     remaining: number | null;
     message: string;
   } {
-    this.ensurePendingQuotaLoaded(ownerId);
-
-    const remote = this.pendingQuotaByOwner.get(ownerId);
-    if (remote) {
-      return {
-        allowed: remote.allowed,
-        pendingCount: remote.pendingCount || 0,
-        limit: remote.limit,
-        remaining: remote.remaining ?? null,
-        message: remote.message || ''
-      };
-    }
-
     const pendingCount = this.getProjectsByStatus(ownerId, 'pendiente').length;
-    const capabilities = this.getPlanCapabilities(plan);
-    const limit = capabilities.maxPendingQuotations;
-
-    if (limit !== null && pendingCount >= limit) {
-      return {
-        allowed: false,
-        pendingCount,
-        limit,
-        remaining: 0,
-        message: `Tu ${capabilities.label} permite ${limit} cotizacion(es) pendiente(s).`
-      };
-    }
-
     return {
       allowed: true,
       pendingCount,
-      limit,
-      remaining: limit === null ? null : Math.max(0, limit - pendingCount),
+      limit: null,
+      remaining: null,
       message: ''
     };
   }
 
-  canAddCatalogProduct(ownerId: string, plan: SubscriptionPlan): {
+  canAddCatalogProduct(ownerId: string, _plan: SubscriptionPlan): {
     allowed: boolean;
     currentCount: number;
     limit: number | null;
     message: string;
   } {
-    this.ensureCatalogCapacityLoaded(ownerId);
-
-    const remote = this.catalogCapacityByOwner.get(ownerId);
-    if (remote) {
-      return {
-        allowed: remote.allowed,
-        currentCount: remote.currentCount || 0,
-        limit: remote.limit,
-        message: remote.message || ''
-      };
-    }
-
-    const currentCount = this.getCatalog(ownerId).length;
-    const capabilities = this.getFerreteriaPlanCapabilities(plan);
-    const limit = capabilities.maxCatalogProducts;
-
-    if (limit !== null && currentCount >= limit) {
-      return {
-        allowed: false,
-        currentCount,
-        limit,
-        message: `Tu ${capabilities.label} permite hasta ${limit} productos en catalogo.`
-      };
-    }
-
     return {
       allowed: true,
-      currentCount,
-      limit,
+      currentCount: this.getCatalog(ownerId).length,
+      limit: null,
       message: ''
     };
   }
