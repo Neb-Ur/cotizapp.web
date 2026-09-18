@@ -152,4 +152,161 @@ export class AuthService {
         )
         : { ok: true, data: this.mapSessionUserToApiUser(current) };
 
-      const m
+      const merged: SessionUser = {
+        ...current,
+        ...this.mapApiUser(remote.data),
+        id: current.id,
+        email: current.email,
+        role: current.role
+      };
+
+      this.currentUserState.set(merged);
+      this.persistSession(merged, token);
+      return merged;
+    } catch (error) {
+      throw new Error(this.extractErrorMessage(error, 'No fue posible actualizar el perfil.'));
+    }
+  }
+
+  async logout(): Promise<void> {
+    try {
+      const auth = await this.getAuth();
+      await signOut(auth);
+    } catch {
+      // Clear the local session even if Firebase is temporarily unavailable.
+    }
+    this.clearSession();
+  }
+
+  hasRole(role: UserRole): boolean {
+    return this.currentUserState()?.role === role;
+  }
+
+  getSubscriptionPlan(): SubscriptionPlan {
+    return this.currentUserState()?.subscriptionPlan || 'basico';
+  }
+
+  getToken(): string | null {
+    return this.tokenState();
+  }
+
+  dashboardRouteForUser(user: SessionUser | null): string {
+    if (!user) return '/login';
+    return this.dashboardRouteForRole(user.role);
+  }
+
+  dashboardRouteForRole(role: UserRole): string {
+    if (role === 'admin') return '/dashboard/admin/validaciones';
+    if (role === 'ferreteria') return '/dashboard/ferreteria';
+    return '/dashboard/maestro';
+  }
+
+  async listUsersForAdmin(): Promise<SessionUser[]> {
+    const token = this.requireToken();
+    const response = await firstValueFrom(
+      this.http.get<ApiEnvelope<ApiAuthUser[]>>(`${this.apiBaseUrl}/admin/usuarios`, {
+        headers: this.authHeaders(token)
+      })
+    );
+    return (response.data || []).filter(Boolean).map((user) => this.mapApiUser(user));
+  }
+
+  async adminUpdateUser(
+    userId: string,
+    partial: Partial<Pick<SessionUser, 'role' | 'subscriptionPlan' | 'accountStatus' | 'displayName' | 'phone' | 'city' | 'commune' | 'address'>>
+  ): Promise<SessionUser | null> {
+    const token = this.requireToken();
+    const payload: Record<string, unknown> = {};
+    if (partial.role !== undefined) payload['rol'] = partial.role;
+    if (partial.subscriptionPlan !== undefined) payload['planSuscripcion'] = partial.subscriptionPlan;
+    if (partial.accountStatus !== undefined) payload['estadoCuenta'] = partial.accountStatus;
+    if (partial.displayName !== undefined) payload['nombre'] = partial.displayName;
+    if (partial.phone !== undefined) payload['telefono'] = partial.phone;
+    if (partial.city !== undefined) payload['ciudad'] = partial.city;
+    if (partial.commune !== undefined) payload['comuna'] = partial.commune;
+    if (partial.address !== undefined) payload['direccion'] = partial.address;
+
+    try {
+      const response = await firstValueFrom(
+        this.http.patch<ApiEnvelope<ApiAuthUser>>(`${this.apiBaseUrl}/admin/usuarios/${userId}`, payload, {
+          headers: this.authHeaders(token)
+        })
+      );
+      return this.mapApiUser(response.data);
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 404) return null;
+      throw new Error(this.extractErrorMessage(error, 'No fue posible actualizar el usuario.'));
+    }
+  }
+
+  async adminCreateUser(payload: {
+    role: UserRole;
+    name: string;
+    email: string;
+    password: string;
+    phone: string;
+    city: string;
+    commune: string;
+    address: string;
+    subscriptionPlan?: SubscriptionPlan;
+    accountStatus?: 'activo' | 'bloqueado' | 'pendiente';
+    businessName?: string;
+    rut?: string;
+  }): Promise<SessionUser> {
+    const token = this.requireToken();
+    const response = await firstValueFrom(
+      this.http.post<ApiEnvelope<ApiAuthUser>>(`${this.apiBaseUrl}/admin/usuarios`, {
+        rol: payload.role,
+        nombre: payload.name.trim(),
+        correo: payload.email.trim().toLowerCase(),
+        password: payload.password,
+        telefono: payload.phone.trim(),
+        ciudad: payload.city.trim(),
+        comuna: payload.commune.trim(),
+        direccion: payload.address.trim(),
+        planSuscripcion: payload.subscriptionPlan,
+        estadoCuenta: payload.accountStatus,
+        nombreComercial: payload.businessName?.trim() || undefined,
+        rut: payload.rut?.trim() || undefined
+      }, { headers: this.authHeaders(token) })
+    );
+    return this.mapApiUser(response.data);
+  }
+
+  async adminDeleteUser(userId: string): Promise<boolean> {
+    const token = this.requireToken();
+    try {
+      await firstValueFrom(
+        this.http.delete<ApiEnvelope<{ deleted: boolean }>>(`${this.apiBaseUrl}/admin/usuarios/${userId}`, {
+          headers: this.authHeaders(token)
+        })
+      );
+      return true;
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 404) return false;
+      throw new Error(this.extractErrorMessage(error, 'No fue posible eliminar el usuario.'));
+    }
+  }
+
+  private async getAuth(): Promise<Auth> {
+    if (!this.firebaseAuth) this.firebaseAuth = await getFirebaseAuthInstance();
+    return this.firebaseAuth;
+  }
+
+  private async initializeFirebaseSession(): Promise<void> {
+    try {
+      const auth = await this.getAuth();
+      onIdTokenChanged(auth, async (firebaseUser) => {
+        if (!firebaseUser) {
+          this.clearSession();
+          return;
+        }
+
+        try {
+          const token = await getIdToken(firebaseUser);
+          const user = await this.fetchCurrentUser(token);
+          this.tokenState.set(token);
+          this.currentUserState.set(user);
+          this.persistSession(user, token);
+        } catch {
+          th
