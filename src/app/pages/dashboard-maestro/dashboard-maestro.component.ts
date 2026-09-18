@@ -8,7 +8,6 @@ import {
   ProjectStatus,
   ProjectSummary,
   SessionUser,
-  SubscriptionPlan,
   TaxonomyOption
 } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
@@ -16,7 +15,7 @@ import { MockApiService } from '../../core/services/mock-api.service';
 import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 
-type MaestroSection = 'inicio' | 'buscar' | 'cotizaciones' | 'historial' | 'perfil' | 'suscripcion';
+type MaestroSection = 'inicio' | 'buscar' | 'cotizaciones' | 'historial' | 'perfil';
 type FilterSectionKey = 'brand' | 'seller' | 'price' | 'type';
 
 interface OptionCount {
@@ -41,15 +40,6 @@ interface MaestroProfileDraft {
   city: string;
   commune: string;
   address: string;
-}
-
-interface SubscriptionPlanView {
-  id: SubscriptionPlan;
-  title: string;
-  priceLabel: string;
-  description: string;
-  maxPendingLabel: string;
-  hasHistory: boolean;
 }
 
 interface MaestroSectionMeta {
@@ -91,11 +81,6 @@ export class DashboardMaestroComponent implements OnInit {
       id: 'perfil',
       label: 'Perfil',
       description: 'Actualiza tus datos de contacto, ubicacion y perfil profesional para cotizar sin friccion.'
-    },
-    {
-      id: 'suscripcion',
-      label: 'Suscripcion',
-      description: 'Revisa tu plan, beneficios disponibles y capacidad para gestionar cotizaciones pendientes.'
     }
   ];
 
@@ -172,7 +157,6 @@ export class DashboardMaestroComponent implements OnInit {
   protected profileSaved = false;
   protected profileError = '';
   protected quotationNotice = '';
-  protected subscriptionNotice = '';
   protected readonly profileContactMethods: Array<{ id: PreferredContactMethod; label: string }> = [
     { id: 'whatsapp', label: 'WhatsApp' },
     { id: 'llamada', label: 'Llamada telefonica' },
@@ -181,32 +165,6 @@ export class DashboardMaestroComponent implements OnInit {
   protected get requiredProfileFieldCount(): number {
     return this.profileDraft.rut.trim() ? 7 : 6;
   }
-  protected readonly subscriptionPlans: SubscriptionPlanView[] = [
-    {
-      id: 'basico',
-      title: 'Plan Basico',
-      priceLabel: '$9.990 / mes',
-      description: 'Incluye funciones esenciales y 1 cotizacion pendiente.',
-      maxPendingLabel: '1 cotizacion pendiente',
-      hasHistory: false
-    },
-    {
-      id: 'pro',
-      title: 'Plan Pro',
-      priceLabel: '$19.990 / mes',
-      description: 'Hasta 5 cotizaciones pendientes, historial y comparacion completa.',
-      maxPendingLabel: 'Hasta 5 cotizaciones pendientes',
-      hasHistory: true
-    },
-    {
-      id: 'premium',
-      title: 'Plan Premium',
-      priceLabel: '$29.990 / mes',
-      description: 'Cotizaciones pendientes ilimitadas y todas las funciones avanzadas.',
-      maxPendingLabel: 'Cotizaciones pendientes ilimitadas',
-      hasHistory: true
-    }
-  ];
   protected isInitialLoading = true;
   protected isSectionLoading = false;
   protected isMobileViewport = false;
@@ -360,13 +318,6 @@ export class DashboardMaestroComponent implements OnInit {
     return this.sections.find((section) => section.id === this.currentSection)?.description || '';
   }
 
-  protected get currentSubscriptionPlan(): SubscriptionPlan {
-    return this.user?.subscriptionPlan || 'basico';
-  }
-
-  protected get currentPlanView(): SubscriptionPlanView {
-    return this.subscriptionPlans.find((plan) => plan.id === this.currentSubscriptionPlan) || this.subscriptionPlans[0];
-  }
 
   protected get pendingProjects(): ProjectSummary[] {
     return this.history.filter((project) => project.status === 'pendiente');
@@ -377,21 +328,11 @@ export class DashboardMaestroComponent implements OnInit {
   }
 
   protected get canAccessHistory(): boolean {
-    return this.apiService.getPlanCapabilities(this.currentSubscriptionPlan).hasHistory;
+    return true;
   }
 
   protected get pendingQuotaText(): string {
-    const currentUser = this.user;
-    if (!currentUser) {
-      return '';
-    }
-
-    const availability = this.apiService.canCreatePendingProject(currentUser.id, this.currentSubscriptionPlan);
-    if (availability.limit === null) {
-      return `${availability.pendingCount} cotizaciones pendientes (sin limite).`;
-    }
-
-    return `${availability.pendingCount}/${availability.limit} pendientes.`;
+    return `${this.pendingProjects.length} cotizaciones pendientes.`;
   }
 
   protected projectStatusLabel(status: ProjectStatus): string {
@@ -651,15 +592,7 @@ export class DashboardMaestroComponent implements OnInit {
   }
 
   protected goToNewProject(): void {
-    const currentUser = this.user;
-    if (!currentUser) {
-      return;
-    }
-
-    const availability = this.apiService.canCreatePendingProject(currentUser.id, this.currentSubscriptionPlan);
-    if (!availability.allowed) {
-      this.quotationNotice = `${availability.message} Actualiza a Plan Pro o Premium.`;
-      this.currentSection = 'suscripcion';
+    if (!this.user) {
       return;
     }
 
@@ -708,21 +641,6 @@ export class DashboardMaestroComponent implements OnInit {
     this.profileSaved = false;
     this.profileError = '';
     this.hydrateProfileDraft();
-  }
-
-  protected async changeSubscriptionPlan(plan: SubscriptionPlan): Promise<void> {
-    if (!this.user || this.currentSubscriptionPlan === plan) {
-      return;
-    }
-
-    try {
-      await this.authService.updateProfile({ subscriptionPlan: plan });
-      this.subscriptionNotice = `Plan actualizado a ${this.apiService.getPlanCapabilities(plan).label}.`;
-      this.invalidateProjectSectionCache();
-      await this.ensureSectionData(this.currentSection, true);
-    } catch (error) {
-      this.subscriptionNotice = error instanceof Error ? error.message : 'No fue posible actualizar el plan.';
-    }
   }
 
   protected logout(): void {
@@ -911,8 +829,7 @@ export class DashboardMaestroComponent implements OnInit {
       || value === 'buscar'
       || value === 'cotizaciones'
       || value === 'historial'
-      || value === 'perfil'
-      || value === 'suscripcion';
+      || value === 'perfil';
   }
 
   private async initializeDashboard(): Promise<void> {
@@ -955,10 +872,6 @@ export class DashboardMaestroComponent implements OnInit {
         this.hydrateProfileDraft();
       }
 
-      if (section === 'suscripcion') {
-        await this.apiService.refreshMaestroSubscriptionSection(currentUser.id, force);
-        this.history = this.apiService.getProjects(currentUser.id);
-      }
 
       this.loadedSections.add(section);
     } catch {
@@ -968,7 +881,7 @@ export class DashboardMaestroComponent implements OnInit {
         this.estimatedSaving = 0;
         this.topSearches = [];
       }
-      if (section === 'cotizaciones' || section === 'historial' || section === 'suscripcion') {
+      if (section === 'cotizaciones' || section === 'historial') {
         this.history = [];
       }
       if (section === 'buscar') {
@@ -991,7 +904,6 @@ export class DashboardMaestroComponent implements OnInit {
     this.loadedSections.delete('inicio');
     this.loadedSections.delete('cotizaciones');
     this.loadedSections.delete('historial');
-    this.loadedSections.delete('suscripcion');
   }
 
   private hydrateProfileDraft(): void {

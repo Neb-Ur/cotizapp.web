@@ -29,7 +29,6 @@ import {
   CatalogValidationStatus,
   CatalogValidationType,
   SessionUser,
-  SubscriptionPlan,
   TaxonomyOption,
   UserRole
 } from '../../core/models/app.models';
@@ -90,26 +89,10 @@ interface AdminSnapshot {
 interface AdminUserKpiSummary {
   totalUsers: number;
   newUsers30d: number;
-  payingUsers: number;
-  payingRate: number;
   activeUsers: number;
   activeRate: number;
   blockedUsers: number;
   pendingUsers: number;
-}
-
-interface AdminUserTrendPoint {
-  label: string;
-  totalUsers: number;
-  payingUsers: number;
-  newUsers: number;
-}
-
-interface AdminPlanDistributionRow {
-  plan: SubscriptionPlan;
-  label: string;
-  count: number;
-  color: string;
 }
 
 interface MasterProductDraft {
@@ -140,7 +123,6 @@ interface AdminUserModalDraft {
   password: string;
   displayName: string;
   role: UserRole;
-  subscriptionPlan: SubscriptionPlan;
   accountStatus: AccountStatus;
   phone: string;
   city: string;
@@ -260,8 +242,6 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   protected snapshot: AdminSnapshot = this.createEmptySnapshot();
   protected adminMetrics: AdminMockMetrics = this.createEmptyAdminMetrics();
   protected userKpis: AdminUserKpiSummary = this.createEmptyUserKpis();
-  protected userTrendSeries: AdminUserTrendPoint[] = [];
-  protected planDistribution: AdminPlanDistributionRow[] = [];
 
   protected validationStatusFilter: CatalogValidationStatus | 'all' = 'pendiente';
   protected validationTypeFilter: CatalogValidationType | 'all' = 'all';
@@ -457,7 +437,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     return [
       { label: 'Total usuarios', value: this.userKpis.totalUsers },
       { label: 'Nuevos usuarios', value: this.userKpis.newUsers30d },
-      { label: 'Usuarios pago', value: this.userKpis.payingUsers },
+      { label: 'Cuentas pendientes', value: this.snapshot.pendingUserValidation },
       { label: 'Usuarios activos', value: this.userKpis.activeUsers },
       { label: 'Maestros', value: this.snapshot.usersByRole.maestro },
       { label: 'Ferreterias', value: this.snapshot.usersByRole.ferreteria },
@@ -1029,7 +1009,6 @@ export class DashboardAdminValidacionesComponent implements OnInit {
           city: this.userModalDraft.city.trim(),
           commune: this.userModalDraft.commune.trim(),
           address: this.userModalDraft.address.trim(),
-          subscriptionPlan: this.userModalDraft.role === 'admin' ? 'premium' : this.userModalDraft.subscriptionPlan,
           accountStatus: this.userModalDraft.accountStatus,
           businessName: this.userModalDraft.businessName.trim() || undefined,
           rut: this.userModalDraft.rut.trim() || undefined
@@ -1050,7 +1029,6 @@ export class DashboardAdminValidacionesComponent implements OnInit {
 
       const updated = await this.authService.adminUpdateUser(user.id, {
         role: this.userModalDraft.role,
-        subscriptionPlan: this.userModalDraft.role === 'admin' ? 'premium' : this.userModalDraft.subscriptionPlan || user.subscriptionPlan || 'basico',
         accountStatus: this.userModalDraft.accountStatus,
         displayName: this.userModalDraft.displayName.trim(),
         phone: this.userModalDraft.phone.trim(),
@@ -1151,15 +1129,6 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     return user.accountStatus || 'pendiente';
   }
 
-  protected planLabel(plan: SubscriptionPlan): string {
-    if (plan === 'pro') {
-      return 'Pro';
-    }
-    if (plan === 'premium') {
-      return 'Premium';
-    }
-    return 'Basico';
-  }
 
   protected categoryLabel(categoryId: string): string {
     return this.categoryOptions.find((item) => item.id === categoryId)?.name || categoryId;
@@ -1191,33 +1160,6 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     );
   }
 
-  protected userTrendMax(field: 'totalUsers' | 'payingUsers' | 'newUsers'): number {
-    return Math.max(
-      1,
-      ...this.userTrendSeries.map((point) => point[field])
-    );
-  }
-
-  protected userTrendLinePoints(field: 'totalUsers' | 'payingUsers'): string {
-    if (this.userTrendSeries.length === 0) {
-      return '';
-    }
-
-    const max = this.userTrendMax('totalUsers');
-    const minY = 4;
-    const maxY = 56;
-    const usableHeight = maxY - minY;
-    const steps = Math.max(1, this.userTrendSeries.length - 1);
-
-    return this.userTrendSeries
-      .map((point, index) => {
-        const x = Math.round((index / steps) * 1000) / 10;
-        const normalized = max > 0 ? point[field] / max : 0;
-        const y = Math.round((maxY - (normalized * usableHeight)) * 10) / 10;
-        return `${x},${y}`;
-      })
-      .join(' ');
-  }
 
   protected donutStyle(percent: number, color: string, track = '#e6edf6'): string {
     const bounded = Math.max(0, Math.min(100, percent));
@@ -1254,25 +1196,6 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     ]);
   }
 
-  protected planDistributionDonutStyle(): string {
-    return this.multiDonutStyle(
-      this.planDistribution.map((item) => ({ value: item.count, color: item.color }))
-    );
-  }
-
-  protected userGrowthPercent(field: 'totalUsers' | 'payingUsers'): number {
-    if (this.userTrendSeries.length < 2) {
-      return 0;
-    }
-
-    const first = this.userTrendSeries[0][field];
-    const last = this.userTrendSeries[this.userTrendSeries.length - 1][field];
-    if (first <= 0) {
-      return 0;
-    }
-
-    return Number((((last - first) / first) * 100).toFixed(1));
-  }
 
   @HostListener('window:resize')
   protected onWindowResize(): void {
@@ -1445,8 +1368,6 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   private syncSummaryState(): void {
     this.snapshot = this.buildSnapshot();
     this.userKpis = this.buildUserKpis();
-    this.userTrendSeries = this.buildUserTrendSeries();
-    this.planDistribution = this.buildPlanDistribution();
   }
 
   private markUserDataStale(): void {
@@ -1627,10 +1548,6 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     const blockedUsers = this.users.filter((user) => this.userStatus(user) === 'bloqueado').length;
     const pendingUsers = Math.max(0, totalUsers - activeUsers - blockedUsers);
 
-    const paidUsers = this.users
-      .filter((user) => user.role !== 'admin')
-      .filter((user) => user.subscriptionPlan === 'pro' || user.subscriptionPlan === 'premium')
-      .length;
 
     const now = Date.now();
     const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
@@ -1642,14 +1559,11 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     const fallbackNewUsers = Math.max(1, Math.round(totalUsers * 0.14));
     const newUsers30d = datedUsers.length > 0 ? datedNewUsers : fallbackNewUsers;
 
-    const payingRate = totalUsers > 0 ? Number(((paidUsers / totalUsers) * 100).toFixed(1)) : 0;
     const activeRate = totalUsers > 0 ? Number(((activeUsers / totalUsers) * 100).toFixed(1)) : 0;
 
     return {
       totalUsers,
       newUsers30d,
-      payingUsers: paidUsers,
-      payingRate,
       activeUsers,
       activeRate,
       blockedUsers,
@@ -1657,70 +1571,11 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     };
   }
 
-  private buildUserTrendSeries(): AdminUserTrendPoint[] {
-    const baseSeries = this.adminMetrics.usageSeries;
-    if (baseSeries.length === 0) {
-      return [];
-    }
-
-    const maxSearches = Math.max(1, ...baseSeries.map((point) => point.searches));
-    const totalUsers = Math.max(1, this.userKpis.totalUsers);
-    const payingUsers = Math.max(0, this.userKpis.payingUsers);
-    const weeklyTotalGrowth = Math.max(1, Math.round(this.userKpis.newUsers30d * 0.28));
-    const weeklyPayingGrowth = Math.max(0, Math.round(weeklyTotalGrowth * 0.45));
-
-    return baseSeries.map((point, index) => {
-      const progress = (index + 1) / baseSeries.length;
-      const activityPulse = (point.searches / maxSearches) * 0.06;
-      const totalBaseline = totalUsers - weeklyTotalGrowth;
-      const totalProjected = totalBaseline + (weeklyTotalGrowth * progress);
-      const totalWithPulse = Math.round(totalProjected * (0.97 + activityPulse));
-      const boundedTotal = Math.max(1, Math.min(totalUsers, totalWithPulse));
-
-      const payingBaseline = Math.max(0, payingUsers - weeklyPayingGrowth);
-      const payingProjected = payingBaseline + (weeklyPayingGrowth * progress);
-      const payingWithPulse = Math.round(payingProjected * (0.97 + (activityPulse * 0.7)));
-      const boundedPaying = Math.max(0, Math.min(boundedTotal, Math.min(payingUsers, payingWithPulse)));
-
-      const dayNewUsers = Math.max(
-        0,
-        Math.round((this.userKpis.newUsers30d / baseSeries.length) * (0.72 + (point.searches / maxSearches) * 0.58))
-      );
-
-      return {
-        label: point.label,
-        totalUsers: boundedTotal,
-        payingUsers: boundedPaying,
-        newUsers: dayNewUsers
-      };
-    });
-  }
-
-  private buildPlanDistribution(): AdminPlanDistributionRow[] {
-    const usersWithoutAdmin = this.users.filter((user) => user.role !== 'admin');
-    const countByPlan = usersWithoutAdmin.reduce<Record<SubscriptionPlan, number>>((acc, user) => {
-      const plan = user.subscriptionPlan || 'basico';
-      acc[plan] += 1;
-      return acc;
-    }, {
-      basico: 0,
-      pro: 0,
-      premium: 0
-    });
-
-    return [
-      { plan: 'basico', label: 'Basico', count: countByPlan.basico, color: '#5a78a4' },
-      { plan: 'pro', label: 'Pro', count: countByPlan.pro, color: '#1f4b84' },
-      { plan: 'premium', label: 'Premium', count: countByPlan.premium, color: '#2d9a65' }
-    ];
-  }
 
   private createEmptyUserKpis(): AdminUserKpiSummary {
     return {
       totalUsers: 0,
       newUsers30d: 0,
-      payingUsers: 0,
-      payingRate: 0,
       activeUsers: 0,
       activeRate: 0,
       blockedUsers: 0,
@@ -1772,8 +1627,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       password: '',
       displayName: '',
       role: 'ferreteria',
-      subscriptionPlan: 'basico',
-      accountStatus: 'activo',
+      accountStatus: 'pendiente',
       phone: '',
       city: '',
       commune: '',
@@ -1791,7 +1645,6 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       password: '',
       displayName: user.displayName,
       role: user.role,
-      subscriptionPlan: user.subscriptionPlan || 'basico',
       accountStatus: user.accountStatus || 'pendiente',
       phone: user.phone || '',
       city: user.city || '',

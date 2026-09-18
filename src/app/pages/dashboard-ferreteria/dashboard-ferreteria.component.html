@@ -32,6 +32,18 @@
       </div>
     </header>
 
+    <article
+      class="panel"
+      *ngIf="user?.accountStatus && user?.accountStatus !== 'activo'"
+      style="border: 1px solid #f0c36d; background: #fffaf0;"
+    >
+      <h3 style="margin-top: 0;">Cuenta pendiente de activación comercial</h3>
+      <p style="margin-bottom: 0;">
+        Puedes preparar y mantener tu catálogo, pero tus precios no aparecerán en el comparador hasta que administración active la ferretería.
+        La validación y el pago del piloto se coordinan manualmente fuera de la plataforma.
+      </p>
+    </article>
+
     <article class="panel panel--loading" *ngIf="isInitialLoading || isSectionLoading">
       <app-ui-loader [label]="isInitialLoading ? 'Cargando inicio de ferreteria...' : 'Cargando seccion...'" />
     </article>
@@ -624,78 +636,7 @@
       <p class="saved" *ngIf="profileSaved">Perfil actualizado.</p>
     </article>
 
-    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'suscripcion'">
-      <div class="subscription-shell">
-        <div class="subscription-overview">
-          <div>
-            <p class="subscription-overview__eyebrow">Suscripcion activa</p>
-            <h3 class="subscription-overview__title">{{ currentPlanView.title }}</h3>
-          </div>
-          <div class="subscription-overview__meta">
-            <span class="subscription-overview__pill">Operativa activa</span>
-            <p>{{ currentPlanView.maxCatalogLabel }}</p>
-          </div>
-        </div>
 
-        <div
-          class="subscription-grid"
-          [style.gridTemplateColumns]="isMobileViewport ? '1fr' : 'repeat(3, minmax(0, 1fr))'"
-        >
-          <article
-            *ngFor="let plan of subscriptionPlans"
-            class="plan-card"
-            [class.is-current]="currentPlan === plan.id"
-            [class.is-featured]="plan.id === 'pro'"
-            [class.is-premium]="plan.id === 'premium'"
-          >
-            <div class="plan-card__glow"></div>
-
-            <div class="plan-card__head">
-              <div>
-                <p class="plan-card__eyebrow" *ngIf="plan.id === 'pro'; else ferreteriaPlanTier">Recomendado</p>
-                <ng-template #ferreteriaPlanTier>
-                  <p class="plan-card__eyebrow">{{ plan.id === 'premium' ? 'Alto volumen' : 'Inicio' }}</p>
-                </ng-template>
-                <h4>{{ plan.title }}</h4>
-              </div>
-
-              <span class="plan-card__badge" *ngIf="currentPlan === plan.id">
-                Actual
-              </span>
-            </div>
-
-            <p class="plan-card__price">{{ plan.priceLabel }}</p>
-            <p class="plan-card__description">{{ plan.description }}</p>
-
-            <div class="plan-card__features">
-              <p class="plan-card__feature plan-card__feature--strong">{{ plan.maxCatalogLabel }}</p>
-              <p class="plan-card__feature">
-                CSV
-                <strong>{{ plan.csvLabel.replace('CSV ', '') }}</strong>
-              </p>
-              <p class="plan-card__feature">
-                Metricas
-                <strong>{{ plan.metricsLabel.replace('Metricas ', '') }}</strong>
-              </p>
-            </div>
-
-            <div class="plan-card__footer">
-              <button
-                type="button"
-                class="plan-card__action"
-                [class.is-disabled]="currentPlan === plan.id"
-                [disabled]="currentPlan === plan.id"
-                (click)="changeSubscriptionPlan(plan.id)"
-              >
-                {{ currentPlan === plan.id ? 'Plan actual' : 'Cambiar plan' }}
-              </button>
-            </div>
-          </article>
-        </div>
-      </div>
-
-      <p class="saved" *ngIf="subscriptionNotice">{{ subscriptionNotice }}</p>
-    </article>
   </section>
 
   <app-ui-modal

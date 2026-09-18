@@ -1,49 +1,86 @@
-# CotizacionWeb
+# CotizApp
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.3.17.
+CotizApp es un comparador y optimizador de compras de materiales para construcción. El MVP permite a maestros y contratistas buscar productos, comparar precios entre ferreterías, armar una cotización y calcular cuánto pueden ahorrar comprando cada material en la alternativa más conveniente.
 
-## Development server
+## Arquitectura MVP
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:5010/`. The application will automatically reload if you change any of the source files.
+El proyecto ya no depende de un backend Spring Boot ni de un servidor Node persistente.
 
-## API base URL
+- Angular 17: interfaz web.
+- Firebase Authentication: registro, login, sesión y recuperación de contraseña.
+- Cloud Firestore: usuarios, ferreterías, catálogo maestro, ofertas y cotizaciones.
+- Cloud Functions for Firebase (2nd gen): única capa de API y lógica protegida.
+- Firebase Hosting: frontend y rewrite de `/api/**` hacia la Function `api`.
 
-By default the app calls `http://localhost:5011/api`.
+El navegador no accede directamente a Firestore. Las reglas incluidas niegan lecturas y escrituras de cliente; toda operación de negocio pasa por Cloud Functions.
 
-## Backend Java
+## Modelo comercial del MVP
 
-This repository now uses a Java backend at `../backend-java/` (Spring Boot) with the same API contract as the previous backend.
+El MVP no incluye suscripciones, Webpay ni pagos automáticos.
 
-Run it from the project root:
+- Los maestros usan el comparador, las cotizaciones, el historial y el optimizador sin límites por plan.
+- Las ferreterías pueden registrarse y preparar su catálogo.
+- Una ferretería nueva queda con estado `pendiente`.
+- El pago/acuerdo comercial se coordina manualmente fuera de CotizApp, por ejemplo mediante transferencia y comprobante.
+- Administración cambia la cuenta a `activo` cuando corresponde.
+- Solo las ferreterías con cuenta `activo` participan en el comparador y sus precios pueden ser usados por el optimizador.
+- Una cuenta bloqueada o pendiente puede conservar sus datos y catálogo, pero no aparece en resultados públicos.
+
+No existen planes Básico, Pro o Premium en la experiencia del MVP.
+
+## Desarrollo
+
+Instala dependencias del frontend y de Functions:
 
 ```bash
-npm run backend:java
+npm install
+npm --prefix functions install
 ```
 
-You can override it from `public/index.html` before Angular bootstraps:
+Para Angular:
 
-```html
-<script>
-  window.__APP_API_BASE_URL__ = 'https://your-api.example.com/api';
-</script>
+```bash
+npm start
 ```
 
-## Code scaffolding
+Cuando Angular se ejecuta fuera de Firebase Hosting, puedes definir `window.__FIREBASE_CONFIG__` antes del bootstrap o usar Hosting Emulator. En Firebase Hosting la aplicación obtiene automáticamente la configuración web desde `/__/firebase/init.json`.
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+Para compilar Functions:
 
-## Build
+```bash
+npm run functions:build
+```
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+Para emuladores:
 
-## Running unit tests
+```bash
+npm run functions:serve
+```
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+## Deploy
 
-## Running end-to-end tests
+```bash
+npm run deploy
+```
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+Firebase Hosting reescribe `/api/**` hacia la Function HTTP `api` desplegada en `southamerica-west1`.
 
-## Further help
+## Colecciones Firestore
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+El MVP usa principalmente:
+
+- `usuarios`
+- `ferreterias`
+- `categorias`
+- `subcategorias`
+- `familias`
+- `definicionesAtributoFamilia`
+- `productosMaestro`
+- `atributosProductoMaestro`
+- `productosFerreteria`
+- `proyectos`
+- `solicitudesCreacionProducto`
+
+## Objetivo del MVP
+
+Validar que un maestro encuentra valor en tener los precios de materiales en un solo lugar y en saber dónde gastar menos para una cotización completa.

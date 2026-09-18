@@ -1,10 +1,26 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable, computed, signal } from '@angular/core';
+import {
+  browserLocalPersistence,
+  browserSessionPersistence,
+  createUserWithEmailAndPassword,
+  deleteUser,
+  getIdToken,
+  onIdTokenChanged,
+  sendPasswordResetEmail,
+  setPersistence,
+  signInWithEmailAndPassword,
+  signOut,
+  type Auth
+} from 'firebase/auth';
 import { firstValueFrom } from 'rxjs';
-import { LoginPayload, RegisterPayload, SessionUser, SubscriptionPlan, UserRole } from '../models/app.models';
+import { LoginPayload, RegisterPayload, SessionUser, UserRole } from '../models/app.models';
 import { API_BASE_URL } from '../config/api.config';
+import { getFirebaseAuthInstance } from '../config/firebase.config';
 
 export const LOGIN_SUPPORT_ERROR_MESSAGE = 'Usuario con error, favor contactarse con soporte.';
+
+type StorageMode = 'local' | 'session';
 
 interface ApiEnvelope<T> {
   ok: boolean;
@@ -28,7 +44,6 @@ interface ApiAuthUser {
   comuna?: string;
   region?: string;
   direccion?: string;
-  planSuscripcion?: SubscriptionPlan;
   estadoCuenta?: 'activo' | 'bloqueado' | 'pendiente';
   creadoEn?: string;
   nombreComercial?: string;
@@ -40,51 +55,53 @@ interface ApiAuthUser {
   metodoContactoPreferido?: 'whatsapp' | 'llamada' | 'email';
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly apiBaseUrl = API_BASE_URL;
-  private readonly sessionStorageKey = 'construcomparador-session';
+  private readonly sessionStorageKey = 'cotizapp-session';
 
   private readonly currentUserState = signal<SessionUser | null>(null);
   private readonly tokenState = signal<string | null>(null);
+  private firebaseAuth: Auth | null = null;
+  private storageMode: StorageMode = 'local';
 
   readonly currentUser = computed(() => this.currentUserState());
   readonly isLoggedIn = computed(() => this.currentUserState() !== null);
 
   constructor(private readonly http: HttpClient) {
-    this.restoreSession();
-    this.syncSessionWithBackend();
+    this.restoreCachedSession();
+    void this.initializeFirebaseSession();
   }
 
   async login(payload: LoginPayload): Promise<SessionUser> {
     try {
-      const response = await firstValueFrom(
-        this.http.post<ApiEnvelope<{ token: string; usuario: ApiAuthUser }>>(`${this.apiBaseUrl}/auth/login`, {
-          correo: payload.email.trim().toLowerCase(),
-          password: payload.password,
-          remember: payload.remember
-        })
-      );
-
-      const loginUser = this.mapLoginUser(response.data?.usuario);
-      const resolvedUser = await this.fetchCurrentUser(response.data.token).catch(() => loginUser);
-      this.setSession(resolvedUser, response.data.token, payload.remember);
-      return resolvedUser;
+      const auth = await this.getAuth();
+      this.storageMode = payload.remember ? 'local' : 'session';
+      await setPersistence(auth, payload.remember ? browserLocalPersistence : browserSessionPersistence);
+      const credential = await signInWithEmailAndPassword(auth, payload.email.trim().toLowerCase(), payload.password);
+      const token = await getIdToken(credential.user, true);
+      const user = await this.fetchCurrentUser(token);
+      this.setSession(user, token, this.storageMode);
+      return user;
     } catch (error) {
       throw new Error(this.resolveLoginErrorMessage(error));
     }
   }
 
   async register(payload: RegisterPayload): Promise<SessionUser> {
+    const auth = await this.getAuth();
+    await setPersistence(auth, browserLocalPersistence);
+    this.storageMode = 'local';
+
+    let credential: Awaited<ReturnType<typeof createUserWithEmailAndPassword>> | null = null;
     try {
+      credential = await createUserWithEmailAndPassword(auth, payload.email.trim().toLowerCase(), payload.password);
+      const token = await getIdToken(credential.user, true);
       const response = await firstValueFrom(
-        this.http.post<ApiEnvelope<{ token: string; usuario: ApiAuthUser }>>(`${this.apiBaseUrl}/auth/register`, {
+        this.http.post<ApiEnvelope<{ usuario: ApiAuthUser }>>(`${this.apiBaseUrl}/auth/register`, {
           rol: payload.role,
           nombre: payload.name.trim(),
           correo: payload.email.trim().toLowerCase(),
-          password: payload.password,
           telefono: payload.phone.trim(),
           ciudad: payload.city.trim(),
           comuna: payload.commune.trim(),
@@ -94,23 +111,35 @@ export class AuthService {
           rut: payload.rut?.trim() || undefined,
           especialidad: payload.specialty?.trim() || undefined,
           anosExperiencia: payload.experienceYears
+        }, {
+          headers: this.authHeaders(token)
         })
       );
 
       const user = this.mapApiUser(response.data.usuario);
-      this.setSession(user, response.data.token, true);
+      this.setSession(user, token, 'local');
       return user;
     } catch (error) {
-      throw new Error(this.extractErrorMessage(error, 'No se pudo crear la cuenta.'));
+      if (credential) {
+        await deleteUser(credential.user).catch(() => undefined);
+      }
+      throw new Error(this.extractErrorMessage(error, this.firebaseErrorMessage(error, 'No se pudo crear la cuenta.')));
+    }
+  }
+
+  async sendPasswordReset(email: string): Promise<void> {
+    const auth = await this.getAuth();
+    try {
+      await sendPasswordResetEmail(auth, email.trim().toLowerCase());
+    } catch (error) {
+      throw new Error(this.firebaseErrorMessage(error, 'No fue posible enviar el correo de recuperacion.'));
     }
   }
 
   async updateProfile(partial: Partial<SessionUser>): Promise<SessionUser> {
     const current = this.currentUserState();
     const token = this.tokenState();
-    if (!current || !token) {
-      throw new Error('No hay sesion activa.');
-    }
+    if (!current || !token) throw new Error('No hay sesion activa.');
 
     const payload = this.mapProfilePatchToApiPayload(partial);
     try {
@@ -125,7 +154,6 @@ export class AuthService {
       const merged: SessionUser = {
         ...current,
         ...this.mapApiUser(remote.data),
-        ...this.pickLocalOnlyFields(partial),
         id: current.id,
         email: current.email,
         role: current.role
@@ -139,85 +167,53 @@ export class AuthService {
     }
   }
 
-  logout(): void {
-    const token = this.tokenState();
-    if (token) {
-      void firstValueFrom(
-        this.http.post<ApiEnvelope<{ success: boolean }>>(`${this.apiBaseUrl}/auth/logout`, {}, {
-          headers: this.authHeaders(token)
-        })
-      ).catch(() => undefined);
+  async logout(): Promise<void> {
+    try {
+      const auth = await this.getAuth();
+      await signOut(auth);
+    } catch {
+      // Clear the local session even if Firebase is temporarily unavailable.
     }
-
-    this.currentUserState.set(null);
-    this.tokenState.set(null);
-    if (typeof window !== 'undefined') {
-      window.localStorage.removeItem(this.sessionStorageKey);
-    }
+    this.clearSession();
   }
 
   hasRole(role: UserRole): boolean {
     return this.currentUserState()?.role === role;
   }
 
-  getSubscriptionPlan(): SubscriptionPlan {
-    return this.currentUserState()?.subscriptionPlan || 'basico';
-  }
 
   getToken(): string | null {
     return this.tokenState();
   }
 
   dashboardRouteForUser(user: SessionUser | null): string {
-    if (!user) {
-      return '/login';
-    }
+    if (!user) return '/login';
     return this.dashboardRouteForRole(user.role);
   }
 
   dashboardRouteForRole(role: UserRole): string {
-    if (role === 'admin') {
-      return '/dashboard/admin/validaciones';
-    }
-    if (role === 'ferreteria') {
-      return '/dashboard/ferreteria';
-    }
+    if (role === 'admin') return '/dashboard/admin/validaciones';
+    if (role === 'ferreteria') return '/dashboard/ferreteria';
     return '/dashboard/maestro';
   }
 
   async listUsersForAdmin(): Promise<SessionUser[]> {
-    const token = this.tokenState();
-    if (!token) {
-      throw new Error('No hay sesion activa.');
-    }
-
-    try {
-      const response = await firstValueFrom(
-        this.http.get<ApiEnvelope<ApiAuthUser[]>>(`${this.apiBaseUrl}/admin/usuarios`, {
-          headers: this.authHeaders(token)
-        })
-      );
-
-      return response.data
-        .map((user) => this.mapApiUser(user))
-        .sort((left, right) => left.displayName.localeCompare(right.displayName));
-    } catch (error) {
-      throw new Error(this.extractErrorMessage(error, 'No fue posible cargar usuarios.'));
-    }
+    const token = this.requireToken();
+    const response = await firstValueFrom(
+      this.http.get<ApiEnvelope<ApiAuthUser[]>>(`${this.apiBaseUrl}/admin/usuarios`, {
+        headers: this.authHeaders(token)
+      })
+    );
+    return (response.data || []).filter(Boolean).map((user) => this.mapApiUser(user));
   }
 
   async adminUpdateUser(
     userId: string,
-    partial: Partial<Pick<SessionUser, 'role' | 'subscriptionPlan' | 'accountStatus' | 'displayName' | 'phone' | 'city' | 'commune' | 'address'>>
+    partial: Partial<Pick<SessionUser, 'role' | 'accountStatus' | 'displayName' | 'phone' | 'city' | 'commune' | 'address'>>
   ): Promise<SessionUser | null> {
-    const token = this.tokenState();
-    if (!token) {
-      throw new Error('No hay sesion activa.');
-    }
-
+    const token = this.requireToken();
     const payload: Record<string, unknown> = {};
     if (partial.role !== undefined) payload['rol'] = partial.role;
-    if (partial.subscriptionPlan !== undefined) payload['planSuscripcion'] = partial.subscriptionPlan;
     if (partial.accountStatus !== undefined) payload['estadoCuenta'] = partial.accountStatus;
     if (partial.displayName !== undefined) payload['nombre'] = partial.displayName;
     if (partial.phone !== undefined) payload['telefono'] = partial.phone;
@@ -231,20 +227,9 @@ export class AuthService {
           headers: this.authHeaders(token)
         })
       );
-
-      const updated = this.mapApiUser(response.data);
-      const current = this.currentUserState();
-      if (current?.id === updated.id) {
-        const merged = { ...current, ...updated };
-        this.currentUserState.set(merged);
-        this.persistSession(merged, token);
-      }
-
-      return updated;
+      return this.mapApiUser(response.data);
     } catch (error) {
-      if (error instanceof HttpErrorResponse && error.status === 404) {
-        return null;
-      }
+      if (error instanceof HttpErrorResponse && error.status === 404) return null;
       throw new Error(this.extractErrorMessage(error, 'No fue posible actualizar el usuario.'));
     }
   }
@@ -258,129 +243,127 @@ export class AuthService {
     city: string;
     commune: string;
     address: string;
-    subscriptionPlan?: SubscriptionPlan;
     accountStatus?: 'activo' | 'bloqueado' | 'pendiente';
     businessName?: string;
     rut?: string;
   }): Promise<SessionUser> {
-    const token = this.tokenState();
-    if (!token) {
-      throw new Error('No hay sesion activa.');
-    }
-
-    try {
-      const response = await firstValueFrom(
-        this.http.post<ApiEnvelope<ApiAuthUser>>(`${this.apiBaseUrl}/admin/usuarios`, {
-          rol: payload.role,
-          nombre: payload.name.trim(),
-          correo: payload.email.trim().toLowerCase(),
-          password: payload.password,
-          telefono: payload.phone.trim(),
-          ciudad: payload.city.trim(),
-          comuna: payload.commune.trim(),
-          direccion: payload.address.trim(),
-          planSuscripcion: payload.subscriptionPlan,
-          estadoCuenta: payload.accountStatus,
-          nombreComercial: payload.businessName?.trim() || undefined,
-          rut: payload.rut?.trim() || undefined
-        }, {
-          headers: this.authHeaders(token)
-        })
-      );
-
-      return this.mapApiUser(response.data);
-    } catch (error) {
-      throw new Error(this.extractErrorMessage(error, 'No fue posible crear el usuario.'));
-    }
+    const token = this.requireToken();
+    const response = await firstValueFrom(
+      this.http.post<ApiEnvelope<ApiAuthUser>>(`${this.apiBaseUrl}/admin/usuarios`, {
+        rol: payload.role,
+        nombre: payload.name.trim(),
+        correo: payload.email.trim().toLowerCase(),
+        password: payload.password,
+        telefono: payload.phone.trim(),
+        ciudad: payload.city.trim(),
+        comuna: payload.commune.trim(),
+        direccion: payload.address.trim(),
+        estadoCuenta: payload.accountStatus,
+        nombreComercial: payload.businessName?.trim() || undefined,
+        rut: payload.rut?.trim() || undefined
+      }, { headers: this.authHeaders(token) })
+    );
+    return this.mapApiUser(response.data);
   }
 
   async adminDeleteUser(userId: string): Promise<boolean> {
-    const token = this.tokenState();
-    if (!token) {
-      throw new Error('No hay sesion activa.');
-    }
-
+    const token = this.requireToken();
     try {
       await firstValueFrom(
         this.http.delete<ApiEnvelope<{ deleted: boolean }>>(`${this.apiBaseUrl}/admin/usuarios/${userId}`, {
           headers: this.authHeaders(token)
         })
       );
-
       return true;
     } catch (error) {
-      if (error instanceof HttpErrorResponse && error.status === 404) {
-        return false;
-      }
+      if (error instanceof HttpErrorResponse && error.status === 404) return false;
       throw new Error(this.extractErrorMessage(error, 'No fue posible eliminar el usuario.'));
     }
   }
 
-  private syncSessionWithBackend(): void {
-    const token = this.tokenState();
-    if (!token) {
-      return;
-    }
+  private async getAuth(): Promise<Auth> {
+    if (!this.firebaseAuth) this.firebaseAuth = await getFirebaseAuthInstance();
+    return this.firebaseAuth;
+  }
 
-    void firstValueFrom(
-      this.http.get<ApiEnvelope<ApiAuthUser>>(`${this.apiBaseUrl}/auth/me`, {
-        headers: this.authHeaders(token)
-      })
-    )
-      .then((response) => {
-        const current = this.currentUserState();
-        const mapped = this.mapApiUser(response.data);
-        const merged = {
-          ...current,
-          ...mapped
-        };
-        this.currentUserState.set(merged);
-        this.persistSession(merged, token);
-      })
-      .catch(() => {
-        this.currentUserState.set(null);
-        this.tokenState.set(null);
-        if (typeof window !== 'undefined') {
-          window.localStorage.removeItem(this.sessionStorageKey);
+  private async initializeFirebaseSession(): Promise<void> {
+    try {
+      const auth = await this.getAuth();
+      onIdTokenChanged(auth, async (firebaseUser) => {
+        if (!firebaseUser) {
+          this.clearSession();
+          return;
+        }
+
+        try {
+          const token = await getIdToken(firebaseUser);
+          const user = await this.fetchCurrentUser(token);
+          this.tokenState.set(token);
+          this.currentUserState.set(user);
+          this.persistSession(user, token);
+        } catch {
+          this.clearSession();
         }
       });
+    } catch {
+      // The cached session lets the UI render. Requests will fail clearly until Firebase is available.
+    }
   }
 
-  private restoreSession(): void {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const raw = window.localStorage.getItem(this.sessionStorageKey);
-    if (!raw) {
-      return;
-    }
+  private restoreCachedSession(): void {
+    if (typeof window === 'undefined') return;
+    const sessionRaw = window.sessionStorage.getItem(this.sessionStorageKey);
+    const localRaw = window.localStorage.getItem(this.sessionStorageKey);
+    const raw = sessionRaw || localRaw;
+    this.storageMode = sessionRaw ? 'session' : 'local';
+    if (!raw) return;
 
     try {
-      const session = JSON.parse(raw) as { user: SessionUser; token: string };
-      if (!session?.user?.email || !session?.token) {
-        return;
+      const cached = JSON.parse(raw) as { user: SessionUser; token: string };
+      if (cached?.user?.email && cached?.token) {
+        this.currentUserState.set(cached.user);
+        this.tokenState.set(cached.token);
       }
-
-      this.currentUserState.set(session.user);
-      this.tokenState.set(session.token);
     } catch {
-      window.localStorage.removeItem(this.sessionStorageKey);
+      this.clearCachedSession();
     }
   }
 
-  private setSession(user: SessionUser, token: string, remember: boolean): void {
+  private setSession(user: SessionUser, token: string, mode: StorageMode): void {
+    this.storageMode = mode;
     this.currentUserState.set(user);
     this.tokenState.set(token);
     this.persistSession(user, token);
   }
 
-  private persistSession(user: SessionUser, token: string | null): void {
-    if (typeof window === 'undefined' || !token) {
-      return;
+  private persistSession(user: SessionUser, token: string): void {
+    if (typeof window === 'undefined') return;
+    const payload = JSON.stringify({ user, token });
+    if (this.storageMode === 'session') {
+      window.sessionStorage.setItem(this.sessionStorageKey, payload);
+      window.localStorage.removeItem(this.sessionStorageKey);
+    } else {
+      window.localStorage.setItem(this.sessionStorageKey, payload);
+      window.sessionStorage.removeItem(this.sessionStorageKey);
     }
+  }
 
-    window.localStorage.setItem(this.sessionStorageKey, JSON.stringify({ user, token }));
+  private clearSession(): void {
+    this.currentUserState.set(null);
+    this.tokenState.set(null);
+    this.clearCachedSession();
+  }
+
+  private clearCachedSession(): void {
+    if (typeof window === 'undefined') return;
+    window.localStorage.removeItem(this.sessionStorageKey);
+    window.sessionStorage.removeItem(this.sessionStorageKey);
+  }
+
+  private requireToken(): string {
+    const token = this.tokenState();
+    if (!token) throw new Error('No hay sesion activa.');
+    return token;
   }
 
   private authHeaders(token: string): HttpHeaders {
@@ -404,9 +387,8 @@ export class AuthService {
       displayName: user.nombreComercial?.trim() ? user.nombreComercial : user.nombre,
       legalFullName: user.nombre,
       role: user.rol,
-      subscriptionPlan: user.planSuscripcion || 'basico',
-      accountStatus: user.estadoCuenta || 'pendiente',
-      adminValidated: user.estadoCuenta === 'activo',
+      accountStatus: user.estadoCuenta || 'activo',
+      adminValidated: user.estadoCuenta !== 'bloqueado',
       createdAt: user.creadoEn,
       phone: user.telefono,
       secondaryPhone: user.telefonoSecundario,
@@ -425,28 +407,10 @@ export class AuthService {
   }
 
   private mapLoginUser(user: ApiAuthUser | null | undefined): SessionUser {
-    if (!this.hasValidApiUser(user)) {
+    if (!user || !user.id?.trim() || !user.correo?.trim() || !user.nombre?.trim() || !validRole(user.rol)) {
       throw new Error(LOGIN_SUPPORT_ERROR_MESSAGE);
     }
-
     return this.mapApiUser(user);
-  }
-
-  private hasValidApiUser(user: ApiAuthUser | null | undefined): user is ApiAuthUser {
-    if (!user) {
-      return false;
-    }
-
-    return Boolean(
-      user.id?.trim()
-      && user.correo?.trim()
-      && user.nombre?.trim()
-      && this.isValidRole(user.rol)
-    );
-  }
-
-  private isValidRole(role: string | null | undefined): role is UserRole {
-    return role === 'admin' || role === 'maestro' || role === 'ferreteria';
   }
 
   private mapSessionUserToApiUser(user: SessionUser): ApiAuthUser {
@@ -462,7 +426,6 @@ export class AuthService {
       comuna: user.commune,
       region: user.region,
       direccion: user.address,
-      planSuscripcion: user.subscriptionPlan,
       estadoCuenta: user.accountStatus,
       creadoEn: user.createdAt,
       nombreComercial: user.businessName,
@@ -477,9 +440,7 @@ export class AuthService {
 
   private mapProfilePatchToApiPayload(partial: Partial<SessionUser>): Record<string, unknown> {
     const payload: Record<string, unknown> = {};
-    if (partial.displayName !== undefined || partial.legalFullName !== undefined) {
-      payload['nombre'] = (partial.legalFullName || partial.displayName || '').toString().trim();
-    }
+    if (partial.displayName !== undefined || partial.legalFullName !== undefined) payload['nombre'] = partial.legalFullName || partial.displayName || '';
     if (partial.phone !== undefined) payload['telefono'] = partial.phone;
     if (partial.secondaryPhone !== undefined) payload['telefonoSecundario'] = partial.secondaryPhone;
     if (partial.city !== undefined) payload['ciudad'] = partial.city;
@@ -493,56 +454,35 @@ export class AuthService {
     if (partial.preferredContactMethod !== undefined) payload['metodoContactoPreferido'] = partial.preferredContactMethod;
     if (partial.emergencyContactName !== undefined) payload['contactoEmergenciaNombre'] = partial.emergencyContactName;
     if (partial.emergencyContactPhone !== undefined) payload['contactoEmergenciaTelefono'] = partial.emergencyContactPhone;
-    if (partial.subscriptionPlan !== undefined) payload['planSuscripcion'] = partial.subscriptionPlan;
     return payload;
-  }
-
-  private pickLocalOnlyFields(partial: Partial<SessionUser>): Partial<SessionUser> {
-    const localOnly: Partial<SessionUser> = {};
-    if (partial.secondaryPhone !== undefined) localOnly.secondaryPhone = partial.secondaryPhone;
-    if (partial.specialty !== undefined) localOnly.specialty = partial.specialty;
-    if (partial.experienceYears !== undefined) localOnly.experienceYears = partial.experienceYears;
-    if (partial.preferredContactMethod !== undefined) localOnly.preferredContactMethod = partial.preferredContactMethod;
-    if (partial.emergencyContactName !== undefined) localOnly.emergencyContactName = partial.emergencyContactName;
-    if (partial.emergencyContactPhone !== undefined) localOnly.emergencyContactPhone = partial.emergencyContactPhone;
-    if (partial.region !== undefined) localOnly.region = partial.region;
-    return localOnly;
   }
 
   private extractErrorMessage(error: unknown, fallback: string): string {
     if (error instanceof HttpErrorResponse) {
       const apiMessage = error.error?.error?.message;
-      if (typeof apiMessage === 'string' && apiMessage.trim()) {
-        return apiMessage;
-      }
+      if (typeof apiMessage === 'string' && apiMessage.trim()) return apiMessage;
     }
-
-    if (error instanceof Error && error.message.trim()) {
-      return error.message;
-    }
-
+    if (error instanceof Error && error.message.trim()) return error.message;
     return fallback;
   }
 
   private resolveLoginErrorMessage(error: unknown): string {
-    const apiCode = this.extractApiErrorCode(error);
-    if (apiCode === 'AUTH_USER_NOT_FOUND') {
-      return LOGIN_SUPPORT_ERROR_MESSAGE;
-    }
-
-    if (error instanceof Error && error.message === LOGIN_SUPPORT_ERROR_MESSAGE) {
-      return error.message;
-    }
-
-    return this.extractErrorMessage(error, 'No fue posible iniciar sesion.');
+    if (error instanceof HttpErrorResponse && error.status === 404) return LOGIN_SUPPORT_ERROR_MESSAGE;
+    if (error instanceof Error && error.message === LOGIN_SUPPORT_ERROR_MESSAGE) return error.message;
+    return this.firebaseErrorMessage(error, this.extractErrorMessage(error, 'No fue posible iniciar sesion.'));
   }
 
-  private extractApiErrorCode(error: unknown): string | null {
-    if (!(error instanceof HttpErrorResponse)) {
-      return null;
-    }
-
-    const apiCode = error.error?.error?.code;
-    return typeof apiCode === 'string' && apiCode.trim() ? apiCode : null;
+  private firebaseErrorMessage(error: unknown, fallback: string): string {
+    const code = (error as { code?: string } | null)?.code || '';
+    if (code.includes('invalid-credential') || code.includes('wrong-password') || code.includes('user-not-found')) return 'Correo o contrasena incorrectos.';
+    if (code.includes('email-already-in-use')) return 'Ya existe una cuenta con este correo.';
+    if (code.includes('weak-password')) return 'La contrasena debe tener al menos 6 caracteres.';
+    if (code.includes('invalid-email')) return 'El correo ingresado no es valido.';
+    if (code.includes('too-many-requests')) return 'Demasiados intentos. Intenta nuevamente mas tarde.';
+    return fallback;
   }
+}
+
+function validRole(role: string | null | undefined): role is UserRole {
+  return role === 'admin' || role === 'maestro' || role === 'ferreteria';
 }

@@ -25,7 +25,6 @@ import {
   SearchRow,
   SearchSort,
   SessionUser,
-  SubscriptionPlan,
   TaxonomyOption
 } from '../models/app.models';
 import { AuthService } from './auth.service';
@@ -39,30 +38,6 @@ interface ApiEnvelope<T> {
     message: string;
     details?: unknown;
   };
-}
-
-interface PlanCapabilities {
-  plan: SubscriptionPlan;
-  label: string;
-  maxPendingQuotations: number | null;
-  hasHistory: boolean;
-}
-
-interface StorePlanCapabilities {
-  plan: SubscriptionPlan;
-  label: string;
-  maxCatalogProducts: number | null;
-  allowCsvImport: boolean;
-  allowAdvancedMetrics: boolean;
-}
-
-interface CapacityResponse {
-  allowed: boolean;
-  limit: number | null;
-  message: string;
-  pendingCount?: number;
-  currentCount?: number;
-  remaining?: number | null;
 }
 
 interface CatalogMeta {
@@ -132,17 +107,6 @@ export interface TaxonomyDefinitionApi {
 export class MockApiService {
   private readonly apiBaseUrl = API_BASE_URL;
 
-  private readonly maestroPlanCapabilities: Record<SubscriptionPlan, PlanCapabilities> = {
-    basico: { plan: 'basico', label: 'Plan Basico', maxPendingQuotations: 1, hasHistory: false },
-    pro: { plan: 'pro', label: 'Plan Pro', maxPendingQuotations: 5, hasHistory: true },
-    premium: { plan: 'premium', label: 'Plan Premium', maxPendingQuotations: null, hasHistory: true }
-  };
-
-  private readonly ferreteriaPlanCapabilities: Record<SubscriptionPlan, StorePlanCapabilities> = {
-    basico: { plan: 'basico', label: 'Plan Basico', maxCatalogProducts: 30, allowCsvImport: false, allowAdvancedMetrics: false },
-    pro: { plan: 'pro', label: 'Plan Pro', maxCatalogProducts: 200, allowCsvImport: true, allowAdvancedMetrics: true },
-    premium: { plan: 'premium', label: 'Plan Premium', maxCatalogProducts: null, allowCsvImport: true, allowAdvancedMetrics: true }
-  };
 
   private readonly categories: TaxonomyOption[] = [];
   private readonly subcategories: TaxonomyOption[] = [];
@@ -161,8 +125,6 @@ export class MockApiService {
 
   private readonly maestroSummaryByOwner = new Map<string, MaestroSummary>();
   private readonly ferreteriaMvpByOwner = new Map<string, FerreteriaMvpMetrics>();
-  private readonly pendingQuotaByOwner = new Map<string, CapacityResponse>();
-  private readonly catalogCapacityByOwner = new Map<string, CapacityResponse>();
 
   private readonly importReports: CatalogImportReport[] = [];
   private readonly importRowById = new Map<string, {
@@ -201,16 +163,14 @@ export class MockApiService {
       this.ensureSearchRowsLoaded(),
       this.ensureMasterCatalogLoaded(),
       this.ensureProjectsLoaded(ownerId),
-      this.ensureMaestroSummaryLoaded(ownerId),
-      this.ensurePendingQuotaLoaded(ownerId)
+      this.ensureMaestroSummaryLoaded(ownerId)
     ]);
   }
 
   async refreshMaestroOverview(ownerId: string, force = false): Promise<void> {
     await Promise.all([
       this.ensureProjectsLoaded(ownerId, force),
-      this.ensureMaestroSummaryLoaded(ownerId, force),
-      this.ensurePendingQuotaLoaded(ownerId, force)
+      this.ensureMaestroSummaryLoaded(ownerId, force)
     ]);
   }
 
@@ -224,17 +184,10 @@ export class MockApiService {
 
   async refreshMaestroProjectsSection(ownerId: string, force = false): Promise<void> {
     await Promise.all([
-      this.ensureProjectsLoaded(ownerId, force),
-      this.ensurePendingQuotaLoaded(ownerId, force)
+      this.ensureProjectsLoaded(ownerId, force)
     ]);
   }
 
-  async refreshMaestroSubscriptionSection(ownerId: string, force = false): Promise<void> {
-    await Promise.all([
-      this.ensureProjectsLoaded(ownerId, force),
-      this.ensurePendingQuotaLoaded(ownerId, force)
-    ]);
-  }
 
   async refreshFerreteriaData(ownerId: string): Promise<void> {
     await Promise.all([
@@ -242,8 +195,7 @@ export class MockApiService {
       this.ensureSearchRowsLoaded(),
       this.ensureMasterCatalogLoaded(),
       this.ensureCatalogLoaded(ownerId),
-      this.ensureFerreteriaMvpLoaded(ownerId),
-      this.ensureCatalogCapacityLoaded(ownerId)
+      this.ensureFerreteriaMvpLoaded(ownerId)
     ]);
   }
 
@@ -259,7 +211,6 @@ export class MockApiService {
       this.ensureTaxonomyLoaded(force),
       this.ensureCatalogLoaded(ownerId, force)
     ]);
-    await this.ensureCatalogCapacityLoaded(ownerId, force);
   }
 
   async refreshFerreteriaUploadSection(ownerId: string, force = false): Promise<void> {
@@ -273,9 +224,6 @@ export class MockApiService {
     await this.ensureFerreteriaMvpLoaded(ownerId, force);
   }
 
-  async refreshFerreteriaSubscriptionSection(ownerId: string, force = false): Promise<void> {
-    await this.ensureCatalogCapacityLoaded(ownerId, force);
-  }
 
   async refreshAdminData(): Promise<void> {
     await Promise.all([
@@ -761,7 +709,6 @@ export class MockApiService {
     ownerId: string,
     ownerLabel: string,
     csvContent: string,
-    _plan: SubscriptionPlan,
     _defaults: {
       categoryId: string;
       subcategoryId: string;
@@ -969,8 +916,7 @@ export class MockApiService {
     ownerId: string,
     name: string,
     items: ProjectItem[],
-    address = '',
-    _plan?: SubscriptionPlan
+    address = ''
   ): Promise<ProjectSummary> {
     const created = await this.apiPost<any>(`/maestros/${ownerId}/proyectos`, {
       nombre: name.trim(),
@@ -1235,153 +1181,101 @@ export class MockApiService {
   buildProjectQuotation(items: ProjectItem[]): ProjectQuotationView {
     this.ensureSearchRowsLoaded();
 
-    const lines = items
+    const normalizedItems = items
       .filter((item) => item.productName.trim())
-      .map((item) => {
-        const best = this.searchRows
-          .filter((row) => row.productName.toLowerCase() === item.productName.trim().toLowerCase())
-          .sort((a, b) => a.price - b.price)[0];
+      .map((item) => ({
+        productName: item.productName.trim(),
+        quantity: Math.max(1, Math.floor(Number(item.quantity) || 1))
+      }));
 
-        const unitPrice = best?.price || 0;
-        const quantity = Math.max(0, Math.floor(Number(item.quantity) || 0));
+    const lines = normalizedItems.map((item) => {
+      const candidates = this.searchRows
+        .filter((row) =>
+          row.productName.toLowerCase() === item.productName.toLowerCase()
+          && row.stock >= item.quantity
+        )
+        .sort((a, b) => a.price - b.price);
 
-        return {
-          productName: item.productName,
-          quantity,
-          bestStoreName: best?.storeName || 'Sin datos',
-          unitPrice,
-          subtotal: unitPrice * quantity
-        };
-      });
+      const best = candidates[0];
+      const unitPrice = best?.price || 0;
 
-    const totalsMap = new Map<string, number>();
-    lines.forEach((line) => {
-      totalsMap.set(line.bestStoreName, (totalsMap.get(line.bestStoreName) || 0) + line.subtotal);
+      return {
+        productName: item.productName,
+        quantity: item.quantity,
+        bestStoreName: best?.storeName || 'Sin datos',
+        unitPrice,
+        subtotal: unitPrice * item.quantity
+      };
     });
 
-    const totalsByStore = Array.from(totalsMap.entries()).map(([storeName, total]) => ({ storeName, total }));
-    const bestStore = [...totalsByStore].sort((a, b) => a.total - b.total)[0] || {
-      storeName: 'Sin datos',
-      total: 0
+    const optimalTotal = lines.reduce((acc, line) => acc + line.subtotal, 0);
+    const storeNames = Array.from(new Set(this.searchRows.map((row) => row.storeName)));
+
+    const totalsByStore = storeNames
+      .map((storeName) => {
+        let total = 0;
+
+        for (const item of normalizedItems) {
+          const offer = this.searchRows
+            .filter((row) =>
+              row.storeName === storeName
+              && row.productName.toLowerCase() === item.productName.toLowerCase()
+              && row.stock >= item.quantity
+            )
+            .sort((a, b) => a.price - b.price)[0];
+
+          if (!offer) {
+            return null;
+          }
+
+          total += offer.price * item.quantity;
+        }
+
+        return { storeName, total };
+      })
+      .filter((item): item is { storeName: string; total: number } => item !== null)
+      .sort((a, b) => a.total - b.total);
+
+    const bestStore = totalsByStore[0] || {
+      storeName: 'No disponible en una sola tienda',
+      total: optimalTotal
     };
 
     return {
       lines,
       totalsByStore,
       bestStore,
-      optimalTotal: lines.reduce((acc, line) => acc + line.subtotal, 0),
-      mixedSaving: 0
+      optimalTotal,
+      mixedSaving: Math.max(0, bestStore.total - optimalTotal)
     };
   }
 
   getProjectComparisonStrategies(items: ProjectItem[], _projectAddress = ''): ProjectComparisonStrategy[] {
     const quotation = this.buildProjectQuotation(items);
+    const storesUsed = new Set(
+      quotation.lines
+        .map((line) => line.bestStoreName)
+        .filter((name) => name && name !== 'Sin datos')
+    ).size;
+
     return [
       {
         id: 'cheapest',
-        title: 'Tienda mas barata',
-        subtitle: quotation.bestStore.storeName,
-        total: quotation.bestStore.total,
-        saving: 0
+        title: 'Menor precio combinado',
+        subtitle: storesUsed === 1 ? '1 ferreteria' : `${storesUsed} ferreterias`,
+        total: quotation.optimalTotal,
+        saving: quotation.mixedSaving
       },
       {
         id: 'same-store',
-        title: 'Todo en la misma tienda',
+        title: 'Todo en una ferreteria',
         subtitle: quotation.bestStore.storeName,
-        total: quotation.bestStore.total
+        total: quotation.bestStore.total,
+        saving: 0
       }
     ];
   }
 
-  getPlanCapabilities(plan: SubscriptionPlan): PlanCapabilities {
-    return this.maestroPlanCapabilities[plan] || this.maestroPlanCapabilities.basico;
-  }
-
-  getFerreteriaPlanCapabilities(plan: SubscriptionPlan): StorePlanCapabilities {
-    return this.ferreteriaPlanCapabilities[plan] || this.ferreteriaPlanCapabilities.basico;
-  }
-
-  canCreatePendingProject(ownerId: string, plan: SubscriptionPlan): {
-    allowed: boolean;
-    pendingCount: number;
-    limit: number | null;
-    remaining: number | null;
-    message: string;
-  } {
-    this.ensurePendingQuotaLoaded(ownerId);
-
-    const remote = this.pendingQuotaByOwner.get(ownerId);
-    if (remote) {
-      return {
-        allowed: remote.allowed,
-        pendingCount: remote.pendingCount || 0,
-        limit: remote.limit,
-        remaining: remote.remaining ?? null,
-        message: remote.message || ''
-      };
-    }
-
-    const pendingCount = this.getProjectsByStatus(ownerId, 'pendiente').length;
-    const capabilities = this.getPlanCapabilities(plan);
-    const limit = capabilities.maxPendingQuotations;
-
-    if (limit !== null && pendingCount >= limit) {
-      return {
-        allowed: false,
-        pendingCount,
-        limit,
-        remaining: 0,
-        message: `Tu ${capabilities.label} permite ${limit} cotizacion(es) pendiente(s).`
-      };
-    }
-
-    return {
-      allowed: true,
-      pendingCount,
-      limit,
-      remaining: limit === null ? null : Math.max(0, limit - pendingCount),
-      message: ''
-    };
-  }
-
-  canAddCatalogProduct(ownerId: string, plan: SubscriptionPlan): {
-    allowed: boolean;
-    currentCount: number;
-    limit: number | null;
-    message: string;
-  } {
-    this.ensureCatalogCapacityLoaded(ownerId);
-
-    const remote = this.catalogCapacityByOwner.get(ownerId);
-    if (remote) {
-      return {
-        allowed: remote.allowed,
-        currentCount: remote.currentCount || 0,
-        limit: remote.limit,
-        message: remote.message || ''
-      };
-    }
-
-    const currentCount = this.getCatalog(ownerId).length;
-    const capabilities = this.getFerreteriaPlanCapabilities(plan);
-    const limit = capabilities.maxCatalogProducts;
-
-    if (limit !== null && currentCount >= limit) {
-      return {
-        allowed: false,
-        currentCount,
-        limit,
-        message: `Tu ${capabilities.label} permite hasta ${limit} productos en catalogo.`
-      };
-    }
-
-    return {
-      allowed: true,
-      currentCount,
-      limit,
-      message: ''
-    };
-  }
 
   formatCurrency(value: number): string {
     return new Intl.NumberFormat('es-CL', {
@@ -1575,34 +1469,6 @@ export class MockApiService {
     return promise;
   }
 
-  private ensurePendingQuotaLoaded(ownerId: string, force = false): Promise<void> {
-    if (!force && this.pendingQuotaByOwner.has(ownerId)) {
-      return Promise.resolve();
-    }
-
-    const plan = this.authService.currentUser()?.subscriptionPlan || 'basico';
-    return this.apiGet<CapacityResponse>(`/maestros/${ownerId}/capacidad-cotizaciones`, true, {
-      plan
-    })
-      .then((data) => {
-        this.pendingQuotaByOwner.set(ownerId, data);
-      })
-      .catch(() => undefined);
-  }
-
-  private ensureCatalogCapacityLoaded(ownerId: string, force = false): Promise<void> {
-    if (!force && this.catalogCapacityByOwner.has(ownerId)) {
-      return Promise.resolve();
-    }
-
-    const plan = this.authService.currentUser()?.subscriptionPlan || 'basico';
-    return this.resolveFerreteriaId(ownerId)
-      .then((ferreteriaId) => this.apiGet<CapacityResponse>(`/ferreterias/${ferreteriaId}/capacidad-catalogo`, true, { plan }))
-      .then((data) => {
-        this.catalogCapacityByOwner.set(ownerId, data);
-      })
-      .catch(() => undefined);
-  }
 
   private ensureImportReportsLoaded(force = false): Promise<void> {
     if (!force && this.importPromise) {
@@ -2077,7 +1943,6 @@ export class MockApiService {
   private invalidateMaestroState(ownerId: string): void {
     this.projectsPromiseByOwner.delete(ownerId);
     this.maestroSummaryPromiseByOwner.delete(ownerId);
-    this.pendingQuotaByOwner.delete(ownerId);
     this.maestroSummaryByOwner.delete(ownerId);
   }
 

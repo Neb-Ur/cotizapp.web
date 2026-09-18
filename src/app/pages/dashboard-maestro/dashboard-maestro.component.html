@@ -360,13 +360,7 @@
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'historial'">
       <h3>Historial de cotizaciones</h3>
 
-      <div *ngIf="!canAccessHistory" style="border: 1px solid #ffd29c; background: #fff7ec; border-radius: 12px; padding: 0.75rem;">
-        <p style="margin: 0; color: #8b4a00; font-weight: 700;">
-          Tu {{ currentPlanView.title }} no incluye historial. Cambia a Plan Pro o Premium para habilitarlo.
-        </p>
-      </div>
-
-      <div class="history-grid" *ngIf="canAccessHistory && completedProjects.length > 0; else emptyHistory">
+      <div class="history-grid" *ngIf="completedProjects.length > 0; else emptyHistory">
         <article *ngFor="let project of completedProjects">
           <h4>{{ project.name }}</h4>
           <p>{{ project.createdAt | date: 'short' }}</p>
@@ -387,7 +381,7 @@
       </div>
 
       <ng-template #emptyHistory>
-        <p *ngIf="canAccessHistory">Aun no tienes cotizaciones aceptadas o rechazadas.</p>
+        <p>Aun no tienes cotizaciones aceptadas o rechazadas.</p>
       </ng-template>
     </article>
 
@@ -466,77 +460,6 @@
       <p class="profile-error" *ngIf="profileError" style="color: #9b1f1f; font-weight: 700;">{{ profileError }}</p>
     </article>
 
-    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'suscripcion'">
-      <div class="subscription-shell">
-        <div class="subscription-overview">
-          <div>
-            <p class="subscription-overview__eyebrow">Suscripcion activa</p>
-            <h3 class="subscription-overview__title">{{ currentPlanView.title }}</h3>
-          </div>
-          <div class="subscription-overview__meta">
-            <span class="subscription-overview__pill">Estado activo</span>
-            <p>{{ currentPlanView.maxPendingLabel }}</p>
-          </div>
-        </div>
 
-        <div
-          class="subscription-grid"
-          [style.gridTemplateColumns]="isMobileViewport ? '1fr' : 'repeat(3, minmax(0, 1fr))'"
-        >
-          <article
-            *ngFor="let plan of subscriptionPlans"
-            class="plan-card"
-            [class.is-current]="currentSubscriptionPlan === plan.id"
-            [class.is-featured]="plan.id === 'pro'"
-            [class.is-premium]="plan.id === 'premium'"
-          >
-            <div class="plan-card__glow"></div>
-
-            <div class="plan-card__head">
-              <div>
-                <p class="plan-card__eyebrow" *ngIf="plan.id === 'pro'; else maestroPlanTier">Recomendado</p>
-                <ng-template #maestroPlanTier>
-                  <p class="plan-card__eyebrow">{{ plan.id === 'premium' ? 'Escala total' : 'Entrada' }}</p>
-                </ng-template>
-                <h4>{{ plan.title }}</h4>
-              </div>
-
-              <span class="plan-card__badge" *ngIf="currentSubscriptionPlan === plan.id">
-                Actual
-              </span>
-            </div>
-
-            <p class="plan-card__price">{{ plan.priceLabel }}</p>
-            <p class="plan-card__description">{{ plan.description }}</p>
-
-            <div class="plan-card__features">
-              <p class="plan-card__feature plan-card__feature--strong">{{ plan.maxPendingLabel }}</p>
-              <p class="plan-card__feature">
-                Historial
-                <strong>{{ plan.hasHistory ? 'Incluido' : 'No incluido' }}</strong>
-              </p>
-              <p class="plan-card__feature">
-                Comparacion
-                <strong>{{ plan.hasHistory ? 'Completa' : 'Basica' }}</strong>
-              </p>
-            </div>
-
-            <div class="plan-card__footer">
-              <button
-                type="button"
-                class="plan-card__action"
-                [class.is-disabled]="currentSubscriptionPlan === plan.id"
-                [disabled]="currentSubscriptionPlan === plan.id"
-                (click)="changeSubscriptionPlan(plan.id)"
-              >
-                {{ currentSubscriptionPlan === plan.id ? 'Plan actual' : 'Cambiar plan' }}
-              </button>
-            </div>
-          </article>
-        </div>
-      </div>
-
-      <p class="saved" *ngIf="subscriptionNotice">{{ subscriptionNotice }}</p>
-    </article>
   </section>
 </main>

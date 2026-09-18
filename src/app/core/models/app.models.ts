@@ -1,6 +1,5 @@
 export type UserRole = 'maestro' | 'ferreteria' | 'admin';
 export type PreferredContactMethod = 'whatsapp' | 'llamada' | 'email';
-export type SubscriptionPlan = 'basico' | 'pro' | 'premium';
 export type ProjectStatus = 'pendiente' | 'aceptada' | 'rechazada';
 export type AccountStatus = 'activo' | 'bloqueado' | 'pendiente';
 
@@ -10,7 +9,6 @@ export interface SessionUser {
   email: string;
   displayName: string;
   role: UserRole;
-  subscriptionPlan?: SubscriptionPlan;
   accountStatus?: AccountStatus;
   adminValidated?: boolean;
   createdAt?: string;

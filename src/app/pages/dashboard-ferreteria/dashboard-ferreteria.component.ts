@@ -13,7 +13,6 @@ import {
   ProductExtraSection,
   ProductTechSpecRow,
   SessionUser,
-  SubscriptionPlan,
   TaxonomyOption
 } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
@@ -22,18 +21,8 @@ import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/d
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 import { UiModalComponent } from '../../shared/components/ui-modal/ui-modal.component';
 
-type FerreteriaSection = 'inicio' | 'catalogo' | 'subir' | 'metricas' | 'perfil' | 'suscripcion';
+type FerreteriaSection = 'inicio' | 'catalogo' | 'subir' | 'metricas' | 'perfil';
 type CatalogUploadMode = 'buscar' | 'solicitud';
-
-interface SubscriptionPlanView {
-  id: SubscriptionPlan;
-  title: string;
-  priceLabel: string;
-  description: string;
-  maxCatalogLabel: string;
-  csvLabel: string;
-  metricsLabel: string;
-}
 
 interface TopProductMetric {
   name: string;
@@ -98,11 +87,6 @@ export class DashboardFerreteriaComponent implements OnInit {
       id: 'perfil',
       label: 'Perfil',
       description: 'Manten al dia los datos de tu ferreteria, ubicacion y contacto para recibir mas oportunidades.'
-    },
-    {
-      id: 'suscripcion',
-      label: 'Suscripcion',
-      description: 'Revisa los limites de tu plan y habilita funciones como CSV, metricas avanzadas o mayor catalogo.'
     }
   ];
 
@@ -177,7 +161,6 @@ export class DashboardFerreteriaComponent implements OnInit {
   protected galleryPreviewActiveIndex = 0;
   protected csvError = '';
   protected csvNotice = '';
-  protected subscriptionNotice = '';
   protected importSummaryModalOpen = false;
   protected importSummary: CatalogImportReport | null = null;
 
@@ -216,35 +199,6 @@ export class DashboardFerreteriaComponent implements OnInit {
   protected isSectionLoading = false;
   protected isMobileViewport = false;
   protected isMobileMenuVisible = false;
-  protected readonly subscriptionPlans: SubscriptionPlanView[] = [
-    {
-      id: 'basico',
-      title: 'Plan Basico',
-      priceLabel: '$14.990 / mes',
-      description: 'Catalogo inicial para comenzar en la plataforma.',
-      maxCatalogLabel: 'Hasta 30 productos',
-      csvLabel: 'CSV no incluido',
-      metricsLabel: 'Metricas basicas'
-    },
-    {
-      id: 'pro',
-      title: 'Plan Pro',
-      priceLabel: '$29.990 / mes',
-      description: 'Para ferreterias con operacion estable y carga frecuente.',
-      maxCatalogLabel: 'Hasta 200 productos',
-      csvLabel: 'CSV incluido',
-      metricsLabel: 'Metricas completas'
-    },
-    {
-      id: 'premium',
-      title: 'Plan Premium',
-      priceLabel: '$49.990 / mes',
-      description: 'Escalamiento total para catalogos grandes.',
-      maxCatalogLabel: 'Productos ilimitados',
-      csvLabel: 'CSV incluido',
-      metricsLabel: 'Metricas completas'
-    }
-  ];
 
   private readonly loadedSections = new Set<FerreteriaSection>();
 
@@ -275,20 +229,13 @@ export class DashboardFerreteriaComponent implements OnInit {
     return this.sections.find((section) => section.id === this.currentSection)?.description || '';
   }
 
-  protected get currentPlan(): SubscriptionPlan {
-    return this.user?.subscriptionPlan || 'basico';
-  }
-
-  protected get currentPlanView(): SubscriptionPlanView {
-    return this.subscriptionPlans.find((plan) => plan.id === this.currentPlan) || this.subscriptionPlans[0];
-  }
 
   protected get canUseCsvImport(): boolean {
-    return this.apiService.getFerreteriaPlanCapabilities(this.currentPlan).allowCsvImport;
+    return true;
   }
 
   protected get canUseAdvancedMetrics(): boolean {
-    return this.apiService.getFerreteriaPlanCapabilities(this.currentPlan).allowAdvancedMetrics;
+    return true;
   }
 
   protected get categoryOptions(): TaxonomyOption[] {
@@ -419,16 +366,7 @@ export class DashboardFerreteriaComponent implements OnInit {
   }
 
   protected get catalogQuotaText(): string {
-    const currentUser = this.user;
-    if (!currentUser) {
-      return '';
-    }
-
-    const availability = this.apiService.canAddCatalogProduct(currentUser.id, this.currentPlan);
-    if (availability.limit === null) {
-      return `${availability.currentCount} productos cargados (sin limite).`;
-    }
-    return `${availability.currentCount}/${availability.limit} productos cargados.`;
+    return `${this.catalog.length} productos cargados.`;
   }
 
   protected get filteredMasterCatalogRows(): CatalogProduct[] {
@@ -966,14 +904,6 @@ export class DashboardFerreteriaComponent implements OnInit {
       return;
     }
 
-    const availability = this.apiService.canAddCatalogProduct(currentUser.id, this.currentPlan);
-    const remaining = availability.limit === null
-      ? null
-      : Math.max(0, availability.limit - (availability.currentCount || 0));
-    if (remaining !== null && selectedRelations.length > remaining) {
-      this.relationError = `${availability.message} Solo puedes agregar ${remaining} producto(s) mas con tu plan actual.`;
-      return;
-    }
 
     this.isSavingMasterSelection = true;
     this.relationError = '';
@@ -1026,14 +956,6 @@ export class DashboardFerreteriaComponent implements OnInit {
       return;
     }
 
-    if (!this.editingProductId) {
-      const availability = this.apiService.canAddCatalogProduct(currentUser.id, this.currentPlan);
-      if (!availability.allowed) {
-        this.catalogError = `${availability.message} Cambia a Plan Pro o Premium para ampliar capacidad.`;
-        this.currentSection = 'suscripcion';
-        return;
-      }
-    }
 
     const familyTemplate = this.activeFamilyTemplate;
     const specValues = this.collectSpecValuesForTemplate();
@@ -1260,11 +1182,6 @@ export class DashboardFerreteriaComponent implements OnInit {
     this.csvError = '';
     this.csvNotice = '';
 
-    if (!this.canUseCsvImport) {
-      this.csvError = 'Tu plan actual no permite importacion CSV. Cambia a Plan Pro o Premium.';
-      this.currentSection = 'suscripcion';
-      return;
-    }
 
     const defaultCategoryId = this.formModel.categoryId || this.categoryOptions[0]?.id || '';
     const defaultSubcategoryId = this.formModel.subcategoryId || this.apiService.getSubcategoryOptions(defaultCategoryId)[0]?.id || '';
@@ -1275,7 +1192,6 @@ export class DashboardFerreteriaComponent implements OnInit {
         currentUser.id,
         currentUser.businessName || currentUser.displayName,
         this.csvContent,
-        this.currentPlan,
         {
         categoryId: defaultCategoryId,
         subcategoryId: defaultSubcategoryId,
@@ -1341,21 +1257,6 @@ export class DashboardFerreteriaComponent implements OnInit {
       .find((item) => item.id === familyId)?.name || '-';
   }
 
-  protected async changeSubscriptionPlan(plan: SubscriptionPlan): Promise<void> {
-    if (!this.user || this.currentPlan === plan) {
-      return;
-    }
-
-    try {
-      await this.authService.updateProfile({ subscriptionPlan: plan });
-      const planLabel = this.apiService.getFerreteriaPlanCapabilities(plan).label;
-      this.subscriptionNotice = `Plan actualizado a ${planLabel}.`;
-      this.refreshSummary();
-    } catch (error) {
-      this.subscriptionNotice = error instanceof Error ? error.message : 'No fue posible actualizar el plan.';
-    }
-  }
-
   private async initializeDashboard(): Promise<void> {
     try {
       await this.ensureSectionData(this.currentSection, true);
@@ -1413,9 +1314,6 @@ export class DashboardFerreteriaComponent implements OnInit {
         this.syncProfileDraftFromUser();
       }
 
-      if (section === 'suscripcion') {
-        await this.apiService.refreshFerreteriaSubscriptionSection(currentUser.id, force);
-      }
 
       this.loadedSections.add(section);
     } finally {

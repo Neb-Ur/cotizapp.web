@@ -1,4 +1,4 @@
-const DEFAULT_API_BASE_URL = 'http://localhost:5011/api';
+const DEFAULT_API_BASE_URL = '/api';
 
 declare global {
   interface Window {
