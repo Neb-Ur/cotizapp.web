@@ -17,7 +17,7 @@ import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/d
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 import { UiModalComponent } from '../../shared/components/ui-modal/ui-modal.component';
 
-type FerreteriaSection = 'inicio' | 'catalogo' | 'subir' | 'perfil';
+type FerreteriaSection = 'inicio' | 'catalogo' | 'perfil';
 type CatalogUploadMode = 'buscar' | 'archivo' | 'solicitud';
 
 interface FerreteriaSectionMeta {
@@ -42,12 +42,12 @@ interface MasterCatalogSelectionDraft {
 export class DashboardFerreteriaComponent implements OnInit {
   protected readonly sections: FerreteriaSectionMeta[] = [
     { id: 'inicio', label: 'Inicio', description: 'Revisa el estado basico de tu catalogo.' },
-    { id: 'catalogo', label: 'Mantener catalogo', description: 'Mantiene precio, stock y publicacion de tus productos.' },
-    { id: 'subir', label: 'Agregar productos', description: 'Agrega productos por Excel/CSV o individualmente.' },
+    { id: 'catalogo', label: 'Mantener catalogo', description: 'Mantiene precio, stock y agrega productos cuando lo necesites.' },
     { id: 'perfil', label: 'Perfil', description: 'Mantiene los datos basicos de tu ferreteria.' }
   ];
 
   protected currentSection: FerreteriaSection = 'inicio';
+  protected catalogView: 'maintain' | 'add' = 'maintain';
   protected catalog: CatalogProduct[] = [];
   protected catalogSearch = '';
   protected catalogPage = 1;
@@ -186,6 +186,9 @@ export class DashboardFerreteriaComponent implements OnInit {
 
   protected setSection(section: FerreteriaSection): void {
     this.currentSection = section;
+    if (section === 'catalogo') {
+      this.catalogView = 'maintain';
+    }
     this.closeMobileMenu();
     void this.ensureSectionData(section);
   }
@@ -201,9 +204,20 @@ export class DashboardFerreteriaComponent implements OnInit {
     if (mode === 'buscar') void this.loadMasterCatalog();
   }
 
+  protected openAddProducts(mode: CatalogUploadMode = 'buscar'): void {
+    this.currentSection = 'catalogo';
+    this.catalogView = 'add';
+    this.setUploadMode(mode);
+    this.closeMobileMenu();
+    void this.ensureSectionData('catalogo', true);
+  }
+
+  protected closeAddProducts(): void {
+    this.catalogView = 'maintain';
+  }
+
   protected goToExcelImport(): void {
-    this.currentSection = 'subir';
-    this.setUploadMode('archivo');
+    this.openAddProducts('archivo');
   }
 
   protected onCatalogSearchChange(): void {
@@ -517,9 +531,9 @@ export class DashboardFerreteriaComponent implements OnInit {
         this.refreshSummary();
       }
 
-      if (section === 'subir') {
+      if (section === 'catalogo') {
         await this.apiService.refreshFerreteriaUploadSection(currentUser.id, force);
-        if (this.uploadMode === 'buscar') await this.loadMasterCatalog();
+        if (this.catalogView === 'add' && this.uploadMode === 'buscar') await this.loadMasterCatalog();
       }
 
       if (section === 'perfil') this.syncProfileDraftFromUser();
