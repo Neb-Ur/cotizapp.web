@@ -42,77 +42,95 @@
       <app-ui-loader [label]="isInitialLoading ? 'Cargando resumen de administracion...' : 'Cargando seccion...'" />
     </article>
 
-    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'resumen'">
-      <div class="stats-grid">
-        <section>
-          <h3>Usuarios totales</h3>
-          <p>{{ snapshot.usersTotal }}</p>
-        </section>
-        <section>
-          <h3>Usuarios activos</h3>
-          <p>{{ snapshot.activeUsers }}</p>
-        </section>
-        <section>
-          <h3>Bloqueados</h3>
-          <p>{{ snapshot.blockedUsers }}</p>
-        </section>
-        <section>
-          <h3>Validaciones pendientes</h3>
-          <p>{{ snapshot.validationPending }}</p>
-        </section>
-        <section>
-          <h3>Lotes importados</h3>
-          <p>{{ snapshot.importBatches }}</p>
-        </section>
-        <section>
-          <h3>Catalogo total</h3>
-          <p>{{ snapshot.totalCatalogProducts }}</p>
-        </section>
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'ferreterias'">
+      <h3>Ferreterias del piloto</h3>
+      <p>Activa la cuenta cuando corresponda, revisa su catalogo y realiza la carga inicial.</p>
+
+      <p *ngIf="notice" class="saved">{{ notice }}</p>
+      <p *ngIf="error" class="error">{{ error }}</p>
+
+      <div class="table-wrap" *ngIf="ferreteriaRows.length > 0; else noStores">
+        <table>
+          <thead>
+            <tr>
+              <th>Ferreteria</th>
+              <th>Correo</th>
+              <th>Estado</th>
+              <th>Productos</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let store of ferreteriaRows">
+              <td>{{ store.businessName || store.displayName }}</td>
+              <td>{{ store.email }}</td>
+              <td>{{ statusLabel(userStatus(store)) }}</td>
+              <td>{{ storeCatalogCount(store) }}</td>
+              <td class="actions">
+                <button type="button" *ngIf="userStatus(store) !== 'activo'" (click)="activateStore(store)">Activar</button>
+                <button type="button" class="ghost" (click)="inspectStoreCatalog(store)">Ver catalogo</button>
+                <button type="button" class="ghost" (click)="openUserEdit(store)">Editar</button>
+                <button type="button" class="danger" *ngIf="userStatus(store) !== 'bloqueado'" (click)="quickBlock(store)">Bloquear</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
+      <ng-template #noStores><p>No hay ferreterias registradas.</p></ng-template>
 
-      <div class="split-grid">
-        <section class="card">
-          <h4>Usuarios por rol</h4>
-          <ul>
-            <li>Maestros: <strong>{{ snapshot.usersByRole.maestro }}</strong></li>
-            <li>Ferreterias: <strong>{{ snapshot.usersByRole.ferreteria }}</strong></li>
-            <li>Admin: <strong>{{ snapshot.usersByRole.admin }}</strong></li>
-          </ul>
-        </section>
+      <section class="card" *ngIf="selectedStoreCatalogLabel" style="margin-top:1rem;">
+        <h4>Catalogo de {{ selectedStoreCatalogLabel }}</h4>
+        <div class="table-wrap" *ngIf="selectedStoreCatalog.length > 0; else emptyStoreCatalog">
+          <table>
+            <thead><tr><th>Producto</th><th>SKU</th><th>Precio</th><th>Stock</th><th>Publicado</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let product of selectedStoreCatalog">
+                <td>{{ product.name }}</td>
+                <td>{{ product.sku || '-' }}</td>
+                <td>{{ formatCurrency(product.price) }}</td>
+                <td>{{ product.stock }}</td>
+                <td>{{ product.isPublished ? 'Si' : 'No' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <ng-template #emptyStoreCatalog><p>Esta ferreteria aun no tiene productos cargados.</p></ng-template>
+      </section>
 
-        <section class="card">
-          <h4>Estado de cargas</h4>
-          <ul>
-            <li>Filas subidas: <strong>{{ snapshot.importedRows }}</strong></li>
-            <li>Fallidas: <strong>{{ snapshot.failedRows }}</strong></li>
-            <li>Nuevos en validacion: <strong>{{ snapshot.pendingNewRows }}</strong></li>
-            <li>Posibles match: <strong>{{ snapshot.possibleMatchRows }}</strong></li>
-          </ul>
-        </section>
-      </div>
+      <section class="card" style="margin-top:1rem;">
+        <h4>Carga inicial de catalogo</h4>
+        <p>Selecciona una ferreteria y sube el Excel/CSV que te entregue. Despues la tienda mantiene precio y stock desde su panel.</p>
 
-      <div class="quick-actions">
-        <button type="button" (click)="goToSection('metricas')">Ver metricas</button>
-        <button type="button" (click)="goToSection('taxonomia')">Gestionar taxonomia</button>
-        <button type="button" (click)="goToSection('productos')">Mantenedor de productos</button>
-        <button type="button" (click)="goToSection('solicitudes')">Ir a solicitudes</button>
-        <button type="button" (click)="goToSection('lotes')">Revisar lotes</button>
-        <button type="button" (click)="goToSection('usuarios')">Gestionar usuarios</button>
-        <button type="button" (click)="goToSection('operacion')">Ver operacion</button>
-      </div>
-    </article>
+        <div class="form-grid">
+          <label>
+            Ferreteria
+            <select [(ngModel)]="onboardingStoreOwnerId">
+              <option value="">Selecciona</option>
+              <option *ngFor="let store of onboardingFerreterias" [value]="store.id">
+                {{ store.businessName || store.displayName }} - {{ statusLabel(userStatus(store)) }}
+              </option>
+            </select>
+          </label>
+          <label>
+            Excel / CSV
+            <input type="file" accept=".xlsx,.xls,.csv,.txt" (change)="onOnboardingCatalogFileSelected($event)" />
+          </label>
+          <label>
+            Archivo
+            <input type="text" [value]="onboardingFileName || 'Ningun archivo seleccionado'" disabled />
+          </label>
+        </div>
 
-    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'metricas'">
-      <p class="helper">
-        Metricas MVP del panel admin actualizadas: {{ adminMetrics.generatedAt | date:'dd/MM/yyyy HH:mm' }}
-      </p>
-
-      <div class="stats-grid">
-        <section *ngFor="let metric of adminMvpMetricCards">
-          <h3>{{ metric.label }}</h3>
-          <p>{{ metric.value }}</p>
-        </section>
-      </div>
+        <textarea [(ngModel)]="onboardingCsvContent" rows="9" style="width:100%;"></textarea>
+        <p *ngIf="onboardingError" class="error">{{ onboardingError }}</p>
+        <p *ngIf="onboardingNotice" class="saved">{{ onboardingNotice }}</p>
+        <div class="actions">
+          <button type="button" (click)="importInitialCatalog()" [disabled]="onboardingLoading">
+            {{ onboardingLoading ? 'Procesando...' : 'Cargar catalogo' }}
+          </button>
+          <button type="button" class="ghost" (click)="resetOnboardingCatalogTemplate()">Ver ejemplo</button>
+        </div>
+      </section>
     </article>
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'taxonomia'">
@@ -574,58 +592,6 @@
       </ng-container>
     </article>
 
-    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'lotes'">
-      <ng-container *ngIf="!reportModalOpen; else reportDetailInline">
-        <div class="toolbar">
-          <label>
-            Ferreteria
-            <select [(ngModel)]="reportOwnerFilter">
-              <option value="all">Todas</option>
-              <option *ngFor="let owner of reportOwnerOptions" [value]="owner.id">{{ owner.label }}</option>
-            </select>
-          </label>
-
-          <label>
-            Buscar lote
-            <input type="text" [(ngModel)]="reportSearch" placeholder="ID lote o ferreteria" />
-          </label>
-        </div>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Lote</th>
-                <th>Ferreteria</th>
-                <th>Filas</th>
-                <th>Subidos</th>
-                <th>Fallidos</th>
-                <th>Nuevos</th>
-                <th>Match</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let report of reportRows">
-                <td>{{ report.batchId }}</td>
-                <td>{{ report.ownerLabel }}</td>
-                <td>{{ report.totalRows }}</td>
-                <td>{{ report.uploadedCount }}</td>
-                <td>{{ report.failedCount }}</td>
-                <td>{{ report.pendingNewCount }}</td>
-                <td>{{ report.possibleMatchCount }}</td>
-                <td class="actions">
-                  <button type="button" class="ghost" (click)="openReport(report)">Ver detalle</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <p class="empty" *ngIf="reportRows.length === 0">No hay lotes con el filtro seleccionado.</p>
-      </ng-container>
-    </article>
-
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'usuarios'">
       <ng-container *ngIf="!userModalOpen; else userEditorInline">
         <div class="toolbar">
@@ -695,109 +661,6 @@
 
         <p class="empty" *ngIf="userRows.length === 0">No hay usuarios para este filtro.</p>
       </ng-container>
-    </article>
-
-    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'operacion'">
-      <section class="card" style="margin-bottom:1rem;">
-        <h3>Carga inicial de catalogo</h3>
-        <p>
-          Usa esta herramienta cuando CotizApp haga la carga inicial por una ferreteria. La tienda podra mantener despues precio y stock desde su propio panel.
-        </p>
-
-        <div class="form-grid">
-          <label>
-            Ferreteria
-            <select [(ngModel)]="onboardingStoreOwnerId">
-              <option value="">Selecciona una ferreteria</option>
-              <option *ngFor="let store of onboardingFerreterias" [value]="store.id">
-                {{ store.businessName || store.displayName }} - {{ statusLabel(userStatus(store)) }}
-              </option>
-            </select>
-          </label>
-
-          <label>
-            Excel / CSV
-            <input type="file" accept=".xlsx,.xls,.csv,.txt" (change)="onOnboardingCatalogFileSelected($event)" />
-          </label>
-
-          <label>
-            Archivo
-            <input type="text" [value]="onboardingFileName || 'Ningun archivo seleccionado'" disabled />
-          </label>
-        </div>
-
-        <p style="margin:0.5rem 0; color:#4a5568;">
-          Se reconocen columnas comunes como nombre/producto, SKU/codigo, precio, stock y codigo de barras.
-        </p>
-
-        <textarea
-          [(ngModel)]="onboardingCsvContent"
-          rows="9"
-          style="width:100%;"
-          placeholder="nombre,sku,precio,stock,codigo_barras"
-        ></textarea>
-
-        <p *ngIf="onboardingError" class="error">{{ onboardingError }}</p>
-        <p *ngIf="onboardingNotice" class="saved">{{ onboardingNotice }}</p>
-
-        <div class="actions" style="margin-top:0.75rem;">
-          <button type="button" (click)="importInitialCatalog()" [disabled]="onboardingLoading">
-            {{ onboardingLoading ? 'Procesando...' : 'Cargar catalogo a ferreteria' }}
-          </button>
-          <button type="button" class="ghost" (click)="resetOnboardingCatalogTemplate()">Ver formato de ejemplo</button>
-        </div>
-      </section>
-
-      <div class="stats-grid">
-        <section>
-          <h3>Inventario valorizado</h3>
-          <p>{{ formatCurrency(snapshot.totalInventoryValue) }}</p>
-        </section>
-        <section>
-          <h3>Productos publicados</h3>
-          <p>{{ snapshot.publishedCatalogProducts }}</p>
-        </section>
-        <section>
-          <h3>Stock bajo global</h3>
-          <p>{{ snapshot.lowStockProducts }}</p>
-        </section>
-        <section>
-          <h3>Cotizaciones pendientes</h3>
-          <p>{{ snapshot.pendingProjects }}</p>
-        </section>
-        <section>
-          <h3>Cotizaciones aceptadas</h3>
-          <p>{{ snapshot.acceptedProjects }}</p>
-        </section>
-        <section>
-          <h3>Cotizaciones rechazadas</h3>
-          <p>{{ snapshot.rejectedProjects }}</p>
-        </section>
-      </div>
-
-      <div class="split-grid">
-        <section class="card">
-          <h4>Ferreterias con mayor catalogo</h4>
-          <ul>
-            <li *ngFor="let store of snapshot.stores.slice(0, 6)">
-              <span>{{ store.ownerLabel }}</span>
-              <strong>{{ store.totalProducts }} productos</strong>
-              <small>Publicados {{ store.publishedProducts }} · Stock bajo {{ store.lowStockProducts }}</small>
-            </li>
-          </ul>
-        </section>
-
-        <section class="card">
-          <h4>Maestros con mas pendientes</h4>
-          <ul>
-            <li *ngFor="let maestro of snapshot.maestros.slice(0, 6)">
-              <span>{{ maestro.ownerLabel }}</span>
-              <strong>{{ maestro.pendingProjects }} pendientes</strong>
-              <small>Aceptadas {{ maestro.acceptedProjects }} · Rechazadas {{ maestro.rejectedProjects }}</small>
-            </li>
-          </ul>
-        </section>
-      </div>
     </article>
 
     <ng-template #masterProductEditor>
@@ -1044,51 +907,6 @@
                 </label>
               </ng-container>
             </div>
-          </section>
-        </section>
-      </section>
-    </ng-template>
-
-    <ng-template #reportDetailInline>
-      <section class="inline-editor" *ngIf="selectedReport as report">
-        <div class="inline-editor-head">
-          <div>
-            <h4>Detalle lote CSV</h4>
-            <p>{{ report.batchId }} · {{ report.ownerLabel }} · {{ report.totalRows }} fila(s)</p>
-          </div>
-          <div class="actions">
-            <button type="button" class="ghost" (click)="closeReportModal()">Volver a lotes</button>
-          </div>
-        </div>
-
-        <section class="report-modal inline-editor-body">
-          <div class="stats-grid modal-stats">
-            <section>
-              <h3>Subidos</h3>
-              <p>{{ report.uploadedCount }}</p>
-            </section>
-            <section>
-              <h3>Fallidos</h3>
-              <p>{{ report.failedCount }}</p>
-            </section>
-            <section>
-              <h3>Nuevos</h3>
-              <p>{{ report.pendingNewCount }}</p>
-            </section>
-          </div>
-
-          <section class="report-list" *ngIf="reportRowsByOutcome('fallido').length > 0">
-            <h5>Filas fallidas</h5>
-            <ul>
-              <li *ngFor="let row of reportRowsByOutcome('fallido')">{{ row.rawLine }} · {{ row.message }}</li>
-            </ul>
-          </section>
-
-          <section class="report-list" *ngIf="reportRowsByOutcome('posible_match').length > 0">
-            <h5>Posibles match</h5>
-            <ul>
-              <li *ngFor="let row of reportRowsByOutcome('posible_match')">{{ row.name }} · SKU {{ row.sku }}</li>
-            </ul>
           </section>
         </section>
       </section>
