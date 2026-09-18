@@ -74,7 +74,10 @@
           </p>
           <p style="margin: 0.3rem 0 0; color: #4a5568;">{{ catalogQuotaText }}</p>
         </div>
-        <button type="button" class="secondary" (click)="setSection('subir')">Agregar productos</button>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <button type="button" class="secondary" (click)="goToExcelImport()">Actualizar por Excel</button>
+          <button type="button" class="secondary" (click)="setSection('subir')">Agregar productos</button>
+        </div>
       </div>
       <p *ngIf="catalogNotice" class="saved">{{ catalogNotice }}</p>
       <p *ngIf="catalogInlineError" style="margin: 0.35rem 0 0; color: #9b1f1f; font-weight: 700;">{{ catalogInlineError }}</p>
@@ -562,7 +565,7 @@
       <section class="upload-search-card" *ngIf="uploadMode === 'archivo'">
         <h3>Subir productos desde Excel o CSV</h3>
         <p>
-          Puedes usar el archivo que ya manejas en tu ferreteria. CotizApp reconoce columnas comunes como nombre/producto, SKU/codigo, precio, stock y codigo de barras.
+          Puedes usar el archivo que ya manejas en tu ferreteria. Sirve tanto para agregar productos como para actualizar masivamente precio y stock de productos ya cargados. CotizApp reconoce columnas comunes como nombre/producto, SKU/codigo, precio, stock y codigo de barras.
         </p>
 
         <div class="form-grid">
