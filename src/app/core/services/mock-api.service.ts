@@ -1565,8 +1565,7 @@ export class MockApiService {
         ? product.galeriaJson
         : [product.imagenPrincipalUrl || 'https://via.placeholder.com/600x420?text=Producto'],
       specValues: {},
-      templateVersion: 1,
-      updatedAt: row.actualizadoEn || row.creadoEn || undefined
+      templateVersion: 1
     };
   }
 
@@ -1599,7 +1598,8 @@ export class MockApiService {
         ? master.galeriaJson
         : [master.imagenPrincipalUrl || 'https://via.placeholder.com/600x420?text=Producto'],
       specValues: {},
-      templateVersion: 1
+      templateVersion: 1,
+      updatedAt: row.actualizadoEn || row.creadoEn || undefined
     };
 
     const metaByProduct = this.getOrCreateCatalogMeta(ownerId);
