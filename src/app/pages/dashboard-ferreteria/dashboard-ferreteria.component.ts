@@ -17,12 +17,13 @@ import {
 } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
 import { MockApiService } from '../../core/services/mock-api.service';
+import { CATALOG_IMPORT_TEMPLATE, catalogFileToCsv } from '../../core/utils/catalog-import.util';
 import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 import { UiModalComponent } from '../../shared/components/ui-modal/ui-modal.component';
 
 type FerreteriaSection = 'inicio' | 'catalogo' | 'subir' | 'metricas' | 'perfil';
-type CatalogUploadMode = 'buscar' | 'solicitud';
+type CatalogUploadMode = 'buscar' | 'archivo' | 'solicitud';
 
 interface TopProductMetric {
   name: string;
@@ -70,13 +71,13 @@ export class DashboardFerreteriaComponent implements OnInit {
     },
     {
       id: 'catalogo',
-      label: 'Mi Catalogo',
-      description: 'Administra productos publicados, ajusta precio y stock, y manten tu oferta siempre actualizada.'
+      label: 'Mantener catalogo',
+      description: 'Revisa los productos que ya cargamos para tu ferreteria y manten precio y stock actualizados.'
     },
     {
       id: 'subir',
-      label: 'Subir Productos',
-      description: 'Relaciona productos del catalogo maestro o carga nuevos items para incorporarlos a tu catalogo.'
+      label: 'Agregar productos',
+      description: 'Agrega productos por Excel/CSV o de forma individual cuando quieras ampliar tu catalogo.'
     },
     {
       id: 'metricas',
@@ -143,7 +144,9 @@ export class DashboardFerreteriaComponent implements OnInit {
   protected requestNotice = '';
 
   protected editingProductId: string | null = null;
-  protected csvContent = 'nombre,precio,stock,sku\nMalla electrosoldada 4mm,18490,25,MEL-4\nCemento Alta Resistencia 25kg,5790,90,CEM-AR-25';
+  protected csvContent = CATALOG_IMPORT_TEMPLATE;
+  protected catalogFileName = '';
+  protected isReadingCatalogFile = false;
   protected catalogError = '';
   protected catalogNotice = '';
   protected catalogInlineError = '';
@@ -522,6 +525,14 @@ export class DashboardFerreteriaComponent implements OnInit {
 
   protected specValue(fieldId: string): string {
     return this.specValuesDraft[fieldId] || '';
+  }
+
+  protected goToExcelImport(): void {
+    this.currentSection = 'subir';
+    this.setUploadMode('archivo');
+    if (this.isMobileViewport) {
+      this.closeMobileMenu();
+    }
   }
 
   protected setUploadMode(mode: CatalogUploadMode): void {
@@ -1171,6 +1182,37 @@ export class DashboardFerreteriaComponent implements OnInit {
     this.syncDetailDraftFromFormModel();
     this.syncTaxonomyAutocompleteFromFormModel();
     this.syncSpecDraftFromFormModel();
+  }
+
+  protected async onCatalogFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    this.csvError = '';
+    this.csvNotice = '';
+    this.catalogFileName = file.name;
+    this.isReadingCatalogFile = true;
+
+    try {
+      this.csvContent = await catalogFileToCsv(file);
+      this.csvNotice = `${file.name} cargado. Revisa los datos y presiona Procesar archivo.`;
+    } catch (error) {
+      this.catalogFileName = '';
+      this.csvError = error instanceof Error ? error.message : 'No se pudo leer el archivo.';
+    } finally {
+      this.isReadingCatalogFile = false;
+      input.value = '';
+    }
+  }
+
+  protected resetCatalogImportTemplate(): void {
+    this.catalogFileName = '';
+    this.csvContent = CATALOG_IMPORT_TEMPLATE;
+    this.csvError = '';
+    this.csvNotice = '';
   }
 
   protected async importCsv(): Promise<void> {

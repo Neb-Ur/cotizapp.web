@@ -698,6 +698,56 @@
     </article>
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'operacion'">
+      <section class="card" style="margin-bottom:1rem;">
+        <h3>Carga inicial de catalogo</h3>
+        <p>
+          Usa esta herramienta cuando CotizApp haga la carga inicial por una ferreteria. La tienda podra mantener despues precio y stock desde su propio panel.
+        </p>
+
+        <div class="form-grid">
+          <label>
+            Ferreteria
+            <select [(ngModel)]="onboardingStoreOwnerId">
+              <option value="">Selecciona una ferreteria</option>
+              <option *ngFor="let store of onboardingFerreterias" [value]="store.id">
+                {{ store.businessName || store.displayName }} - {{ statusLabel(userStatus(store)) }}
+              </option>
+            </select>
+          </label>
+
+          <label>
+            Excel / CSV
+            <input type="file" accept=".xlsx,.xls,.csv,.txt" (change)="onOnboardingCatalogFileSelected($event)" />
+          </label>
+
+          <label>
+            Archivo
+            <input type="text" [value]="onboardingFileName || 'Ningun archivo seleccionado'" disabled />
+          </label>
+        </div>
+
+        <p style="margin:0.5rem 0; color:#4a5568;">
+          Se reconocen columnas comunes como nombre/producto, SKU/codigo, precio, stock y codigo de barras.
+        </p>
+
+        <textarea
+          [(ngModel)]="onboardingCsvContent"
+          rows="9"
+          style="width:100%;"
+          placeholder="nombre,sku,precio,stock,codigo_barras"
+        ></textarea>
+
+        <p *ngIf="onboardingError" class="error">{{ onboardingError }}</p>
+        <p *ngIf="onboardingNotice" class="saved">{{ onboardingNotice }}</p>
+
+        <div class="actions" style="margin-top:0.75rem;">
+          <button type="button" (click)="importInitialCatalog()" [disabled]="onboardingLoading">
+            {{ onboardingLoading ? 'Procesando...' : 'Cargar catalogo a ferreteria' }}
+          </button>
+          <button type="button" class="ghost" (click)="resetOnboardingCatalogTemplate()">Ver formato de ejemplo</button>
+        </div>
+      </section>
+
       <div class="stats-grid">
         <section>
           <h3>Inventario valorizado</h3>

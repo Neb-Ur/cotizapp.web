@@ -29,6 +29,7 @@ import {
 } from '../models/app.models';
 import { AuthService } from './auth.service';
 import { API_BASE_URL } from '../config/api.config';
+import { parseCatalogImportContent } from '../utils/catalog-import.util';
 
 interface ApiEnvelope<T> {
   ok: boolean;
@@ -725,7 +726,7 @@ export class MockApiService {
     ]);
 
     const ferreteriaId = await this.resolveFerreteriaId(ownerId);
-    const parsedRows = this.parseCatalogCsv(csvContent);
+    const parsedRows = await this.parseCatalogCsv(csvContent);
     const reportRows: CatalogImportRowResult[] = [];
 
     for (const parsed of parsedRows) {
@@ -739,6 +740,40 @@ export class MockApiService {
           stock: parsed.stock,
           outcome: 'fallido',
           message: parsed.error || 'Fila invalida.',
+          suggestions: []
+        });
+        continue;
+      }
+
+      const existingCatalogProduct = this.getCatalog(ownerId).find((item) => {
+        const sameSku = parsed.sku && item.sku
+          ? this.normalizeBarcode(parsed.sku) === this.normalizeBarcode(item.sku)
+          : false;
+        const sameBarcode = parsed.barcode && item.barcode
+          ? this.normalizeBarcode(parsed.barcode) === this.normalizeBarcode(item.barcode)
+          : false;
+        const sameName = item.name.trim().toLowerCase() === parsed.name.trim().toLowerCase();
+        return sameSku || sameBarcode || sameName;
+      });
+
+      if (existingCatalogProduct) {
+        await this.upsertCatalog(ownerId, {
+          ...existingCatalogProduct,
+          sku: parsed.sku || existingCatalogProduct.sku,
+          barcode: parsed.barcode || existingCatalogProduct.barcode,
+          price: parsed.price,
+          stock: parsed.stock
+        });
+
+        reportRows.push({
+          lineNumber: parsed.lineNumber,
+          rawLine: parsed.rawLine,
+          name: parsed.name,
+          sku: parsed.sku,
+          price: parsed.price,
+          stock: parsed.stock,
+          outcome: 'subido',
+          message: 'Precio y stock actualizados en el catalogo de la ferreteria.',
           suggestions: []
         });
         continue;
@@ -1597,7 +1632,8 @@ export class MockApiService {
         ? master.galeriaJson
         : [master.imagenPrincipalUrl || 'https://via.placeholder.com/600x420?text=Producto'],
       specValues: {},
-      templateVersion: 1
+      templateVersion: 1,
+      updatedAt: row.actualizadoEn || row.creadoEn || undefined
     };
 
     const metaByProduct = this.getOrCreateCatalogMeta(ownerId);
@@ -1971,7 +2007,7 @@ export class MockApiService {
     return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
   }
 
-  private parseCatalogCsv(content: string): Array<{
+  private async parseCatalogCsv(content: string): Promise<Array<{
     lineNumber: number;
     rawLine: string;
     name: string;
@@ -1981,45 +2017,8 @@ export class MockApiService {
     barcode: string;
     valid: boolean;
     error?: string;
-  }> {
-    const lines = content
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0);
-
-    return lines.map((line, index) => {
-      const [nameRaw = '', skuRaw = '', priceRaw = '', stockRaw = '', barcodeRaw = ''] = line.split(',').map((part) => part.trim());
-      const name = nameRaw;
-      const sku = skuRaw || `CSV-${String(index + 1).padStart(4, '0')}`;
-      const price = Math.max(0, Number(priceRaw) || 0);
-      const stock = Math.max(0, Math.floor(Number(stockRaw) || 0));
-      const barcode = barcodeRaw;
-
-      if (!name || price <= 0) {
-        return {
-          lineNumber: index + 1,
-          rawLine: line,
-          name,
-          sku,
-          price,
-          stock,
-          barcode,
-          valid: false,
-          error: 'La fila debe incluir al menos nombre y precio valido.'
-        };
-      }
-
-      return {
-        lineNumber: index + 1,
-        rawLine: line,
-        name,
-        sku,
-        price,
-        stock,
-        barcode,
-        valid: true
-      };
-    });
+  }>> {
+    return parseCatalogImportContent(content);
   }
 
   private removeUndefined<T extends Record<string, unknown>>(payload: T): Partial<T> {
