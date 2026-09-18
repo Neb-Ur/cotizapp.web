@@ -527,6 +527,14 @@ export class DashboardFerreteriaComponent implements OnInit {
     return this.specValuesDraft[fieldId] || '';
   }
 
+  protected goToExcelImport(): void {
+    this.currentSection = 'subir';
+    this.setUploadMode('archivo');
+    if (this.isMobileViewport) {
+      this.closeMobileMenu();
+    }
+  }
+
   protected setUploadMode(mode: CatalogUploadMode): void {
     this.uploadMode = mode;
     this.catalogError = '';
