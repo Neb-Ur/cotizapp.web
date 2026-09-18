@@ -1,5 +1,3 @@
-import * as XLSX from 'xlsx';
-
 export interface ParsedCatalogImportRow {
   lineNumber: number;
   rawLine: string;
@@ -32,6 +30,7 @@ export async function catalogFileToCsv(file: File): Promise<string> {
     return file.text();
   }
 
+  const XLSX = await import('xlsx');
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: 'array' });
   const firstSheetName = workbook.SheetNames[0];
@@ -43,12 +42,13 @@ export async function catalogFileToCsv(file: File): Promise<string> {
   return XLSX.utils.sheet_to_csv(sheet, { FS: ',', RS: '\n' });
 }
 
-export function parseCatalogImportContent(content: string): ParsedCatalogImportRow[] {
+export async function parseCatalogImportContent(content: string): Promise<ParsedCatalogImportRow[]> {
   const trimmed = content.trim();
   if (!trimmed) {
     return [];
   }
 
+  const XLSX = await import('xlsx');
   const workbook = XLSX.read(trimmed, { type: 'string' });
   const firstSheetName = workbook.SheetNames[0];
   if (!firstSheetName) {
