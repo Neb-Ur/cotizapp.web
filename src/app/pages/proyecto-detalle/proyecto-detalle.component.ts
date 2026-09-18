@@ -77,19 +77,9 @@ export class ProyectoDetalleComponent implements OnInit {
   }
 
   protected get comparisonStrategies(): ProjectComparisonStrategy[] {
-    if (!this.canViewAdvancedComparison) {
-      return [];
-    }
     return this.apiService.getProjectComparisonStrategies(this.projectItems, this.projectAddress);
   }
 
-  protected get currentPlan(): 'basico' | 'pro' | 'premium' {
-    return this.user?.subscriptionPlan || 'basico';
-  }
-
-  protected get canViewAdvancedComparison(): boolean {
-    return this.currentPlan !== 'basico';
-  }
 
   protected get canEditQuotation(): boolean {
     return this.isNewProject || this.projectStatus === 'pendiente';
@@ -178,13 +168,7 @@ export class ProyectoDetalleComponent implements OnInit {
     }
 
     if (this.isNewProject) {
-      const availability = this.apiService.canCreatePendingProject(currentUser.id, this.currentPlan);
-      if (!availability.allowed) {
-        this.saveNotice = `${availability.message} Cambia a Plan Pro o Premium para crear mas.`;
-        return;
-      }
-
-      const created = await this.apiService.saveProject(currentUser.id, name, this.projectItems, this.projectAddress, this.currentPlan);
+      const created = await this.apiService.saveProject(currentUser.id, name, this.projectItems, this.projectAddress);
       this.saveNotice = 'Cotizacion creada correctamente.';
       this.clearDraft();
       this.router.navigate(['/dashboard/maestro/cotizaciones', created.id]);
