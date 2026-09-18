@@ -14,7 +14,7 @@ import {
   type Auth
 } from 'firebase/auth';
 import { firstValueFrom } from 'rxjs';
-import { LoginPayload, RegisterPayload, SessionUser, SubscriptionPlan, UserRole } from '../models/app.models';
+import { LoginPayload, RegisterPayload, SessionUser, UserRole } from '../models/app.models';
 import { API_BASE_URL } from '../config/api.config';
 import { getFirebaseAuthInstance } from '../config/firebase.config';
 
@@ -44,7 +44,6 @@ interface ApiAuthUser {
   comuna?: string;
   region?: string;
   direccion?: string;
-  planSuscripcion?: SubscriptionPlan;
   estadoCuenta?: 'activo' | 'bloqueado' | 'pendiente';
   creadoEn?: string;
   nombreComercial?: string;
@@ -182,9 +181,6 @@ export class AuthService {
     return this.currentUserState()?.role === role;
   }
 
-  getSubscriptionPlan(): SubscriptionPlan {
-    return this.currentUserState()?.subscriptionPlan || 'basico';
-  }
 
   getToken(): string | null {
     return this.tokenState();
@@ -213,12 +209,11 @@ export class AuthService {
 
   async adminUpdateUser(
     userId: string,
-    partial: Partial<Pick<SessionUser, 'role' | 'subscriptionPlan' | 'accountStatus' | 'displayName' | 'phone' | 'city' | 'commune' | 'address'>>
+    partial: Partial<Pick<SessionUser, 'role' | 'accountStatus' | 'displayName' | 'phone' | 'city' | 'commune' | 'address'>>
   ): Promise<SessionUser | null> {
     const token = this.requireToken();
     const payload: Record<string, unknown> = {};
     if (partial.role !== undefined) payload['rol'] = partial.role;
-    if (partial.subscriptionPlan !== undefined) payload['planSuscripcion'] = partial.subscriptionPlan;
     if (partial.accountStatus !== undefined) payload['estadoCuenta'] = partial.accountStatus;
     if (partial.displayName !== undefined) payload['nombre'] = partial.displayName;
     if (partial.phone !== undefined) payload['telefono'] = partial.phone;
@@ -248,7 +243,6 @@ export class AuthService {
     city: string;
     commune: string;
     address: string;
-    subscriptionPlan?: SubscriptionPlan;
     accountStatus?: 'activo' | 'bloqueado' | 'pendiente';
     businessName?: string;
     rut?: string;
@@ -264,7 +258,6 @@ export class AuthService {
         ciudad: payload.city.trim(),
         comuna: payload.commune.trim(),
         direccion: payload.address.trim(),
-        planSuscripcion: payload.subscriptionPlan,
         estadoCuenta: payload.accountStatus,
         nombreComercial: payload.businessName?.trim() || undefined,
         rut: payload.rut?.trim() || undefined
@@ -394,7 +387,6 @@ export class AuthService {
       displayName: user.nombreComercial?.trim() ? user.nombreComercial : user.nombre,
       legalFullName: user.nombre,
       role: user.rol,
-      subscriptionPlan: user.planSuscripcion || 'basico',
       accountStatus: user.estadoCuenta || 'activo',
       adminValidated: user.estadoCuenta !== 'bloqueado',
       createdAt: user.creadoEn,
@@ -434,7 +426,6 @@ export class AuthService {
       comuna: user.commune,
       region: user.region,
       direccion: user.address,
-      planSuscripcion: user.subscriptionPlan,
       estadoCuenta: user.accountStatus,
       creadoEn: user.createdAt,
       nombreComercial: user.businessName,
