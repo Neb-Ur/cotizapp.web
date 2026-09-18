@@ -33,8 +33,8 @@
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'inicio'">
       <div class="stats-grid">
         <section><h3>Productos publicados</h3><p>{{ totalProducts }}</p></section>
-        <section><h3>Stock bajo</h3><p>{{ lowStock }}</p></section>
-        <section><h3>Precio promedio</h3><p>{{ formatCurrency(avgPrice) }}</p></section>
+        <section><h3>Sin stock</h3><p>{{ outOfStock }}</p></section>
+        <section><h3>Ultima actualizacion</h3><p>{{ lastCatalogUpdate ? (lastCatalogUpdate | date:'dd/MM/yyyy HH:mm') : 'Sin datos' }}</p></section>
       </div>
       <div class="form-actions">
         <button type="button" (click)="setSection('catalogo')">Mantener precio y stock</button>
