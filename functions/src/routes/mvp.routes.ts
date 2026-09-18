@@ -288,7 +288,6 @@ mvpRouter.post('/auth/register', requireAuth, async (req, res) => {
     ciudad: normalizeText(req.body?.ciudad),
     comuna: normalizeText(req.body?.comuna),
     direccion: normalizeText(req.body?.direccion),
-    planSuscripcion: 'basico',
     estadoCuenta: role === 'ferreteria' ? 'pendiente' : 'activo',
     creadoEn: nowIso(),
     especialidad: normalizeText(req.body?.especialidad),
@@ -924,7 +923,6 @@ mvpRouter.post('/admin/usuarios', requireAuth, requireRole('admin'), async (req,
     ciudad: normalizeText(req.body?.ciudad),
     comuna: normalizeText(req.body?.comuna),
     direccion: normalizeText(req.body?.direccion),
-    planSuscripcion: req.body?.planSuscripcion || 'basico',
     estadoCuenta: req.body?.estadoCuenta || (role === 'ferreteria' ? 'pendiente' : 'activo'),
     creadoEn: nowIso()
   });
@@ -943,7 +941,7 @@ mvpRouter.post('/admin/usuarios', requireAuth, requireRole('admin'), async (req,
 mvpRouter.patch('/admin/usuarios/:id', requireAuth, requireRole('admin'), async (req, res) => {
   const current = await row(COLLECTIONS.users, req.params.id);
   if (!current) return fail(res, 'AUTH_USER_NOT_FOUND', 'Usuario no encontrado.', 404);
-  const allowed = ['rol', 'nombre', 'telefono', 'ciudad', 'comuna', 'direccion', 'planSuscripcion', 'estadoCuenta'];
+  const allowed = ['rol', 'nombre', 'telefono', 'ciudad', 'comuna', 'direccion', 'estadoCuenta'];
   const patch: Record<string, unknown> = {};
   allowed.forEach((key) => { if (req.body?.[key] !== undefined) patch[key] = req.body[key]; });
   await db.collection(COLLECTIONS.users).doc(req.params.id).set(patch, { merge: true });
@@ -969,7 +967,6 @@ mvpRouter.get('/admin/metricas', requireAuth, requireRole('admin'), async (_req,
   return ok(res, {
     totalUsuarios: users.length,
     nuevosUsuarios: users.filter((item) => Date.parse(item.creadoEn || '') >= Date.now() - 30 * 86400000).length,
-    usuariosPago: 0,
     usuariosActivos: users.filter((item) => item.estadoCuenta !== 'bloqueado').length,
     maestros: users.filter((item) => item.rol === 'maestro').length,
     ferreterias: users.filter((item) => item.rol === 'ferreteria').length,
