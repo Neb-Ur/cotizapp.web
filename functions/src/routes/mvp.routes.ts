@@ -138,10 +138,11 @@ async function authUserResponse(userId: string): Promise<any | null> {
 }
 
 async function buildSearchRows(): Promise<SearchRow[]> {
-  const [offers, products, stores, categories, subcategories, families] = await Promise.all([
+  const [offers, products, stores, users, categories, subcategories, families] = await Promise.all([
     rows(COLLECTIONS.storeProducts),
     rows(COLLECTIONS.masterProducts),
     rows(COLLECTIONS.stores),
+    rows(COLLECTIONS.users),
     rows(COLLECTIONS.categories),
     rows(COLLECTIONS.subcategories),
     rows(COLLECTIONS.families)
@@ -149,6 +150,7 @@ async function buildSearchRows(): Promise<SearchRow[]> {
 
   const productById = new Map(products.map((item) => [item.id, item]));
   const storeById = new Map(stores.map((item) => [item.id, item]));
+  const userById = new Map(users.map((item) => [item.id, item]));
   const categoryById = new Map(categories.map((item) => [item.id, item]));
   const subcategoryById = new Map(subcategories.map((item) => [item.id, item]));
   const familyById = new Map(families.map((item) => [item.id, item]));
@@ -158,7 +160,15 @@ async function buildSearchRows(): Promise<SearchRow[]> {
     .map((offer) => {
       const product = productById.get(offer.productoMaestroId);
       const store = storeById.get(offer.ferreteriaId);
-      if (!product || !store || product.estado === 'inactivo' || store.estado === 'inactivo') return null;
+      const owner = store ? userById.get(store.usuarioDuenoId) : null;
+      if (
+        !product
+        || !store
+        || !owner
+        || product.estado === 'inactivo'
+        || store.estado === 'inactivo'
+        || owner.estadoCuenta !== 'activo'
+      ) return null;
 
       const price = numberValue(offer.precio);
       return {
@@ -279,7 +289,7 @@ mvpRouter.post('/auth/register', requireAuth, async (req, res) => {
     comuna: normalizeText(req.body?.comuna),
     direccion: normalizeText(req.body?.direccion),
     planSuscripcion: 'basico',
-    estadoCuenta: 'activo',
+    estadoCuenta: role === 'ferreteria' ? 'pendiente' : 'activo',
     creadoEn: nowIso(),
     especialidad: normalizeText(req.body?.especialidad),
     anosExperiencia: numberValue(req.body?.anosExperiencia),
@@ -928,7 +938,7 @@ mvpRouter.post('/admin/usuarios', requireAuth, requireRole('admin'), async (req,
     comuna: normalizeText(req.body?.comuna),
     direccion: normalizeText(req.body?.direccion),
     planSuscripcion: req.body?.planSuscripcion || 'basico',
-    estadoCuenta: req.body?.estadoCuenta || 'activo',
+    estadoCuenta: req.body?.estadoCuenta || (role === 'ferreteria' ? 'pendiente' : 'activo'),
     creadoEn: nowIso()
   });
   if (role === 'ferreteria') {
