@@ -39,13 +39,6 @@ export interface RegisterPayload {
   address: string;
 }
 
-export interface LocationOption {
-  id: string;
-  name: string;
-  regionId?: string;
-  cityId?: string;
-}
-
 export interface SearchRow {
   productName: string;
   storeName: string;
