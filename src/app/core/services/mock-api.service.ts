@@ -26,6 +26,7 @@ import {
 import { AuthService } from './auth.service';
 import { API_BASE_URL } from '../config/api.config';
 import { parseCatalogImportContent } from '../utils/catalog-import.util';
+import { buildQuotationOptimization } from '../utils/quotation-optimizer.util';
 
 interface ApiEnvelope<T> {
   ok: boolean;
@@ -1057,75 +1058,9 @@ export class MockApiService {
 
   buildProjectQuotation(items: ProjectItem[]): ProjectQuotationView {
     this.ensureSearchRowsLoaded();
-
-    const normalizedItems = items
-      .filter((item) => item.productName.trim())
-      .map((item) => ({
-        productName: item.productName.trim(),
-        quantity: Math.max(1, Math.floor(Number(item.quantity) || 1))
-      }));
-
-    const lines = normalizedItems.map((item) => {
-      const candidates = this.searchRows
-        .filter((row) =>
-          row.productName.toLowerCase() === item.productName.toLowerCase()
-          && row.stock >= item.quantity
-        )
-        .sort((a, b) => a.price - b.price);
-
-      const best = candidates[0];
-      const unitPrice = best?.price || 0;
-
-      return {
-        productName: item.productName,
-        quantity: item.quantity,
-        bestStoreName: best?.storeName || 'Sin datos',
-        unitPrice,
-        subtotal: unitPrice * item.quantity
-      };
-    });
-
-    const optimalTotal = lines.reduce((acc, line) => acc + line.subtotal, 0);
-    const storeNames = Array.from(new Set(this.searchRows.map((row) => row.storeName)));
-
-    const totalsByStore = storeNames
-      .map((storeName) => {
-        let total = 0;
-
-        for (const item of normalizedItems) {
-          const offer = this.searchRows
-            .filter((row) =>
-              row.storeName === storeName
-              && row.productName.toLowerCase() === item.productName.toLowerCase()
-              && row.stock >= item.quantity
-            )
-            .sort((a, b) => a.price - b.price)[0];
-
-          if (!offer) {
-            return null;
-          }
-
-          total += offer.price * item.quantity;
-        }
-
-        return { storeName, total };
-      })
-      .filter((item): item is { storeName: string; total: number } => item !== null)
-      .sort((a, b) => a.total - b.total);
-
-    const bestStore = totalsByStore[0] || {
-      storeName: 'No disponible en una sola tienda',
-      total: optimalTotal
-    };
-
-    return {
-      lines,
-      totalsByStore,
-      bestStore,
-      optimalTotal,
-      mixedSaving: Math.max(0, bestStore.total - optimalTotal)
-    };
+    return buildQuotationOptimization(items, this.searchRows);
   }
+
 
   getProjectComparisonStrategies(items: ProjectItem[], _projectAddress = ''): ProjectComparisonStrategy[] {
     const quotation = this.buildProjectQuotation(items);
