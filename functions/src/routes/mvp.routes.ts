@@ -841,19 +841,6 @@ mvpRouter.get('/maestros/:ownerId/resumen', requireAuth, async (req, res) => {
   });
 });
 
-// MVP has no paid tiers yet: capacities are intentionally unlimited.
-mvpRouter.get('/maestros/:ownerId/capacidad-cotizaciones', requireAuth, async (req, res) => {
-  if (!canAccessOwner(req, req.params.ownerId)) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos.', 403);
-  return ok(res, { allowed: true, pendingCount: 0, limit: null, remaining: null, message: '' });
-});
-
-mvpRouter.get('/ferreterias/:storeId/capacidad-catalogo', requireAuth, async (req, res) => {
-  const store = await row(COLLECTIONS.stores, req.params.storeId);
-  if (!store) return fail(res, 'FERRETERIA_NOT_FOUND', 'No existe la ferreteria indicada.', 404);
-  if (req.authRole !== 'admin' && req.authUserId !== store.usuarioDuenoId) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos.', 403);
-  const currentCount = (await rows(COLLECTIONS.storeProducts)).filter((item) => item.ferreteriaId === req.params.storeId).length;
-  return ok(res, { allowed: true, currentCount, limit: null, remaining: null, message: '' });
-});
 
 mvpRouter.get('/ferreterias/:storeId/metricas-mvp', requireAuth, async (req, res) => {
   const store = await row(COLLECTIONS.stores, req.params.storeId);
@@ -994,10 +981,3 @@ mvpRouter.get('/admin/metricas', requireAuth, requireRole('admin'), async (_req,
   });
 });
 
-// Do not expose advanced paid plan behavior in the MVP.
-mvpRouter.get('/planes/maestro/:code/capacidades', requireAuth, async (_req, res) => ok(res, {
-  plan: 'mvp', label: 'MVP', maxPendingQuotations: null, hasHistory: true
-}));
-mvpRouter.get('/planes/ferreteria/:code/capacidades', requireAuth, async (_req, res) => ok(res, {
-  plan: 'mvp', label: 'MVP', maxCatalogProducts: null, allowCsvImport: false, allowAdvancedMetrics: false
-}));
