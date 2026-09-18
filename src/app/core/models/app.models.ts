@@ -266,6 +266,7 @@ export interface CatalogProduct {
   gallery: string[];
   specValues: Record<string, string>;
   templateVersion: number;
+  updatedAt?: string;
 }
 
 export type CatalogImportOutcome = 'subido' | 'fallido' | 'nuevo_validacion' | 'posible_match';
