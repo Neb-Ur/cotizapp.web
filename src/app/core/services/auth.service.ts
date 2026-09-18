@@ -309,4 +309,151 @@ export class AuthService {
           this.currentUserState.set(user);
           this.persistSession(user, token);
         } catch {
-          th
+          this.clearSession();
+        }
+      });
+    } catch {
+      // The cached session lets the UI render. Requests will fail clearly until Firebase is available.
+    }
+  }
+
+  private restoreCachedSession(): void {
+    if (typeof window === 'undefined') return;
+    const sessionRaw = window.sessionStorage.getItem(this.sessionStorageKey);
+    const localRaw = window.localStorage.getItem(this.sessionStorageKey);
+    const raw = sessionRaw || localRaw;
+    this.storageMode = sessionRaw ? 'session' : 'local';
+    if (!raw) return;
+
+    try {
+      const cached = JSON.parse(raw) as { user: SessionUser; token: string };
+      if (cached?.user?.email && cached?.token) {
+        this.currentUserState.set(cached.user);
+        this.tokenState.set(cached.token);
+      }
+    } catch {
+      this.clearCachedSession();
+    }
+  }
+
+  private setSession(user: SessionUser, token: string, mode: StorageMode): void {
+    this.storageMode = mode;
+    this.currentUserState.set(user);
+    this.tokenState.set(token);
+    this.persistSession(user, token);
+  }
+
+  private persistSession(user: SessionUser, token: string): void {
+    if (typeof window === 'undefined') return;
+    const payload = JSON.stringify({ user, token });
+    if (this.storageMode === 'session') {
+      window.sessionStorage.setItem(this.sessionStorageKey, payload);
+      window.localStorage.removeItem(this.sessionStorageKey);
+    } else {
+      window.localStorage.setItem(this.sessionStorageKey, payload);
+      window.sessionStorage.removeItem(this.sessionStorageKey);
+    }
+  }
+
+  private clearSession(): void {
+    this.currentUserState.set(null);
+    this.tokenState.set(null);
+    this.clearCachedSession();
+  }
+
+  private clearCachedSession(): void {
+    if (typeof window === 'undefined') return;
+    window.localStorage.removeItem(this.sessionStorageKey);
+    window.sessionStorage.removeItem(this.sessionStorageKey);
+  }
+
+  private requireToken(): string {
+    const token = this.tokenState();
+    if (!token) throw new Error('No hay sesion activa.');
+    return token;
+  }
+
+  private authHeaders(token: string): HttpHeaders {
+    return new HttpHeaders({ Authorization: `Bearer ${token}` });
+  }
+
+  private async fetchCurrentUser(token: string): Promise<SessionUser> {
+    const response = await firstValueFrom(
+      this.http.get<ApiEnvelope<ApiAuthUser>>(`${this.apiBaseUrl}/auth/me`, {
+        headers: this.authHeaders(token)
+      })
+    );
+    return this.mapLoginUser(response.data);
+  }
+
+  private mapApiUser(user: ApiAuthUser): SessionUser {
+    return {
+      id: user.id,
+      ferreteriaId: user.ferreteriaId,
+      email: user.correo,
+      displayName: user.nombreComercial?.trim() ? user.nombreComercial : user.nombre,
+      legalFullName: user.nombre,
+      role: user.rol,
+      subscriptionPlan: user.planSuscripcion || 'basico',
+      accountStatus: user.estadoCuenta || 'activo',
+      adminValidated: user.estadoCuenta !== 'bloqueado',
+      createdAt: user.creadoEn,
+      phone: user.telefono,
+      secondaryPhone: user.telefonoSecundario,
+      city: user.ciudad,
+      commune: user.comuna,
+      region: user.region,
+      address: user.direccion,
+      businessName: user.nombreComercial,
+      rut: user.rut,
+      emergencyContactName: user.contactoEmergenciaNombre,
+      emergencyContactPhone: user.contactoEmergenciaTelefono,
+      specialty: user.especialidad,
+      experienceYears: user.anosExperiencia,
+      preferredContactMethod: user.metodoContactoPreferido
+    };
+  }
+
+  private mapLoginUser(user: ApiAuthUser | null | undefined): SessionUser {
+    if (!user || !user.id?.trim() || !user.correo?.trim() || !user.nombre?.trim() || !validRole(user.rol)) {
+      throw new Error(LOGIN_SUPPORT_ERROR_MESSAGE);
+    }
+    return this.mapApiUser(user);
+  }
+
+  private mapSessionUserToApiUser(user: SessionUser): ApiAuthUser {
+    return {
+      id: user.id,
+      ferreteriaId: user.ferreteriaId,
+      rol: user.role,
+      nombre: user.legalFullName || user.displayName,
+      correo: user.email,
+      telefono: user.phone,
+      telefonoSecundario: user.secondaryPhone,
+      ciudad: user.city,
+      comuna: user.commune,
+      region: user.region,
+      direccion: user.address,
+      planSuscripcion: user.subscriptionPlan,
+      estadoCuenta: user.accountStatus,
+      creadoEn: user.createdAt,
+      nombreComercial: user.businessName,
+      rut: user.rut,
+      contactoEmergenciaNombre: user.emergencyContactName,
+      contactoEmergenciaTelefono: user.emergencyContactPhone,
+      especialidad: user.specialty,
+      anosExperiencia: user.experienceYears,
+      metodoContactoPreferido: user.preferredContactMethod
+    };
+  }
+
+  private mapProfilePatchToApiPayload(partial: Partial<SessionUser>): Record<string, unknown> {
+    const payload: Record<string, unknown> = {};
+    if (partial.displayName !== undefined || partial.legalFullName !== undefined) payload['nombre'] = partial.legalFullName || partial.displayName || '';
+    if (partial.phone !== undefined) payload['telefono'] = partial.phone;
+    if (partial.secondaryPhone !== undefined) payload['telefonoSecundario'] = partial.secondaryPhone;
+    if (partial.city !== undefined) payload['ciudad'] = partial.city;
+    if (partial.commune !== undefined) payload['comuna'] = partial.commune;
+    if (partial.region !== undefined) payload['region'] = partial.region;
+    if (partial.address !== undefined) payload['direccion'] = partial.address;
+    if (partial.businessName !== undefined) payload['nombreComercial'] = partia
