@@ -726,7 +726,7 @@ export class MockApiService {
     ]);
 
     const ferreteriaId = await this.resolveFerreteriaId(ownerId);
-    const parsedRows = this.parseCatalogCsv(csvContent);
+    const parsedRows = await this.parseCatalogCsv(csvContent);
     const reportRows: CatalogImportRowResult[] = [];
 
     for (const parsed of parsedRows) {
@@ -1973,7 +1973,7 @@ export class MockApiService {
     return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
   }
 
-  private parseCatalogCsv(content: string): Array<{
+  private async parseCatalogCsv(content: string): Promise<Array<{
     lineNumber: number;
     rawLine: string;
     name: string;
@@ -1983,7 +1983,7 @@ export class MockApiService {
     barcode: string;
     valid: boolean;
     error?: string;
-  }> {
+  }>> {
     return parseCatalogImportContent(content);
   }
 
