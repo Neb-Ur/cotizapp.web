@@ -1,11 +1,9 @@
 <main class="register-page">
-  <!-- Step 1: Choose role -->
   <section class="auth-card" *ngIf="step === 1">
     <a routerLink="/" class="back-link">&larr; Volver al inicio</a>
-
     <div class="auth-header">
       <h1>Crea tu cuenta</h1>
-      <p>Selecciona el tipo de usuario para continuar.</p>
+      <p>Selecciona cómo usarás CotizApp.</p>
     </div>
 
     <div class="role-grid">
@@ -13,7 +11,7 @@
         <span class="role-icon role-icon--orange">M</span>
         <div>
           <h3>Maestro</h3>
-          <span>Compara precios, crea proyectos y optimiza compras.</span>
+          <span>Compara precios y optimiza tu lista de materiales.</span>
         </div>
         <span class="role-arrow">&rarr;</span>
       </button>
@@ -22,16 +20,15 @@
         <span class="role-icon role-icon--green">F</span>
         <div>
           <h3>Ferreteria</h3>
-          <span>Gestiona catálogo, stock y visibilidad local.</span>
+          <span>Mantiene precio y stock para aparecer en el comparador.</span>
         </div>
         <span class="role-arrow">&rarr;</span>
       </button>
     </div>
 
-    <p class="auth-switch">Ya tienes cuenta? <a routerLink="/login">Iniciar sesión</a></p>
+    <p class="auth-switch">¿Ya tienes cuenta? <a routerLink="/login">Iniciar sesión</a></p>
   </section>
 
-  <!-- Step 2: Form -->
   <section class="auth-card auth-card--wide" *ngIf="step === 2">
     <button type="button" class="back-link" (click)="backToStepOne()">&larr; Cambiar tipo de usuario</button>
 
@@ -40,35 +37,25 @@
         {{ selectedRole === 'ferreteria' ? 'Ferretería' : 'Maestro' }}
       </div>
       <h1>Completa tu registro</h1>
+      <p>Solo pedimos los datos necesarios para el piloto.</p>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form auth-form--grid">
-      <div class="field" *ngIf="selectedRole === 'maestro'">
-        <label>RUT</label>
-        <input formControlName="rut" type="text" placeholder="12345678-9" />
-        <small *ngIf="hasError('rut')">Ingresa un RUT valido.</small>
-      </div>
-
-      <div class="field" *ngIf="selectedRole === 'maestro'">
-        <label>Especialidad</label>
-        <input formControlName="specialty" type="text" placeholder="Ej: obra gruesa, electricidad" />
-      </div>
-
       <div class="field" *ngIf="selectedRole === 'ferreteria'">
         <label>Nombre del negocio</label>
-        <input formControlName="businessName" type="text" placeholder="Nombre comercial" />
-        <small *ngIf="hasError('businessName')">Ingresa un nombre de negocio válido.</small>
+        <input formControlName="businessName" type="text" placeholder="Ferretería El Constructor" />
+        <small *ngIf="hasError('businessName')">Ingresa el nombre del negocio.</small>
       </div>
 
       <div class="field" *ngIf="selectedRole === 'ferreteria'">
-        <label>RUT</label>
+        <label>RUT del negocio</label>
         <input formControlName="rut" type="text" placeholder="76.123.456-7" />
         <small *ngIf="hasError('rut')">Ingresa un RUT válido.</small>
       </div>
 
       <div class="field">
         <label>{{ selectedRole === 'ferreteria' ? 'Nombre de contacto' : 'Nombre y apellido' }}</label>
-        <input formControlName="name" type="text" [placeholder]="selectedRole === 'ferreteria' ? 'Persona de contacto' : 'Ej: Juan Pérez'" />
+        <input formControlName="name" type="text" />
         <small *ngIf="hasError('name')">Ingresa un nombre válido.</small>
       </div>
 
@@ -91,74 +78,21 @@
       </div>
 
       <div class="field">
-        <label>Región</label>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="location-field">
-          <input
-            matInput
-            formControlName="region"
-            [matAutocomplete]="regionAuto"
-            placeholder="Busca tu región"
-          />
-          <mat-autocomplete #regionAuto="matAutocomplete" (optionSelected)="selectRegionByName($event.option.value)">
-            <mat-option *ngFor="let option of filteredRegionOptions" [value]="option.name">
-              {{ option.name }}
-            </mat-option>
-          </mat-autocomplete>
-        </mat-form-field>
-        <small *ngIf="hasLocationError('region')">Selecciona una región de la lista.</small>
-      </div>
-
-      <div class="field">
-        <label>Ciudad</label>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="location-field">
-          <input
-            matInput
-            formControlName="city"
-            [matAutocomplete]="cityAuto"
-            placeholder="Busca tu ciudad o provincia"
-          />
-          <mat-autocomplete #cityAuto="matAutocomplete" (optionSelected)="selectCityByName($event.option.value)">
-            <mat-option *ngFor="let option of filteredCityOptions" [value]="option.name">
-              {{ option.name }}
-            </mat-option>
-          </mat-autocomplete>
-        </mat-form-field>
-        <small *ngIf="hasLocationError('city')">Selecciona una ciudad de la lista.</small>
-      </div>
-
-      <div class="field" *ngIf="selectedRole === 'maestro'">
-        <label>Años de experiencia</label>
-        <input formControlName="experienceYears" type="number" min="0" placeholder="Ej: 8" />
-      </div>
-
-      <div class="field">
         <label>Comuna</label>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="location-field">
-          <input
-            matInput
-            formControlName="commune"
-            [matAutocomplete]="communeAuto"
-            placeholder="Busca tu comuna"
-          />
-          <mat-autocomplete #communeAuto="matAutocomplete" (optionSelected)="selectCommuneByName($event.option.value)">
-            <mat-option *ngFor="let option of filteredCommuneOptions" [value]="option.name">
-              {{ option.name }}
-            </mat-option>
-          </mat-autocomplete>
-        </mat-form-field>
-        <small *ngIf="hasLocationError('commune')">Selecciona una comuna de la lista.</small>
+        <input formControlName="commune" type="text" placeholder="Ej: La Florida" />
+        <small *ngIf="hasError('commune')">Ingresa tu comuna.</small>
       </div>
 
-      <div class="field field--full">
-        <label>Dirección</label>
-        <input formControlName="address" type="text" placeholder="Dirección" />
+      <div class="field field--full" *ngIf="selectedRole === 'ferreteria'">
+        <label>Dirección de la ferretería</label>
+        <input formControlName="address" type="text" placeholder="Av. Principal 1234" />
         <small *ngIf="hasError('address')">Ingresa una dirección válida.</small>
       </div>
 
       <div class="field--full form-actions">
-        <button class="btn btn-dark btn-full" type="submit">Crear cuenta</button>
-        <p class="auth-switch" *ngIf="isLoadingLocations">Cargando catálogo de ubicaciones...</p>
-        <p class="form-error" *ngIf="locationsError">{{ locationsError }}</p>
+        <button class="btn btn-dark btn-full" type="submit" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Creando cuenta...' : 'Crear cuenta' }}
+        </button>
         <p class="form-error" *ngIf="errorMessage">{{ errorMessage }}</p>
       </div>
     </form>
