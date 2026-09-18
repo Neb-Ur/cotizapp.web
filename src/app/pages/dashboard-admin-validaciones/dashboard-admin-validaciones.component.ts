@@ -34,6 +34,7 @@ import {
 } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
 import { MockApiService, TaxonomyDefinitionApi } from '../../core/services/mock-api.service';
+import { CATALOG_IMPORT_TEMPLATE, catalogFileToCsv } from '../../core/utils/catalog-import.util';
 import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 
@@ -277,6 +278,13 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   protected userStatusFilter: AccountStatus | 'all' = 'all';
   protected userSearch = '';
 
+  protected onboardingStoreOwnerId = '';
+  protected onboardingCsvContent = CATALOG_IMPORT_TEMPLATE;
+  protected onboardingFileName = '';
+  protected onboardingLoading = false;
+  protected onboardingError = '';
+  protected onboardingNotice = '';
+
   protected selectedReport: CatalogImportReport | null = null;
   protected reportModalOpen = false;
   protected requestCreationModalOpen = false;
@@ -350,6 +358,12 @@ export class DashboardAdminValidacionesComponent implements OnInit {
         return item.ownerLabel.toLowerCase().includes(query)
           || item.batchId.toLowerCase().includes(query);
       });
+  }
+
+  protected get onboardingFerreterias(): SessionUser[] {
+    return this.users
+      .filter((user) => user.role === 'ferreteria')
+      .sort((left, right) => left.displayName.localeCompare(right.displayName));
   }
 
   protected get categoryOptions(): TaxonomyOption[] {
@@ -1140,6 +1154,76 @@ export class DashboardAdminValidacionesComponent implements OnInit {
 
   protected familyLabel(familyId: string): string {
     return this.apiService.getFamilyOptions().find((item) => item.id === familyId)?.name || familyId;
+  }
+
+  protected async onOnboardingCatalogFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    this.onboardingError = '';
+    this.onboardingNotice = '';
+    this.onboardingFileName = file.name;
+
+    try {
+      this.onboardingCsvContent = await catalogFileToCsv(file);
+      this.onboardingNotice = `${file.name} cargado. Selecciona la ferreteria y procesa la carga inicial.`;
+    } catch (error) {
+      this.onboardingFileName = '';
+      this.onboardingError = error instanceof Error ? error.message : 'No se pudo leer el archivo.';
+    } finally {
+      input.value = '';
+    }
+  }
+
+  protected resetOnboardingCatalogTemplate(): void {
+    this.onboardingFileName = '';
+    this.onboardingCsvContent = CATALOG_IMPORT_TEMPLATE;
+    this.onboardingError = '';
+    this.onboardingNotice = '';
+  }
+
+  protected async importInitialCatalog(): Promise<void> {
+    const store = this.onboardingFerreterias.find((user) => user.id === this.onboardingStoreOwnerId);
+    if (!store) {
+      this.onboardingError = 'Selecciona una ferreteria.';
+      return;
+    }
+    if (!this.onboardingCsvContent.trim()) {
+      this.onboardingError = 'Carga un archivo o pega los datos del catalogo.';
+      return;
+    }
+
+    this.onboardingLoading = true;
+    this.onboardingError = '';
+    this.onboardingNotice = '';
+
+    try {
+      const response = await this.apiService.importCatalogBatch(
+        store.id,
+        store.businessName || store.displayName,
+        this.onboardingCsvContent,
+        {
+          categoryId: '',
+          subcategoryId: '',
+          familyId: '',
+          brand: 'Sin marca',
+          unitLabel: 'Unidad',
+          isPublished: true
+        }
+      );
+
+      this.onboardingNotice = `Carga inicial procesada para ${store.businessName || store.displayName}: ${response.report.uploadedCount} producto(s) cargados, ${response.report.pendingNewCount + response.report.possibleMatchCount} pendiente(s) de revision y ${response.report.failedCount} fila(s) con error.`;
+      this.syncImportReportsState();
+      this.snapshotDataLoaded = false;
+      await this.ensureSnapshotDependenciesLoaded(true);
+    } catch (error) {
+      this.onboardingError = error instanceof Error ? error.message : 'No fue posible cargar el catalogo inicial.';
+    } finally {
+      this.onboardingLoading = false;
+    }
   }
 
   protected goToSection(section: AdminSection): void {
