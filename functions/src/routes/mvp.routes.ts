@@ -442,3 +442,246 @@ mvpRouter.patch('/familias/:id', requireAuth, requireRole('admin'), async (req, 
   if (req.body?.subcategoriaId !== undefined) patch['subcategoriaId'] = normalizeText(req.body.subcategoriaId);
   const updated = await patchRow(COLLECTIONS.families, req.params.id, patch);
   return updated ? ok(res, updated) : fail(res, 'TAXONOMIA_NOT_FOUND', 'Familia no encontrada.', 404);
+});
+
+mvpRouter.delete('/familias/:id', requireAuth, requireRole('admin'), async (req, res) => {
+  await db.collection(COLLECTIONS.families).doc(req.params.id).delete();
+  return ok(res, { deleted: true });
+});
+
+mvpRouter.get('/familias/:familyId/atributos-definicion', async (req, res) => {
+  const data = (await rows(COLLECTIONS.familyDefinitions))
+    .filter((item) => item.familiaId === req.params.familyId)
+    .sort((a, b) => numberValue(a.orden) - numberValue(b.orden));
+  return ok(res, data);
+});
+
+mvpRouter.post('/familias/:familyId/atributos-definicion', requireAuth, requireRole('admin'), async (req, res) => {
+  const created = await createRow(COLLECTIONS.familyDefinitions, {
+    familiaId: req.params.familyId,
+    codigo: normalizeText(req.body?.codigo),
+    etiqueta: normalizeText(req.body?.etiqueta),
+    tipoDato: req.body?.tipoDato || 'texto',
+    esFiltrable: boolValue(req.body?.esFiltrable),
+    esObligatorio: boolValue(req.body?.esObligatorio),
+    opcionesJson: Array.isArray(req.body?.opcionesJson) ? req.body.opcionesJson : [],
+    orden: numberValue(req.body?.orden)
+  });
+  return ok(res, created, 201);
+});
+
+mvpRouter.patch('/familias/:familyId/atributos-definicion/:definitionId', requireAuth, requireRole('admin'), async (req, res) => {
+  const patch = { ...req.body, familiaId: req.params.familyId };
+  const updated = await patchRow(COLLECTIONS.familyDefinitions, req.params.definitionId, patch);
+  return updated ? ok(res, updated) : fail(res, 'TAXONOMIA_DEFINITION_NOT_FOUND', 'Definicion no encontrada.', 404);
+});
+
+mvpRouter.delete('/familias/:familyId/atributos-definicion/:definitionId', requireAuth, requireRole('admin'), async (req, res) => {
+  await db.collection(COLLECTIONS.familyDefinitions).doc(req.params.definitionId).delete();
+  return ok(res, { deleted: true });
+});
+
+// Master catalog.
+mvpRouter.get('/productos-maestro', async (req, res) => {
+  const q = normalizeText(req.query['query']).toLowerCase();
+  const categoryId = normalizeText(req.query['categoriaId']);
+  const subcategoryId = normalizeText(req.query['subcategoriaId']);
+  const familyId = normalizeText(req.query['familiaId']);
+  const data = (await rows(COLLECTIONS.masterProducts))
+    .filter((item) => item.estado !== 'inactivo')
+    .filter((item) => !q || normalizeText(item.nombre).toLowerCase().includes(q) || normalizeText(item.marca).toLowerCase().includes(q))
+    .filter((item) => !categoryId || item.categoriaId === categoryId)
+    .filter((item) => !subcategoryId || item.subcategoriaId === subcategoryId)
+    .filter((item) => !familyId || item.familiaId === familyId)
+    .sort((a, b) => normalizeText(a.nombre).localeCompare(normalizeText(b.nombre)));
+  return ok(res, data);
+});
+
+mvpRouter.get('/productos-maestro/paginado', async (req, res) => {
+  const q = normalizeText(req.query['query']).toLowerCase();
+  const categoryId = normalizeText(req.query['categoriaId']);
+  const subcategoryId = normalizeText(req.query['subcategoriaId']);
+  const familyId = normalizeText(req.query['familiaId']);
+  const excluded = new Set(normalizeText(req.query['excludeProductoMaestroIds']).split(',').filter(Boolean));
+  const page = Math.max(1, Math.floor(numberValue(req.query['page'], 1)));
+  const size = Math.min(100, Math.max(1, Math.floor(numberValue(req.query['size'], 25))));
+  const all = (await rows(COLLECTIONS.masterProducts))
+    .filter((item) => item.estado !== 'inactivo')
+    .filter((item) => !excluded.has(item.id))
+    .filter((item) => !q || normalizeText(item.nombre).toLowerCase().includes(q) || normalizeText(item.marca).toLowerCase().includes(q))
+    .filter((item) => !categoryId || item.categoriaId === categoryId)
+    .filter((item) => !subcategoryId || item.subcategoriaId === subcategoryId)
+    .filter((item) => !familyId || item.familiaId === familyId)
+    .sort((a, b) => normalizeText(a.nombre).localeCompare(normalizeText(b.nombre)));
+  const total = all.length;
+  const totalPages = Math.max(1, Math.ceil(total / size));
+  const safePage = Math.min(page, totalPages);
+  const items = all.slice((safePage - 1) * size, safePage * size);
+  return ok(res, { items, page: safePage, size, total, totalPages });
+});
+
+mvpRouter.get('/productos-maestro/:id', async (req, res) => {
+  const product = await row(COLLECTIONS.masterProducts, req.params.id);
+  if (!product) return fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro.', 404);
+  const atributos = (await rows(COLLECTIONS.masterAttributes)).filter((item) => item.productoMaestroId === product.id);
+  return ok(res, { ...product, atributos });
+});
+
+mvpRouter.post('/productos-maestro', requireAuth, requireRole('admin'), async (req, res) => {
+  const nombre = normalizeText(req.body?.nombre);
+  if (!nombre) return fail(res, 'PRODUCTO_MAESTRO_INVALID_PAYLOAD', 'Nombre requerido.', 400);
+  const created = await createRow(COLLECTIONS.masterProducts, {
+    categoriaId: normalizeText(req.body?.categoriaId),
+    subcategoriaId: normalizeText(req.body?.subcategoriaId),
+    familiaId: normalizeText(req.body?.familiaId),
+    nombre,
+    marca: normalizeText(req.body?.marca) || 'Sin marca',
+    descripcionCorta: normalizeText(req.body?.descripcionCorta),
+    descripcionLarga: normalizeText(req.body?.descripcionLarga),
+    imagenPrincipalUrl: normalizeText(req.body?.imagenPrincipalUrl),
+    galeriaJson: Array.isArray(req.body?.galeriaJson) ? req.body.galeriaJson : [],
+    estado: req.body?.estado === 'inactivo' ? 'inactivo' : 'activo',
+    creadoEn: nowIso()
+  });
+  return ok(res, created, 201);
+});
+
+mvpRouter.patch('/productos-maestro/:id', requireAuth, requireRole('admin'), async (req, res) => {
+  const updated = await patchRow(COLLECTIONS.masterProducts, req.params.id, req.body || {});
+  return updated ? ok(res, updated) : fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro.', 404);
+});
+
+mvpRouter.put('/productos-maestro/:id/atributos', requireAuth, requireRole('admin'), async (req, res) => {
+  const product = await row(COLLECTIONS.masterProducts, req.params.id);
+  if (!product) return fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro.', 404);
+  const current = (await rows(COLLECTIONS.masterAttributes)).filter((item) => item.productoMaestroId === req.params.id);
+  await deleteRowsByIds(COLLECTIONS.masterAttributes, current.map((item) => item.id));
+  const result: any[] = [];
+  for (const item of Array.isArray(req.body) ? req.body : []) {
+    result.push(await createRow(COLLECTIONS.masterAttributes, { productoMaestroId: req.params.id, ...item }));
+  }
+  return ok(res, result);
+});
+
+mvpRouter.delete('/productos-maestro/:id', requireAuth, requireRole('admin'), async (req, res) => {
+  await db.collection(COLLECTIONS.masterProducts).doc(req.params.id).delete();
+  const attributes = (await rows(COLLECTIONS.masterAttributes)).filter((item) => item.productoMaestroId === req.params.id);
+  await deleteRowsByIds(COLLECTIONS.masterAttributes, attributes.map((item) => item.id));
+  return ok(res, { deleted: true });
+});
+
+// Search/comparison.
+mvpRouter.get('/busqueda', async (req, res) => {
+  const q = normalizeText(req.query['query']).toLowerCase();
+  const categoryId = normalizeText(req.query['categoriaId']);
+  const subcategoryId = normalizeText(req.query['subcategoriaId']);
+  const familyId = normalizeText(req.query['familiaId']);
+  const sort = normalizeText(req.query['sort']) || 'precio';
+  const data = (await buildSearchRows())
+    .filter((item) => !q || item.productName.toLowerCase().includes(q) || item.sku.toLowerCase().includes(q))
+    .filter((item) => !categoryId || item.categoryId === categoryId)
+    .filter((item) => !subcategoryId || item.subcategoryId === subcategoryId)
+    .filter((item) => !familyId || item.familyId === familyId)
+    .sort((a, b) => sort === 'cercania'
+      ? a.distanceKm - b.distanceKm
+      : sort === 'balance'
+        ? a.balanceScore - b.balanceScore
+        : a.price - b.price);
+  return ok(res, data);
+});
+
+mvpRouter.get('/productos/opciones', async (req, res) => {
+  const familyId = normalizeText(req.query['familiaId']);
+  const names = (await buildSearchRows())
+    .filter((item) => !familyId || item.familyId === familyId)
+    .map((item) => item.productName);
+  return ok(res, Array.from(new Set(names)).sort());
+});
+
+mvpRouter.get('/familias/:familyId/productos', async (req, res) => {
+  const q = normalizeText(req.query['search']).toLowerCase();
+  const searchRows = (await buildSearchRows())
+    .filter((item) => item.familyId === req.params.familyId)
+    .filter((item) => !q || item.productName.toLowerCase().includes(q));
+  const grouped = new Map<string, any>();
+  searchRows.forEach((item) => {
+    const current = grouped.get(item.productName) || {
+      productName: item.productName,
+      imageUrl: '',
+      minPrice: item.price,
+      maxPrice: item.price,
+      storeCount: 0,
+      brand: '',
+      productType: '',
+      sellers: new Set<string>()
+    };
+    current.minPrice = Math.min(current.minPrice, item.price);
+    current.maxPrice = Math.max(current.maxPrice, item.price);
+    current.sellers.add(item.storeName);
+    grouped.set(item.productName, current);
+  });
+  return ok(res, Array.from(grouped.values()).map((item) => ({ ...item, storeCount: item.sellers.size, sellers: Array.from(item.sellers) })));
+});
+
+mvpRouter.get('/productos/populares', async (req, res) => {
+  const limit = Math.max(1, Math.floor(numberValue(req.query['limit'], 12)));
+  const searchRows = await buildSearchRows();
+  const grouped = new Map<string, any>();
+  searchRows.forEach((item) => {
+    const current = grouped.get(item.productName) || { productName: item.productName, score: 0, minPrice: item.price, maxPrice: item.price, sellers: new Set<string>() };
+    current.score += item.stock;
+    current.minPrice = Math.min(current.minPrice, item.price);
+    current.maxPrice = Math.max(current.maxPrice, item.price);
+    current.sellers.add(item.storeName);
+    grouped.set(item.productName, current);
+  });
+  return ok(res, Array.from(grouped.values()).sort((a, b) => b.score - a.score).slice(0, limit).map((item) => ({
+    productName: item.productName,
+    minPrice: item.minPrice,
+    maxPrice: item.maxPrice,
+    storeCount: item.sellers.size,
+    sellers: Array.from(item.sellers)
+  })));
+});
+
+mvpRouter.get('/productos/detalle', async (req, res) => {
+  const name = normalizeText(req.query['producto']).toLowerCase();
+  const searchRows = (await buildSearchRows()).filter((item) => item.productName.toLowerCase() === name);
+  if (searchRows.length === 0) return fail(res, 'PRODUCTO_NOT_FOUND', 'No se encontro el producto solicitado.', 404);
+  const product = await row(COLLECTIONS.masterProducts, searchRows[0].productoMaestroId);
+  if (!product) return fail(res, 'PRODUCTO_NOT_FOUND', 'No se encontro el producto solicitado.', 404);
+  const attributes = (await rows(COLLECTIONS.masterAttributes)).filter((item) => item.productoMaestroId === product.id);
+  const stores = searchRows.map((item) => ({
+    storeName: item.storeName,
+    price: item.price,
+    distanceKm: item.distanceKm,
+    stock: item.stock,
+    sku: item.sku,
+    productoFerreteriaId: item.productoFerreteriaId
+  })).sort((a, b) => a.price - b.price);
+  return ok(res, {
+    productoMaestro: product,
+    atributosProducto: attributes,
+    stores,
+    minPrice: stores[0]?.price || 0,
+    maxPrice: stores[stores.length - 1]?.price || 0
+  });
+});
+
+mvpRouter.get('/ofertas/mejor', async (req, res) => {
+  const name = normalizeText(req.query['producto']).toLowerCase();
+  const offers = (await buildSearchRows())
+    .filter((item) => item.productName.toLowerCase() === name)
+    .sort((a, b) => a.price - b.price);
+  const best = offers[0];
+  return ok(res, best ? {
+    storeName: best.storeName,
+    price: best.price,
+    sku: best.sku,
+    productoFerreteriaId: best.productoFerreteriaId
+  } : null);
+});
+
+// Ferreteria catalog.
+mvpRouter.get('/ferreterias/by-owner/:ownerId', requireAuth, async (req, res) => {
+  if (!canAccessOwner(req, req.params
