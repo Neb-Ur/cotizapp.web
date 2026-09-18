@@ -14,6 +14,20 @@ El proyecto ya no depende de un backend Spring Boot ni de un servidor Node persi
 
 El navegador no accede directamente a Firestore. Las reglas incluidas niegan lecturas y escrituras de cliente; toda operación de negocio pasa por Cloud Functions.
 
+## Modelo comercial del MVP
+
+El MVP no incluye suscripciones, Webpay ni pagos automáticos.
+
+- Los maestros usan el comparador, las cotizaciones, el historial y el optimizador sin límites por plan.
+- Las ferreterías pueden registrarse y preparar su catálogo.
+- Una ferretería nueva queda con estado `pendiente`.
+- El pago/acuerdo comercial se coordina manualmente fuera de CotizApp, por ejemplo mediante transferencia y comprobante.
+- Administración cambia la cuenta a `activo` cuando corresponde.
+- Solo las ferreterías con cuenta `activo` participan en el comparador y sus precios pueden ser usados por el optimizador.
+- Una cuenta bloqueada o pendiente puede conservar sus datos y catálogo, pero no aparece en resultados públicos.
+
+No existen planes Básico, Pro o Premium en la experiencia del MVP.
+
 ## Desarrollo
 
 Instala dependencias del frontend y de Functions:
