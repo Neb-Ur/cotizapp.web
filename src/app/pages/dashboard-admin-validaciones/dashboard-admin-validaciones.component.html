@@ -664,7 +664,7 @@
                 <th>Correo</th>
                 <th>Nombre</th>
                 <th>Rol</th>
-                <th>Plan</th>
+                <th>Estado</th>
                 <th>Contacto</th>
                 <th>Ciudad</th>
                 <th>Comuna</th>
@@ -677,7 +677,7 @@
                 <td>{{ user.email }}</td>
                 <td>{{ user.displayName }}</td>
                 <td>{{ roleLabel(user.role) }}</td>
-                <td>{{ planLabel(user.subscriptionPlan || 'basico') }}</td>
+                <td>{{ statusLabel(userStatus(user)) }}</td>
                 <td>{{ user.phone || '-' }}</td>
                 <td>{{ user.city || '-' }}</td>
                 <td>{{ user.commune || '-' }}</td>
@@ -1049,7 +1049,7 @@
         <div class="inline-editor-head">
           <div>
             <h4>{{ userModalReadonly ? 'Detalle usuario' : (userModalDraft.isNew ? 'Crear usuario' : 'Editar usuario') }}</h4>
-            <p>Gestiona la cuenta, rol, plan y datos de contacto sin salir del panel de usuarios.</p>
+            <p>Gestiona la cuenta, rol, estado de activacion y datos de contacto sin salir del panel de usuarios.</p>
           </div>
           <div class="actions">
             <button type="button" class="ghost" (click)="closeUserModal()">Volver a usuarios</button>
@@ -1077,14 +1077,6 @@
                 <option value="maestro">Maestro</option>
                 <option value="ferreteria">Ferreteria</option>
                 <option value="admin">Admin</option>
-              </select>
-            </label>
-            <label>
-              Plan
-              <select [(ngModel)]="userModalDraft.subscriptionPlan" [disabled]="userModalReadonly || userModalDraft.role === 'admin'">
-                <option value="basico">Basico</option>
-                <option value="pro">Pro</option>
-                <option value="premium">Premium</option>
               </select>
             </label>
             <label>
