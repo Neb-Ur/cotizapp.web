@@ -35,7 +35,7 @@ import { CATALOG_IMPORT_TEMPLATE, catalogFileToCsv } from '../../core/utils/cata
 import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 
-type AdminSection = 'ferreterias' | 'taxonomia' | 'productos' | 'solicitudes' | 'usuarios';
+type AdminSection = 'ferreterias' | 'productos' | 'solicitudes' | 'usuarios';
 
 interface MasterProductDraft {
   masterProductId: string;
@@ -143,12 +143,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     {
       id: 'productos',
       label: 'Catalogo maestro',
-      description: 'Administra los productos comunes que usan todas las ferreterias.'
-    },
-    {
-      id: 'taxonomia',
-      label: 'Taxonomia',
-      description: 'Gestiona categorias, subcategorias, familias y atributos del catalogo.'
+      description: 'Administra productos, categorias, subcategorias, familias y atributos.'
     },
     {
       id: 'solicitudes',
@@ -162,6 +157,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     }
   ];
   protected currentSection: AdminSection = 'ferreterias';
+  protected catalogAdminView: 'productos' | 'taxonomia' = 'productos';
   protected users: SessionUser[] = [];
   protected validationRequests: CatalogValidationRequest[] = [];
 
@@ -376,6 +372,9 @@ export class DashboardAdminValidacionesComponent implements OnInit {
 
   protected setSection(section: AdminSection): void {
     this.currentSection = section;
+    if (section === 'productos') {
+      this.catalogAdminView = 'productos';
+    }
     if (this.isMobileViewport) {
       this.closeMobileMenu();
     }
@@ -1112,6 +1111,10 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     this.setSection(section);
   }
 
+  protected setCatalogAdminView(view: 'productos' | 'taxonomia'): void {
+    this.catalogAdminView = view;
+  }
+
   protected formatCurrency(value: number): string {
     return this.apiService.formatCurrency(value);
   }
@@ -1204,13 +1207,11 @@ export class DashboardAdminValidacionesComponent implements OnInit {
         );
       }
 
-      if (section === 'taxonomia') {
-        await this.apiService.refreshAdminTaxonomySection(force);
-        this.syncTaxonomySelection();
-      }
-
       if (section === 'productos') {
-        await this.apiService.refreshAdminProductsSection(force);
+        await Promise.all([
+          this.apiService.refreshAdminProductsSection(force),
+          this.apiService.refreshAdminTaxonomySection(force)
+        ]);
         this.syncMasterCatalogState();
         this.syncTaxonomySelection();
         this.syncMasterAttributeDrafts();
