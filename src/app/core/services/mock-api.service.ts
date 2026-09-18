@@ -1287,7 +1287,7 @@ export class MockApiService {
 
         return { storeName, total };
       })
-      .filter((item): item is ProjectStoreTotal => item !== null)
+      .filter((item): item is { storeName: string; total: number } => item !== null)
       .sort((a, b) => a.total - b.total);
 
     const bestStore = totalsByStore[0] || {
