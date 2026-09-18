@@ -457,7 +457,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     return [
       { label: 'Total usuarios', value: this.userKpis.totalUsers },
       { label: 'Nuevos usuarios', value: this.userKpis.newUsers30d },
-      { label: 'Usuarios pago', value: this.userKpis.payingUsers },
+      { label: 'Cuentas pendientes', value: this.snapshot.pendingUserValidation },
       { label: 'Usuarios activos', value: this.userKpis.activeUsers },
       { label: 'Maestros', value: this.snapshot.usersByRole.maestro },
       { label: 'Ferreterias', value: this.snapshot.usersByRole.ferreteria },
@@ -1029,7 +1029,6 @@ export class DashboardAdminValidacionesComponent implements OnInit {
           city: this.userModalDraft.city.trim(),
           commune: this.userModalDraft.commune.trim(),
           address: this.userModalDraft.address.trim(),
-          subscriptionPlan: this.userModalDraft.role === 'admin' ? 'premium' : this.userModalDraft.subscriptionPlan,
           accountStatus: this.userModalDraft.accountStatus,
           businessName: this.userModalDraft.businessName.trim() || undefined,
           rut: this.userModalDraft.rut.trim() || undefined
@@ -1050,7 +1049,6 @@ export class DashboardAdminValidacionesComponent implements OnInit {
 
       const updated = await this.authService.adminUpdateUser(user.id, {
         role: this.userModalDraft.role,
-        subscriptionPlan: this.userModalDraft.role === 'admin' ? 'premium' : this.userModalDraft.subscriptionPlan || user.subscriptionPlan || 'basico',
         accountStatus: this.userModalDraft.accountStatus,
         displayName: this.userModalDraft.displayName.trim(),
         phone: this.userModalDraft.phone.trim(),
@@ -1773,7 +1771,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       displayName: '',
       role: 'ferreteria',
       subscriptionPlan: 'basico',
-      accountStatus: 'activo',
+      accountStatus: 'pendiente',
       phone: '',
       city: '',
       commune: '',
