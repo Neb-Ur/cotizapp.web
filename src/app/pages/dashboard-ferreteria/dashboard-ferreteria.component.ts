@@ -89,8 +89,8 @@ export class DashboardFerreteriaComponent implements OnInit {
   protected requestNotice = '';
 
   protected totalProducts = 0;
-  protected lowStock = 0;
-  protected avgPrice = 0;
+  protected outOfStock = 0;
+  protected lastCatalogUpdate = '';
 
   protected profileDraft = {
     displayName: '',
@@ -546,10 +546,11 @@ export class DashboardFerreteriaComponent implements OnInit {
   private refreshSummary(): void {
     const published = this.catalog.filter((product) => product.isPublished);
     this.totalProducts = published.length;
-    this.lowStock = published.filter((product) => product.stock > 0 && product.stock < 15).length;
-    this.avgPrice = published.length
-      ? Math.round(published.reduce((sum, product) => sum + product.price, 0) / published.length)
-      : 0;
+    this.outOfStock = published.filter((product) => product.stock === 0).length;
+    this.lastCatalogUpdate = published
+      .map((product) => product.updatedAt || '')
+      .filter(Boolean)
+      .sort((left, right) => right.localeCompare(left))[0] || '';
   }
 
   private async loadMasterCatalog(): Promise<void> {
