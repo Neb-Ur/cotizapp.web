@@ -8,12 +8,6 @@
           ? 'Completa los datos base y luego agrega productos desde el buscador.'
           : 'Revisa, ajusta y exporta tu cotizacion de materiales.' }}
       </p>
-      <p *ngIf="!isNewProject" style="margin: 0.35rem 0 0; font-weight: 700;">
-        Estado:
-        <span [style.color]="projectStatus === 'aceptada' ? '#17613f' : projectStatus === 'rechazada' ? '#9b1f1f' : '#8b4a00'">
-          {{ projectStatusLabel }}
-        </span>
-      </p>
     </div>
   </header>
 
@@ -23,15 +17,15 @@
         <h2>Datos de la cotizacion</h2>
         <label>
           Titulo
-          <input [(ngModel)]="projectName" [disabled]="!canEditQuotation" type="text" placeholder="Ej: Ampliacion quincho" />
+          <input [(ngModel)]="projectName" type="text" placeholder="Ej: Ampliacion quincho" />
         </label>
         <label>
           Direccion de obra
-          <input [(ngModel)]="projectAddress" [disabled]="!canEditQuotation" type="text" placeholder="Ej: Av. Principal 1234, Maipu" />
+          <input [(ngModel)]="projectAddress" type="text" placeholder="Ej: Av. Principal 1234, Maipu" />
         </label>
 
         <div class="actions">
-          <button type="button" [disabled]="!canEditQuotation" (click)="saveProject()">
+          <button type="button" (click)="saveProject()">
             {{ isNewProject ? 'Guardar cotizacion' : 'Actualizar cotizacion' }}
           </button>
           <button type="button" class="export" [disabled]="!hasQuotation" (click)="exportQuotation()">
@@ -39,18 +33,7 @@
           </button>
         </div>
 
-        <div class="actions" *ngIf="!isNewProject && projectStatus === 'pendiente' && hasQuotation">
-          <button type="button" style="background: #17613f; color: #fff;" (click)="markQuotationAccepted()">
-            Cotizacion aceptada
-          </button>
-          <button type="button" style="background: #9b1f1f; color: #fff;" (click)="markQuotationRejected()">
-            Cotizacion rechazada
-          </button>
-        </div>
 
-        <p *ngIf="!canEditQuotation" style="margin: 0.35rem 0 0; color: #8b4a00; font-weight: 700;">
-          Esta cotizacion esta cerrada y ya no permite edicion.
-        </p>
 
         <p class="saved" *ngIf="saveNotice">{{ saveNotice }}</p>
       </article>
@@ -87,7 +70,6 @@
             {{ strategy.subtitle }} -
             {{ formatCurrency(strategy.total) }}
             <span *ngIf="strategy.saving !== undefined"> | Ahorras {{ formatCurrency(strategy.saving || 0) }}</span>
-            <span *ngIf="strategy.distanceKm !== undefined"> | {{ strategy.distanceKm | number: '1.1-1' }} km</span>
           </p>
         </div>
       </article>
@@ -99,7 +81,7 @@
           <h2>Detalle de cotizacion</h2>
           <p>Administra productos, cantidades y costo unitario.</p>
         </div>
-        <button type="button" class="secondary" [disabled]="!canEditQuotation" (click)="goToSearchForProduct()">Agregar item</button>
+        <button type="button" class="secondary" (click)="goToSearchForProduct()">Agregar item</button>
       </div>
       <div class="table-wrap" *ngIf="hasItemsInTable; else emptyQuotation">
         <table>
@@ -115,19 +97,19 @@
           <tbody>
             <tr *ngFor="let item of projectItems; let i = index">
               <td>
-                <select [(ngModel)]="item.productName" [disabled]="!canEditQuotation">
+                <select [(ngModel)]="item.productName">
                   <option value="">Selecciona producto</option>
                   <option *ngFor="let option of productOptions" [value]="option">{{ option }}</option>
                 </select>
                 <p class="line-meta">Mejor tienda: {{ getRowBestStore(item) }}</p>
               </td>
               <td>
-                <input [(ngModel)]="item.quantity" [disabled]="!canEditQuotation" type="number" min="1" placeholder="Cantidad" />
+                <input [(ngModel)]="item.quantity" type="number" min="1" placeholder="Cantidad" />
               </td>
               <td>{{ formatCurrency(getRowUnitPrice(item)) }}</td>
               <td>{{ formatCurrency(getRowTotal(item)) }}</td>
               <td>
-                <button type="button" class="danger small" [disabled]="!canEditQuotation" (click)="removeProjectItem(i)">Quitar</button>
+                <button type="button" class="danger small" (click)="removeProjectItem(i)">Quitar</button>
               </td>
             </tr>
           </tbody>
