@@ -37,8 +37,6 @@ export interface RegisterPayload {
   businessName?: string;
   rut?: string;
   address: string;
-  specialty?: string;
-  experienceYears?: number;
 }
 
 export interface LocationOption {
