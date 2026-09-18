@@ -1112,6 +1112,16 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     this.setSection(section);
   }
 
+  protected formatCurrency(value: number): string {
+    return this.apiService.formatCurrency(value);
+  }
+
+  protected logout(): void {
+    this.closeMobileMenu();
+    void this.authService.logout();
+    this.router.navigateByUrl('/');
+  }
+
   @HostListener('window:resize')
   protected onWindowResize(): void {
     this.syncViewportState();
