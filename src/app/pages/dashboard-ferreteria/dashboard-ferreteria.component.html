@@ -42,7 +42,7 @@
       </div>
     </article>
 
-    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'catalogo'">
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'catalogo' && catalogView === 'maintain'">
       <div class="projects-topbar">
         <div>
           <h3>Mantener precios y stock</h3>
@@ -50,7 +50,7 @@
         </div>
         <div class="form-actions">
           <button type="button" class="secondary" (click)="goToExcelImport()">Actualizar por Excel</button>
-          <button type="button" (click)="setSection('subir')">Agregar productos</button>
+          <button type="button" (click)="openAddProducts('buscar')">Agregar productos</button>
         </div>
       </div>
 
@@ -116,8 +116,14 @@
       </div>
     </article>
 
-    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'subir'">
-      <h3>Agregar o actualizar productos</h3>
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'catalogo' && catalogView === 'add'">
+      <div class="projects-topbar">
+        <div>
+          <h3>Agregar o actualizar productos</h3>
+          <p style="margin:0.25rem 0 0;color:#4a5568;">Esta opción forma parte de Mantener catálogo.</p>
+        </div>
+        <button type="button" class="ghost" (click)="closeAddProducts()">Volver al catálogo</button>
+      </div>
       <p>Si prefieres, puedes enviarnos tu lista y CotizApp realiza la carga inicial.</p>
 
       <div class="upload-mode-toggle">
