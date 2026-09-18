@@ -456,4 +456,42 @@ export class AuthService {
     if (partial.commune !== undefined) payload['comuna'] = partial.commune;
     if (partial.region !== undefined) payload['region'] = partial.region;
     if (partial.address !== undefined) payload['direccion'] = partial.address;
-    if (partial.businessName !== undefined) payload['nombreComercial'] = partia
+    if (partial.businessName !== undefined) payload['nombreComercial'] = partial.businessName;
+    if (partial.rut !== undefined) payload['rut'] = partial.rut;
+    if (partial.specialty !== undefined) payload['especialidad'] = partial.specialty;
+    if (partial.experienceYears !== undefined) payload['anosExperiencia'] = partial.experienceYears;
+    if (partial.preferredContactMethod !== undefined) payload['metodoContactoPreferido'] = partial.preferredContactMethod;
+    if (partial.emergencyContactName !== undefined) payload['contactoEmergenciaNombre'] = partial.emergencyContactName;
+    if (partial.emergencyContactPhone !== undefined) payload['contactoEmergenciaTelefono'] = partial.emergencyContactPhone;
+    return payload;
+  }
+
+  private extractErrorMessage(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      const apiMessage = error.error?.error?.message;
+      if (typeof apiMessage === 'string' && apiMessage.trim()) return apiMessage;
+    }
+    if (error instanceof Error && error.message.trim()) return error.message;
+    return fallback;
+  }
+
+  private resolveLoginErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse && error.status === 404) return LOGIN_SUPPORT_ERROR_MESSAGE;
+    if (error instanceof Error && error.message === LOGIN_SUPPORT_ERROR_MESSAGE) return error.message;
+    return this.firebaseErrorMessage(error, this.extractErrorMessage(error, 'No fue posible iniciar sesion.'));
+  }
+
+  private firebaseErrorMessage(error: unknown, fallback: string): string {
+    const code = (error as { code?: string } | null)?.code || '';
+    if (code.includes('invalid-credential') || code.includes('wrong-password') || code.includes('user-not-found')) return 'Correo o contrasena incorrectos.';
+    if (code.includes('email-already-in-use')) return 'Ya existe una cuenta con este correo.';
+    if (code.includes('weak-password')) return 'La contrasena debe tener al menos 6 caracteres.';
+    if (code.includes('invalid-email')) return 'El correo ingresado no es valido.';
+    if (code.includes('too-many-requests')) return 'Demasiados intentos. Intenta nuevamente mas tarde.';
+    return fallback;
+  }
+}
+
+function validRole(role: string | null | undefined): role is UserRole {
+  return role === 'admin' || role === 'maestro' || role === 'ferreteria';
+}
