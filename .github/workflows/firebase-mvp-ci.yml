@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches:
-      - refactor/firebase-functions-mvp
+      - main
 
 jobs:
   frontend:
@@ -16,6 +16,7 @@ jobs:
           node-version: 20
       - run: npm install
       - run: npm run build
+      - run: npm test -- --watch=false --browsers=ChromeHeadless
 
   functions:
     runs-on: ubuntu-latest
