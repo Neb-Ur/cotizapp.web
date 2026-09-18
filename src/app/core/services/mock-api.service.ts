@@ -2,8 +2,6 @@ import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular
 import { Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import {
-  AdminMockMetrics,
-  AdminUsagePoint,
   CatalogImportReport,
   CatalogImportRowResult,
   CatalogProduct,
@@ -19,17 +17,16 @@ import {
   ProjectComparisonStrategy,
   ProjectItem,
   ProjectQuotationView,
-  ProjectStatus,
   ProjectSummary,
   SearchFilters,
   SearchRow,
-  SearchSort,
   SessionUser,
   TaxonomyOption
 } from '../models/app.models';
 import { AuthService } from './auth.service';
 import { API_BASE_URL } from '../config/api.config';
 import { parseCatalogImportContent } from '../utils/catalog-import.util';
+import { buildQuotationOptimization } from '../utils/quotation-optimizer.util';
 
 interface ApiEnvelope<T> {
   ok: boolean;
@@ -52,21 +49,6 @@ interface SearchRowExtended extends SearchRow {
   productoFerreteriaId: string;
   sku: string;
   stock: number;
-}
-
-interface MaestroSummary {
-  activeProjects: number;
-  estimatedSaving: number;
-  topSearches: string[];
-}
-
-interface FerreteriaMvpMetrics {
-  totalProducts: number;
-  publishedProducts: number;
-  lowStockProducts: number;
-  outOfStockProducts: number;
-  avgPricePublished: number;
-  quotationReach: number;
 }
 
 interface ProductoMaestroApi {
@@ -124,29 +106,14 @@ export class MockApiService {
   private readonly catalogMetaByOwner = new Map<string, Map<string, CatalogMeta>>();
   private readonly ferreteriaIdByOwner = new Map<string, string>();
 
-  private readonly maestroSummaryByOwner = new Map<string, MaestroSummary>();
-  private readonly ferreteriaMvpByOwner = new Map<string, FerreteriaMvpMetrics>();
 
-  private readonly importReports: CatalogImportReport[] = [];
-  private readonly importRowById = new Map<string, {
-    ownerId: string;
-    ownerLabel: string;
-    batchId: string;
-    row: CatalogImportRowResult;
-  }>();
   private readonly validationQueue: CatalogValidationRequest[] = [];
-
-  private adminMetrics: AdminMockMetrics = this.emptyAdminMetrics();
 
   private taxonomyPromise: Promise<void> | null = null;
   private masterPromise: Promise<void> | null = null;
   private searchPromise: Promise<void> | null = null;
-  private adminPromise: Promise<void> | null = null;
   private readonly projectsPromiseByOwner = new Map<string, Promise<void>>();
   private readonly catalogPromiseByOwner = new Map<string, Promise<void>>();
-  private readonly maestroSummaryPromiseByOwner = new Map<string, Promise<void>>();
-  private readonly ferreteriaMvpPromiseByOwner = new Map<string, Promise<void>>();
-  private importPromise: Promise<void> | null = null;
   private validationPromise: Promise<void> | null = null;
 
   constructor(
@@ -163,17 +130,10 @@ export class MockApiService {
       this.ensureTaxonomyLoaded(),
       this.ensureSearchRowsLoaded(),
       this.ensureMasterCatalogLoaded(),
-      this.ensureProjectsLoaded(ownerId),
-      this.ensureMaestroSummaryLoaded(ownerId)
+      this.ensureProjectsLoaded(ownerId)
     ]);
   }
 
-  async refreshMaestroOverview(ownerId: string, force = false): Promise<void> {
-    await Promise.all([
-      this.ensureProjectsLoaded(ownerId, force),
-      this.ensureMaestroSummaryLoaded(ownerId, force)
-    ]);
-  }
 
   async refreshMaestroSearchSection(force = false): Promise<void> {
     await Promise.all([
@@ -190,23 +150,6 @@ export class MockApiService {
   }
 
 
-  async refreshFerreteriaData(ownerId: string): Promise<void> {
-    await Promise.all([
-      this.ensureTaxonomyLoaded(),
-      this.ensureSearchRowsLoaded(),
-      this.ensureMasterCatalogLoaded(),
-      this.ensureCatalogLoaded(ownerId),
-      this.ensureFerreteriaMvpLoaded(ownerId)
-    ]);
-  }
-
-  async refreshFerreteriaOverview(ownerId: string, force = false): Promise<void> {
-    await Promise.all([
-      this.resolveFerreteriaId(ownerId),
-      this.ensureFerreteriaMvpLoaded(ownerId, force)
-    ]);
-  }
-
   async refreshFerreteriaCatalogSection(ownerId: string, force = false): Promise<void> {
     await Promise.all([
       this.ensureTaxonomyLoaded(force),
@@ -221,21 +164,6 @@ export class MockApiService {
     ]);
   }
 
-  async refreshFerreteriaMetricsSection(ownerId: string, force = false): Promise<void> {
-    await this.ensureFerreteriaMvpLoaded(ownerId, force);
-  }
-
-
-  async refreshAdminData(): Promise<void> {
-    await Promise.all([
-      this.ensureTaxonomyLoaded(),
-      this.ensureSearchRowsLoaded(),
-      this.ensureMasterCatalogLoaded(),
-      this.ensureImportReportsLoaded(),
-      this.ensureValidationQueueLoaded(),
-      this.ensureAdminMetricsLoaded()
-    ]);
-  }
 
   async refreshAdminTaxonomySection(force = false): Promise<void> {
     await this.ensureTaxonomyLoaded(force);
@@ -250,30 +178,6 @@ export class MockApiService {
 
   async refreshAdminRequestsSection(force = false): Promise<void> {
     await this.ensureValidationQueueLoaded(force);
-  }
-
-  async refreshAdminImportsSection(force = false): Promise<void> {
-    await this.ensureImportReportsLoaded(force);
-  }
-
-  async refreshAdminMetricsSection(force = false): Promise<void> {
-    await Promise.all([
-      this.ensureAdminMetricsLoaded(force),
-      this.ensureMasterCatalogLoaded(force)
-    ]);
-  }
-
-  async refreshAdminSnapshotSection(users: SessionUser[], force = false): Promise<void> {
-    await Promise.all([
-      this.refreshAdminImportsSection(force),
-      this.refreshAdminRequestsSection(force),
-      ...users
-        .filter((user) => user.role === 'ferreteria')
-        .map((user) => this.refreshFerreteriaCatalogSection(user.id, force)),
-      ...users
-        .filter((user) => user.role === 'maestro')
-        .map((user) => this.refreshMaestroProjectsSection(user.id, force))
-    ]);
   }
 
   dashboardByRole(user: SessionUser | null): string {
@@ -838,24 +742,10 @@ export class MockApiService {
       rows: reportRows
     };
 
-    this.importReports.unshift(report);
     return {
       catalog: this.getCatalog(ownerId),
       report
     };
-  }
-
-  getCatalogImportReports(ownerId: string | 'all' = 'all'): CatalogImportReport[] {
-    this.ensureImportReportsLoaded();
-    if (ownerId === 'all') {
-      return this.importReports;
-    }
-
-    const ferreteriaId = this.ferreteriaIdByOwner.get(ownerId);
-    if (!ferreteriaId) {
-      return this.importReports.filter((item) => item.ownerId === ownerId);
-    }
-    return this.importReports.filter((item) => item.ownerId === ferreteriaId);
   }
 
   getCatalogValidationQueue(status: CatalogValidationStatus | 'all' = 'pendiente'): CatalogValidationRequest[] {
@@ -938,11 +828,6 @@ export class MockApiService {
     return bucket;
   }
 
-  getProjectsByStatus(ownerId: string, statuses: ProjectStatus | ProjectStatus[]): ProjectSummary[] {
-    const expected = Array.isArray(statuses) ? statuses : [statuses];
-    return this.getProjects(ownerId).filter((item) => expected.includes(item.status));
-  }
-
   getProjectById(ownerId: string, projectId: string): ProjectSummary | null {
     return this.getProjects(ownerId).find((item) => item.id === projectId) || null;
   }
@@ -1004,52 +889,11 @@ export class MockApiService {
     }
   }
 
-  async updateProjectStatus(ownerId: string, projectId: string, status: ProjectStatus): Promise<ProjectSummary | null> {
-    try {
-      const updated = await this.apiPatch<any>(`/maestros/${ownerId}/proyectos/${projectId}/estado`, {
-        estado: status
-      }, true);
-
-      const summary = this.mapProjectRow(updated);
-      this.upsertProjectBucket(this.getOrCreateProjectsBucket(ownerId), summary);
-      this.invalidateMaestroState(ownerId);
-      return summary;
-    } catch {
-      return null;
-    }
-  }
-
   async deleteProject(ownerId: string, projectId: string): Promise<ProjectSummary[]> {
     await this.apiDelete(`/maestros/${ownerId}/proyectos/${projectId}`, true);
     await this.ensureProjectsLoaded(ownerId, true);
     this.invalidateMaestroState(ownerId);
     return this.getProjects(ownerId);
-  }
-
-  getMaestroSummary(ownerId: string): MaestroSummary {
-    this.ensureMaestroSummaryLoaded(ownerId);
-    return this.maestroSummaryByOwner.get(ownerId) || {
-      activeProjects: this.getProjectsByStatus(ownerId, 'pendiente').length,
-      estimatedSaving: 0,
-      topSearches: []
-    };
-  }
-
-  getFerreteriaMvpMetrics(ownerId: string): FerreteriaMvpMetrics {
-    this.ensureFerreteriaMvpLoaded(ownerId);
-    return this.ferreteriaMvpByOwner.get(ownerId) || {
-      totalProducts: this.getCatalog(ownerId).length,
-      publishedProducts: this.getCatalog(ownerId).filter((item) => item.isPublished).length,
-      lowStockProducts: this.getCatalog(ownerId).filter((item) => item.stock > 0 && item.stock < 15).length,
-      outOfStockProducts: this.getCatalog(ownerId).filter((item) => item.stock === 0).length,
-      avgPricePublished: 0,
-      quotationReach: 0
-    };
-  }
-
-  getAdminMockMetrics(): AdminMockMetrics {
-    this.ensureAdminMetricsLoaded();
-    return this.adminMetrics;
   }
 
   getFamilyProductRows(familyId: string, searchTerm = ''): FamilyProductRow[] {
@@ -1143,7 +987,6 @@ export class MockApiService {
       const stores: ProductStoreOfferRow[] = (raw.stores || []).map((store: any) => ({
         storeName: store.storeName,
         price: Number(store.price) || 0,
-        distanceKm: Number(store.distanceKm) || 0,
         stock: Number(store.stock) || 0
       }));
 
@@ -1201,7 +1044,7 @@ export class MockApiService {
 
     const rows = this.searchRows
       .filter((row) => row.productName.toLowerCase() === productName.toLowerCase())
-      .sort((a, b) => a.price - b.price || a.distanceKm - b.distanceKm);
+      .sort((a, b) => a.price - b.price);
 
     if (rows.length === 0) {
       return null;
@@ -1215,75 +1058,9 @@ export class MockApiService {
 
   buildProjectQuotation(items: ProjectItem[]): ProjectQuotationView {
     this.ensureSearchRowsLoaded();
-
-    const normalizedItems = items
-      .filter((item) => item.productName.trim())
-      .map((item) => ({
-        productName: item.productName.trim(),
-        quantity: Math.max(1, Math.floor(Number(item.quantity) || 1))
-      }));
-
-    const lines = normalizedItems.map((item) => {
-      const candidates = this.searchRows
-        .filter((row) =>
-          row.productName.toLowerCase() === item.productName.toLowerCase()
-          && row.stock >= item.quantity
-        )
-        .sort((a, b) => a.price - b.price);
-
-      const best = candidates[0];
-      const unitPrice = best?.price || 0;
-
-      return {
-        productName: item.productName,
-        quantity: item.quantity,
-        bestStoreName: best?.storeName || 'Sin datos',
-        unitPrice,
-        subtotal: unitPrice * item.quantity
-      };
-    });
-
-    const optimalTotal = lines.reduce((acc, line) => acc + line.subtotal, 0);
-    const storeNames = Array.from(new Set(this.searchRows.map((row) => row.storeName)));
-
-    const totalsByStore = storeNames
-      .map((storeName) => {
-        let total = 0;
-
-        for (const item of normalizedItems) {
-          const offer = this.searchRows
-            .filter((row) =>
-              row.storeName === storeName
-              && row.productName.toLowerCase() === item.productName.toLowerCase()
-              && row.stock >= item.quantity
-            )
-            .sort((a, b) => a.price - b.price)[0];
-
-          if (!offer) {
-            return null;
-          }
-
-          total += offer.price * item.quantity;
-        }
-
-        return { storeName, total };
-      })
-      .filter((item): item is { storeName: string; total: number } => item !== null)
-      .sort((a, b) => a.total - b.total);
-
-    const bestStore = totalsByStore[0] || {
-      storeName: 'No disponible en una sola tienda',
-      total: optimalTotal
-    };
-
-    return {
-      lines,
-      totalsByStore,
-      bestStore,
-      optimalTotal,
-      mixedSaving: Math.max(0, bestStore.total - optimalTotal)
-    };
+    return buildQuotationOptimization(items, this.searchRows);
   }
+
 
   getProjectComparisonStrategies(items: ProjectItem[], _projectAddress = ''): ProjectComparisonStrategy[] {
     const quotation = this.buildProjectQuotation(items);
@@ -1318,13 +1095,6 @@ export class MockApiService {
       currency: 'CLP',
       maximumFractionDigits: 0
     }).format(Number.isFinite(value) ? value : 0);
-  }
-
-  resolveStoreDistance(storeName: string, baseDistanceKm: number, address = ''): number {
-    const hash = this.hashCode(`${storeName}-${address}`);
-    const adjustment = ((hash % 20) - 10) / 10;
-    const resolved = baseDistanceKm + adjustment;
-    return Number(Math.max(0.4, resolved).toFixed(1));
   }
 
   private ensureTaxonomyLoaded(force = false): Promise<void> {
@@ -1370,13 +1140,11 @@ export class MockApiService {
 
     this.searchPromise = (async () => {
       try {
-        const rows = await this.apiGet<any[]>('/busqueda', false, { sort: 'precio' });
+        const rows = await this.apiGet<any[]>('/busqueda');
         this.replaceArray(this.searchRows, rows.map((item) => ({
           productName: item.productName,
           storeName: item.storeName,
           price: Number(item.price) || 0,
-          distanceKm: Number(item.distanceKm) || 0,
-          balanceScore: Number(item.balanceScore) || 0,
           categoryId: item.categoryId,
           categoryName: item.categoryName,
           subcategoryId: item.subcategoryId,
@@ -1465,56 +1233,6 @@ export class MockApiService {
     return promise;
   }
 
-  private ensureMaestroSummaryLoaded(ownerId: string, force = false): Promise<void> {
-    const existing = this.maestroSummaryPromiseByOwner.get(ownerId);
-    if (!force && existing) {
-      return existing;
-    }
-
-    const promise = (async () => {
-      try {
-        const summary = await this.apiGet<MaestroSummary>(`/maestros/${ownerId}/resumen`, true);
-        this.maestroSummaryByOwner.set(ownerId, summary);
-      } catch {
-        // noop
-      }
-    })();
-
-    this.maestroSummaryPromiseByOwner.set(ownerId, promise);
-    return promise;
-  }
-
-  private ensureFerreteriaMvpLoaded(ownerId: string, force = false): Promise<void> {
-    const existing = this.ferreteriaMvpPromiseByOwner.get(ownerId);
-    if (!force && existing) {
-      return existing;
-    }
-
-    const promise = (async () => {
-      try {
-        const ferreteriaId = await this.resolveFerreteriaId(ownerId);
-        const metrics = await this.apiGet<FerreteriaMvpMetrics>(`/ferreterias/${ferreteriaId}/metricas-mvp`, true);
-        this.ferreteriaMvpByOwner.set(ownerId, metrics);
-      } catch {
-        // noop
-      }
-    })();
-
-    this.ferreteriaMvpPromiseByOwner.set(ownerId, promise);
-    return promise;
-  }
-
-
-  private ensureImportReportsLoaded(force = false): Promise<void> {
-    if (!force && this.importPromise) {
-      return this.importPromise;
-    }
-
-    this.importPromise = Promise.resolve();
-
-    return this.importPromise;
-  }
-
   private ensureValidationQueueLoaded(force = false): Promise<void> {
     if (!force && this.validationPromise) {
       return this.validationPromise;
@@ -1536,23 +1254,6 @@ export class MockApiService {
     })();
 
     return this.validationPromise;
-  }
-
-  private ensureAdminMetricsLoaded(force = false): Promise<void> {
-    if (!force && this.adminPromise) {
-      return this.adminPromise;
-    }
-
-    this.adminPromise = (async () => {
-      try {
-        const metrics = await this.apiGet<any>('/admin/metricas', true);
-        this.adminMetrics = this.mapAdminMetrics(metrics);
-      } catch {
-        // noop
-      }
-    })();
-
-    return this.adminPromise;
   }
 
   private async resolveFerreteriaId(ownerId: string): Promise<string> {
@@ -1653,8 +1354,6 @@ export class MockApiService {
         name: row.name,
         address: row.address || '',
         createdAt: row.createdAt,
-        status: row.status || 'pendiente',
-        statusUpdatedAt: row.statusUpdatedAt || row.createdAt,
         items: (row.items || []).map((item: any) => ({
           productName: item.productName,
           quantity: Number(item.quantity) || 0
@@ -1677,8 +1376,6 @@ export class MockApiService {
       name: row.nombre,
       address: row.direccionObra || '',
       createdAt: row.creadoEn,
-      status: latestQuotation?.estado || 'pendiente',
-      statusUpdatedAt: latestQuotation?.actualizadaEn || row.creadoEn,
       items,
       totalOptimal: Number(latestQuotation?.total) || this.buildProjectQuotation(items).optimalTotal,
       saving: Number(latestQuotation?.ahorroEstimado) || 0
@@ -1721,46 +1418,6 @@ export class MockApiService {
     if (tipoDato === 'seleccion') return 'select';
     if (tipoDato === 'texto') return 'text';
     return 'text';
-  }
-
-  private mapReportFromLote(lote: any, filas: any[], ownerLabel: string): CatalogImportReport {
-    const rows: CatalogImportRowResult[] = filas.map((fila) => {
-      const row: CatalogImportRowResult = {
-        lineNumber: fila.numeroFila,
-        rawLine: `${fila.nombreProducto},${fila.precio},${fila.stock},${fila.sku}`,
-        name: fila.nombreProducto,
-        sku: fila.sku,
-        price: Number(fila.precio) || 0,
-        stock: Number(fila.stock) || 0,
-        outcome: fila.resultado,
-        message: fila.mensaje,
-        suggestions: []
-      };
-
-      if (fila.id) {
-        this.importRowById.set(fila.id, {
-          ownerId: lote.ferreteriaId,
-          ownerLabel,
-          batchId: lote.id,
-          row
-        });
-      }
-
-      return row;
-    });
-
-    return {
-      batchId: lote.id,
-      createdAt: lote.creadoEn,
-      ownerId: lote.ferreteriaId,
-      ownerLabel,
-      totalRows: lote.totalFilas,
-      uploadedCount: lote.filasOk,
-      failedCount: lote.filasError,
-      pendingNewCount: rows.filter((row) => row.outcome === 'nuevo_validacion').length,
-      possibleMatchCount: rows.filter((row) => row.outcome === 'posible_match').length,
-      rows
-    };
   }
 
   private mapValidationRequest(item: any): CatalogValidationRequest {
@@ -1833,103 +1490,6 @@ export class MockApiService {
       .slice(0, 3);
   }
 
-  private mapAdminMetrics(raw: any): AdminMockMetrics {
-    const usageSeries: AdminUsagePoint[] = [
-      { label: 'Sem 1', activeUsers: Math.max(0, raw.usuariosActivos - 6), searches: 112, quotations: 40, imports: 8 },
-      { label: 'Sem 2', activeUsers: Math.max(0, raw.usuariosActivos - 4), searches: 128, quotations: 48, imports: 11 },
-      { label: 'Sem 3', activeUsers: Math.max(0, raw.usuariosActivos - 2), searches: 140, quotations: 56, imports: 15 },
-      { label: 'Sem 4', activeUsers: raw.usuariosActivos, searches: 156, quotations: 63, imports: 18 }
-    ];
-
-    return {
-      generatedAt: new Date().toISOString(),
-      totals: {
-        users: raw.totalUsuarios || 0,
-        maestros: raw.maestros || 0,
-        ferreterias: raw.ferreterias || 0,
-        admins: Math.max(0, (raw.totalUsuarios || 0) - (raw.maestros || 0) - (raw.ferreterias || 0)),
-        ferreteriasActivas: raw.ferreterias || 0,
-        maestrosActivos: raw.maestros || 0,
-        usuariosPendientes: 0,
-        usuariosBloqueados: Math.max(0, (raw.totalUsuarios || 0) - (raw.usuariosActivos || 0))
-      },
-      catalog: {
-        totalProducts: raw.productosMaestro || 0,
-        publishedProducts: raw.productosMaestro || 0,
-        lowStockProducts: 0,
-        inventoryValue: 0
-      },
-      quotations: {
-        total: raw.cotizaciones || 0,
-        pending: Math.max(0, (raw.cotizaciones || 0) - (raw.cotizacionesAceptadas || 0) - (raw.cotizacionesRechazadas || 0)),
-        accepted: raw.cotizacionesAceptadas || 0,
-        rejected: raw.cotizacionesRechazadas || 0
-      },
-      validation: {
-        pending: raw.solicitudesPendientes || 0,
-        approved: 0,
-        rejected: 0,
-        pendingNewRows: this.importReports.reduce((acc, report) => acc + report.pendingNewCount, 0),
-        possibleMatchRows: this.importReports.reduce((acc, report) => acc + report.possibleMatchCount, 0)
-      },
-      usage30d: {
-        sessions: 320,
-        activeUsers: raw.usuariosActivos || 0,
-        searches: 520,
-        quotationEvents: raw.cotizaciones || 0,
-        catalogUpdates: this.importReports.reduce((acc, report) => acc + report.uploadedCount, 0),
-        conversionRate: 18
-      },
-      topFerreterias: [],
-      usageSeries
-    };
-  }
-
-  private emptyAdminMetrics(): AdminMockMetrics {
-    return {
-      generatedAt: new Date().toISOString(),
-      totals: {
-        users: 0,
-        maestros: 0,
-        ferreterias: 0,
-        admins: 0,
-        ferreteriasActivas: 0,
-        maestrosActivos: 0,
-        usuariosPendientes: 0,
-        usuariosBloqueados: 0
-      },
-      catalog: {
-        totalProducts: 0,
-        publishedProducts: 0,
-        lowStockProducts: 0,
-        inventoryValue: 0
-      },
-      quotations: {
-        total: 0,
-        pending: 0,
-        accepted: 0,
-        rejected: 0
-      },
-      validation: {
-        pending: 0,
-        approved: 0,
-        rejected: 0,
-        pendingNewRows: 0,
-        possibleMatchRows: 0
-      },
-      usage30d: {
-        sessions: 0,
-        activeUsers: 0,
-        searches: 0,
-        quotationEvents: 0,
-        catalogUpdates: 0,
-        conversionRate: 0
-      },
-      topFerreterias: [],
-      usageSeries: []
-    };
-  }
-
   private getMeta(ownerId: string, productId: string): CatalogMeta | null {
     return this.getOrCreateCatalogMeta(ownerId).get(productId) || null;
   }
@@ -1978,8 +1538,6 @@ export class MockApiService {
 
   private invalidateMaestroState(ownerId: string): void {
     this.projectsPromiseByOwner.delete(ownerId);
-    this.maestroSummaryPromiseByOwner.delete(ownerId);
-    this.maestroSummaryByOwner.delete(ownerId);
   }
 
   private replaceArray<T>(target: T[], source: T[]): void {
@@ -1988,15 +1546,6 @@ export class MockApiService {
 
   private normalizeBarcode(value: string): string {
     return value.replace(/[^0-9A-Za-z]/g, '').trim().toLowerCase();
-  }
-
-  private hashCode(value: string): number {
-    let hash = 0;
-    for (let index = 0; index < value.length; index += 1) {
-      hash = ((hash << 5) - hash) + value.charCodeAt(index);
-      hash |= 0;
-    }
-    return Math.abs(hash);
   }
 
   private createLocalId(prefix: string): string {

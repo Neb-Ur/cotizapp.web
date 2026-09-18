@@ -1,5 +1,4 @@
 import { randomUUID } from 'node:crypto';
-import { readFileSync } from 'node:fs';
 import { Router, type Request, type Response } from 'express';
 import { adminAuth, db } from '../lib/firebase.js';
 import { requireAuth, requireRole } from '../lib/auth.js';
@@ -8,8 +7,6 @@ import { fail, ok } from '../lib/http.js';
 export const mvpRouter = Router();
 
 type UserRole = 'maestro' | 'ferreteria' | 'admin';
-type ProjectStatus = 'pendiente' | 'aceptada' | 'rechazada';
-
 type ProjectItem = {
   productName: string;
   quantity: number;
@@ -22,8 +19,6 @@ type SearchRow = {
   storeName: string;
   storeId: string;
   price: number;
-  distanceKm: number;
-  balanceScore: number;
   categoryId: string;
   categoryName: string;
   subcategoryId: string;
@@ -178,8 +173,6 @@ async function buildSearchRows(): Promise<SearchRow[]> {
         storeName: store.nombreComercial,
         storeId: store.id,
         price,
-        distanceKm: 0,
-        balanceScore: price,
         categoryId: product.categoriaId,
         categoryName: categoryById.get(product.categoriaId)?.nombre || 'Sin categoria',
         subcategoryId: product.subcategoriaId,
@@ -260,8 +253,6 @@ async function projectView(project: any): Promise<any> {
     name: project.name || project.nombre || 'Cotizacion',
     address: project.address || project.direccionObra || '',
     createdAt: project.createdAt || project.creadoEn || nowIso(),
-    status: (project.status || 'pendiente') as ProjectStatus,
-    statusUpdatedAt: project.statusUpdatedAt || project.updatedAt || project.createdAt || project.creadoEn || nowIso(),
     items,
     totalOptimal: optimization.optimalTotal,
     saving: optimization.mixedSaving
@@ -283,16 +274,12 @@ mvpRouter.post('/auth/register', requireAuth, async (req, res) => {
     nombre: normalizeText(req.body?.nombre),
     correo: (firebaseUser.email || normalizeText(req.body?.correo)).toLowerCase(),
     telefono: normalizeText(req.body?.telefono),
-    telefonoSecundario: normalizeText(req.body?.telefonoSecundario),
     region: normalizeText(req.body?.region),
     ciudad: normalizeText(req.body?.ciudad),
     comuna: normalizeText(req.body?.comuna),
     direccion: normalizeText(req.body?.direccion),
     estadoCuenta: role === 'ferreteria' ? 'pendiente' : 'activo',
-    creadoEn: nowIso(),
-    especialidad: normalizeText(req.body?.especialidad),
-    anosExperiencia: numberValue(req.body?.anosExperiencia),
-    metodoContactoPreferido: req.body?.metodoContactoPreferido || 'whatsapp'
+    creadoEn: nowIso()
   };
 
   if (!userPayload.nombre || !userPayload.correo) {
@@ -327,11 +314,7 @@ mvpRouter.get('/auth/me', requireAuth, async (req, res) => {
 
 mvpRouter.patch('/auth/me', requireAuth, async (req, res) => {
   if (!req.authUserId) return fail(res, 'AUTH_REQUIRED', 'Debes iniciar sesion.', 401);
-  const allowed = [
-    'nombre', 'telefono', 'telefonoSecundario', 'region', 'ciudad', 'comuna', 'direccion',
-    'especialidad', 'anosExperiencia', 'metodoContactoPreferido', 'contactoEmergenciaNombre',
-    'contactoEmergenciaTelefono'
-  ];
+  const allowed = ['nombre', 'telefono', 'region', 'ciudad', 'comuna', 'direccion'];
   const patch: Record<string, unknown> = {};
   allowed.forEach((key) => {
     if (req.body?.[key] !== undefined) patch[key] = req.body[key];
@@ -350,37 +333,6 @@ mvpRouter.patch('/auth/me', requireAuth, async (req, res) => {
 });
 
 mvpRouter.post('/auth/logout', requireAuth, async (_req, res) => ok(res, { success: true }));
-
-// Chile locations bundled with the Functions source.
-function locationsData(): any {
-  const url = new URL('../../data/chile-locations.json', import.meta.url);
-  return JSON.parse(readFileSync(url, 'utf-8'));
-}
-
-mvpRouter.get('/ubicaciones/regiones', (req, res) => {
-  const q = normalizeText(req.query['q']).toLowerCase();
-  const data = locationsData().regions
-    .filter((item: any) => !q || item.name.toLowerCase().includes(q));
-  return ok(res, data);
-});
-
-mvpRouter.get('/ubicaciones/ciudades', (req, res) => {
-  const regionId = normalizeText(req.query['regionId']);
-  const q = normalizeText(req.query['q']).toLowerCase();
-  const data = locationsData().cities
-    .filter((item: any) => !regionId || item.regionId === regionId)
-    .filter((item: any) => !q || item.name.toLowerCase().includes(q));
-  return ok(res, data);
-});
-
-mvpRouter.get('/ubicaciones/comunas', (req, res) => {
-  const cityId = normalizeText(req.query['cityId']);
-  const q = normalizeText(req.query['q']).toLowerCase();
-  const data = locationsData().communes
-    .filter((item: any) => !cityId || item.cityId === cityId)
-    .filter((item: any) => !q || item.name.toLowerCase().includes(q));
-  return ok(res, data);
-});
 
 // Taxonomy.
 mvpRouter.get('/categorias', async (_req, res) => ok(res, (await rows(COLLECTIONS.categories)).sort((a, b) => a.nombre.localeCompare(b.nombre))));
@@ -585,17 +537,12 @@ mvpRouter.get('/busqueda', async (req, res) => {
   const categoryId = normalizeText(req.query['categoriaId']);
   const subcategoryId = normalizeText(req.query['subcategoriaId']);
   const familyId = normalizeText(req.query['familiaId']);
-  const sort = normalizeText(req.query['sort']) || 'precio';
   const data = (await buildSearchRows())
     .filter((item) => !q || item.productName.toLowerCase().includes(q) || item.sku.toLowerCase().includes(q))
     .filter((item) => !categoryId || item.categoryId === categoryId)
     .filter((item) => !subcategoryId || item.subcategoryId === subcategoryId)
     .filter((item) => !familyId || item.familyId === familyId)
-    .sort((a, b) => sort === 'cercania'
-      ? a.distanceKm - b.distanceKm
-      : sort === 'balance'
-        ? a.balanceScore - b.balanceScore
-        : a.price - b.price);
+    .sort((a, b) => a.price - b.price);
   return ok(res, data);
 });
 
@@ -663,7 +610,6 @@ mvpRouter.get('/productos/detalle', async (req, res) => {
   const stores = searchRows.map((item) => ({
     storeName: item.storeName,
     price: item.price,
-    distanceKm: item.distanceKm,
     stock: item.stock,
     sku: item.sku,
     productoFerreteriaId: item.productoFerreteriaId
@@ -771,9 +717,7 @@ mvpRouter.post('/maestros/:ownerId/proyectos', requireAuth, async (req, res) => 
     name,
     address: normalizeText(req.body?.direccionObra),
     items: normalizeItems(req.body?.items),
-    status: 'pendiente',
-    createdAt: nowIso(),
-    statusUpdatedAt: nowIso()
+    createdAt: nowIso()
   });
   return ok(res, await projectView(created), 201);
 });
@@ -807,15 +751,6 @@ mvpRouter.post('/maestros/:ownerId/proyectos/:projectId/items', requireAuth, asy
   return ok(res, await projectView(updated), 201);
 });
 
-mvpRouter.patch('/maestros/:ownerId/proyectos/:projectId/estado', requireAuth, async (req, res) => {
-  if (!canAccessOwner(req, req.params.ownerId)) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para esta cotizacion.', 403);
-  const status = req.body?.estado;
-  if (!['pendiente', 'aceptada', 'rechazada'].includes(status)) return fail(res, 'COTIZACION_INVALID_STATUS', 'Estado invalido.', 400);
-  const project = await row(COLLECTIONS.projects, req.params.projectId);
-  if (!project || project.ownerId !== req.params.ownerId) return fail(res, 'PROYECTO_NOT_FOUND', 'No existe la cotizacion indicada.', 404);
-  const updated = await patchRow(COLLECTIONS.projects, req.params.projectId, { status, statusUpdatedAt: nowIso() });
-  return ok(res, await projectView(updated));
-});
 
 mvpRouter.delete('/maestros/:ownerId/proyectos/:projectId', requireAuth, async (req, res) => {
   if (!canAccessOwner(req, req.params.ownerId)) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para esta cotizacion.', 403);
@@ -829,33 +764,8 @@ mvpRouter.post('/cotizaciones/optimizar', requireAuth, async (req, res) => {
   return ok(res, await optimizeItems(normalizeItems(req.body?.items)));
 });
 
-mvpRouter.get('/maestros/:ownerId/resumen', requireAuth, async (req, res) => {
-  if (!canAccessOwner(req, req.params.ownerId)) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos.', 403);
-  const projects = (await rows(COLLECTIONS.projects)).filter((item) => item.ownerId === req.params.ownerId);
-  const views = await Promise.all(projects.map(projectView));
-  return ok(res, {
-    activeProjects: views.filter((item) => item.status === 'pendiente').length,
-    estimatedSaving: views.reduce((acc, item) => acc + numberValue(item.saving), 0),
-    topSearches: []
-  });
-});
 
 
-mvpRouter.get('/ferreterias/:storeId/metricas-mvp', requireAuth, async (req, res) => {
-  const store = await row(COLLECTIONS.stores, req.params.storeId);
-  if (!store) return fail(res, 'FERRETERIA_NOT_FOUND', 'No existe la ferreteria indicada.', 404);
-  if (req.authRole !== 'admin' && req.authUserId !== store.usuarioDuenoId) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos.', 403);
-  const offers = (await rows(COLLECTIONS.storeProducts)).filter((item) => item.ferreteriaId === req.params.storeId && item.activo !== false);
-  const published = offers.filter((item) => item.publicado !== false);
-  return ok(res, {
-    totalProducts: offers.length,
-    publishedProducts: published.length,
-    lowStockProducts: offers.filter((item) => numberValue(item.stock) > 0 && numberValue(item.stock) < 15).length,
-    outOfStockProducts: offers.filter((item) => numberValue(item.stock) === 0).length,
-    avgPricePublished: published.length ? Math.round(published.reduce((acc, item) => acc + numberValue(item.precio), 0) / published.length) : 0,
-    quotationReach: 0
-  });
-});
 
 // Product creation requests (kept simple for MVP).
 mvpRouter.post('/ferreterias/:storeId/solicitudes-creacion-producto', requireAuth, async (req, res) => {
@@ -959,22 +869,3 @@ mvpRouter.delete('/admin/usuarios/:id', requireAuth, requireRole('admin'), async
   try { await adminAuth.deleteUser(req.params.id); } catch { /* profile may predate Firebase Auth */ }
   return ok(res, { deleted: true });
 });
-
-mvpRouter.get('/admin/metricas', requireAuth, requireRole('admin'), async (_req, res) => {
-  const [users, products, requests, projects] = await Promise.all([
-    rows(COLLECTIONS.users), rows(COLLECTIONS.masterProducts), rows(COLLECTIONS.productRequests), rows(COLLECTIONS.projects)
-  ]);
-  return ok(res, {
-    totalUsuarios: users.length,
-    nuevosUsuarios: users.filter((item) => Date.parse(item.creadoEn || '') >= Date.now() - 30 * 86400000).length,
-    usuariosActivos: users.filter((item) => item.estadoCuenta !== 'bloqueado').length,
-    maestros: users.filter((item) => item.rol === 'maestro').length,
-    ferreterias: users.filter((item) => item.rol === 'ferreteria').length,
-    cotizaciones: projects.length,
-    cotizacionesRechazadas: projects.filter((item) => item.status === 'rechazada').length,
-    cotizacionesAceptadas: projects.filter((item) => item.status === 'aceptada').length,
-    productosMaestro: products.length,
-    solicitudesPendientes: requests.filter((item) => item.estado === 'pendiente').length
-  });
-});
-

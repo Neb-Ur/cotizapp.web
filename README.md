@@ -102,6 +102,45 @@ Cemento Melon 25kg,CEM-25,5490,80,7800000000000
 
 El importador acepta encabezados equivalentes comunes (por ejemplo `producto`, `codigo`, `precio venta`, `existencia` o `EAN`).
 
+## Alcance final del MVP
+
+### Maestro
+
+- Registro, login y recuperacion de clave.
+- Busqueda por nombre, categoria, subcategoria y familia.
+- Comparacion de precio y stock entre ferreterias activas.
+- Creacion, edicion, guardado e historial simple de cotizaciones.
+- Optimizacion por menor precio combinado.
+- Comparacion contra comprar todo en una sola ferreteria.
+- Calculo de ahorro.
+- Exportacion PDF.
+- Perfil minimo.
+
+### Ferreteria
+
+- Registro y activacion manual por administracion.
+- Mantencion de precio, stock y publicacion.
+- Busqueda dentro del catalogo propio.
+- Fecha de ultima actualizacion.
+- Actualizacion masiva Excel/CSV.
+- Incorporacion individual desde catalogo maestro.
+- Solicitud de productos faltantes.
+- Eliminacion de productos.
+- Perfil basico.
+
+### Administracion
+
+- Gestion de ferreterias y estado de activacion.
+- Carga inicial del catalogo por una ferreteria.
+- Catalogo maestro.
+- Taxonomia.
+- Resolucion de solicitudes de productos.
+- Gestion basica de usuarios.
+
+### Fuera del MVP
+
+No forman parte del MVP: planes, suscripciones, pagos automaticos, estados aceptada/rechazada de cotizacion, distancia/cercania, calculadora de cobertura, metricas avanzadas, CTR, analytics, rutas, chat, marketplace con pago e integraciones ERP.
+
 ## Objetivo del MVP
 
-Validar que un maestro encuentra valor en tener los precios de materiales en un solo lugar y en saber dónde gastar menos para una cotización completa.
+Validar que un maestro encuentra valor en tener precios comparables de materiales en un solo lugar y en saber donde gastar menos para una cotizacion completa, y que las ferreterias estan dispuestas a mantener precio y stock para participar en esa comparacion.

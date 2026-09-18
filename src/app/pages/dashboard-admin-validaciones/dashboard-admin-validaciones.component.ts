@@ -21,10 +21,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import {
   AccountStatus,
-  AdminMockMetrics,
   CatalogProduct,
-  CatalogImportReport,
-  CatalogImportRowResult,
   CatalogValidationRequest,
   CatalogValidationStatus,
   CatalogValidationType,
@@ -38,63 +35,7 @@ import { CATALOG_IMPORT_TEMPLATE, catalogFileToCsv } from '../../core/utils/cata
 import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 
-type AdminSection = 'resumen' | 'metricas' | 'taxonomia' | 'productos' | 'solicitudes' | 'lotes' | 'usuarios' | 'operacion';
-
-interface AdminMvpMetricCard {
-  label: string;
-  value: number;
-}
-
-interface StoreOpsRow {
-  ownerId: string;
-  ownerLabel: string;
-  totalProducts: number;
-  publishedProducts: number;
-  lowStockProducts: number;
-  inventoryValue: number;
-}
-
-interface MaestroOpsRow {
-  ownerId: string;
-  ownerLabel: string;
-  pendingProjects: number;
-  acceptedProjects: number;
-  rejectedProjects: number;
-}
-
-interface AdminSnapshot {
-  usersTotal: number;
-  usersByRole: Record<UserRole, number>;
-  activeUsers: number;
-  blockedUsers: number;
-  pendingUserValidation: number;
-  validationPending: number;
-  validationApproved: number;
-  validationRejected: number;
-  importBatches: number;
-  importedRows: number;
-  failedRows: number;
-  pendingNewRows: number;
-  possibleMatchRows: number;
-  totalCatalogProducts: number;
-  publishedCatalogProducts: number;
-  lowStockProducts: number;
-  totalInventoryValue: number;
-  pendingProjects: number;
-  acceptedProjects: number;
-  rejectedProjects: number;
-  stores: StoreOpsRow[];
-  maestros: MaestroOpsRow[];
-}
-
-interface AdminUserKpiSummary {
-  totalUsers: number;
-  newUsers30d: number;
-  activeUsers: number;
-  activeRate: number;
-  blockedUsers: number;
-  pendingUsers: number;
-}
+type AdminSection = 'ferreterias' | 'productos' | 'solicitudes' | 'usuarios';
 
 interface MasterProductDraft {
   masterProductId: string;
@@ -195,54 +136,30 @@ export class DashboardAdminValidacionesComponent implements OnInit {
 
   protected readonly sections: AdminSectionMeta[] = [
     {
-      id: 'resumen',
-      label: 'Resumen',
-      description: 'Visualiza el estado general del marketplace, usuarios, validaciones pendientes y catalogo maestro.'
-    },
-    {
-      id: 'metricas',
-      label: 'Metricas',
-      description: 'Consulta indicadores operativos, adopcion, cotizaciones y crecimiento para tomar decisiones de plataforma.'
-    },
-    {
-      id: 'taxonomia',
-      label: 'Taxonomia',
-      description: 'Crea y organiza categorias, subcategorias, familias y atributos base para estructurar el catalogo.'
+      id: 'ferreterias',
+      label: 'Ferreterias',
+      description: 'Activa cuentas, revisa catalogos y realiza la carga inicial de productos.'
     },
     {
       id: 'productos',
-      label: 'Mantenedor productos',
-      description: 'Administra productos maestros, contenido comun, imagenes y atributos tecnicos visibles en el ecosistema.'
+      label: 'Catalogo maestro',
+      description: 'Administra productos, categorias, subcategorias, familias y atributos.'
     },
     {
       id: 'solicitudes',
       label: 'Solicitudes',
-      description: 'Revisa solicitudes de creacion o correccion de productos antes de publicarlas en el catalogo maestro.'
-    },
-    {
-      id: 'lotes',
-      label: 'Lotes CSV',
-      description: 'Supervisa cargas masivas, errores por fila, coincidencias sugeridas y trazabilidad de importaciones.'
+      description: 'Resuelve productos que las ferreterias no encuentran en el catalogo maestro.'
     },
     {
       id: 'usuarios',
       label: 'Usuarios',
-      description: 'Gestiona cuentas, roles, estados de acceso y datos base de administradores, maestros y ferreterias.'
-    },
-    {
-      id: 'operacion',
-      label: 'Operacion',
-      description: 'Monitorea la salud comercial y operativa del sistema con foco en usuarios, catalogo y cotizaciones.'
+      description: 'Gestiona las cuentas y sus estados de acceso.'
     }
   ];
-
-  protected currentSection: AdminSection = 'resumen';
+  protected currentSection: AdminSection = 'ferreterias';
+  protected catalogAdminView: 'productos' | 'taxonomia' = 'productos';
   protected users: SessionUser[] = [];
-  protected importReports: CatalogImportReport[] = [];
   protected validationRequests: CatalogValidationRequest[] = [];
-  protected snapshot: AdminSnapshot = this.createEmptySnapshot();
-  protected adminMetrics: AdminMockMetrics = this.createEmptyAdminMetrics();
-  protected userKpis: AdminUserKpiSummary = this.createEmptyUserKpis();
 
   protected validationStatusFilter: CatalogValidationStatus | 'all' = 'pendiente';
   protected validationTypeFilter: CatalogValidationType | 'all' = 'all';
@@ -271,9 +188,6 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   protected familyEditingId: string | null = null;
   protected definitionDraft: AdminDefinitionDraft = this.createEmptyDefinitionDraft();
 
-  protected reportOwnerFilter = 'all';
-  protected reportSearch = '';
-
   protected userRoleFilter: UserRole | 'all' = 'all';
   protected userStatusFilter: AccountStatus | 'all' = 'all';
   protected userSearch = '';
@@ -284,9 +198,9 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   protected onboardingLoading = false;
   protected onboardingError = '';
   protected onboardingNotice = '';
+  protected selectedStoreCatalogLabel = '';
+  protected selectedStoreCatalog: CatalogProduct[] = [];
 
-  protected selectedReport: CatalogImportReport | null = null;
-  protected reportModalOpen = false;
   protected requestCreationModalOpen = false;
 
   protected notesByRequest: Record<string, string> = {};
@@ -303,7 +217,6 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   protected isMobileViewport = false;
   protected isMobileMenuVisible = false;
   private usersLoaded = false;
-  private snapshotDataLoaded = false;
   private readonly loadedSections = new Set<AdminSection>();
 
   constructor(
@@ -343,20 +256,6 @@ export class DashboardAdminValidacionesComponent implements OnInit {
           || item.ownerLabel.toLowerCase().includes(query)
           || item.row.sku.toLowerCase().includes(query)
           || (item.row.barcode || '').toLowerCase().includes(query);
-      });
-  }
-
-  protected get reportRows(): CatalogImportReport[] {
-    const query = this.reportSearch.trim().toLowerCase();
-
-    return this.importReports
-      .filter((item) => this.reportOwnerFilter === 'all' || item.ownerId === this.reportOwnerFilter)
-      .filter((item) => {
-        if (!query) {
-          return true;
-        }
-        return item.ownerLabel.toLowerCase().includes(query)
-          || item.batchId.toLowerCase().includes(query);
       });
   }
 
@@ -447,31 +346,6 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     return this.validationRequests.filter((request) => request.status === 'pendiente').length;
   }
 
-  protected get adminMvpMetricCards(): AdminMvpMetricCard[] {
-    return [
-      { label: 'Total usuarios', value: this.userKpis.totalUsers },
-      { label: 'Nuevos usuarios', value: this.userKpis.newUsers30d },
-      { label: 'Cuentas pendientes', value: this.snapshot.pendingUserValidation },
-      { label: 'Usuarios activos', value: this.userKpis.activeUsers },
-      { label: 'Maestros', value: this.snapshot.usersByRole.maestro },
-      { label: 'Ferreterias', value: this.snapshot.usersByRole.ferreteria },
-      { label: 'Cotizaciones', value: this.snapshot.pendingProjects + this.snapshot.acceptedProjects + this.snapshot.rejectedProjects },
-      { label: 'Cotizaciones aceptadas', value: this.snapshot.acceptedProjects },
-      { label: 'Cotizaciones rechazadas', value: this.snapshot.rejectedProjects },
-      { label: 'Productos maestros', value: this.masterCatalog.length }
-    ];
-  }
-
-  protected get reportOwnerOptions(): Array<{ id: string; label: string }> {
-    const map = new Map<string, string>();
-    this.importReports.forEach((report) => {
-      map.set(report.ownerId, report.ownerLabel);
-    });
-    return Array.from(map.entries())
-      .map(([id, label]) => ({ id, label }))
-      .sort((left, right) => left.label.localeCompare(right.label));
-  }
-
   protected get userRows(): SessionUser[] {
     const query = this.userSearch.trim().toLowerCase();
 
@@ -498,6 +372,9 @@ export class DashboardAdminValidacionesComponent implements OnInit {
 
   protected setSection(section: AdminSection): void {
     this.currentSection = section;
+    if (section === 'productos') {
+      this.catalogAdminView = 'productos';
+    }
     if (this.isMobileViewport) {
       this.closeMobileMenu();
     }
@@ -1096,27 +973,33 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     }
   }
 
-  protected openReport(report: CatalogImportReport): void {
-    this.selectedReport = report;
-    this.reportModalOpen = true;
+  protected get ferreteriaRows(): SessionUser[] {
+    return this.onboardingFerreterias;
   }
 
-  protected closeReportModal(): void {
-    this.reportModalOpen = false;
-    this.selectedReport = null;
+  protected storeCatalogCount(store: SessionUser): number {
+    return this.apiService.getCatalog(store.id).length;
   }
 
-  protected reportRowsByOutcome(outcome: CatalogImportRowResult['outcome']): CatalogImportRowResult[] {
-    return this.selectedReport?.rows.filter((row) => row.outcome === outcome) || [];
+  protected async inspectStoreCatalog(store: SessionUser): Promise<void> {
+    await this.apiService.refreshFerreteriaCatalogSection(store.id, true);
+    this.selectedStoreCatalogLabel = store.businessName || store.displayName;
+    this.selectedStoreCatalog = [...this.apiService.getCatalog(store.id)];
   }
 
-  protected logout(): void {
-    this.authService.logout();
-    this.router.navigateByUrl('/');
-  }
-
-  protected formatCurrency(value: number): string {
-    return this.apiService.formatCurrency(value);
+  protected async activateStore(store: SessionUser): Promise<void> {
+    try {
+      const updated = await this.authService.adminUpdateUser(store.id, { accountStatus: 'activo' });
+      if (!updated) {
+        this.error = 'No fue posible activar la ferreteria.';
+        return;
+      }
+      this.notice = `${updated.businessName || updated.displayName} activada.`;
+      this.markUserDataStale();
+      await this.ensureSectionData('ferreterias', true);
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : 'No fue posible activar la ferreteria.';
+    }
   }
 
   protected roleLabel(role: UserRole): string {
@@ -1216,9 +1099,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       );
 
       this.onboardingNotice = `Carga inicial procesada para ${store.businessName || store.displayName}: ${response.report.uploadedCount} producto(s) cargados, ${response.report.pendingNewCount + response.report.possibleMatchCount} pendiente(s) de revision y ${response.report.failedCount} fila(s) con error.`;
-      this.syncImportReportsState();
-      this.snapshotDataLoaded = false;
-      await this.ensureSnapshotDependenciesLoaded(true);
+      await this.apiService.refreshFerreteriaCatalogSection(store.id, true);
     } catch (error) {
       this.onboardingError = error instanceof Error ? error.message : 'No fue posible cargar el catalogo inicial.';
     } finally {
@@ -1230,56 +1111,19 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     this.setSection(section);
   }
 
-  protected usageBarWidth(value: number, max: number): number {
-    if (max <= 0) {
-      return 0;
-    }
-    return Math.max(6, Math.round((value / max) * 100));
+  protected setCatalogAdminView(view: 'productos' | 'taxonomia'): void {
+    this.catalogAdminView = view;
   }
 
-  protected usageSeriesMax(field: 'searches' | 'quotations' | 'imports'): number {
-    return Math.max(
-      1,
-      ...this.adminMetrics.usageSeries.map((item) => item[field])
-    );
+  protected formatCurrency(value: number): string {
+    return this.apiService.formatCurrency(value);
   }
 
-
-  protected donutStyle(percent: number, color: string, track = '#e6edf6'): string {
-    const bounded = Math.max(0, Math.min(100, percent));
-    return `conic-gradient(${color} 0 ${bounded}%, ${track} ${bounded}% 100%)`;
+  protected logout(): void {
+    this.closeMobileMenu();
+    void this.authService.logout();
+    this.router.navigateByUrl('/');
   }
-
-  protected multiDonutStyle(segments: Array<{ value: number; color: string }>, track = '#e6edf6'): string {
-    const total = segments.reduce((acc, segment) => acc + Math.max(0, segment.value), 0);
-    if (total <= 0) {
-      return `conic-gradient(${track} 0 100%)`;
-    }
-
-    let start = 0;
-    const slices = segments.map((segment) => {
-      const ratio = (Math.max(0, segment.value) / total) * 100;
-      const end = Math.min(100, start + ratio);
-      const slice = `${segment.color} ${start.toFixed(2)}% ${end.toFixed(2)}%`;
-      start = end;
-      return slice;
-    });
-
-    if (start < 100) {
-      slices.push(`${track} ${start.toFixed(2)}% 100%`);
-    }
-
-    return `conic-gradient(${slices.join(', ')})`;
-  }
-
-  protected userStatusDonutStyle(): string {
-    return this.multiDonutStyle([
-      { value: this.userKpis.activeUsers, color: '#2d9a65' },
-      { value: this.userKpis.pendingUsers, color: '#d08a1c' },
-      { value: this.userKpis.blockedUsers, color: '#b83636' }
-    ]);
-  }
-
 
   @HostListener('window:resize')
   protected onWindowResize(): void {
@@ -1352,34 +1196,22 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   }
 
   private async ensureSectionData(section: AdminSection, force = false): Promise<void> {
-    if (!force && this.loadedSections.has(section)) {
-      return;
-    }
+    if (!force && this.loadedSections.has(section)) return;
 
     this.isSectionLoading = true;
     try {
-      if (section === 'resumen' || section === 'operacion') {
-        await this.ensureSnapshotDependenciesLoaded(force);
-      }
-
-      if (section === 'metricas') {
-        await Promise.all([
-          this.ensureUsersLoaded(force),
-          this.ensureSnapshotDependenciesLoaded(force),
-          this.apiService.refreshAdminMetricsSection(force)
-        ]);
-        this.adminMetrics = this.apiService.getAdminMockMetrics();
-        this.syncMasterCatalogState();
-        this.syncSummaryState();
-      }
-
-      if (section === 'taxonomia') {
-        await this.apiService.refreshAdminTaxonomySection(force);
-        this.syncTaxonomySelection();
+      if (section === 'ferreterias') {
+        await this.ensureUsersLoaded(force);
+        await Promise.all(
+          this.onboardingFerreterias.map((store) => this.apiService.refreshFerreteriaCatalogSection(store.id, force))
+        );
       }
 
       if (section === 'productos') {
-        await this.apiService.refreshAdminProductsSection(force);
+        await Promise.all([
+          this.apiService.refreshAdminProductsSection(force),
+          this.apiService.refreshAdminTaxonomySection(force)
+        ]);
         this.syncMasterCatalogState();
         this.syncTaxonomySelection();
         this.syncMasterAttributeDrafts();
@@ -1388,11 +1220,6 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       if (section === 'solicitudes') {
         await this.apiService.refreshAdminRequestsSection(force);
         this.syncValidationRequestsState();
-      }
-
-      if (section === 'lotes') {
-        await this.apiService.refreshAdminImportsSection(force);
-        this.syncImportReportsState();
       }
 
       if (section === 'usuarios') {
@@ -1420,25 +1247,6 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     }
   }
 
-  private async ensureSnapshotDependenciesLoaded(force = false): Promise<void> {
-    await this.ensureUsersLoaded(force);
-    if (!force && this.snapshotDataLoaded) {
-      this.syncSummaryState();
-      return;
-    }
-
-    await this.apiService.refreshAdminSnapshotSection(this.users, force);
-    this.syncImportReportsState();
-    this.syncValidationRequestsState();
-    this.snapshotDataLoaded = true;
-    this.syncSummaryState();
-  }
-
-  private syncImportReportsState(): void {
-    this.importReports = this.apiService.getCatalogImportReports('all')
-      .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
-  }
-
   private syncValidationRequestsState(): void {
     this.validationRequests = this.apiService.getCatalogValidationQueue('all')
       .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
@@ -1449,27 +1257,15 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     this.masterCatalog = this.apiService.getMasterCatalogProducts();
   }
 
-  private syncSummaryState(): void {
-    this.snapshot = this.buildSnapshot();
-    this.userKpis = this.buildUserKpis();
-  }
-
   private markUserDataStale(): void {
     this.usersLoaded = false;
-    this.snapshotDataLoaded = false;
     this.loadedSections.delete('usuarios');
-    this.loadedSections.delete('resumen');
-    this.loadedSections.delete('metricas');
-    this.loadedSections.delete('operacion');
+    this.loadedSections.delete('ferreterias');
   }
 
   private markValidationDataStale(): void {
-    this.snapshotDataLoaded = false;
     this.loadedSections.delete('solicitudes');
     this.loadedSections.delete('productos');
-    this.loadedSections.delete('resumen');
-    this.loadedSections.delete('metricas');
-    this.loadedSections.delete('operacion');
   }
 
   private syncDrafts(): void {
@@ -1482,189 +1278,6 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     });
 
     this.selectedSuggestionByRequest = suggestionDraft;
-  }
-
-  private buildSnapshot(): AdminSnapshot {
-    const usersByRole: Record<UserRole, number> = {
-      maestro: 0,
-      ferreteria: 0,
-      admin: 0
-    };
-
-    this.users.forEach((user) => {
-      usersByRole[user.role] += 1;
-    });
-
-    const ferreterias = this.users.filter((user) => user.role === 'ferreteria');
-    const maestros = this.users.filter((user) => user.role === 'maestro');
-
-    const stores: StoreOpsRow[] = ferreterias.map((store) => {
-      const catalog = this.apiService.getCatalog(store.id);
-      const published = catalog.filter((item) => item.isPublished).length;
-      const lowStock = catalog.filter((item) => item.stock < 15).length;
-      const inventoryValue = catalog.reduce((acc, item) => acc + (item.stock * item.price), 0);
-      return {
-        ownerId: store.id,
-        ownerLabel: store.businessName || store.displayName,
-        totalProducts: catalog.length,
-        publishedProducts: published,
-        lowStockProducts: lowStock,
-        inventoryValue
-      };
-    });
-
-    const maestrosOps: MaestroOpsRow[] = maestros.map((maestro) => ({
-      ownerId: maestro.id,
-      ownerLabel: maestro.displayName,
-      pendingProjects: this.apiService.getProjectsByStatus(maestro.id, 'pendiente').length,
-      acceptedProjects: this.apiService.getProjectsByStatus(maestro.id, 'aceptada').length,
-      rejectedProjects: this.apiService.getProjectsByStatus(maestro.id, 'rechazada').length
-    }));
-
-    const importedRows = this.importReports.reduce((acc, report) => acc + report.uploadedCount, 0);
-    const failedRows = this.importReports.reduce((acc, report) => acc + report.failedCount, 0);
-    const pendingNewRows = this.importReports.reduce((acc, report) => acc + report.pendingNewCount, 0);
-    const possibleMatchRows = this.importReports.reduce((acc, report) => acc + report.possibleMatchCount, 0);
-
-    const snapshot: AdminSnapshot = {
-      usersTotal: this.users.length,
-      usersByRole,
-      activeUsers: this.users.filter((user) => this.userStatus(user) === 'activo').length,
-      blockedUsers: this.users.filter((user) => this.userStatus(user) === 'bloqueado').length,
-      pendingUserValidation: this.users.filter((user) => !user.adminValidated || this.userStatus(user) === 'pendiente').length,
-      validationPending: this.validationRequests.filter((item) => item.status === 'pendiente').length,
-      validationApproved: this.validationRequests.filter((item) => item.status === 'aprobado').length,
-      validationRejected: this.validationRequests.filter((item) => item.status === 'rechazado').length,
-      importBatches: this.importReports.length,
-      importedRows,
-      failedRows,
-      pendingNewRows,
-      possibleMatchRows,
-      totalCatalogProducts: stores.reduce((acc, store) => acc + store.totalProducts, 0),
-      publishedCatalogProducts: stores.reduce((acc, store) => acc + store.publishedProducts, 0),
-      lowStockProducts: stores.reduce((acc, store) => acc + store.lowStockProducts, 0),
-      totalInventoryValue: stores.reduce((acc, store) => acc + store.inventoryValue, 0),
-      pendingProjects: maestrosOps.reduce((acc, maestro) => acc + maestro.pendingProjects, 0),
-      acceptedProjects: maestrosOps.reduce((acc, maestro) => acc + maestro.acceptedProjects, 0),
-      rejectedProjects: maestrosOps.reduce((acc, maestro) => acc + maestro.rejectedProjects, 0),
-      stores: stores.sort((left, right) => right.totalProducts - left.totalProducts),
-      maestros: maestrosOps.sort((left, right) => right.pendingProjects - left.pendingProjects)
-    };
-
-    return snapshot;
-  }
-
-  private createEmptySnapshot(): AdminSnapshot {
-    return {
-      usersTotal: 0,
-      usersByRole: { maestro: 0, ferreteria: 0, admin: 0 },
-      activeUsers: 0,
-      blockedUsers: 0,
-      pendingUserValidation: 0,
-      validationPending: 0,
-      validationApproved: 0,
-      validationRejected: 0,
-      importBatches: 0,
-      importedRows: 0,
-      failedRows: 0,
-      pendingNewRows: 0,
-      possibleMatchRows: 0,
-      totalCatalogProducts: 0,
-      publishedCatalogProducts: 0,
-      lowStockProducts: 0,
-      totalInventoryValue: 0,
-      pendingProjects: 0,
-      acceptedProjects: 0,
-      rejectedProjects: 0,
-      stores: [],
-      maestros: []
-    };
-  }
-
-  private createEmptyAdminMetrics(): AdminMockMetrics {
-    return {
-      generatedAt: new Date().toISOString(),
-      totals: {
-        users: 0,
-        maestros: 0,
-        ferreterias: 0,
-        admins: 0,
-        ferreteriasActivas: 0,
-        maestrosActivos: 0,
-        usuariosPendientes: 0,
-        usuariosBloqueados: 0
-      },
-      catalog: {
-        totalProducts: 0,
-        publishedProducts: 0,
-        lowStockProducts: 0,
-        inventoryValue: 0
-      },
-      quotations: {
-        total: 0,
-        pending: 0,
-        accepted: 0,
-        rejected: 0
-      },
-      validation: {
-        pending: 0,
-        approved: 0,
-        rejected: 0,
-        pendingNewRows: 0,
-        possibleMatchRows: 0
-      },
-      usage30d: {
-        sessions: 0,
-        activeUsers: 0,
-        searches: 0,
-        quotationEvents: 0,
-        catalogUpdates: 0,
-        conversionRate: 0
-      },
-      topFerreterias: [],
-      usageSeries: []
-    };
-  }
-
-  private buildUserKpis(): AdminUserKpiSummary {
-    const totalUsers = this.users.length;
-    const activeUsers = this.users.filter((user) => this.userStatus(user) === 'activo').length;
-    const blockedUsers = this.users.filter((user) => this.userStatus(user) === 'bloqueado').length;
-    const pendingUsers = Math.max(0, totalUsers - activeUsers - blockedUsers);
-
-
-    const now = Date.now();
-    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
-    const datedUsers = this.users.filter((user) => user.createdAt && !Number.isNaN(Date.parse(user.createdAt)));
-    const datedNewUsers = datedUsers.filter((user) => {
-      const createdAt = Date.parse(user.createdAt as string);
-      return createdAt >= (now - thirtyDaysMs);
-    }).length;
-    const fallbackNewUsers = Math.max(1, Math.round(totalUsers * 0.14));
-    const newUsers30d = datedUsers.length > 0 ? datedNewUsers : fallbackNewUsers;
-
-    const activeRate = totalUsers > 0 ? Number(((activeUsers / totalUsers) * 100).toFixed(1)) : 0;
-
-    return {
-      totalUsers,
-      newUsers30d,
-      activeUsers,
-      activeRate,
-      blockedUsers,
-      pendingUsers
-    };
-  }
-
-
-  private createEmptyUserKpis(): AdminUserKpiSummary {
-    return {
-      totalUsers: 0,
-      newUsers30d: 0,
-      activeUsers: 0,
-      activeRate: 0,
-      blockedUsers: 0,
-      pendingUsers: 0
-    };
   }
 
   private createEmptyMasterProductDraft(): MasterProductDraft {

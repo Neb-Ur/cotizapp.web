@@ -7,7 +7,6 @@ import {
   ProjectComparisonStrategy,
   ProjectItem,
   ProjectQuotationView,
-  ProjectStatus,
   SessionUser
 } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
@@ -25,7 +24,6 @@ export class ProyectoDetalleComponent implements OnInit {
   private readonly ivaRate = 0.19;
   protected projectId = '';
   protected isNewProject = true;
-  protected projectStatus: ProjectStatus = 'pendiente';
   protected projectName = '';
   protected projectAddress = '';
   protected projectItems: ProjectItem[] = [];
@@ -52,13 +50,10 @@ export class ProyectoDetalleComponent implements OnInit {
 
       await this.loadProject(incomingId, draftName, draftAddress);
 
-      if (addProduct.trim() && this.canEditQuotation) {
+      if (addProduct.trim()) {
         this.projectItems = [...this.projectItems, { productName: addProduct.trim(), quantity: 1 }];
         this.saveNotice = `Producto agregado: ${addProduct}.`;
         this.persistDraftIfNeeded();
-        this.clearAddProductQueryParams();
-      } else if (addProduct.trim()) {
-        this.saveNotice = `No puedes agregar productos a una cotizacion ${this.projectStatusLabel.toLowerCase()}.`;
         this.clearAddProductQueryParams();
       }
     });
@@ -81,19 +76,6 @@ export class ProyectoDetalleComponent implements OnInit {
   }
 
 
-  protected get canEditQuotation(): boolean {
-    return this.isNewProject || this.projectStatus === 'pendiente';
-  }
-
-  protected get projectStatusLabel(): string {
-    if (this.projectStatus === 'aceptada') {
-      return 'Aceptada';
-    }
-    if (this.projectStatus === 'rechazada') {
-      return 'Rechazada';
-    }
-    return 'Pendiente';
-  }
 
   protected get hasQuotation(): boolean {
     return this.quotation.lines.length > 0;
@@ -127,9 +109,6 @@ export class ProyectoDetalleComponent implements OnInit {
   }
 
   protected removeProjectItem(index: number): void {
-    if (!this.canEditQuotation) {
-      return;
-    }
     this.projectItems = this.projectItems.filter((_, itemIndex) => itemIndex !== index);
     this.saveNotice = '';
     this.persistDraftIfNeeded();
@@ -175,11 +154,6 @@ export class ProyectoDetalleComponent implements OnInit {
       return;
     }
 
-    if (!this.canEditQuotation) {
-      this.saveNotice = `No puedes editar una cotizacion ${this.projectStatusLabel.toLowerCase()}.`;
-      return;
-    }
-
     const updated = await this.apiService.updateProject(currentUser.id, this.projectId, name, this.projectItems, this.projectAddress);
     if (!updated) {
       this.saveNotice = 'No se pudo actualizar la cotizacion.';
@@ -190,11 +164,6 @@ export class ProyectoDetalleComponent implements OnInit {
   }
 
   protected goToSearchForProduct(): void {
-    if (!this.canEditQuotation) {
-      this.saveNotice = `No puedes agregar items a una cotizacion ${this.projectStatusLabel.toLowerCase()}.`;
-      return;
-    }
-
     const projectTarget = this.isNewProject ? 'nuevo' : this.projectId;
     this.persistDraftIfNeeded();
     this.router.navigate(['/dashboard/maestro'], {
@@ -226,8 +195,7 @@ export class ProyectoDetalleComponent implements OnInit {
 
   protected backToProjects(): void {
     this.persistDraftIfNeeded();
-    const section = this.projectStatus === 'pendiente' ? 'cotizaciones' : 'historial';
-    this.router.navigate(['/dashboard/maestro'], { queryParams: { section } });
+    this.router.navigate(['/dashboard/maestro'], { queryParams: { section: 'cotizaciones' } });
   }
 
   protected formatCurrency(value: number): string {
@@ -240,7 +208,6 @@ export class ProyectoDetalleComponent implements OnInit {
     this.isNewProject = projectId === 'nuevo';
 
     if (this.isNewProject) {
-      this.projectStatus = 'pendiente';
       const draft = this.readDraft();
       this.projectName = draftName || draft?.name || '';
       this.projectAddress = draftAddress || draft?.address || '';
@@ -266,7 +233,6 @@ export class ProyectoDetalleComponent implements OnInit {
       }
       this.projectName = refreshed.name;
       this.projectAddress = refreshed.address || '';
-      this.projectStatus = refreshed.status || 'pendiente';
       this.projectItems = refreshed.items.map((item) => ({
         productName: item.productName,
         quantity: item.quantity
@@ -276,40 +242,12 @@ export class ProyectoDetalleComponent implements OnInit {
 
     this.projectName = project.name;
     this.projectAddress = project.address || '';
-    this.projectStatus = project.status || 'pendiente';
     this.projectItems = project.items.map((item) => ({
       productName: item.productName,
       quantity: item.quantity
     }));
   }
 
-  protected markQuotationAccepted(): void {
-    void this.updateQuotationStatus('aceptada');
-  }
-
-  protected markQuotationRejected(): void {
-    void this.updateQuotationStatus('rechazada');
-  }
-
-  private async updateQuotationStatus(status: ProjectStatus): Promise<void> {
-    if (this.isNewProject || this.projectStatus !== 'pendiente' || !this.hasQuotation) {
-      return;
-    }
-
-    const currentUser = this.user;
-    if (!currentUser) {
-      return;
-    }
-
-    const updated = await this.apiService.updateProjectStatus(currentUser.id, this.projectId, status);
-    if (!updated) {
-      this.saveNotice = 'No se pudo actualizar el estado de la cotizacion.';
-      return;
-    }
-
-    this.projectStatus = updated.status;
-    this.saveNotice = `Cotizacion marcada como ${this.projectStatusLabel.toLowerCase()}.`;
-  }
 
 
   private persistDraftIfNeeded(): void {

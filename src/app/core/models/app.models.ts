@@ -1,6 +1,4 @@
 export type UserRole = 'maestro' | 'ferreteria' | 'admin';
-export type PreferredContactMethod = 'whatsapp' | 'llamada' | 'email';
-export type ProjectStatus = 'pendiente' | 'aceptada' | 'rechazada';
 export type AccountStatus = 'activo' | 'bloqueado' | 'pendiente';
 
 export interface SessionUser {
@@ -12,20 +10,13 @@ export interface SessionUser {
   accountStatus?: AccountStatus;
   adminValidated?: boolean;
   createdAt?: string;
-  legalFullName?: string;
   phone?: string;
-  secondaryPhone?: string;
   city?: string;
   commune?: string;
   region?: string;
   businessName?: string;
   rut?: string;
   address?: string;
-  emergencyContactName?: string;
-  emergencyContactPhone?: string;
-  specialty?: string;
-  experienceYears?: number;
-  preferredContactMethod?: PreferredContactMethod;
 }
 
 export interface LoginPayload {
@@ -46,23 +37,12 @@ export interface RegisterPayload {
   businessName?: string;
   rut?: string;
   address: string;
-  specialty?: string;
-  experienceYears?: number;
-}
-
-export interface LocationOption {
-  id: string;
-  name: string;
-  regionId?: string;
-  cityId?: string;
 }
 
 export interface SearchRow {
   productName: string;
   storeName: string;
   price: number;
-  distanceKm: number;
-  balanceScore: number;
   categoryId: string;
   categoryName: string;
   subcategoryId: string;
@@ -70,8 +50,6 @@ export interface SearchRow {
   familyId: string;
   familyName: string;
 }
-
-export type SearchSort = 'precio' | 'cercania' | 'balance';
 
 export interface SearchFilters {
   query?: string;
@@ -123,7 +101,6 @@ export interface FamilyProductRow {
 export interface ProductStoreOfferRow {
   storeName: string;
   price: number;
-  distanceKm: number;
   stock: number;
 }
 
@@ -141,15 +118,6 @@ export interface ProductExtraSection {
   id: string;
   title: string;
   points: string[];
-}
-
-export interface ProductCoverageConfig {
-  quantityInputUnit: string;
-  yieldPerPackage: number;
-  yieldUnit: 'm2' | 'm3';
-  requiresDepthCm?: boolean;
-  defaultDepthCm?: number;
-  description: string;
 }
 
 export interface ProductDetailView {
@@ -174,18 +142,6 @@ export interface ProductDetailView {
   minPrice: number;
   maxPrice: number;
   stores: ProductStoreOfferRow[];
-  coverageConfig?: ProductCoverageConfig;
-}
-
-export interface QuotationItem {
-  id: string;
-  productName: string;
-  sku: string;
-  storeName: string;
-  quantity: number;
-  unitPrice: number;
-  totalPrice: number;
-  addedAt: string;
 }
 
 export interface ProjectItem {
@@ -198,8 +154,6 @@ export interface ProjectSummary {
   name: string;
   address?: string;
   createdAt: string;
-  status: ProjectStatus;
-  statusUpdatedAt: string;
   items: ProjectItem[];
   totalOptimal: number;
   saving: number;
@@ -226,11 +180,7 @@ export interface ProjectQuotationView {
   mixedSaving: number;
 }
 
-export type ProjectComparisonStrategyId =
-  | 'cheapest'
-  | 'same-store'
-  | 'nearest-user'
-  | 'nearest-work';
+export type ProjectComparisonStrategyId = 'cheapest' | 'same-store';
 
 export interface ProjectComparisonStrategy {
   id: ProjectComparisonStrategyId;
@@ -238,7 +188,6 @@ export interface ProjectComparisonStrategy {
   subtitle: string;
   total: number;
   saving?: number;
-  distanceKm?: number;
 }
 
 export interface CatalogProduct {
@@ -340,59 +289,3 @@ export interface CatalogValidationRequest {
   };
 }
 
-export interface AdminUsagePoint {
-  label: string;
-  activeUsers: number;
-  searches: number;
-  quotations: number;
-  imports: number;
-}
-
-export interface AdminMockMetrics {
-  generatedAt: string;
-  totals: {
-    users: number;
-    maestros: number;
-    ferreterias: number;
-    admins: number;
-    ferreteriasActivas: number;
-    maestrosActivos: number;
-    usuariosPendientes: number;
-    usuariosBloqueados: number;
-  };
-  catalog: {
-    totalProducts: number;
-    publishedProducts: number;
-    lowStockProducts: number;
-    inventoryValue: number;
-  };
-  quotations: {
-    total: number;
-    pending: number;
-    accepted: number;
-    rejected: number;
-  };
-  validation: {
-    pending: number;
-    approved: number;
-    rejected: number;
-    pendingNewRows: number;
-    possibleMatchRows: number;
-  };
-  usage30d: {
-    sessions: number;
-    activeUsers: number;
-    searches: number;
-    quotationEvents: number;
-    catalogUpdates: number;
-    conversionRate: number;
-  };
-  topFerreterias: Array<{
-    ownerId: string;
-    ownerLabel: string;
-    publishedProducts: number;
-    views: number;
-    quotationsEstimate: number;
-  }>;
-  usageSeries: AdminUsagePoint[];
-}

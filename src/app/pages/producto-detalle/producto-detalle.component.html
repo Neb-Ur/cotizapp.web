@@ -35,99 +35,28 @@
         <h1>{{ product.productName }}</h1>
         <p class="sku">SKU {{ product.sku }}</p>
         <p class="type">{{ product.productType }}</p>
-        <p class="price-range">
-          {{ formatCurrency(product.minPrice) }} - {{ formatCurrency(product.maxPrice) }}
-        </p>
-        <p class="best-price">
-          Mejor precio en <strong>{{ bestPriceStoreName }}</strong>
-        </p>
-        <div class="stock-chip">
-          Stock referencial: {{ product.stock }} {{ product.unitLabel.toLowerCase() }}
-        </div>
+        <p class="price-range">{{ formatCurrency(product.minPrice) }} - {{ formatCurrency(product.maxPrice) }}</p>
+        <p class="best-price">Mejor precio en <strong>{{ bestPriceStoreName }}</strong></p>
 
         <section class="quick-stores">
-          <h3>Tiendas disponibles</h3>
-          <p class="quick-stores-hint">Selecciona cotizacion, tienda y cantidad para agregar el producto.</p>
-          <p class="quick-stores-hint">{{ displayStores.length }} ferreterias disponibles</p>
+          <h3>Precios por ferreteria</h3>
+          <p class="quick-stores-hint">{{ displayStores.length }} ferreteria(s) con oferta activa.</p>
 
           <label class="quantity-field">
             Cotizacion destino
             <select [ngModel]="selectedProjectId" (ngModelChange)="onProjectChange($event)">
               <option value="">Selecciona una cotizacion</option>
-              <option *ngFor="let project of projects" [value]="project.id">
-                {{ project.name }}
-              </option>
+              <option *ngFor="let project of projects" [value]="project.id">{{ project.name }}</option>
             </select>
           </label>
           <p class="stock-warning" *ngIf="!hasProjects">
-            No tienes cotizaciones pendientes. Ve a "Mis Cotizaciones" y crea una para continuar.
+            No tienes cotizaciones guardadas. Crea una desde "Mis Cotizaciones".
           </p>
-
-          <div class="location-actions">
-            <button
-              type="button"
-              [class.active]="locationMode === 'user'"
-              (click)="useUserLocation()"
-            >
-              Usar tu locacion
-            </button>
-            <button
-              type="button"
-              [class.active]="locationMode === 'quotation'"
-              (click)="useQuotationLocation()"
-            >
-              Usar locacion de cotizacion
-            </button>
-          </div>
-          <p class="quick-stores-hint" *ngIf="locationNotice">{{ locationNotice }}</p>
-
-          <label class="quantity-field">
-            Ordenar por precio
-            <select [ngModel]="priceSort" (ngModelChange)="onPriceSortChange($event)">
-              <option value="price-asc">Menor a mayor</option>
-              <option value="price-desc">Mayor a menor</option>
-            </select>
-          </label>
 
           <label class="quantity-field">
             Cantidad ({{ quantityLabel.toLowerCase() }})
-            <input
-              type="number"
-              min="1"
-              [ngModel]="selectedQuantity"
-              (ngModelChange)="onQuantityChange($event)"
-            />
+            <input type="number" min="1" [ngModel]="selectedQuantity" (ngModelChange)="onQuantityChange($event)" />
           </label>
-
-          <article class="coverage-card" *ngIf="hasCoverageCalculator">
-            <h4>Calculadora de rendimiento</h4>
-            <p>{{ coverageDescription }}</p>
-            <div class="coverage-grid">
-              <label class="quantity-field">
-                Cantidad a cubrir ({{ product.coverageConfig?.quantityInputUnit }})
-                <input
-                  type="number"
-                  min="0"
-                  [ngModel]="coverQuantity"
-                  (ngModelChange)="onCoverQuantityChange($event)"
-                />
-              </label>
-
-              <label class="quantity-field" *ngIf="shouldAskDepthCm">
-                Profundidad (cm)
-                <input
-                  type="number"
-                  min="0"
-                  [ngModel]="coverDepthCm"
-                  (ngModelChange)="onDepthChange($event)"
-                />
-              </label>
-            </div>
-
-            <p class="coverage-result" *ngIf="neededPackagesByCoverage > 0">
-              Necesitas aprox. <strong>{{ neededPackagesByCoverage }} {{ quantityLabel.toLowerCase() }}</strong>.
-            </p>
-          </article>
 
           <ul>
             <li
@@ -146,7 +75,6 @@
                 <div>
                   <p class="store-name">{{ store.storeName }}</p>
                   <p class="store-stock">Stock: {{ store.stock }} {{ product.unitLabel.toLowerCase() }}</p>
-                  <p class="store-distance" *ngIf="showDistances">Distancia: {{ store.distanceKm | number: '1.1-1' }} km</p>
                 </div>
               </label>
               <p class="store-price">{{ formatCurrency(store.price) }}</p>
@@ -157,10 +85,7 @@
             Total estimado: {{ formatCurrency(selectedTotal) }}
           </p>
           <p class="stock-warning" *ngIf="exceedsSelectedStock && selectedStore">
-            La cantidad supera el stock de {{ selectedStore.storeName }} (stock: {{ selectedStore.stock }}).
-          </p>
-          <p class="quick-stores-hint" *ngIf="selectedStore && !selectedProjectId">
-            Selecciona una cotizacion para habilitar el agregado.
+            La cantidad supera el stock informado por {{ selectedStore.storeName }} ({{ selectedStore.stock }}).
           </p>
 
           <button type="button" class="add-quote-button" *ngIf="canShowAddToQuotation" (click)="addToQuotation()">
@@ -200,11 +125,8 @@
           <h3 *ngIf="block.title">{{ block.title }}</h3>
           <p>{{ block.text }}</p>
         </div>
-
         <h3>Caracteristicas</h3>
-        <ul>
-          <li *ngFor="let feature of product.featureBullets">{{ feature }}</li>
-        </ul>
+        <ul><li *ngFor="let feature of product.featureBullets">{{ feature }}</li></ul>
       </article>
     </section>
 
@@ -215,13 +137,10 @@
           <span>{{ isExtraSectionOpen(section.id) ? '−' : '+' }}</span>
         </button>
         <div class="extra-content" *ngIf="isExtraSectionOpen(section.id)">
-          <ul>
-            <li *ngFor="let point of section.points">{{ point }}</li>
-          </ul>
+          <ul><li *ngFor="let point of section.points">{{ point }}</li></ul>
         </div>
       </article>
     </section>
-
   </article>
 
   <ng-template #noData>
