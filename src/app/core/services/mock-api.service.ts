@@ -29,6 +29,7 @@ import {
 } from '../models/app.models';
 import { AuthService } from './auth.service';
 import { API_BASE_URL } from '../config/api.config';
+import { parseCatalogImportContent } from '../utils/catalog-import.util';
 
 interface ApiEnvelope<T> {
   ok: boolean;
@@ -1564,7 +1565,8 @@ export class MockApiService {
         ? product.galeriaJson
         : [product.imagenPrincipalUrl || 'https://via.placeholder.com/600x420?text=Producto'],
       specValues: {},
-      templateVersion: 1
+      templateVersion: 1,
+      updatedAt: row.actualizadoEn || row.creadoEn || undefined
     };
   }
 
@@ -1982,44 +1984,7 @@ export class MockApiService {
     valid: boolean;
     error?: string;
   }> {
-    const lines = content
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0);
-
-    return lines.map((line, index) => {
-      const [nameRaw = '', skuRaw = '', priceRaw = '', stockRaw = '', barcodeRaw = ''] = line.split(',').map((part) => part.trim());
-      const name = nameRaw;
-      const sku = skuRaw || `CSV-${String(index + 1).padStart(4, '0')}`;
-      const price = Math.max(0, Number(priceRaw) || 0);
-      const stock = Math.max(0, Math.floor(Number(stockRaw) || 0));
-      const barcode = barcodeRaw;
-
-      if (!name || price <= 0) {
-        return {
-          lineNumber: index + 1,
-          rawLine: line,
-          name,
-          sku,
-          price,
-          stock,
-          barcode,
-          valid: false,
-          error: 'La fila debe incluir al menos nombre y precio valido.'
-        };
-      }
-
-      return {
-        lineNumber: index + 1,
-        rawLine: line,
-        name,
-        sku,
-        price,
-        stock,
-        barcode,
-        valid: true
-      };
-    });
+    return parseCatalogImportContent(content);
   }
 
   private removeUndefined<T extends Record<string, unknown>>(payload: T): Partial<T> {
