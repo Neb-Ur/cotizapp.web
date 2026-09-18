@@ -133,7 +133,18 @@
       </section>
     </article>
 
-    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'taxonomia'">
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'productos'">
+      <div class="upload-mode-toggle">
+        <button type="button" [class.active]="catalogAdminView === 'productos'" (click)="setCatalogAdminView('productos')">
+          Productos
+        </button>
+        <button type="button" [class.active]="catalogAdminView === 'taxonomia'" (click)="setCatalogAdminView('taxonomia')">
+          Categorias y taxonomia
+        </button>
+      </div>
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'productos' && catalogAdminView === 'taxonomia'">
       <div class="taxonomy-shell">
         <mat-card class="taxonomy-path">
           <div>
@@ -395,7 +406,7 @@
       </div>
     </article>
 
-    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'productos'">
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'productos' && catalogAdminView === 'productos'">
       <ng-container *ngIf="!masterDetailModalOpen; else masterProductEditor">
         <div class="toolbar">
           <label>
