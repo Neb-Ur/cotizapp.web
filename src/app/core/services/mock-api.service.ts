@@ -25,7 +25,6 @@ import {
   SearchRow,
   SearchSort,
   SessionUser,
-  SubscriptionPlan,
   TaxonomyOption
 } from '../models/app.models';
 import { AuthService } from './auth.service';
@@ -39,30 +38,6 @@ interface ApiEnvelope<T> {
     message: string;
     details?: unknown;
   };
-}
-
-interface PlanCapabilities {
-  plan: SubscriptionPlan;
-  label: string;
-  maxPendingQuotations: number | null;
-  hasHistory: boolean;
-}
-
-interface StorePlanCapabilities {
-  plan: SubscriptionPlan;
-  label: string;
-  maxCatalogProducts: number | null;
-  allowCsvImport: boolean;
-  allowAdvancedMetrics: boolean;
-}
-
-interface CapacityResponse {
-  allowed: boolean;
-  limit: number | null;
-  message: string;
-  pendingCount?: number;
-  currentCount?: number;
-  remaining?: number | null;
 }
 
 interface CatalogMeta {
@@ -132,17 +107,6 @@ export interface TaxonomyDefinitionApi {
 export class MockApiService {
   private readonly apiBaseUrl = API_BASE_URL;
 
-  private readonly maestroPlanCapabilities: Record<SubscriptionPlan, PlanCapabilities> = {
-    basico: { plan: 'basico', label: 'Plan Basico', maxPendingQuotations: 1, hasHistory: false },
-    pro: { plan: 'pro', label: 'Plan Pro', maxPendingQuotations: 5, hasHistory: true },
-    premium: { plan: 'premium', label: 'Plan Premium', maxPendingQuotations: null, hasHistory: true }
-  };
-
-  private readonly ferreteriaPlanCapabilities: Record<SubscriptionPlan, StorePlanCapabilities> = {
-    basico: { plan: 'basico', label: 'Plan Basico', maxCatalogProducts: 30, allowCsvImport: false, allowAdvancedMetrics: false },
-    pro: { plan: 'pro', label: 'Plan Pro', maxCatalogProducts: 200, allowCsvImport: true, allowAdvancedMetrics: true },
-    premium: { plan: 'premium', label: 'Plan Premium', maxCatalogProducts: null, allowCsvImport: true, allowAdvancedMetrics: true }
-  };
 
   private readonly categories: TaxonomyOption[] = [];
   private readonly subcategories: TaxonomyOption[] = [];
@@ -161,8 +125,6 @@ export class MockApiService {
 
   private readonly maestroSummaryByOwner = new Map<string, MaestroSummary>();
   private readonly ferreteriaMvpByOwner = new Map<string, FerreteriaMvpMetrics>();
-  private readonly pendingQuotaByOwner = new Map<string, CapacityResponse>();
-  private readonly catalogCapacityByOwner = new Map<string, CapacityResponse>();
 
   private readonly importReports: CatalogImportReport[] = [];
   private readonly importRowById = new Map<string, {
@@ -201,16 +163,14 @@ export class MockApiService {
       this.ensureSearchRowsLoaded(),
       this.ensureMasterCatalogLoaded(),
       this.ensureProjectsLoaded(ownerId),
-      this.ensureMaestroSummaryLoaded(ownerId),
-      this.ensurePendingQuotaLoaded(ownerId)
+      this.ensureMaestroSummaryLoaded(ownerId)
     ]);
   }
 
   async refreshMaestroOverview(ownerId: string, force = false): Promise<void> {
     await Promise.all([
       this.ensureProjectsLoaded(ownerId, force),
-      this.ensureMaestroSummaryLoaded(ownerId, force),
-      this.ensurePendingQuotaLoaded(ownerId, force)
+      this.ensureMaestroSummaryLoaded(ownerId, force)
     ]);
   }
 
@@ -224,17 +184,10 @@ export class MockApiService {
 
   async refreshMaestroProjectsSection(ownerId: string, force = false): Promise<void> {
     await Promise.all([
-      this.ensureProjectsLoaded(ownerId, force),
-      this.ensurePendingQuotaLoaded(ownerId, force)
+      this.ensureProjectsLoaded(ownerId, force)
     ]);
   }
 
-  async refreshMaestroSubscriptionSection(ownerId: string, force = false): Promise<void> {
-    await Promise.all([
-      this.ensureProjectsLoaded(ownerId, force),
-      this.ensurePendingQuotaLoaded(ownerId, force)
-    ]);
-  }
 
   async refreshFerreteriaData(ownerId: string): Promise<void> {
     await Promise.all([
@@ -242,8 +195,7 @@ export class MockApiService {
       this.ensureSearchRowsLoaded(),
       this.ensureMasterCatalogLoaded(),
       this.ensureCatalogLoaded(ownerId),
-      this.ensureFerreteriaMvpLoaded(ownerId),
-      this.ensureCatalogCapacityLoaded(ownerId)
+      this.ensureFerreteriaMvpLoaded(ownerId)
     ]);
   }
 
@@ -259,7 +211,6 @@ export class MockApiService {
       this.ensureTaxonomyLoaded(force),
       this.ensureCatalogLoaded(ownerId, force)
     ]);
-    await this.ensureCatalogCapacityLoaded(ownerId, force);
   }
 
   async refreshFerreteriaUploadSection(ownerId: string, force = false): Promise<void> {
@@ -273,9 +224,6 @@ export class MockApiService {
     await this.ensureFerreteriaMvpLoaded(ownerId, force);
   }
 
-  async refreshFerreteriaSubscriptionSection(ownerId: string, force = false): Promise<void> {
-    await this.ensureCatalogCapacityLoaded(ownerId, force);
-  }
 
   async refreshAdminData(): Promise<void> {
     await Promise.all([
@@ -1328,44 +1276,6 @@ export class MockApiService {
     ];
   }
 
-  getPlanCapabilities(plan: SubscriptionPlan): PlanCapabilities {
-    return this.maestroPlanCapabilities[plan] || this.maestroPlanCapabilities.basico;
-  }
-
-  getFerreteriaPlanCapabilities(plan: SubscriptionPlan): StorePlanCapabilities {
-    return this.ferreteriaPlanCapabilities[plan] || this.ferreteriaPlanCapabilities.basico;
-  }
-
-  canCreatePendingProject(ownerId: string, _plan: SubscriptionPlan): {
-    allowed: boolean;
-    pendingCount: number;
-    limit: number | null;
-    remaining: number | null;
-    message: string;
-  } {
-    const pendingCount = this.getProjectsByStatus(ownerId, 'pendiente').length;
-    return {
-      allowed: true,
-      pendingCount,
-      limit: null,
-      remaining: null,
-      message: ''
-    };
-  }
-
-  canAddCatalogProduct(ownerId: string, _plan: SubscriptionPlan): {
-    allowed: boolean;
-    currentCount: number;
-    limit: number | null;
-    message: string;
-  } {
-    return {
-      allowed: true,
-      currentCount: this.getCatalog(ownerId).length,
-      limit: null,
-      message: ''
-    };
-  }
 
   formatCurrency(value: number): string {
     return new Intl.NumberFormat('es-CL', {
@@ -1559,34 +1469,6 @@ export class MockApiService {
     return promise;
   }
 
-  private ensurePendingQuotaLoaded(ownerId: string, force = false): Promise<void> {
-    if (!force && this.pendingQuotaByOwner.has(ownerId)) {
-      return Promise.resolve();
-    }
-
-    const plan = this.authService.currentUser()?.subscriptionPlan || 'basico';
-    return this.apiGet<CapacityResponse>(`/maestros/${ownerId}/capacidad-cotizaciones`, true, {
-      plan
-    })
-      .then((data) => {
-        this.pendingQuotaByOwner.set(ownerId, data);
-      })
-      .catch(() => undefined);
-  }
-
-  private ensureCatalogCapacityLoaded(ownerId: string, force = false): Promise<void> {
-    if (!force && this.catalogCapacityByOwner.has(ownerId)) {
-      return Promise.resolve();
-    }
-
-    const plan = this.authService.currentUser()?.subscriptionPlan || 'basico';
-    return this.resolveFerreteriaId(ownerId)
-      .then((ferreteriaId) => this.apiGet<CapacityResponse>(`/ferreterias/${ferreteriaId}/capacidad-catalogo`, true, { plan }))
-      .then((data) => {
-        this.catalogCapacityByOwner.set(ownerId, data);
-      })
-      .catch(() => undefined);
-  }
 
   private ensureImportReportsLoaded(force = false): Promise<void> {
     if (!force && this.importPromise) {
@@ -2061,7 +1943,6 @@ export class MockApiService {
   private invalidateMaestroState(ownerId: string): void {
     this.projectsPromiseByOwner.delete(ownerId);
     this.maestroSummaryPromiseByOwner.delete(ownerId);
-    this.pendingQuotaByOwner.delete(ownerId);
     this.maestroSummaryByOwner.delete(ownerId);
   }
 
