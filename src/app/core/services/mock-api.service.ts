@@ -1205,13 +1205,11 @@ export class MockApiService {
 
     this.searchPromise = (async () => {
       try {
-        const rows = await this.apiGet<any[]>('/busqueda', false, { sort: 'precio' });
+        const rows = await this.apiGet<any[]>('/busqueda');
         this.replaceArray(this.searchRows, rows.map((item) => ({
           productName: item.productName,
           storeName: item.storeName,
           price: Number(item.price) || 0,
-          distanceKm: Number(item.distanceKm) || 0,
-          balanceScore: Number(item.balanceScore) || 0,
           categoryId: item.categoryId,
           categoryName: item.categoryName,
           subcategoryId: item.subcategoryId,
