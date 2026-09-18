@@ -202,6 +202,8 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   protected onboardingLoading = false;
   protected onboardingError = '';
   protected onboardingNotice = '';
+  protected selectedStoreCatalogLabel = '';
+  protected selectedStoreCatalog: CatalogProduct[] = [];
 
   protected requestCreationModalOpen = false;
 
@@ -978,6 +980,12 @@ export class DashboardAdminValidacionesComponent implements OnInit {
 
   protected storeCatalogCount(store: SessionUser): number {
     return this.apiService.getCatalog(store.id).length;
+  }
+
+  protected async inspectStoreCatalog(store: SessionUser): Promise<void> {
+    await this.apiService.refreshFerreteriaCatalogSection(store.id, true);
+    this.selectedStoreCatalogLabel = store.businessName || store.displayName;
+    this.selectedStoreCatalog = [...this.apiService.getCatalog(store.id)];
   }
 
   protected async activateStore(store: SessionUser): Promise<void> {
