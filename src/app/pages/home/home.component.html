@@ -3,7 +3,7 @@
   <div class="hero-inner">
     <div class="hero-badge">
       <span class="badge-dot"></span>
-      Plataforma SaaS · Construcción Chile
+      Piloto MVP · Construcción Chile
     </div>
 
     <h1 class="hero-headline">
@@ -21,22 +21,6 @@
       <a class="btn btn-ghost-white btn-lg" routerLink="/maestros">Ver cómo funciona</a>
     </div>
 
-    <div class="hero-stats">
-      <div class="stat">
-        <strong>2.400+</strong>
-        <span>Maestros activos</span>
-      </div>
-      <div class="stat-sep"></div>
-      <div class="stat">
-        <strong>850+</strong>
-        <span>Ferreterías listadas</span>
-      </div>
-      <div class="stat-sep"></div>
-      <div class="stat">
-        <strong>$12M+</strong>
-        <span>Ahorrados en obras</span>
-      </div>
-    </div>
   </div>
 
   <!-- Decorative orbs -->
@@ -55,7 +39,7 @@
       <article class="step-card">
         <div class="step-num">01</div>
         <h3>Busca materiales</h3>
-        <p>Encuentra productos y compara por precio, cercanía o balance entre ferreterías de tu zona.</p>
+        <p>Encuentra productos y compara sus precios entre las ferreterías activas del piloto.</p>
       </article>
       <div class="step-arrow">→</div>
       <article class="step-card">
@@ -93,12 +77,12 @@
       <article class="audience-card audience-ferreteria">
         <div class="audience-tag audience-tag--green">Para Ferreterías</div>
         <h2>Más clientes, sin esfuerzo</h2>
-        <p>Publica tu catálogo una vez y aparece en las búsquedas de cientos de maestros y contratistas de tu zona buscando exactamente lo que vendes.</p>
+        <p>CotizApp puede cargar tu catálogo inicial y tú mantienes precio y stock para participar en las comparaciones.</p>
         <ul class="feature-list">
           <li>Catálogo digital actualizable</li>
-          <li>Carga masiva via CSV</li>
-          <li>Visibilidad local garantizada</li>
-          <li>Métricas de consultas y clics</li>
+          <li>Actualización masiva por Excel o CSV</li>
+          <li>Participación en el comparador al activar la cuenta</li>
+          <li>Precio y stock editables desde el catálogo</li>
         </ul>
         <a class="btn btn-secondary" routerLink="/ferreterias">Conocer CotizApp para Ferreterías</a>
       </article>
@@ -151,37 +135,14 @@
   </div>
 </section>
 
-<!-- ── TESTIMONIALS ────────────────────────────── -->
-<section class="section testimonials-section">
-  <div class="section-inner">
-    <div class="section-label">Testimonios</div>
-    <h2 class="section-title">Lo que dicen quienes ya lo usan</h2>
-
-    <div class="testimonials-grid">
-      @for (item of testimonials; track item.author) {
-        <article class="testimonial-card">
-          <p class="quote">"{{ item.quote }}"</p>
-          <div class="author-row">
-            <div class="author-avatar">{{ item.author[0] }}</div>
-            <div>
-              <p class="author-name">{{ item.author }}</p>
-              <p class="author-role">{{ item.role }}</p>
-            </div>
-          </div>
-        </article>
-      }
-    </div>
-  </div>
-</section>
-
 <!-- ── FINAL CTA ───────────────────────────────── -->
 <section class="cta-section">
   <div class="cta-inner">
     <h2>¿Listo para optimizar tus obras?</h2>
-    <p>Activa tu cuenta en menos de 2 minutos y empieza a ahorrar desde hoy.</p>
+    <p>Crea tu cuenta y participa en el piloto de CotizApp.</p>
     <div class="cta-actions">
       <a class="btn btn-primary btn-lg" routerLink="/registro">Crear cuenta gratis</a>
-      <a class="btn btn-ghost-white btn-lg" routerLink="/contacto">Hablar con ventas</a>
+      <a class="btn btn-ghost-white btn-lg" routerLink="/contacto">Contactar a CotizApp</a>
     </div>
   </div>
   <div class="orb orb-cta-1"></div>
