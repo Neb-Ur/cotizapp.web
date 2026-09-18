@@ -745,6 +745,40 @@ export class MockApiService {
         continue;
       }
 
+      const existingCatalogProduct = this.getCatalog(ownerId).find((item) => {
+        const sameSku = parsed.sku && item.sku
+          ? this.normalizeBarcode(parsed.sku) === this.normalizeBarcode(item.sku)
+          : false;
+        const sameBarcode = parsed.barcode && item.barcode
+          ? this.normalizeBarcode(parsed.barcode) === this.normalizeBarcode(item.barcode)
+          : false;
+        const sameName = item.name.trim().toLowerCase() === parsed.name.trim().toLowerCase();
+        return sameSku || sameBarcode || sameName;
+      });
+
+      if (existingCatalogProduct) {
+        await this.upsertCatalog(ownerId, {
+          ...existingCatalogProduct,
+          sku: parsed.sku || existingCatalogProduct.sku,
+          barcode: parsed.barcode || existingCatalogProduct.barcode,
+          price: parsed.price,
+          stock: parsed.stock
+        });
+
+        reportRows.push({
+          lineNumber: parsed.lineNumber,
+          rawLine: parsed.rawLine,
+          name: parsed.name,
+          sku: parsed.sku,
+          price: parsed.price,
+          stock: parsed.stock,
+          outcome: 'subido',
+          message: 'Precio y stock actualizados en el catalogo de la ferreteria.',
+          suggestions: []
+        });
+        continue;
+      }
+
       const suggestions = this.suggestMatches(parsed.name);
       const firstMatch = suggestions[0];
       if (!firstMatch) {
