@@ -81,6 +81,27 @@ El MVP usa principalmente:
 - `proyectos`
 - `solicitudesCreacionProducto`
 
+## Flujo de catalogo de ferreterias
+
+Para reducir friccion operativa, el flujo principal del MVP es:
+
+1. CotizApp realiza la carga inicial del catalogo por la ferreteria desde Admin.
+2. La ferreteria entra a **Mantener catalogo** y actualiza principalmente precio y stock.
+3. Para cambios masivos puede subir un archivo Excel (`.xlsx`, `.xls`) o CSV.
+4. La importacion intenta primero reconocer productos ya cargados por SKU, codigo de barras o nombre y actualiza precio/stock.
+5. Si un producto aun no esta en la tienda, intenta vincularlo al catalogo maestro.
+6. Si no existe en el catalogo maestro, queda como solicitud de revision.
+7. La ferreteria tambien puede agregar productos individualmente desde el catalogo maestro.
+
+El formato recomendado para archivos es:
+
+```csv
+nombre,sku,precio,stock,codigo_barras
+Cemento Melon 25kg,CEM-25,5490,80,7800000000000
+```
+
+El importador acepta encabezados equivalentes comunes (por ejemplo `producto`, `codigo`, `precio venta`, `existencia` o `EAN`).
+
 ## Objetivo del MVP
 
 Validar que un maestro encuentra valor en tener los precios de materiales en un solo lugar y en saber dónde gastar menos para una cotización completa.
