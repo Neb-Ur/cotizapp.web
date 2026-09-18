@@ -66,8 +66,16 @@
     </article>
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'catalogo'">
-      <h3>Mi Catalogo</h3>
-      <p style="margin: 0.3rem 0 0; color: #4a5568;">{{ catalogQuotaText }}</p>
+      <div style="display:flex; justify-content:space-between; gap:1rem; align-items:flex-start; flex-wrap:wrap;">
+        <div>
+          <h3 style="margin-bottom:0.25rem;">Mantener precios y stock</h3>
+          <p style="margin: 0; color: #4a5568;">
+            Nosotros podemos cargar tu catalogo inicial. Tu tarea principal es mantener actualizados el precio y stock de esos productos.
+          </p>
+          <p style="margin: 0.3rem 0 0; color: #4a5568;">{{ catalogQuotaText }}</p>
+        </div>
+        <button type="button" class="secondary" (click)="setSection('subir')">Agregar productos</button>
+      </div>
       <p *ngIf="catalogNotice" class="saved">{{ catalogNotice }}</p>
       <p *ngIf="catalogInlineError" style="margin: 0.35rem 0 0; color: #9b1f1f; font-weight: 700;">{{ catalogInlineError }}</p>
       <div class="catalog-filters-grid">
@@ -144,6 +152,7 @@
               <th>Estado</th>
               <th>Precio</th>
               <th>Stock</th>
+              <th>Actualizado</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -178,6 +187,10 @@
                   [(ngModel)]="catalogInlineDraft.stock"
                 />
                 <ng-template #stockRead>{{ product.stock }}</ng-template>
+              </td>
+              <td>
+                <span *ngIf="product.updatedAt; else noCatalogUpdate">{{ product.updatedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                <ng-template #noCatalogUpdate>-</ng-template>
               </td>
               <td class="actions">
                 <ng-container *ngIf="catalogInlineEditId === product.id; else catalogRowActions">
@@ -310,25 +323,38 @@
       </article>
 
       <ng-template #emptyCatalog>
-        <p *ngIf="catalog.length === 0">Aun no tienes productos cargados en el catalogo.</p>
+        <div *ngIf="catalog.length === 0" style="padding:1rem; border:1px dashed #cbd5e1; border-radius:12px;">
+          <p style="margin:0 0 0.6rem;">Aun no tienes productos cargados. CotizApp puede realizar la carga inicial por ti.</p>
+          <button type="button" (click)="setSection('subir')">Agregar productos por mi cuenta</button>
+        </div>
         <p *ngIf="catalog.length > 0">No hay productos para los filtros seleccionados.</p>
       </ng-template>
     </article>
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'subir'">
+      <div>
+        <h3 style="margin-bottom:0.35rem;">Agregar productos</h3>
+        <p style="margin-top:0; color:#4a5568;">
+          Esta es una opcion adicional. Si prefieres, puedes enviarnos tu lista y nosotros realizamos la carga inicial.
+        </p>
+      </div>
+
       <div class="upload-mode-toggle">
         <button type="button" [class.active]="uploadMode === 'buscar'" (click)="setUploadMode('buscar')">
-          Buscar en catalogo maestro
+          Agregar individual
+        </button>
+        <button type="button" [class.active]="uploadMode === 'archivo'" (click)="setUploadMode('archivo')">
+          Subir Excel / CSV
         </button>
         <button type="button" [class.active]="uploadMode === 'solicitud'" (click)="setUploadMode('solicitud')">
-          Solicitar creacion
+          Producto no existe
         </button>
       </div>
 
       <section class="upload-search-card" *ngIf="uploadMode === 'buscar'">
-        <h3>Agregar producto desde catalogo maestro</h3>
+        <h3>Agregar producto individual</h3>
         <p>
-          Filtra por nombre, categoria, subcategoria o familia. Solo veras productos del catalogo maestro que aun no estan en tu tienda.
+          Busca el producto en nuestro catalogo maestro, selecciona precio y stock y agregalo a tu ferreteria. Si no existe, puedes solicitar que lo creemos.
         </p>
 
         <div class="catalog-filters-grid">
@@ -531,6 +557,50 @@
         <button type="button" class="ghost-link" (click)="setUploadMode('solicitud')">
           No existe en catalogo maestro, solicitar creacion
         </button>
+      </section>
+
+      <section class="upload-search-card" *ngIf="uploadMode === 'archivo'">
+        <h3>Subir productos desde Excel o CSV</h3>
+        <p>
+          Puedes usar el archivo que ya manejas en tu ferreteria. CotizApp reconoce columnas comunes como nombre/producto, SKU/codigo, precio, stock y codigo de barras.
+        </p>
+
+        <div class="form-grid">
+          <label>
+            Archivo
+            <input
+              type="file"
+              accept=".xlsx,.xls,.csv,.txt"
+              (change)="onCatalogFileSelected($event)"
+              [disabled]="isReadingCatalogFile"
+            />
+          </label>
+          <label>
+            Archivo seleccionado
+            <input type="text" [value]="catalogFileName || 'Ningun archivo seleccionado'" disabled />
+          </label>
+        </div>
+
+        <p style="margin:0.5rem 0; color:#4a5568;">
+          Formato recomendado: nombre, sku, precio, stock, codigo_barras. Si el producto ya existe en el catalogo maestro se vincula automaticamente; si no, queda para revision.
+        </p>
+
+        <textarea
+          [(ngModel)]="csvContent"
+          rows="10"
+          style="width:100%;"
+          placeholder="nombre,sku,precio,stock,codigo_barras"
+        ></textarea>
+
+        <p *ngIf="csvError" style="margin:0.4rem 0 0; color:#9b1f1f; font-weight:700;">{{ csvError }}</p>
+        <p *ngIf="csvNotice" class="saved">{{ csvNotice }}</p>
+
+        <div class="form-actions">
+          <button type="button" (click)="importCsv()" [disabled]="isReadingCatalogFile || !csvContent.trim()">
+            {{ isReadingCatalogFile ? 'Leyendo archivo...' : 'Procesar archivo' }}
+          </button>
+          <button type="button" class="ghost" (click)="resetCatalogImportTemplate()">Ver formato de ejemplo</button>
+        </div>
       </section>
 
       <div class="upload-grid" *ngIf="uploadMode === 'solicitud'">
