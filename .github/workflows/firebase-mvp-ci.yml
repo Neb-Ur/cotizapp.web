@@ -1,29 +1,165 @@
-name: Firebase MVP CI
+name: CotizApp CI/CD
 
 on:
   pull_request:
+    branches:
+      - main
   push:
     branches:
       - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cotizapp-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+  FUNCTIONS_NODE_VERSION: '22'
+  FIREBASE_PROJECT_ID: cotizacion-77802
+  PRODUCTION_URL: https://cotizacion-77802.web.app
 
 jobs:
-  frontend:
+  ci:
+    name: Test + build
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm install
-      - run: npm run build
-      - run: npm test -- --watch=false --browsers=ChromeHeadless
+    timeout-minutes: 30
 
-  functions:
-    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: 22
-      - run: npm --prefix functions install
-      - run: npm run functions:build
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install frontend dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run frontend tests
+        run: npm test -- --watch=false --browsers=ChromeHeadless
+
+      - name: Build Angular production bundle
+        run: npm run build
+
+      - name: Setup Node for Functions
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.FUNCTIONS_NODE_VERSION }}
+
+      - name: Install Functions dependencies
+        run: npm --prefix functions install --no-audit --no-fund
+
+      - name: Build Firebase Functions
+        run: npm run functions:build
+
+      - name: Upload validated web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: cotizapp-web-${{ github.sha }}
+          path: dist/cotizacion-web/browser
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    name: Deploy Firebase production
+    if: github.event_name != 'pull_request'
+    needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    env:
+      FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install frontend dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Setup Node for Functions
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.FUNCTIONS_NODE_VERSION }}
+
+      - name: Install Functions dependencies
+        run: npm --prefix functions install --no-audit --no-fund
+
+      - name: Download validated web build
+        uses: actions/download-artifact@v4
+        with:
+          name: cotizapp-web-${{ github.sha }}
+          path: dist/cotizacion-web/browser
+
+      - name: Configure Firebase authentication
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -n "${FIREBASE_SERVICE_ACCOUNT_JSON:-}" ]]; then
+            CREDENTIALS="$RUNNER_TEMP/firebase-service-account.json"
+            printf '%s' "$FIREBASE_SERVICE_ACCOUNT_JSON" > "$CREDENTIALS"
+            chmod 600 "$CREDENTIALS"
+            echo "GOOGLE_APPLICATION_CREDENTIALS=$CREDENTIALS" >> "$GITHUB_ENV"
+            echo "FIREBASE_AUTH_MODE=adc" >> "$GITHUB_ENV"
+            echo "Firebase authentication: service account / ADC"
+          elif [[ -n "${FIREBASE_TOKEN:-}" ]]; then
+            echo "FIREBASE_AUTH_MODE=token" >> "$GITHUB_ENV"
+            echo "Firebase authentication: CI token"
+          else
+            echo "::error::Configure FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_TOKEN in GitHub Actions secrets."
+            exit 1
+          fi
+
+      - name: Deploy Hosting, Functions and Firestore
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          DEPLOY_TARGETS="hosting,functions,firestore:rules,firestore:indexes"
+
+          if [[ "$FIREBASE_AUTH_MODE" == "token" ]]; then
+            npx --yes firebase-tools@latest deploy               --only "$DEPLOY_TARGETS"               --project "$FIREBASE_PROJECT_ID"               --token "$FIREBASE_TOKEN"               --non-interactive
+          else
+            npx --yes firebase-tools@latest deploy               --only "$DEPLOY_TARGETS"               --project "$FIREBASE_PROJECT_ID"               --non-interactive
+          fi
+
+      - name: Smoke test production
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Checking $PRODUCTION_URL"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 5 "$PRODUCTION_URL/" > /tmp/cotizapp-index.html
+          grep -q "<app-root" /tmp/cotizapp-index.html
+
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 5 "$PRODUCTION_URL/__/firebase/init.json" > /tmp/firebase-init.json
+          grep -q '"projectId"' /tmp/firebase-init.json
+
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 5 "$PRODUCTION_URL/api/busqueda" > /tmp/cotizapp-api.json
+          grep -q '"ok":true' /tmp/cotizapp-api.json
+
+          echo "Hosting, Firebase bootstrap and API are responding correctly."
+
+      - name: Deployment summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## CotizApp production"
+            echo "- URL: $PRODUCTION_URL"
+            echo "- Firebase project: $FIREBASE_PROJECT_ID"
+            echo "- Commit: ${GITHUB_SHA:0:7}"
+            echo "- Trigger: ${{ github.event_name }}"
+          } >> "$GITHUB_STEP_SUMMARY"
