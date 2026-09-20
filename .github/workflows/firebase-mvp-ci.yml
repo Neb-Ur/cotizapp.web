@@ -73,7 +73,7 @@ jobs:
     timeout-minutes: 45
 
     env:
-      FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+      FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON || secrets.FIREBASE_SERVICE_ACCOUNT_COTIZACION_77802 }}
       FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
     steps:
@@ -118,7 +118,7 @@ jobs:
             echo "FIREBASE_AUTH_MODE=token" >> "$GITHUB_ENV"
             echo "Firebase authentication: CI token"
           else
-            echo "::error::Configure FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_TOKEN in GitHub Actions secrets."
+            echo "::error::Configure FIREBASE_SERVICE_ACCOUNT_JSON, FIREBASE_SERVICE_ACCOUNT_COTIZACION_77802 or FIREBASE_TOKEN in GitHub Actions secrets."
             exit 1
           fi
 
