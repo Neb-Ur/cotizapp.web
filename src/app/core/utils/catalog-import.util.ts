@@ -20,6 +20,27 @@ const HEADER_ALIASES = {
 
 export const CATALOG_IMPORT_COLUMNS = ['nombre', 'sku', 'precio', 'stock', 'codigo_barras'] as const;
 
+export interface CatalogTemplateProductRow {
+  name: string;
+  sku: string;
+  price: number;
+  stock: number;
+  barcode?: string;
+}
+
+export function buildCatalogTemplateRows(products: CatalogTemplateProductRow[] = []): Array<Array<string | number>> {
+  return [
+    [...CATALOG_IMPORT_COLUMNS],
+    ...products.map((product) => [
+      product.name,
+      product.sku,
+      product.price,
+      product.stock,
+      product.barcode || ''
+    ])
+  ];
+}
+
 export const CATALOG_IMPORT_TEMPLATE = [
   [...CATALOG_IMPORT_COLUMNS],
   ['Cemento Melon 25kg', 'CEM-25', '5490', '80', '7800000000000'],
@@ -38,14 +59,15 @@ export function catalogImportTemplateFileName(label?: string): string {
   return `cotizapp-catalogo-${normalized || 'catalogo'}.xlsx`;
 }
 
-export async function downloadCatalogImportTemplate(fileName = 'cotizapp-catalogo-template.xlsx'): Promise<void> {
+export async function downloadCatalogImportTemplate(
+  fileName = 'cotizapp-catalogo-template.xlsx',
+  products: CatalogTemplateProductRow[] = []
+): Promise<void> {
   const XLSX = await import('xlsx');
   const workbook = XLSX.utils.book_new();
 
   // Keep Productos as the first sheet: the importer always reads the first sheet.
-  const productSheet = XLSX.utils.aoa_to_sheet([
-    [...CATALOG_IMPORT_COLUMNS]
-  ]);
+  const productSheet = XLSX.utils.aoa_to_sheet(buildCatalogTemplateRows(products));
   productSheet['!cols'] = [
     { wch: 42 },
     { wch: 20 },
@@ -69,7 +91,8 @@ export async function downloadCatalogImportTemplate(fileName = 'cotizapp-catalog
     ['2. Pega un producto por fila y no agregues titulos antes del encabezado.'],
     ['3. Deja vacias las columnas que no tengas; nombre y precio son las unicas obligatorias.'],
     ['4. Sube este mismo archivo desde Admin > Ferreterias o desde el panel de la ferreteria.'],
-    ['5. CotizApp intenta relacionar cada fila por SKU, codigo de barras o nombre; los productos nuevos quedan para revision.']
+    ['5. Si el archivo viene con tu catalogo actual, modifica principalmente precio y stock; conserva nombre, SKU y codigo de barras para identificar correctamente cada producto.'],
+    ['6. CotizApp relaciona cada fila por SKU, codigo de barras o nombre; si agregas una fila nueva, el producto puede quedar para revision.']
   ]);
   instructionsSheet['!cols'] = [
     { wch: 24 },
