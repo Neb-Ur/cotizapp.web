@@ -967,19 +967,23 @@ export class MockApiService {
     items: ProjectItem[],
     address = ''
   ): Promise<ProjectSummary> {
-    const created = await this.apiPost<any>(`/maestros/${ownerId}/proyectos`, {
-      nombre: name.trim(),
-      direccionObra: address.trim(),
-      items: items.map((item) => ({
-        productName: item.productName.trim(),
-        quantity: Math.max(1, Math.floor(Number(item.quantity) || 0))
-      }))
-    }, true);
+    try {
+      const created = await this.apiPost<any>(`/maestros/${ownerId}/proyectos`, {
+        nombre: name.trim(),
+        direccionObra: address.trim(),
+        items: items.map((item) => ({
+          productName: item.productName.trim(),
+          quantity: Math.max(1, Math.floor(Number(item.quantity) || 0))
+        }))
+      }, true);
 
-    const summary = this.mapProjectRow(created);
-    this.upsertProjectBucket(this.getOrCreateProjectsBucket(ownerId), summary);
-    this.invalidateMaestroState(ownerId);
-    return summary;
+      const summary = this.mapProjectRow(created);
+      this.upsertProjectBucket(this.getOrCreateProjectsBucket(ownerId), summary);
+      this.invalidateMaestroState(ownerId);
+      return summary;
+    } catch (error) {
+      throw this.normalizeError(error, 'No se pudo guardar la cotizacion.');
+    }
   }
 
   async updateProject(ownerId: string, projectId: string, name: string, items: ProjectItem[], address = ''): Promise<ProjectSummary | null> {
