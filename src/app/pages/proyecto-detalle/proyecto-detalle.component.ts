@@ -11,6 +11,7 @@ import {
 } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
 import { MockApiService } from '../../core/services/mock-api.service';
+import { shareQuotationPdf } from '../../core/utils/quotation-pdf.util';
 
 @Component({
   selector: 'app-proyecto-detalle',
@@ -147,10 +148,16 @@ export class ProyectoDetalleComponent implements OnInit {
     }
 
     if (this.isNewProject) {
-      const created = await this.apiService.saveProject(currentUser.id, name, this.projectItems, this.projectAddress);
-      this.saveNotice = 'Cotizacion creada correctamente.';
-      this.clearDraft();
-      this.router.navigate(['/dashboard/maestro/cotizaciones', created.id]);
+      try {
+        const created = await this.apiService.saveProject(currentUser.id, name, this.projectItems, this.projectAddress);
+        this.saveNotice = 'Cotizacion creada correctamente.';
+        this.clearDraft();
+        this.router.navigate(['/dashboard/maestro/cotizaciones', created.id]);
+      } catch (error) {
+        this.saveNotice = error instanceof Error
+          ? error.message
+          : 'No se pudo guardar la cotizacion.';
+      }
       return;
     }
 
@@ -174,6 +181,29 @@ export class ProyectoDetalleComponent implements OnInit {
         draftAddress: this.isNewProject ? this.projectAddress : null
       }
     });
+  }
+
+  protected async shareQuotation(): Promise<void> {
+    if (!this.hasQuotation || this.isNewProject) {
+      return;
+    }
+
+    try {
+      const result = await shareQuotationPdf({
+        projectName: this.projectName.trim() || 'Cotizacion',
+        projectAddress: this.projectAddress,
+        maestroName: this.user?.displayName || '',
+        quotation: this.quotation
+      });
+
+      this.saveNotice = result === 'shared'
+        ? 'Cotizacion lista para enviar al cliente.'
+        : 'El PDF se descargo para que puedas enviarlo al cliente.';
+    } catch (error) {
+      this.saveNotice = error instanceof Error
+        ? error.message
+        : 'No se pudo preparar la cotizacion para enviar.';
+    }
   }
 
   protected exportQuotation(): void {
