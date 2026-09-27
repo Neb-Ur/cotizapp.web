@@ -999,3 +999,76 @@ button.plan-card__action.is-disabled {
     width: 100%;
   }
 }
+
+
+.nearby-search-card {
+  margin-top: 0.75rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem 1rem;
+  align-items: center;
+  padding: 0.8rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  background: #f8fbff;
+}
+
+.nearby-search-copy {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.nearby-search-copy strong {
+  color: var(--navy-900);
+}
+
+.nearby-search-copy span {
+  color: var(--slate-700);
+  font-size: 0.9rem;
+}
+
+.nearby-search-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.nearby-search-actions label {
+  min-width: 100px;
+}
+
+.nearby-message,
+.nearby-error {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-weight: 700;
+}
+
+.nearby-message {
+  color: #177245;
+}
+
+.nearby-error {
+  color: #9b1f1f;
+}
+
+.nearby-distance {
+  font-weight: 700;
+  color: var(--navy-800);
+}
+
+@media (max-width: 760px) {
+  .nearby-search-card {
+    grid-template-columns: 1fr;
+  }
+
+  .nearby-search-actions {
+    align-items: stretch;
+  }
+
+  .nearby-search-actions label,
+  .nearby-search-actions button {
+    width: 100%;
+  }
+}
