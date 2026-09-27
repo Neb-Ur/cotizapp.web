@@ -189,7 +189,10 @@
 
       <section *ngIf="uploadMode === 'archivo'" class="upload-search-card">
         <h3>Subir Excel o CSV</h3>
-        <p>Sirve para agregar productos y para actualizar masivamente precio y stock de productos existentes.</p>
+        <p>Usa el template oficial para mantener siempre el mismo formato. Sirve para agregar productos y actualizar masivamente precio y stock.</p>
+        <div class="form-actions">
+          <button type="button" class="secondary" (click)="downloadCatalogTemplate()">Descargar template CotizApp</button>
+        </div>
         <input type="file" accept=".xlsx,.xls,.csv,.txt" (change)="onCatalogFileSelected($event)" [disabled]="isReadingCatalogFile" />
         <p>{{ catalogFileName || 'Ningun archivo seleccionado' }}</p>
         <textarea [(ngModel)]="csvContent" rows="10" style="width:100%;"></textarea>
