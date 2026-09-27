@@ -1262,30 +1262,38 @@ export class MockApiService {
     singleStoreName?: string
   ): ProjectComparisonStrategy[] {
     const quotation = this.buildProjectQuotation(items, proximity, singleStoreName);
-    const storesUsed = new Set(
-      quotation.lines
+    const mixedStoresUsed = new Set(
+      this.buildProjectQuotation(items, proximity).lines
         .map((line) => line.bestStoreName)
         .filter((name) => name && name !== 'Sin datos')
     ).size;
 
-    return [
-      {
-        id: 'cheapest',
-        title: 'Menor precio combinado',
-        subtitle: storesUsed === 1 ? '1 ferreteria' : `${storesUsed} ferreterias`,
-        total: quotation.optimalTotal,
-        saving: quotation.mixedSaving
-      },
-      {
-        id: 'same-store',
-        title: 'Todo en una ferreteria',
-        subtitle: quotation.bestStore.storeName,
-        total: quotation.bestStore.total,
-        saving: 0
-      }
-    ];
-  }
+    if (quotation.appliedStoreName) {
+      return [
+        {
+          id: 'same-store',
+          title: 'Compra aplicada',
+          subtitle: quotation.appliedStoreName,
+          total: quotation.optimalTotal
+        },
+        {
+          id: 'cheapest',
+          title: 'Compra combinada',
+          subtitle: mixedStoresUsed === 1 ? '1 ferreteria' : `${mixedStoresUsed} ferreterias`,
+          total: quotation.mixedTotal,
+          saving: Math.max(0, quotation.optimalTotal - quotation.mixedTotal)
+        }
+      ];
+    }
 
+    return [{
+      id: 'cheapest',
+      title: 'Menor precio combinado',
+      subtitle: mixedStoresUsed === 1 ? '1 ferreteria' : `${mixedStoresUsed} ferreterias`,
+      total: quotation.mixedTotal,
+      saving: quotation.mixedSaving
+    }];
+  }
 
   formatCurrency(value: number): string {
     return new Intl.NumberFormat('es-CL', {
