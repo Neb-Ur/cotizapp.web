@@ -35,12 +35,18 @@
         <h1>{{ product.productName }}</h1>
         <p class="sku">SKU {{ product.sku }}</p>
         <p class="type">{{ product.productType }}</p>
-        <p class="price-range">{{ formatCurrency(product.minPrice) }} - {{ formatCurrency(product.maxPrice) }}</p>
+        <p class="price-range">{{ formatCurrency(visibleMinPrice) }} - {{ formatCurrency(visibleMaxPrice) }}</p>
         <p class="best-price">Mejor precio en <strong>{{ bestPriceStoreName }}</strong></p>
 
         <section class="quick-stores">
           <h3>Precios por ferreteria</h3>
-          <p class="quick-stores-hint">{{ displayStores.length }} ferreteria(s) con oferta activa.</p>
+          <p class="quick-stores-hint" *ngIf="!nearbyEnabled">{{ displayStores.length }} ferreteria(s) con oferta activa.</p>
+          <p class="quick-stores-hint" *ngIf="nearbyEnabled">
+            {{ displayStores.length }} ferreteria(s) dentro de {{ nearbyRadiusKm }} km.
+          </p>
+          <p class="stock-warning" *ngIf="nearbyEnabled && displayStores.length === 0">
+            No hay ferreterias con ubicacion registrada y esta oferta dentro de {{ nearbyRadiusKm }} km.
+          </p>
 
           <label class="quantity-field">
             Cotizacion destino
@@ -75,6 +81,9 @@
                 <div>
                   <p class="store-name">{{ store.storeName }}</p>
                   <p class="store-stock">Stock: {{ store.stock }} {{ product.unitLabel.toLowerCase() }}</p>
+                  <p class="store-stock" *ngIf="nearbyEnabled && store.distanceKm !== undefined">
+                    A {{ formatDistance(store.distanceKm) }} de ti<span *ngIf="store.commune"> · {{ store.commune }}</span>
+                  </p>
                 </div>
               </label>
               <p class="store-price">{{ formatCurrency(store.price) }}</p>
