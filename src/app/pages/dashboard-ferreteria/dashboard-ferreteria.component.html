@@ -213,6 +213,24 @@
         <label>Comuna<input [(ngModel)]="profileDraft.commune" /></label>
         <label>Direccion<input [(ngModel)]="profileDraft.address" /></label>
       </div>
+
+      <section class="store-location-card">
+        <div>
+          <h4>Ubicacion del local</h4>
+          <p *ngIf="profileDraft.storeLatitude !== undefined && profileDraft.storeLongitude !== undefined">
+            Ubicacion registrada. Los maestros pueden encontrarte usando el filtro por kilometros.
+          </p>
+          <p *ngIf="profileDraft.storeLatitude === undefined || profileDraft.storeLongitude === undefined">
+            Aun no tienes una ubicacion registrada. Tu ferreteria no aparecera al filtrar por cercania.
+          </p>
+        </div>
+        <button type="button" class="ghost" (click)="updateProfileLocation()" [disabled]="isLocatingProfile">
+          {{ isLocatingProfile ? 'Obteniendo ubicacion...' : 'Usar ubicacion actual del local' }}
+        </button>
+        <p class="saved" *ngIf="profileLocationMessage">{{ profileLocationMessage }}</p>
+        <p class="catalog-edit-error" *ngIf="profileLocationError">{{ profileLocationError }}</p>
+      </section>
+
       <button type="button" (click)="saveProfile()">Guardar perfil</button>
       <p class="saved" *ngIf="profileSaved">Perfil actualizado.</p>
     </article>
