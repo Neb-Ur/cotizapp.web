@@ -105,7 +105,8 @@ export class ProyectoDetalleComponent implements OnInit {
 
 
   protected get hasQuotation(): boolean {
-    return this.quotation.lines.length > 0;
+    return this.quotation.lines.length > 0
+      && this.quotation.lines.every((line) => line.unitPrice > 0);
   }
 
   protected get hasItemsInTable(): boolean {
@@ -285,7 +286,8 @@ export class ProyectoDetalleComponent implements OnInit {
         projectName: this.projectName.trim() || 'Cotizacion',
         projectAddress: this.projectAddress,
         maestroName: this.user?.displayName || '',
-        quotation: this.quotation
+        quotation: this.quotation,
+        proximity: this.projectProximity
       });
 
       this.saveNotice = result === 'shared'
