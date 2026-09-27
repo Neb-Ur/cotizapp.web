@@ -387,6 +387,12 @@ export class DashboardMaestroComponent implements OnInit {
       this.quotationNotice = 'Esta cotizacion no tiene productos para enviar.';
       return;
     }
+    if (quotation.lines.some((line) => line.unitPrice <= 0)) {
+      this.quotationNotice = project.proximity
+        ? `Faltan ofertas con stock dentro de ${project.proximity.radiusKm} km. Amplia el radio antes de enviar.`
+        : 'Faltan ofertas con stock para completar esta cotizacion.';
+      return;
+    }
 
     try {
       const result = await shareQuotationPdf({
