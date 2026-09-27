@@ -5,7 +5,12 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProductDetailView, ProductStoreOfferRow, ProjectSummary, SessionUser } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
 import { MockApiService } from '../../core/services/mock-api.service';
-import { GeoCoordinates, distanceKm, hasValidCoordinates } from '../../core/utils/location.util';
+import {
+  GeoCoordinates,
+  distanceKm,
+  hasValidCoordinates,
+  readNearbySearchPreference
+} from '../../core/utils/location.util';
 
 @Component({
   selector: 'app-producto-detalle',
@@ -39,13 +44,12 @@ export class ProductoDetalleComponent implements OnInit {
   ngOnInit(): void {
     this.route.queryParamMap.subscribe(async (params) => {
       const productName = params.get('product') || '';
-      const nearby = params.get('nearby') === '1';
-      const latitude = Number(params.get('lat'));
-      const longitude = Number(params.get('lng'));
-      const radius = Number(params.get('radius'));
-      this.nearbyEnabled = nearby && Number.isFinite(latitude) && Number.isFinite(longitude);
-      this.nearbyLocation = this.nearbyEnabled ? { latitude, longitude } : null;
-      this.nearbyRadiusKm = [5, 10, 20, 50].includes(radius) ? radius : 10;
+      const nearbyPreference = readNearbySearchPreference();
+      this.nearbyEnabled = !!nearbyPreference;
+      this.nearbyLocation = nearbyPreference
+        ? { latitude: nearbyPreference.latitude, longitude: nearbyPreference.longitude }
+        : null;
+      this.nearbyRadiusKm = nearbyPreference?.radiusKm || 10;
 
       const currentUser = this.user;
       if (currentUser) {
@@ -166,15 +170,7 @@ export class ProductoDetalleComponent implements OnInit {
   }
 
   protected backToSearch(): void {
-    this.router.navigate(['/dashboard/maestro'], {
-      queryParams: {
-        section: 'buscar',
-        nearby: this.nearbyEnabled && this.nearbyLocation ? 1 : null,
-        lat: this.nearbyEnabled ? this.nearbyLocation?.latitude : null,
-        lng: this.nearbyEnabled ? this.nearbyLocation?.longitude : null,
-        radius: this.nearbyEnabled ? this.nearbyRadiusKm : null
-      }
-    });
+    this.router.navigate(['/dashboard/maestro'], { queryParams: { section: 'buscar' } });
   }
 
   protected formatDistance(value: number | undefined): string {
