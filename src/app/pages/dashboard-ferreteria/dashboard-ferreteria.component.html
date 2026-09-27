@@ -188,10 +188,10 @@
       </section>
 
       <section *ngIf="uploadMode === 'archivo'" class="upload-search-card">
-        <h3>Subir Excel o CSV</h3>
-        <p>Usa el template oficial para mantener siempre el mismo formato. Sirve para agregar productos y actualizar masivamente precio y stock.</p>
+        <h3>Actualizar masivamente por Excel</h3>
+        <p>Descarga tu catalogo actual, cambia precio y stock en la hoja Productos y vuelve a subir el mismo archivo. Mantén nombre, SKU y código de barras para que CotizApp identifique correctamente cada producto.</p>
         <div class="form-actions">
-          <button type="button" class="secondary" (click)="downloadCatalogTemplate()">Descargar template CotizApp</button>
+          <button type="button" class="secondary" (click)="downloadCatalogTemplate()">Descargar mi catalogo Excel</button>
         </div>
         <input type="file" accept=".xlsx,.xls,.csv,.txt" (change)="onCatalogFileSelected($event)" [disabled]="isReadingCatalogFile" />
         <p>{{ catalogFileName || 'Ningun archivo seleccionado' }}</p>
@@ -199,7 +199,7 @@
         <p *ngIf="csvError" style="color:#9b1f1f;font-weight:700;">{{ csvError }}</p>
         <p *ngIf="csvNotice" class="saved">{{ csvNotice }}</p>
         <div class="form-actions">
-          <button type="button" (click)="importCatalogFile()" [disabled]="isReadingCatalogFile || !csvContent.trim()">Procesar archivo</button>
+          <button type="button" (click)="importCatalogFile()" [disabled]="isReadingCatalogFile || !csvContent.trim()">Aplicar actualización masiva</button>
           <button type="button" class="ghost" (click)="resetCatalogImportTemplate()">Ver ejemplo</button>
         </div>
       </section>
