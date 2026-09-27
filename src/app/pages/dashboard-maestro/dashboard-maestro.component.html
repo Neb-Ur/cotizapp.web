@@ -83,6 +83,27 @@
         <input [(ngModel)]="tableProductSearch" (ngModelChange)="onProductSearchChange()" type="text" placeholder="Ej: cemento, OSB, yeso" />
       </label>
 
+      <section class="nearby-search-card">
+        <div class="nearby-search-copy">
+          <strong>Buscar ferreterias cerca de mi</strong>
+          <span *ngIf="!nearbyEnabled">Usa tu ubicacion solo para filtrar las ofertas visibles por distancia.</span>
+          <span *ngIf="nearbyEnabled">Filtro activo: solo ferreterias con ubicacion registrada dentro del radio seleccionado.</span>
+        </div>
+        <div class="nearby-search-actions">
+          <label>
+            Radio
+            <select [ngModel]="nearbyRadiusKm" (ngModelChange)="onNearbyRadiusChange($event)" [disabled]="isLocatingNearby">
+              <option *ngFor="let radius of nearbyRadiusOptions" [value]="radius">{{ radius }} km</option>
+            </select>
+          </label>
+          <button type="button" [class.secondary]="nearbyEnabled" (click)="toggleNearbySearch()" [disabled]="isLocatingNearby">
+            {{ isLocatingNearby ? 'Obteniendo ubicacion...' : (nearbyEnabled ? 'Ver todas las ferreterias' : 'Buscar cerca de mi') }}
+          </button>
+        </div>
+        <p class="nearby-message" *ngIf="nearbyMessage">{{ nearbyMessage }}</p>
+        <p class="nearby-error" *ngIf="nearbyError">{{ nearbyError }}</p>
+      </section>
+
       <div class="active-filters">
         <span *ngIf="selectedCategoryId">Categoria: {{ selectedCategoryName }}</span>
         <span *ngIf="selectedSubcategoryId">Subcategoria: {{ selectedSubcategoryName }}</span>
@@ -108,6 +129,9 @@
           <div class="product-meta">
             <p class="price-range">{{ formatCurrency(row.minPrice) }} - {{ formatCurrency(row.maxPrice) }}</p>
             <p>{{ row.storeCount }} ferreteria(s) con precio</p>
+            <p class="nearby-distance" *ngIf="nearbyEnabled && row.nearestDistanceKm !== undefined">
+              Mas cercana: {{ formatDistance(row.nearestDistanceKm) }}
+            </p>
           </div>
           <div class="product-card-actions">
             <button type="button" class="details-button" (click)="viewProductDetails(row.productName)">Comparar precios</button>
@@ -118,7 +142,12 @@
         </article>
       </div>
 
-      <ng-template #emptyProducts><p class="cards-empty">No encontramos productos para la busqueda actual.</p></ng-template>
+      <ng-template #emptyProducts>
+        <p class="cards-empty" *ngIf="!nearbyEnabled">No encontramos productos para la busqueda actual.</p>
+        <p class="cards-empty" *ngIf="nearbyEnabled">
+          No encontramos ferreterias con estos productos dentro de {{ nearbyRadiusKm }} km. Prueba aumentando el radio o viendo todas las ferreterias.
+        </p>
+      </ng-template>
 
       <div class="table-pagination" *ngIf="productRows.length > 0">
         <p>Mostrando {{ pageStart }} - {{ pageEnd }} de {{ productRows.length }}</p>
