@@ -2,9 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FamilyProductRow, ProjectSummary, SessionUser, TaxonomyOption } from '../../core/models/app.models';
+import { FamilyProductRow, ProjectSummary, SearchProximity, SessionUser, TaxonomyOption } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
 import { MockApiService } from '../../core/services/mock-api.service';
+import { GeoCoordinates, getCurrentBrowserLocation } from '../../core/utils/location.util';
 import { shareQuotationPdf } from '../../core/utils/quotation-pdf.util';
 import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
@@ -52,6 +53,13 @@ export class DashboardMaestroComponent implements OnInit {
   protected pageSize = 10;
   protected currentPage = 1;
   protected readonly pageSizeOptions = [10, 20, 50];
+  protected readonly nearbyRadiusOptions = [5, 10, 20, 50];
+  protected nearbyEnabled = false;
+  protected nearbyRadiusKm = 10;
+  protected maestroLocation: GeoCoordinates | null = null;
+  protected nearbyMessage = '';
+  protected nearbyError = '';
+  protected isLocatingNearby = false;
 
   protected projectTarget = '';
   protected draftProjectName = '';
@@ -87,6 +95,16 @@ export class DashboardMaestroComponent implements OnInit {
       this.projectTarget = params.get('projectTarget') || '';
       this.draftProjectName = params.get('draftName') || '';
       this.draftProjectAddress = params.get('draftAddress') || '';
+
+      const nearby = params.get('nearby') === '1';
+      const latitude = Number(params.get('lat'));
+      const longitude = Number(params.get('lng'));
+      const radius = Number(params.get('radius'));
+      if (nearby && Number.isFinite(latitude) && Number.isFinite(longitude)) {
+        this.nearbyEnabled = true;
+        this.maestroLocation = { latitude, longitude };
+        this.nearbyRadiusKm = this.nearbyRadiusOptions.includes(radius) ? radius : 10;
+      }
 
       if (!this.isInitialLoading) {
         void this.ensureSectionData(this.currentSection);
@@ -177,6 +195,15 @@ export class DashboardMaestroComponent implements OnInit {
     return `${this.projects.length}/${this.maxSavedQuotations} cotizaciones guardadas`;
   }
 
+  protected get currentProximity(): SearchProximity | undefined {
+    if (!this.nearbyEnabled || !this.maestroLocation) return undefined;
+    return {
+      latitude: this.maestroLocation.latitude,
+      longitude: this.maestroLocation.longitude,
+      radiusKm: this.nearbyRadiusKm
+    };
+  }
+
   protected setSection(section: MaestroSection): void {
     this.currentSection = section;
     this.closeMobileMenu();
@@ -190,6 +217,50 @@ export class DashboardMaestroComponent implements OnInit {
 
   protected closeMobileMenu(): void {
     this.isMobileMenuVisible = false;
+  }
+
+  protected async toggleNearbySearch(): Promise<void> {
+    this.nearbyError = '';
+    this.nearbyMessage = '';
+
+    if (this.nearbyEnabled) {
+      this.nearbyEnabled = false;
+      this.currentPage = 1;
+      this.refreshProductRows();
+      this.syncNearbyQueryParams();
+      return;
+    }
+
+    this.isLocatingNearby = true;
+    try {
+      this.maestroLocation = await getCurrentBrowserLocation();
+      this.nearbyEnabled = true;
+      this.nearbyMessage = `Mostrando ferreterias a hasta ${this.nearbyRadiusKm} km de tu ubicacion.`;
+      this.currentPage = 1;
+      this.refreshProductRows();
+      this.syncNearbyQueryParams();
+    } catch (error) {
+      this.nearbyError = error instanceof Error ? error.message : 'No se pudo obtener tu ubicacion.';
+    } finally {
+      this.isLocatingNearby = false;
+    }
+  }
+
+  protected onNearbyRadiusChange(value: number | string): void {
+    const parsed = Number(value);
+    this.nearbyRadiusKm = this.nearbyRadiusOptions.includes(parsed) ? parsed : 10;
+    this.nearbyMessage = this.nearbyEnabled
+      ? `Mostrando ferreterias a hasta ${this.nearbyRadiusKm} km de tu ubicacion.`
+      : '';
+    this.currentPage = 1;
+    this.refreshProductRows();
+    this.syncNearbyQueryParams();
+  }
+
+  protected formatDistance(value: number | undefined): string {
+    if (value === undefined) return '';
+    if (value < 1) return `${Math.round(value * 1000)} m`;
+    return `${value.toFixed(1)} km`;
   }
 
   protected onCategoryInput(value: string): void {
@@ -258,7 +329,15 @@ export class DashboardMaestroComponent implements OnInit {
   }
 
   protected viewProductDetails(productName: string): void {
-    this.router.navigate(['/dashboard/maestro/producto-detalle'], { queryParams: { product: productName } });
+    this.router.navigate(['/dashboard/maestro/producto-detalle'], {
+      queryParams: {
+        product: productName,
+        nearby: this.nearbyEnabled && this.maestroLocation ? 1 : null,
+        lat: this.nearbyEnabled ? this.maestroLocation?.latitude : null,
+        lng: this.nearbyEnabled ? this.maestroLocation?.longitude : null,
+        radius: this.nearbyEnabled ? this.nearbyRadiusKm : null
+      }
+    });
   }
 
   protected addProductToProject(productName: string): void {
@@ -397,10 +476,24 @@ export class DashboardMaestroComponent implements OnInit {
   private refreshProductRows(): void {
     const query = this.tableProductSearch.trim();
     this.productRows = this.selectedFamilyId
-      ? this.apiService.getFamilyProductRows(this.selectedFamilyId, query)
-      : this.apiService.getPopularProductRows(query, 100);
+      ? this.apiService.getFamilyProductRows(this.selectedFamilyId, query, this.currentProximity)
+      : this.apiService.getPopularProductRows(query, 100, this.currentProximity);
 
     this.currentPage = Math.min(this.currentPage, this.totalPages);
+  }
+
+  private syncNearbyQueryParams(): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      replaceUrl: true,
+      queryParamsHandling: 'merge',
+      queryParams: {
+        nearby: this.nearbyEnabled && this.maestroLocation ? 1 : null,
+        lat: this.nearbyEnabled ? this.maestroLocation?.latitude : null,
+        lng: this.nearbyEnabled ? this.maestroLocation?.longitude : null,
+        radius: this.nearbyEnabled ? this.nearbyRadiusKm : null
+      }
+    });
   }
 
   private hydrateProfileDraft(): void {
