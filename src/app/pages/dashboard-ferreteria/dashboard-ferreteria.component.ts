@@ -12,7 +12,7 @@ import {
 } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
 import { MockApiService } from '../../core/services/mock-api.service';
-import { CATALOG_IMPORT_TEMPLATE, catalogFileToCsv } from '../../core/utils/catalog-import.util';
+import { CATALOG_IMPORT_TEMPLATE, catalogFileToCsv, catalogImportTemplateFileName, downloadCatalogImportTemplate } from '../../core/utils/catalog-import.util';
 import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 import { UiModalComponent } from '../../shared/components/ui-modal/ui-modal.component';
@@ -415,6 +415,17 @@ export class DashboardFerreteriaComponent implements OnInit {
     } finally {
       this.isReadingCatalogFile = false;
       input.value = '';
+    }
+  }
+
+  protected async downloadCatalogTemplate(): Promise<void> {
+    try {
+      const storeName = this.user?.businessName || this.user?.displayName || 'ferreteria';
+      await downloadCatalogImportTemplate(catalogImportTemplateFileName(storeName));
+      this.csvError = '';
+      this.csvNotice = 'Template CotizApp descargado. Completa la hoja Productos y luego sube el mismo archivo.';
+    } catch (error) {
+      this.csvError = error instanceof Error ? error.message : 'No se pudo generar el template.';
     }
   }
 
