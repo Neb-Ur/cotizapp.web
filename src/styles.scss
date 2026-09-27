@@ -374,3 +374,29 @@ th {
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
+
+/* Shared store profile location card. Kept global to avoid inflating the large dashboard component stylesheet. */
+.store-location-card {
+  margin: 0.85rem 0;
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.8rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.store-location-card h4,
+.store-location-card p {
+  margin: 0;
+}
+
+.store-location-card h4 {
+  color: var(--navy-900);
+}
+
+.store-location-card p {
+  margin-top: 0.25rem;
+  color: var(--slate-700);
+}
