@@ -81,7 +81,7 @@ export class DashboardFerreteriaComponent implements OnInit {
   protected masterPageSize = 25;
   protected masterTotal = 0;
   protected masterTotalPages = 1;
-  protected masterSelectionDrafts: Record<string, MasterCatalogSelectionDraft> = {};
+  protected masterSelectionDrafts: Partial<Record<string, MasterCatalogSelectionDraft>> = {};
   protected masterLoading = false;
   protected relationNotice = '';
   protected relationError = '';
