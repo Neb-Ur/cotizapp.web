@@ -338,3 +338,28 @@
     padding: 1.75rem 1.5rem;
   }
 }
+
+
+.location-field {
+  padding: 0.85rem;
+  border: 1px solid #dbe4ef;
+  border-radius: 14px;
+  background: #f8fbff;
+}
+
+.location-help {
+  margin: 0 0 0.55rem;
+  color: #536174;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.location-ok {
+  color: #177245;
+  font-weight: 700;
+}
+
+.location-error {
+  color: #9b1f1f;
+  font-weight: 700;
+}
