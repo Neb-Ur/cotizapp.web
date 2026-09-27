@@ -614,13 +614,14 @@ export class MockApiService {
     ownerId: string,
     ownerLabel: string,
     csvContent: string,
-    _defaults: {
+    options: {
       categoryId: string;
       subcategoryId: string;
       familyId: string;
       brand: string;
       unitLabel: string;
       isPublished: boolean;
+      mode?: 'initial' | 'update';
     }
   ): Promise<{ catalog: CatalogProduct[]; report: CatalogImportReport }> {
     await Promise.all([
@@ -632,39 +633,207 @@ export class MockApiService {
     const ferreteriaId = await this.resolveFerreteriaId(ownerId);
     const parsedRows = await this.parseCatalogCsv(csvContent);
     const reportRows: CatalogImportRowResult[] = [];
+    const mode = options.mode || 'initial';
+
+    const duplicateLineNumbers = new Set<number>();
+    if (mode === 'update') {
+      const identifierLines = new Map<string, number[]>();
+
+      for (const parsed of parsedRows.filter((row) => row.valid)) {
+        const identifiers: string[] = [];
+        const normalizedSku = this.normalizeBarcode(parsed.sku);
+        const normalizedBarcode = this.normalizeBarcode(parsed.barcode);
+        const generatedSku = /^imp\d+$/i.test(normalizedSku);
+
+        if (normalizedSku && !generatedSku) identifiers.push(`sku:${normalizedSku}`);
+        if (normalizedBarcode) identifiers.push(`barcode:${normalizedBarcode}`);
+        if (identifiers.length === 0 && parsed.name.trim()) {
+          identifiers.push(`name:${parsed.name.trim().toLowerCase()}`);
+        }
+
+        for (const identifier of identifiers) {
+          const lines = identifierLines.get(identifier) || [];
+          lines.push(parsed.lineNumber);
+          identifierLines.set(identifier, lines);
+        }
+      }
+
+      for (const lines of identifierLines.values()) {
+        if (lines.length > 1) {
+          lines.forEach((line) => duplicateLineNumbers.add(line));
+        }
+      }
+    }
 
     for (const parsed of parsedRows) {
+      const failedRow = (message: string): CatalogImportRowResult => ({
+        lineNumber: parsed.lineNumber,
+        rawLine: parsed.rawLine,
+        name: parsed.name,
+        sku: parsed.sku,
+        barcode: parsed.barcode,
+        price: parsed.price,
+        stock: parsed.stock,
+        outcome: 'fallido',
+        message,
+        suggestions: []
+      });
+
       if (!parsed.valid) {
-        reportRows.push({
-          lineNumber: parsed.lineNumber,
-          rawLine: parsed.rawLine,
-          name: parsed.name,
-          sku: parsed.sku,
-          price: parsed.price,
-          stock: parsed.stock,
-          outcome: 'fallido',
-          message: parsed.error || 'Fila invalida.',
-          suggestions: []
-        });
+        reportRows.push(failedRow(parsed.error || 'Fila invalida.'));
         continue;
       }
 
-      const existingCatalogProduct = this.getCatalog(ownerId).find((item) => {
-        const sameSku = parsed.sku && item.sku
-          ? this.normalizeBarcode(parsed.sku) === this.normalizeBarcode(item.sku)
-          : false;
-        const sameBarcode = parsed.barcode && item.barcode
-          ? this.normalizeBarcode(parsed.barcode) === this.normalizeBarcode(item.barcode)
-          : false;
-        const sameName = item.name.trim().toLowerCase() === parsed.name.trim().toLowerCase();
-        return sameSku || sameBarcode || sameName;
-      });
+      if (mode === 'update' && duplicateLineNumbers.has(parsed.lineNumber)) {
+        reportRows.push(failedRow('Producto repetido dentro del archivo. Revisa SKU o codigo de barras.'));
+        continue;
+      }
 
-      if (existingCatalogProduct) {
-        await this.upsertCatalog(ownerId, {
-          ...existingCatalogProduct,
-          sku: parsed.sku || existingCatalogProduct.sku,
-          barcode: parsed.barcode || existingCatalogProduct.barcode,
+      try {
+        const catalog = this.getCatalog(ownerId);
+        const normalizedSku = this.normalizeBarcode(parsed.sku);
+        const normalizedBarcode = this.normalizeBarcode(parsed.barcode);
+        const generatedSku = /^imp\d+$/i.test(normalizedSku);
+
+        const skuMatches = normalizedSku && !generatedSku
+          ? catalog.filter((item) => this.normalizeBarcode(item.sku || '') === normalizedSku)
+          : [];
+        const barcodeMatches = normalizedBarcode
+          ? catalog.filter((item) => this.normalizeBarcode(item.barcode || '') === normalizedBarcode)
+          : [];
+
+        if (mode === 'update') {
+          if (skuMatches.length > 1 || barcodeMatches.length > 1) {
+            reportRows.push(failedRow('Encontramos mas de una coincidencia. Revisa SKU o codigo de barras.'));
+            continue;
+          }
+
+          if (
+            skuMatches.length === 1
+            && barcodeMatches.length === 1
+            && skuMatches[0].id !== barcodeMatches[0].id
+          ) {
+            reportRows.push(failedRow('El SKU y el codigo de barras apuntan a productos distintos.'));
+            continue;
+          }
+
+          let existingCatalogProduct = skuMatches[0] || barcodeMatches[0];
+          if (!existingCatalogProduct) {
+            const normalizedName = parsed.name.trim().toLowerCase();
+            const nameMatches = catalog.filter((item) => item.name.trim().toLowerCase() === normalizedName);
+
+            if (nameMatches.length > 1) {
+              reportRows.push(failedRow('Encontramos mas de un producto con ese nombre. Conserva SKU o codigo de barras.'));
+              continue;
+            }
+            existingCatalogProduct = nameMatches[0];
+          }
+
+          if (!existingCatalogProduct) {
+            reportRows.push(failedRow('Producto no encontrado en tu catalogo. No se realizo ningun cambio.'));
+            continue;
+          }
+
+          const priceChanged = existingCatalogProduct.price !== parsed.price;
+          const stockChanged = existingCatalogProduct.stock !== parsed.stock;
+
+          if (!priceChanged && !stockChanged) {
+            reportRows.push({
+              lineNumber: parsed.lineNumber,
+              rawLine: parsed.rawLine,
+              name: existingCatalogProduct.name,
+              sku: existingCatalogProduct.sku,
+              barcode: existingCatalogProduct.barcode,
+              price: parsed.price,
+              stock: parsed.stock,
+              outcome: 'sin_cambios',
+              message: 'Precio y stock sin cambios.',
+              suggestions: []
+            });
+            continue;
+          }
+
+          const changes: string[] = [];
+          if (priceChanged) changes.push(`Precio ${existingCatalogProduct.price} -> ${parsed.price}`);
+          if (stockChanged) changes.push(`Stock ${existingCatalogProduct.stock} -> ${parsed.stock}`);
+
+          await this.upsertCatalog(ownerId, {
+            ...existingCatalogProduct,
+            price: parsed.price,
+            stock: parsed.stock
+          });
+
+          reportRows.push({
+            lineNumber: parsed.lineNumber,
+            rawLine: parsed.rawLine,
+            name: existingCatalogProduct.name,
+            sku: existingCatalogProduct.sku,
+            barcode: existingCatalogProduct.barcode,
+            price: parsed.price,
+            stock: parsed.stock,
+            outcome: 'subido',
+            message: changes.join(' · '),
+            suggestions: []
+          });
+          continue;
+        }
+
+        const existingCatalogProduct = skuMatches[0]
+          || barcodeMatches[0]
+          || catalog.find((item) => item.name.trim().toLowerCase() === parsed.name.trim().toLowerCase());
+
+        if (existingCatalogProduct) {
+          await this.upsertCatalog(ownerId, {
+            ...existingCatalogProduct,
+            sku: parsed.sku || existingCatalogProduct.sku,
+            barcode: parsed.barcode || existingCatalogProduct.barcode,
+            price: parsed.price,
+            stock: parsed.stock
+          });
+
+          reportRows.push({
+            lineNumber: parsed.lineNumber,
+            rawLine: parsed.rawLine,
+            name: parsed.name,
+            sku: parsed.sku,
+            barcode: parsed.barcode,
+            price: parsed.price,
+            stock: parsed.stock,
+            outcome: 'subido',
+            message: 'Precio y stock actualizados en el catalogo de la ferreteria.',
+            suggestions: []
+          });
+          continue;
+        }
+
+        const suggestions = this.suggestMatches(parsed.name);
+        const firstMatch = suggestions[0];
+        if (!firstMatch) {
+          const fallbackBarcode = parsed.barcode || `sol-${String(parsed.lineNumber).padStart(8, '0')}`;
+          const created = await this.requestCatalogProductCreation(ownerId, ownerLabel, {
+            name: parsed.name,
+            barcode: fallbackBarcode,
+            quantity: parsed.stock,
+            price: parsed.price
+          });
+
+          reportRows.push({
+            lineNumber: parsed.lineNumber,
+            rawLine: parsed.rawLine,
+            name: parsed.name,
+            sku: parsed.sku,
+            barcode: parsed.barcode,
+            price: parsed.price,
+            stock: parsed.stock,
+            outcome: 'nuevo_validacion',
+            message: 'Enviado a revision de catalogo maestro.',
+            suggestions: [],
+            validationRequestId: created.id
+          });
+          continue;
+        }
+
+        await this.addCatalogProductFromMaster(ownerId, firstMatch.masterProductId, {
           price: parsed.price,
           stock: parsed.stock
         });
@@ -674,57 +843,16 @@ export class MockApiService {
           rawLine: parsed.rawLine,
           name: parsed.name,
           sku: parsed.sku,
+          barcode: parsed.barcode,
           price: parsed.price,
           stock: parsed.stock,
           outcome: 'subido',
-          message: 'Precio y stock actualizados en el catalogo de la ferreteria.',
-          suggestions: []
+          message: 'Producto vinculado al catalogo de la ferreteria.',
+          suggestions
         });
-        continue;
+      } catch (error) {
+        reportRows.push(failedRow(error instanceof Error ? error.message : 'No se pudo guardar esta fila.'));
       }
-
-      const suggestions = this.suggestMatches(parsed.name);
-      const firstMatch = suggestions[0];
-      if (!firstMatch) {
-        const fallbackBarcode = parsed.barcode || `sol-${String(parsed.lineNumber).padStart(8, '0')}`;
-        const created = await this.requestCatalogProductCreation(ownerId, ownerLabel, {
-          name: parsed.name,
-          barcode: fallbackBarcode,
-          quantity: parsed.stock,
-          price: parsed.price
-        });
-
-        reportRows.push({
-          lineNumber: parsed.lineNumber,
-          rawLine: parsed.rawLine,
-          name: parsed.name,
-          sku: parsed.sku,
-          price: parsed.price,
-          stock: parsed.stock,
-          outcome: 'nuevo_validacion',
-          message: 'Enviado a revision de catalogo maestro.',
-          suggestions: [],
-          validationRequestId: created.id
-        });
-        continue;
-      }
-
-      await this.addCatalogProductFromMaster(ownerId, firstMatch.masterProductId, {
-        price: parsed.price,
-        stock: parsed.stock
-      });
-
-      reportRows.push({
-        lineNumber: parsed.lineNumber,
-        rawLine: parsed.rawLine,
-        name: parsed.name,
-        sku: parsed.sku,
-        price: parsed.price,
-        stock: parsed.stock,
-        outcome: 'subido',
-        message: 'Producto vinculado al catalogo de la ferreteria.',
-        suggestions
-      });
     }
 
     await this.ensureCatalogLoaded(ownerId, true);
@@ -736,6 +864,7 @@ export class MockApiService {
       ownerLabel,
       totalRows: reportRows.length,
       uploadedCount: reportRows.filter((row) => row.outcome === 'subido').length,
+      noChangeCount: reportRows.filter((row) => row.outcome === 'sin_cambios').length,
       failedCount: reportRows.filter((row) => row.outcome === 'fallido').length,
       pendingNewCount: reportRows.filter((row) => row.outcome === 'nuevo_validacion').length,
       possibleMatchCount: reportRows.filter((row) => row.outcome === 'posible_match').length,
