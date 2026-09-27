@@ -47,6 +47,8 @@ interface ApiAuthUser {
   creadoEn?: string;
   nombreComercial?: string;
   rut?: string;
+  latitud?: number | null;
+  longitud?: number | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -102,7 +104,9 @@ export class AuthService {
           region: payload.region.trim(),
           direccion: payload.address.trim(),
           nombreComercial: payload.businessName?.trim() || undefined,
-          rut: payload.rut?.trim() || undefined
+          rut: payload.rut?.trim() || undefined,
+          latitud: payload.storeLatitude,
+          longitud: payload.storeLongitude
         }, {
           headers: this.authHeaders(token)
         })
@@ -387,7 +391,9 @@ export class AuthService {
       region: user.region,
       address: user.direccion,
       businessName: user.nombreComercial,
-      rut: user.rut
+      rut: user.rut,
+      storeLatitude: typeof user.latitud === 'number' ? user.latitud : undefined,
+      storeLongitude: typeof user.longitud === 'number' ? user.longitud : undefined
     };
   }
 
@@ -414,6 +420,8 @@ export class AuthService {
       creadoEn: user.createdAt,
       nombreComercial: user.businessName,
       rut: user.rut,
+      latitud: user.storeLatitude,
+      longitud: user.storeLongitude,
     };
   }
 
@@ -427,6 +435,8 @@ export class AuthService {
     if (partial.address !== undefined) payload['direccion'] = partial.address;
     if (partial.businessName !== undefined) payload['nombreComercial'] = partial.businessName;
     if (partial.rut !== undefined) payload['rut'] = partial.rut;
+    if (partial.storeLatitude !== undefined) payload['latitud'] = partial.storeLatitude;
+    if (partial.storeLongitude !== undefined) payload['longitud'] = partial.storeLongitude;
     return payload;
   }
 
