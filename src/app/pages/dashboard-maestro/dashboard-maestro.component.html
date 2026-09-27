@@ -34,8 +34,10 @@
           <h3>Tu actividad</h3>
           <p style="margin:0.25rem 0 0;color:#4a5568;">Cotiza materiales y compara cuanto puedes ahorrar.</p>
         </div>
-        <button type="button" (click)="goToNewProject()">Nueva cotizacion</button>
+        <button type="button" (click)="goToNewProject()" [disabled]="!canCreateQuotation">Nueva cotizacion</button>
       </div>
+      <p style="margin:0.75rem 0 0;color:#4a5568;font-weight:700;">{{ quotationLimitText }}</p>
+      <p class="saved" *ngIf="quotationNotice">{{ quotationNotice }}</p>
       <div class="stats-grid">
         <section><h3>Cotizaciones guardadas</h3><p>{{ projects.length }}</p></section>
         <section><h3>Ahorro estimado acumulado</h3><p>{{ formatCurrency(totalEstimatedSaving) }}</p></section>
@@ -135,9 +137,14 @@
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'cotizaciones'">
       <div class="projects-topbar">
-        <div><h3>Mis cotizaciones</h3><p style="margin:0.25rem 0 0;color:#4a5568;">Crea, edita y vuelve a cotizar cuando quieras.</p></div>
-        <button type="button" (click)="goToNewProject()">Nueva cotizacion</button>
+        <div>
+          <h3>Mis cotizaciones</h3>
+          <p style="margin:0.25rem 0 0;color:#4a5568;">Puedes guardar hasta 2 cotizaciones y enviarlas directamente a tus clientes.</p>
+          <p style="margin:0.25rem 0 0;color:#4a5568;font-weight:700;">{{ quotationLimitText }}</p>
+        </div>
+        <button type="button" (click)="goToNewProject()" [disabled]="!canCreateQuotation">Nueva cotizacion</button>
       </div>
+      <p class="saved" *ngIf="quotationNotice">{{ quotationNotice }}</p>
       <div class="table-wrap" *ngIf="projects.length > 0; else emptyQuotes">
         <table>
           <thead><tr><th>Cotizacion</th><th>Fecha</th><th>Items</th><th>Total optimo</th><th>Ahorro</th><th>Acciones</th></tr></thead>
@@ -150,6 +157,7 @@
               <td>{{ formatCurrency(project.saving) }}</td>
               <td class="row-actions">
                 <button type="button" class="secondary" (click)="goToProjectDetail(project.id)">Editar</button>
+                <button type="button" (click)="shareProject(project)">Enviar al cliente</button>
                 <button type="button" class="danger" (click)="deleteProject(project.id)">Eliminar</button>
               </td>
             </tr>
@@ -168,7 +176,10 @@
           <p>Items: {{ project.items.length }}</p>
           <p>Total optimo: {{ formatCurrency(project.totalOptimal) }}</p>
           <p>Ahorro estimado: {{ formatCurrency(project.saving) }}</p>
-          <button type="button" class="secondary" (click)="goToProjectDetail(project.id)">Ver cotizacion</button>
+          <div class="row-actions">
+            <button type="button" class="secondary" (click)="goToProjectDetail(project.id)">Ver cotizacion</button>
+            <button type="button" (click)="shareProject(project)">Enviar al cliente</button>
+          </div>
         </article>
       </div>
       <ng-template #emptyHistory><p>Aun no tienes cotizaciones guardadas.</p></ng-template>
