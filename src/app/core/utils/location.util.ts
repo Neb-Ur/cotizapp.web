@@ -69,3 +69,41 @@ export function hasValidCoordinates(
     && longitude >= -180
     && longitude <= 180;
 }
+
+
+export interface NearbySearchPreference extends GeoCoordinates {
+  radiusKm: number;
+}
+
+const NEARBY_SEARCH_SESSION_KEY = 'cotizapp-nearby-search';
+
+export function saveNearbySearchPreference(preference: NearbySearchPreference): void {
+  if (typeof window === 'undefined') return;
+  window.sessionStorage.setItem(NEARBY_SEARCH_SESSION_KEY, JSON.stringify(preference));
+}
+
+export function readNearbySearchPreference(): NearbySearchPreference | null {
+  if (typeof window === 'undefined') return null;
+  const raw = window.sessionStorage.getItem(NEARBY_SEARCH_SESSION_KEY);
+  if (!raw) return null;
+
+  try {
+    const value = JSON.parse(raw) as Partial<NearbySearchPreference>;
+    const radiusKm = Number(value.radiusKm);
+    if (!hasValidCoordinates(value.latitude, value.longitude) || ![5, 10, 20, 50].includes(radiusKm)) {
+      return null;
+    }
+    return {
+      latitude: value.latitude,
+      longitude: value.longitude as number,
+      radiusKm
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function clearNearbySearchPreference(): void {
+  if (typeof window === 'undefined') return;
+  window.sessionStorage.removeItem(NEARBY_SEARCH_SESSION_KEY);
+}
