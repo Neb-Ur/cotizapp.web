@@ -24,6 +24,41 @@
           <input [(ngModel)]="projectAddress" type="text" placeholder="Ej: Av. Principal 1234, Maipu" />
         </label>
 
+        <section class="quotation-nearby-card">
+          <div class="quotation-nearby-copy">
+            <span class="quotation-nearby-label">Ferreterias consideradas</span>
+            <strong>{{ proximityLabel }}</strong>
+            <small *ngIf="proximityEnabled">
+              Los precios, la mejor tienda y la optimizacion usan solo ferreterias dentro de este radio.
+            </small>
+            <small *ngIf="!proximityEnabled">
+              La cotizacion compara todas las ferreterias activas.
+            </small>
+          </div>
+
+          <div class="quotation-nearby-actions">
+            <label *ngIf="projectProximity">
+              Radio
+              <select [ngModel]="projectProximity.radiusKm" (ngModelChange)="onProjectRadiusChange($event)">
+                <option *ngFor="let radius of nearbyRadiusOptions" [value]="radius">{{ radius }} km</option>
+              </select>
+            </label>
+            <button type="button" class="secondary" (click)="toggleProjectProximity()" [disabled]="isLocating">
+              {{ isLocating
+                ? 'Obteniendo ubicacion...'
+                : (proximityEnabled ? 'Usar todas las ferreterias' : 'Buscar cerca de mi') }}
+            </button>
+          </div>
+
+          <p class="nearby-notice" *ngIf="locationNotice">{{ locationNotice }}</p>
+          <p class="nearby-error" *ngIf="locationError">{{ locationError }}</p>
+        </section>
+
+        <p class="nearby-warning" *ngIf="proximityEnabled && unavailableItemCount > 0">
+          {{ unavailableItemCount }} producto(s) no tienen una oferta con stock suficiente dentro de {{ projectProximity?.radiusKm }} km.
+          Puedes aumentar el radio o usar todas las ferreterias.
+        </p>
+
         <div class="actions">
           <button type="button" (click)="saveProject()">
             {{ isNewProject ? 'Guardar cotizacion' : 'Actualizar cotizacion' }}
