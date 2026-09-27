@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { RegisterPayload, UserRole } from '../../../core/models/app.models';
 import { AuthService } from '../../../core/services/auth.service';
+import { GeoCoordinates, getCurrentBrowserLocation } from '../../../core/utils/location.util';
 
 @Component({
   selector: 'app-register',
@@ -17,6 +18,10 @@ export class RegisterComponent {
   protected selectedRole: UserRole | null = null;
   protected errorMessage = '';
   protected isSubmitting = false;
+  protected storeLocation: GeoCoordinates | null = null;
+  protected locationMessage = '';
+  protected locationError = '';
+  protected isLocatingStore = false;
 
   protected readonly form = this.formBuilder.nonNullable.group({
     role: ['maestro' as UserRole, Validators.required],
@@ -42,6 +47,11 @@ export class RegisterComponent {
     this.syncRoleValidators(role);
     this.step = 2;
     this.errorMessage = '';
+    if (role !== 'ferreteria') {
+      this.storeLocation = null;
+      this.locationMessage = '';
+      this.locationError = '';
+    }
   }
 
   protected backToStepOne(): void {
@@ -49,10 +59,29 @@ export class RegisterComponent {
     this.errorMessage = '';
   }
 
+  protected async captureStoreLocation(): Promise<void> {
+    this.locationError = '';
+    this.locationMessage = '';
+    this.isLocatingStore = true;
+    try {
+      this.storeLocation = await getCurrentBrowserLocation();
+      this.locationMessage = 'Ubicacion del local registrada correctamente.';
+    } catch (error) {
+      this.locationError = error instanceof Error ? error.message : 'No se pudo obtener la ubicacion.';
+    } finally {
+      this.isLocatingStore = false;
+    }
+  }
+
   protected async submit(): Promise<void> {
     this.errorMessage = '';
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      return;
+    }
+
+    if (this.selectedRole === 'ferreteria' && !this.storeLocation) {
+      this.locationError = 'Registra la ubicacion del local antes de crear la cuenta.';
       return;
     }
 
@@ -68,7 +97,9 @@ export class RegisterComponent {
       city: '',
       address: values.role === 'ferreteria' ? values.address.trim() : '',
       businessName: values.role === 'ferreteria' ? values.businessName.trim() : undefined,
-      rut: values.role === 'ferreteria' ? values.rut.trim() : undefined
+      rut: values.role === 'ferreteria' ? values.rut.trim() : undefined,
+      storeLatitude: values.role === 'ferreteria' ? this.storeLocation?.latitude : undefined,
+      storeLongitude: values.role === 'ferreteria' ? this.storeLocation?.longitude : undefined
     };
 
     this.isSubmitting = true;
