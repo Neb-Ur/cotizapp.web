@@ -241,17 +241,77 @@
     </div>
   </app-ui-modal>
 
-  <app-ui-modal [open]="importSummaryModalOpen" title="Resultado de importacion" (closed)="closeImportSummaryModal()">
+  <app-ui-modal [open]="importSummaryModalOpen" title="Resultado de actualizacion masiva" (closed)="closeImportSummaryModal()">
     <section *ngIf="importSummary as summary">
-      <p>{{ summary.totalRows }} fila(s): {{ summary.uploadedCount }} procesadas, {{ summary.failedCount }} con error, {{ summary.pendingNewCount }} nuevas en revision.</p>
-      <section *ngIf="importRows('fallido').length > 0">
-        <h4>Errores</h4>
-        <ul><li *ngFor="let row of importRows('fallido')">{{ row.rawLine }} - {{ row.message }}</li></ul>
-      </section>
-      <section *ngIf="importRows('nuevo_validacion').length > 0">
-        <h4>Pendientes de revision</h4>
-        <ul><li *ngFor="let row of importRows('nuevo_validacion')">{{ row.name }}</li></ul>
-      </section>
+      <p>
+        {{ summary.totalRows }} fila(s) procesadas:
+        <strong>{{ summary.uploadedCount }} actualizadas</strong>,
+        <strong>{{ summary.noChangeCount }} sin cambios</strong> y
+        <strong>{{ summary.failedCount }} con error</strong>.
+      </p>
+      <p>El resultado es por producto: una fila con error no revierte las filas que ya fueron actualizadas correctamente.</p>
+
+      <div class="upload-mode-toggle">
+        <button type="button" [class.active]="importSummaryView === 'subido'" (click)="setImportSummaryView('subido')">
+          Actualizados ({{ summary.uploadedCount }})
+        </button>
+        <button type="button" [class.active]="importSummaryView === 'sin_cambios'" (click)="setImportSummaryView('sin_cambios')">
+          Sin cambios ({{ summary.noChangeCount }})
+        </button>
+        <button type="button" [class.active]="importSummaryView === 'fallido'" (click)="setImportSummaryView('fallido')">
+          Errores ({{ summary.failedCount }})
+        </button>
+      </div>
+
+      <div class="table-wrap" *ngIf="importSummaryView === 'subido'">
+        <table>
+          <thead><tr><th>Fila</th><th>Producto</th><th>SKU</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let row of importRows('subido')">
+              <td>{{ row.lineNumber }}</td>
+              <td>{{ row.name }}</td>
+              <td>{{ row.sku || '-' }}</td>
+              <td>{{ row.message }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p *ngIf="importRows('subido').length === 0">No hubo productos actualizados.</p>
+      </div>
+
+      <div class="table-wrap" *ngIf="importSummaryView === 'sin_cambios'">
+        <table>
+          <thead><tr><th>Fila</th><th>Producto</th><th>SKU</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let row of importRows('sin_cambios')">
+              <td>{{ row.lineNumber }}</td>
+              <td>{{ row.name }}</td>
+              <td>{{ row.sku || '-' }}</td>
+              <td>{{ row.message }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p *ngIf="importRows('sin_cambios').length === 0">No hubo filas sin cambios.</p>
+      </div>
+
+      <div *ngIf="importSummaryView === 'fallido'">
+        <div class="form-actions" *ngIf="summary.failedCount > 0">
+          <button type="button" class="secondary" (click)="downloadImportErrors()">Descargar errores</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Fila</th><th>Producto</th><th>SKU</th><th>Error</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let row of importRows('fallido')">
+                <td>{{ row.lineNumber }}</td>
+                <td>{{ row.name || '-' }}</td>
+                <td>{{ row.sku || '-' }}</td>
+                <td>{{ row.message }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p *ngIf="importRows('fallido').length === 0">No hubo errores.</p>
+        </div>
+      </div>
     </section>
   </app-ui-modal>
 </main>
