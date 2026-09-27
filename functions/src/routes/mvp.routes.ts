@@ -18,6 +18,10 @@ type SearchRow = {
   productName: string;
   storeName: string;
   storeId: string;
+  storeLatitude: number | null;
+  storeLongitude: number | null;
+  storeAddress: string;
+  storeCommune: string;
   price: number;
   categoryId: string;
   categoryName: string;
@@ -58,6 +62,12 @@ function numberValue(value: unknown, fallback = 0): number {
 
 function boolValue(value: unknown, fallback = false): boolean {
   return typeof value === 'boolean' ? value : fallback;
+}
+
+function coordinateValue(value: unknown, min: number, max: number): number | null {
+  if (value === undefined || value === null || value === '') return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= min && parsed <= max ? parsed : null;
 }
 
 function validRole(value: unknown): value is UserRole {
@@ -128,7 +138,9 @@ async function authUserResponse(userId: string): Promise<any | null> {
     ...user,
     ferreteriaId: store?.id,
     nombreComercial: store?.nombreComercial,
-    rut: store?.rut ?? user.rut
+    rut: store?.rut ?? user.rut,
+    latitud: coordinateValue(store?.latitud, -90, 90),
+    longitud: coordinateValue(store?.longitud, -180, 180)
   };
 }
 
@@ -172,6 +184,10 @@ async function buildSearchRows(): Promise<SearchRow[]> {
         productName: product.nombre,
         storeName: store.nombreComercial,
         storeId: store.id,
+        storeLatitude: coordinateValue(store.latitud, -90, 90),
+        storeLongitude: coordinateValue(store.longitud, -180, 180),
+        storeAddress: normalizeText(owner.direccion),
+        storeCommune: normalizeText(owner.comuna),
         price,
         categoryId: product.categoriaId,
         categoryName: categoryById.get(product.categoriaId)?.nombre || 'Sin categoria',
@@ -286,6 +302,12 @@ mvpRouter.post('/auth/register', requireAuth, async (req, res) => {
     return fail(res, 'AUTH_INVALID_PAYLOAD', 'Nombre y correo son obligatorios.', 400);
   }
 
+  const storeLatitude = coordinateValue(req.body?.latitud, -90, 90);
+  const storeLongitude = coordinateValue(req.body?.longitud, -180, 180);
+  if (role === 'ferreteria' && (storeLatitude === null || storeLongitude === null)) {
+    return fail(res, 'FERRETERIA_LOCATION_REQUIRED', 'Registra la ubicacion del local para aparecer en busquedas cercanas.', 400);
+  }
+
   await db.collection(COLLECTIONS.users).doc(req.authUserId).set(userPayload, { merge: true });
 
   if (role === 'ferreteria') {
@@ -295,6 +317,8 @@ mvpRouter.post('/auth/register', requireAuth, async (req, res) => {
         usuarioDuenoId: req.authUserId,
         nombreComercial: normalizeText(req.body?.nombreComercial) || userPayload.nombre,
         rut: normalizeText(req.body?.rut),
+        latitud: storeLatitude,
+        longitud: storeLongitude,
         estado: 'activo',
         creadoEn: nowIso()
       });
@@ -326,6 +350,17 @@ mvpRouter.patch('/auth/me', requireAuth, async (req, res) => {
     const storePatch: Record<string, unknown> = {};
     if (req.body?.nombreComercial !== undefined) storePatch['nombreComercial'] = normalizeText(req.body.nombreComercial);
     if (req.body?.rut !== undefined) storePatch['rut'] = normalizeText(req.body.rut);
+
+    if (req.body?.latitud !== undefined || req.body?.longitud !== undefined) {
+      const latitude = coordinateValue(req.body?.latitud, -90, 90);
+      const longitude = coordinateValue(req.body?.longitud, -180, 180);
+      if (latitude === null || longitude === null) {
+        return fail(res, 'FERRETERIA_LOCATION_INVALID', 'La ubicacion del local no es valida.', 400);
+      }
+      storePatch['latitud'] = latitude;
+      storePatch['longitud'] = longitude;
+    }
+
     if (Object.keys(storePatch).length > 0) await db.collection(COLLECTIONS.stores).doc(stores[0].id).set(storePatch, { merge: true });
   }
 
@@ -609,6 +644,11 @@ mvpRouter.get('/productos/detalle', async (req, res) => {
   const attributes = (await rows(COLLECTIONS.masterAttributes)).filter((item) => item.productoMaestroId === product.id);
   const stores = searchRows.map((item) => ({
     storeName: item.storeName,
+    storeId: item.storeId,
+    latitude: item.storeLatitude,
+    longitude: item.storeLongitude,
+    address: item.storeAddress,
+    commune: item.storeCommune,
     price: item.price,
     stock: item.stock,
     sku: item.sku,
