@@ -19,6 +19,7 @@ import {
   ProjectQuotationView,
   ProjectSummary,
   SearchFilters,
+  SearchProximity,
   SearchRow,
   SessionUser,
   TaxonomyOption
@@ -27,6 +28,7 @@ import { AuthService } from './auth.service';
 import { API_BASE_URL } from '../config/api.config';
 import { parseCatalogImportContent } from '../utils/catalog-import.util';
 import { buildQuotationOptimization } from '../utils/quotation-optimizer.util';
+import { distanceKm, hasValidCoordinates } from '../utils/location.util';
 
 interface ApiEnvelope<T> {
   ok: boolean;
@@ -1029,7 +1031,11 @@ export class MockApiService {
     return this.getProjects(ownerId);
   }
 
-  getFamilyProductRows(familyId: string, searchTerm = ''): FamilyProductRow[] {
+  getFamilyProductRows(
+    familyId: string,
+    searchTerm = '',
+    proximity?: SearchProximity
+  ): FamilyProductRow[] {
     this.ensureSearchRowsLoaded();
     this.ensureMasterCatalogLoaded();
 
@@ -1042,13 +1048,20 @@ export class MockApiService {
       brand: string;
       productType: string;
       imageUrl: string;
+      nearestDistanceKm?: number;
     }>();
 
-    this.searchRows
+    this.filterSearchRowsByProximity(this.searchRows, proximity)
       .filter((row) => !familyId || row.familyId === familyId)
       .filter((row) => !query || row.productName.toLowerCase().includes(query))
       .forEach((row) => {
         const master = this.masterCatalog.find((item) => item.name.toLowerCase() === row.productName.toLowerCase());
+        const rowDistance = proximity && hasValidCoordinates(row.storeLatitude, row.storeLongitude)
+          ? distanceKm(
+            { latitude: proximity.latitude, longitude: proximity.longitude },
+            { latitude: row.storeLatitude, longitude: row.storeLongitude as number }
+          )
+          : undefined;
         const current = byProduct.get(row.productName) || {
           productName: row.productName,
           minPrice: row.price,
@@ -1056,12 +1069,18 @@ export class MockApiService {
           sellers: new Set<string>(),
           brand: master?.brand || 'Sin marca',
           productType: master?.productType || 'Producto ferretero',
-          imageUrl: master?.imageUrl || 'https://via.placeholder.com/600x420?text=Producto'
+          imageUrl: master?.imageUrl || 'https://via.placeholder.com/600x420?text=Producto',
+          nearestDistanceKm: rowDistance
         };
 
         current.minPrice = Math.min(current.minPrice, row.price);
         current.maxPrice = Math.max(current.maxPrice, row.price);
         current.sellers.add(row.storeName);
+        if (rowDistance !== undefined) {
+          current.nearestDistanceKm = current.nearestDistanceKm === undefined
+            ? rowDistance
+            : Math.min(current.nearestDistanceKm, rowDistance);
+        }
         byProduct.set(row.productName, current);
       });
 
@@ -1074,13 +1093,14 @@ export class MockApiService {
         storeCount: item.sellers.size,
         brand: item.brand,
         productType: item.productType,
-        sellers: Array.from(item.sellers)
+        sellers: Array.from(item.sellers),
+        nearestDistanceKm: item.nearestDistanceKm
       }))
       .sort((a, b) => a.productName.localeCompare(b.productName));
   }
 
-  getPopularProductRows(searchTerm = '', limit = 12): FamilyProductRow[] {
-    const rows = this.getFamilyProductRows('', searchTerm);
+  getPopularProductRows(searchTerm = '', limit = 12, proximity?: SearchProximity): FamilyProductRow[] {
+    const rows = this.getFamilyProductRows('', searchTerm, proximity);
     return rows
       .sort((a, b) => b.storeCount - a.storeCount || a.productName.localeCompare(b.productName))
       .slice(0, Math.max(1, limit));
@@ -1119,6 +1139,11 @@ export class MockApiService {
       const master = raw.productoMaestro;
       const stores: ProductStoreOfferRow[] = (raw.stores || []).map((store: any) => ({
         storeName: store.storeName,
+        storeId: store.storeId,
+        latitude: typeof store.latitude === 'number' ? store.latitude : null,
+        longitude: typeof store.longitude === 'number' ? store.longitude : null,
+        address: store.address || '',
+        commune: store.commune || '',
         price: Number(store.price) || 0,
         stock: Number(store.stock) || 0
       }));
@@ -1230,6 +1255,22 @@ export class MockApiService {
     }).format(Number.isFinite(value) ? value : 0);
   }
 
+  private filterSearchRowsByProximity(
+    rows: SearchRowExtended[],
+    proximity?: SearchProximity
+  ): SearchRowExtended[] {
+    if (!proximity) return rows;
+
+    return rows.filter((row) => {
+      if (!hasValidCoordinates(row.storeLatitude, row.storeLongitude)) return false;
+      const km = distanceKm(
+        { latitude: proximity.latitude, longitude: proximity.longitude },
+        { latitude: row.storeLatitude, longitude: row.storeLongitude as number }
+      );
+      return km <= proximity.radiusKm;
+    });
+  }
+
   private ensureTaxonomyLoaded(force = false): Promise<void> {
     if (!force && this.taxonomyPromise) {
       return this.taxonomyPromise;
@@ -1277,6 +1318,11 @@ export class MockApiService {
         this.replaceArray(this.searchRows, rows.map((item) => ({
           productName: item.productName,
           storeName: item.storeName,
+          storeId: item.storeId,
+          storeLatitude: typeof item.storeLatitude === 'number' ? item.storeLatitude : null,
+          storeLongitude: typeof item.storeLongitude === 'number' ? item.storeLongitude : null,
+          storeAddress: item.storeAddress || '',
+          storeCommune: item.storeCommune || '',
           price: Number(item.price) || 0,
           categoryId: item.categoryId,
           categoryName: item.categoryName,
