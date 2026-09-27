@@ -716,6 +716,18 @@ mvpRouter.get('/maestros/:ownerId/proyectos', requireAuth, async (req, res) => {
 
 mvpRouter.post('/maestros/:ownerId/proyectos', requireAuth, async (req, res) => {
   if (!canAccessOwner(req, req.params.ownerId)) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para crear esta cotizacion.', 403);
+
+  const ownerProjects = (await rows(COLLECTIONS.projects))
+    .filter((item) => item.ownerId === req.params.ownerId);
+  if (ownerProjects.length >= 2) {
+    return fail(
+      res,
+      'COTIZACION_LIMIT_REACHED',
+      'Puedes guardar un maximo de 2 cotizaciones. Elimina una para crear otra.',
+      409
+    );
+  }
+
   const name = normalizeText(req.body?.nombre);
   if (!name) return fail(res, 'PROYECTO_INVALID_PAYLOAD', 'Nombre de cotizacion requerido.', 400);
   const created = await createRow(COLLECTIONS.projects, {
