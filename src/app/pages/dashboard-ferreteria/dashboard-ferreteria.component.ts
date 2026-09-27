@@ -60,8 +60,11 @@ export class DashboardFerreteriaComponent implements OnInit {
   protected catalogPageSize = 20;
   protected readonly catalogPageSizeOptions = [10, 20, 50];
 
-  protected catalogInlineEditId: string | null = null;
-  protected catalogInlineDraft = { price: 0, stock: 0, isPublished: true };
+  protected catalogEditCandidate: CatalogProduct | null = null;
+  protected catalogEditModalOpen = false;
+  protected catalogEditDraft = { price: 0, stock: 0, isPublished: true };
+  protected catalogEditError = '';
+  protected catalogEditSaving = false;
   protected catalogNotice = '';
   protected catalogError = '';
   protected catalogDeleteCandidate: CatalogProduct | null = null;
@@ -245,43 +248,77 @@ export class DashboardFerreteriaComponent implements OnInit {
     if (this.catalogPage < this.catalogTotalPages) this.catalogPage += 1;
   }
 
-  protected startCatalogInlineEdit(product: CatalogProduct): void {
-    this.catalogInlineEditId = product.id;
-    this.catalogInlineDraft = {
+  protected openCatalogEdit(product: CatalogProduct): void {
+    this.catalogEditCandidate = product;
+    this.catalogEditDraft = {
       price: product.price,
       stock: product.stock,
       isPublished: product.isPublished
     };
-    this.catalogError = '';
+    this.catalogEditError = '';
+    this.catalogEditModalOpen = true;
   }
 
-  protected cancelCatalogInlineEdit(): void {
-    this.catalogInlineEditId = null;
+  protected closeCatalogEdit(): void {
+    if (this.catalogEditSaving) return;
+    this.catalogEditCandidate = null;
+    this.catalogEditModalOpen = false;
+    this.catalogEditError = '';
   }
 
-  protected async saveCatalogInlineEdit(product: CatalogProduct): Promise<void> {
-    if (!this.user || this.catalogInlineEditId !== product.id) return;
+  protected async saveCatalogEdit(): Promise<void> {
+    const product = this.catalogEditCandidate;
+    if (!this.user || !product || this.catalogEditSaving) return;
 
-    const price = Math.round(Number(this.catalogInlineDraft.price) || 0);
-    const stock = Math.max(0, Math.floor(Number(this.catalogInlineDraft.stock) || 0));
-    if (price <= 0) {
-      this.catalogError = 'El precio debe ser mayor a 0.';
+    const rawPrice = Number(this.catalogEditDraft.price);
+    const rawStock = Number(this.catalogEditDraft.stock);
+    const price = Math.round(rawPrice);
+    const stock = Math.floor(rawStock);
+
+    if (!Number.isFinite(rawPrice) || price <= 0) {
+      this.catalogEditError = 'El precio debe ser un numero mayor a 0.';
       return;
     }
+    if (!Number.isFinite(rawStock) || stock < 0) {
+      this.catalogEditError = 'El stock debe ser un numero igual o mayor a 0.';
+      return;
+    }
+
+    const priceChanged = product.price !== price;
+    const stockChanged = product.stock !== stock;
+    const publishedChanged = product.isPublished !== this.catalogEditDraft.isPublished;
+
+    if (!priceChanged && !stockChanged && !publishedChanged) {
+      this.catalogNotice = `${product.name}: sin cambios.`;
+      this.catalogError = '';
+      this.closeCatalogEdit();
+      return;
+    }
+
+    const changes: string[] = [];
+    if (priceChanged) changes.push(`precio ${this.formatCurrency(product.price)} → ${this.formatCurrency(price)}`);
+    if (stockChanged) changes.push(`stock ${product.stock} → ${stock}`);
+    if (publishedChanged) changes.push(this.catalogEditDraft.isPublished ? 'publicado' : 'oculto del comparador');
+
+    this.catalogEditSaving = true;
+    this.catalogEditError = '';
 
     try {
       this.catalog = await this.apiService.upsertCatalog(this.user.id, {
         ...product,
         price,
         stock,
-        isPublished: this.catalogInlineDraft.isPublished
+        isPublished: this.catalogEditDraft.isPublished
       });
-      this.cancelCatalogInlineEdit();
       this.refreshSummary();
-      this.catalogNotice = 'Precio y stock actualizados.';
+      this.catalogNotice = `${product.name}: ${changes.join(' · ')}.`;
       this.catalogError = '';
+      this.catalogEditCandidate = null;
+      this.catalogEditModalOpen = false;
     } catch (error) {
-      this.catalogError = error instanceof Error ? error.message : 'No se pudo actualizar el producto.';
+      this.catalogEditError = error instanceof Error ? error.message : 'No se pudo actualizar el producto.';
+    } finally {
+      this.catalogEditSaving = false;
     }
   }
 
