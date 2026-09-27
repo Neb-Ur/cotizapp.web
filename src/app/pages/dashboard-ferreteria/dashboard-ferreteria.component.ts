@@ -421,9 +421,20 @@ export class DashboardFerreteriaComponent implements OnInit {
   protected async downloadCatalogTemplate(): Promise<void> {
     try {
       const storeName = this.user?.businessName || this.user?.displayName || 'ferreteria';
-      await downloadCatalogImportTemplate(catalogImportTemplateFileName(storeName));
+      await downloadCatalogImportTemplate(
+        catalogImportTemplateFileName(storeName),
+        this.catalog.map((product) => ({
+          name: product.name,
+          sku: product.sku,
+          price: product.price,
+          stock: product.stock,
+          barcode: product.barcode
+        }))
+      );
       this.csvError = '';
-      this.csvNotice = 'Template CotizApp descargado. Completa la hoja Productos y luego sube el mismo archivo.';
+      this.csvNotice = this.catalog.length > 0
+        ? `Catalogo descargado con ${this.catalog.length} producto(s). Modifica precio y stock y luego sube el mismo archivo.`
+        : 'Template CotizApp descargado. Tu catalogo aun no tiene productos.';
     } catch (error) {
       this.csvError = error instanceof Error ? error.message : 'No se pudo generar el template.';
     }
