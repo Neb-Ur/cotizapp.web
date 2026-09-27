@@ -5,7 +5,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FamilyProductRow, ProjectSummary, SearchProximity, SessionUser, TaxonomyOption } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
 import { MockApiService } from '../../core/services/mock-api.service';
-import { GeoCoordinates, getCurrentBrowserLocation } from '../../core/utils/location.util';
+import {
+  GeoCoordinates,
+  clearNearbySearchPreference,
+  getCurrentBrowserLocation,
+  readNearbySearchPreference,
+  saveNearbySearchPreference
+} from '../../core/utils/location.util';
 import { shareQuotationPdf } from '../../core/utils/quotation-pdf.util';
 import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
@@ -86,6 +92,17 @@ export class DashboardMaestroComponent implements OnInit {
 
   ngOnInit(): void {
     this.syncViewportState();
+    const savedNearby = readNearbySearchPreference();
+    if (savedNearby) {
+      this.nearbyEnabled = true;
+      this.maestroLocation = {
+        latitude: savedNearby.latitude,
+        longitude: savedNearby.longitude
+      };
+      this.nearbyRadiusKm = savedNearby.radiusKm;
+      this.nearbyMessage = `Mostrando ferreterias a hasta ${this.nearbyRadiusKm} km de tu ubicacion.`;
+    }
+
     this.route.queryParamMap.subscribe((params) => {
       const requested = params.get('section');
       if (this.isValidSection(requested)) {
@@ -95,16 +112,6 @@ export class DashboardMaestroComponent implements OnInit {
       this.projectTarget = params.get('projectTarget') || '';
       this.draftProjectName = params.get('draftName') || '';
       this.draftProjectAddress = params.get('draftAddress') || '';
-
-      const nearby = params.get('nearby') === '1';
-      const latitude = Number(params.get('lat'));
-      const longitude = Number(params.get('lng'));
-      const radius = Number(params.get('radius'));
-      if (nearby && Number.isFinite(latitude) && Number.isFinite(longitude)) {
-        this.nearbyEnabled = true;
-        this.maestroLocation = { latitude, longitude };
-        this.nearbyRadiusKm = this.nearbyRadiusOptions.includes(radius) ? radius : 10;
-      }
 
       if (!this.isInitialLoading) {
         void this.ensureSectionData(this.currentSection);
@@ -225,9 +232,10 @@ export class DashboardMaestroComponent implements OnInit {
 
     if (this.nearbyEnabled) {
       this.nearbyEnabled = false;
+      this.maestroLocation = null;
+      clearNearbySearchPreference();
       this.currentPage = 1;
       this.refreshProductRows();
-      this.syncNearbyQueryParams();
       return;
     }
 
@@ -236,9 +244,13 @@ export class DashboardMaestroComponent implements OnInit {
       this.maestroLocation = await getCurrentBrowserLocation();
       this.nearbyEnabled = true;
       this.nearbyMessage = `Mostrando ferreterias a hasta ${this.nearbyRadiusKm} km de tu ubicacion.`;
+      saveNearbySearchPreference({
+        latitude: this.maestroLocation.latitude,
+        longitude: this.maestroLocation.longitude,
+        radiusKm: this.nearbyRadiusKm
+      });
       this.currentPage = 1;
       this.refreshProductRows();
-      this.syncNearbyQueryParams();
     } catch (error) {
       this.nearbyError = error instanceof Error ? error.message : 'No se pudo obtener tu ubicacion.';
     } finally {
@@ -252,9 +264,15 @@ export class DashboardMaestroComponent implements OnInit {
     this.nearbyMessage = this.nearbyEnabled
       ? `Mostrando ferreterias a hasta ${this.nearbyRadiusKm} km de tu ubicacion.`
       : '';
+    if (this.nearbyEnabled && this.maestroLocation) {
+      saveNearbySearchPreference({
+        latitude: this.maestroLocation.latitude,
+        longitude: this.maestroLocation.longitude,
+        radiusKm: this.nearbyRadiusKm
+      });
+    }
     this.currentPage = 1;
     this.refreshProductRows();
-    this.syncNearbyQueryParams();
   }
 
   protected formatDistance(value: number | undefined): string {
@@ -330,13 +348,7 @@ export class DashboardMaestroComponent implements OnInit {
 
   protected viewProductDetails(productName: string): void {
     this.router.navigate(['/dashboard/maestro/producto-detalle'], {
-      queryParams: {
-        product: productName,
-        nearby: this.nearbyEnabled && this.maestroLocation ? 1 : null,
-        lat: this.nearbyEnabled ? this.maestroLocation?.latitude : null,
-        lng: this.nearbyEnabled ? this.maestroLocation?.longitude : null,
-        radius: this.nearbyEnabled ? this.nearbyRadiusKm : null
-      }
+      queryParams: { product: productName }
     });
   }
 
@@ -480,20 +492,6 @@ export class DashboardMaestroComponent implements OnInit {
       : this.apiService.getPopularProductRows(query, 100, this.currentProximity);
 
     this.currentPage = Math.min(this.currentPage, this.totalPages);
-  }
-
-  private syncNearbyQueryParams(): void {
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      replaceUrl: true,
-      queryParamsHandling: 'merge',
-      queryParams: {
-        nearby: this.nearbyEnabled && this.maestroLocation ? 1 : null,
-        lat: this.nearbyEnabled ? this.maestroLocation?.latitude : null,
-        lng: this.nearbyEnabled ? this.maestroLocation?.longitude : null,
-        radius: this.nearbyEnabled ? this.nearbyRadiusKm : null
-      }
-    });
   }
 
   private hydrateProfileDraft(): void {
