@@ -18,11 +18,72 @@ const HEADER_ALIASES = {
   barcode: ['codigo barras', 'código barras', 'codigo de barras', 'código de barras', 'barcode', 'ean', 'ean13']
 } as const;
 
+export const CATALOG_IMPORT_COLUMNS = ['nombre', 'sku', 'precio', 'stock', 'codigo_barras'] as const;
+
 export const CATALOG_IMPORT_TEMPLATE = [
-  ['nombre', 'sku', 'precio', 'stock', 'codigo_barras'],
+  [...CATALOG_IMPORT_COLUMNS],
   ['Cemento Melon 25kg', 'CEM-25', '5490', '80', '7800000000000'],
   ['OSB 11.1mm 122x244', 'OSB-111', '16990', '25', '']
 ].map((row) => row.join(',')).join('\n');
+
+export function catalogImportTemplateFileName(label?: string): string {
+  const normalized = (label || 'catalogo')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+
+  return `cotizapp-catalogo-${normalized || 'catalogo'}.xlsx`;
+}
+
+export async function downloadCatalogImportTemplate(fileName = 'cotizapp-catalogo-template.xlsx'): Promise<void> {
+  const XLSX = await import('xlsx');
+  const workbook = XLSX.utils.book_new();
+
+  // Keep Productos as the first sheet: the importer always reads the first sheet.
+  const productSheet = XLSX.utils.aoa_to_sheet([
+    [...CATALOG_IMPORT_COLUMNS]
+  ]);
+  productSheet['!cols'] = [
+    { wch: 42 },
+    { wch: 20 },
+    { wch: 16 },
+    { wch: 12 },
+    { wch: 24 }
+  ];
+
+  const instructionsSheet = XLSX.utils.aoa_to_sheet([
+    ['Template oficial de catalogo CotizApp'],
+    [],
+    ['Columna', 'Obligatoria', 'Uso', 'Ejemplo'],
+    ['nombre', 'Si', 'Nombre comercial del producto.', 'Cemento Melon 25kg'],
+    ['sku', 'No', 'Codigo interno de la ferreteria. Si falta, CotizApp genera uno.', 'CEM-25'],
+    ['precio', 'Si', 'Precio de venta en pesos, mayor a 0. Puede venir con $ o separador de miles.', '5490'],
+    ['stock', 'No', 'Unidades disponibles. Si se deja vacio se considera 0.', '80'],
+    ['codigo_barras', 'No', 'EAN/codigo de barras cuando exista.', '7800000000000'],
+    [],
+    ['Importante'],
+    ['1. No cambies los nombres de las columnas de la hoja Productos.'],
+    ['2. Pega un producto por fila y no agregues titulos antes del encabezado.'],
+    ['3. Deja vacias las columnas que no tengas; nombre y precio son las unicas obligatorias.'],
+    ['4. Sube este mismo archivo desde Admin > Ferreterias o desde el panel de la ferreteria.'],
+    ['5. CotizApp intenta relacionar cada fila por SKU, codigo de barras o nombre; los productos nuevos quedan para revision.']
+  ]);
+  instructionsSheet['!cols'] = [
+    { wch: 24 },
+    { wch: 14 },
+    { wch: 70 },
+    { wch: 28 }
+  ];
+
+  XLSX.utils.book_append_sheet(workbook, productSheet, 'Productos');
+  XLSX.utils.book_append_sheet(workbook, instructionsSheet, 'Instrucciones');
+
+  const normalizedFileName = fileName.toLowerCase().endsWith('.xlsx') ? fileName : `${fileName}.xlsx`;
+  XLSX.writeFile(workbook, normalizedFileName, { bookType: 'xlsx' });
+}
 
 export async function catalogFileToCsv(file: File): Promise<string> {
   const lower = file.name.toLowerCase();
