@@ -108,6 +108,44 @@ export async function downloadCatalogImportTemplate(
   XLSX.writeFile(workbook, normalizedFileName, { bookType: 'xlsx' });
 }
 
+export interface CatalogImportErrorExportRow {
+  name: string;
+  sku: string;
+  price: number;
+  stock: number;
+  barcode?: string;
+  message: string;
+}
+
+export async function downloadCatalogImportErrors(
+  rows: CatalogImportErrorExportRow[],
+  fileName = 'cotizapp-errores-catalogo.xlsx'
+): Promise<void> {
+  const XLSX = await import('xlsx');
+  const workbook = XLSX.utils.book_new();
+  const sheet = XLSX.utils.aoa_to_sheet([
+    [...CATALOG_IMPORT_COLUMNS, 'error'],
+    ...rows.map((row) => [
+      row.name,
+      row.sku,
+      row.price,
+      row.stock,
+      row.barcode || '',
+      row.message
+    ])
+  ]);
+  sheet['!cols'] = [
+    { wch: 42 },
+    { wch: 20 },
+    { wch: 16 },
+    { wch: 12 },
+    { wch: 24 },
+    { wch: 70 }
+  ];
+  XLSX.utils.book_append_sheet(workbook, sheet, 'Productos');
+  XLSX.writeFile(workbook, fileName.toLowerCase().endsWith('.xlsx') ? fileName : `${fileName}.xlsx`, { bookType: 'xlsx' });
+}
+
 export async function catalogFileToCsv(file: File): Promise<string> {
   const lower = file.name.toLowerCase();
   if (lower.endsWith('.csv') || lower.endsWith('.txt')) {
@@ -164,11 +202,25 @@ export async function parseCatalogImportContent(content: string): Promise<Parsed
     const sourceLine = index + (hasHeader ? 2 : 1);
     const name = cell(row, map.name);
     const sku = cell(row, map.sku) || `IMP-${String(sourceLine).padStart(4, '0')}`;
-    const price = parseChileanNumber(cell(row, map.price));
-    const stock = Math.max(0, Math.floor(parseChileanNumber(cell(row, map.stock))));
+    const rawPrice = cell(row, map.price);
+    const rawStock = cell(row, map.stock);
+    const price = parseChileanNumber(rawPrice);
+    const parsedStock = parseChileanNumber(rawStock);
+    const stock = Math.floor(parsedStock);
     const barcode = cell(row, map.barcode);
 
-    if (!name || price <= 0) {
+    let error = '';
+    if (!name) {
+      error = 'El nombre del producto es obligatorio.';
+    } else if (!isNumericField(rawPrice) || price <= 0) {
+      error = 'El precio debe ser un numero mayor a 0.';
+    } else if (rawStock && !isNumericField(rawStock)) {
+      error = 'El stock debe ser un numero valido.';
+    } else if (parsedStock < 0) {
+      error = 'El stock no puede ser negativo.';
+    }
+
+    if (error) {
       return {
         lineNumber: sourceLine,
         rawLine: row.join(' | '),
@@ -178,7 +230,7 @@ export async function parseCatalogImportContent(content: string): Promise<Parsed
         stock,
         barcode,
         valid: false,
-        error: 'La fila debe incluir al menos nombre y precio valido.'
+        error
       };
     }
 
@@ -225,6 +277,11 @@ function cell(row: string[], index: number): string {
     return '';
   }
   return row[index]?.trim() || '';
+}
+
+function isNumericField(value: string): boolean {
+  const compact = value.replace(/\$/g, '').replace(/\s/g, '');
+  return !!compact && !/[^0-9,.-]/.test(compact) && /\d/.test(compact);
 }
 
 function parseChileanNumber(value: string): number {
