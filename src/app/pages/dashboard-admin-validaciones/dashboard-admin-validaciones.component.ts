@@ -31,7 +31,7 @@ import {
 } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
 import { MockApiService, TaxonomyDefinitionApi } from '../../core/services/mock-api.service';
-import { CATALOG_IMPORT_TEMPLATE, catalogFileToCsv } from '../../core/utils/catalog-import.util';
+import { CATALOG_IMPORT_TEMPLATE, catalogFileToCsv, catalogImportTemplateFileName, downloadCatalogImportTemplate } from '../../core/utils/catalog-import.util';
 import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 
@@ -1058,6 +1058,18 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       this.onboardingError = error instanceof Error ? error.message : 'No se pudo leer el archivo.';
     } finally {
       input.value = '';
+    }
+  }
+
+  protected async downloadOnboardingCatalogTemplate(): Promise<void> {
+    try {
+      const store = this.onboardingFerreterias.find((user) => user.id === this.onboardingStoreOwnerId);
+      const storeName = store?.businessName || store?.displayName || 'ferreteria';
+      await downloadCatalogImportTemplate(catalogImportTemplateFileName(storeName));
+      this.onboardingError = '';
+      this.onboardingNotice = 'Template CotizApp descargado. Pasa la informacion de la ferreteria a la hoja Productos y luego sube ese archivo.';
+    } catch (error) {
+      this.onboardingError = error instanceof Error ? error.message : 'No se pudo generar el template.';
     }
   }
 
