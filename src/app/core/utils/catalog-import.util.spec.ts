@@ -1,4 +1,14 @@
-import { parseCatalogImportContent } from './catalog-import.util';
+import { CATALOG_IMPORT_COLUMNS, catalogImportTemplateFileName, parseCatalogImportContent } from './catalog-import.util';
+
+describe('catalog import template', () => {
+  it('mantiene el formato oficial de columnas', () => {
+    expect(CATALOG_IMPORT_COLUMNS).toEqual(['nombre', 'sku', 'precio', 'stock', 'codigo_barras']);
+  });
+
+  it('genera un nombre de archivo seguro por ferreteria', () => {
+    expect(catalogImportTemplateFileName('Ferretería El Ñandú SpA')).toBe('cotizapp-catalogo-ferreteria-el-nandu-spa.xlsx');
+  });
+});
 
 describe('parseCatalogImportContent', () => {
   it('reconoce encabezados comunes de una ferreteria y numeros chilenos', async () => {
