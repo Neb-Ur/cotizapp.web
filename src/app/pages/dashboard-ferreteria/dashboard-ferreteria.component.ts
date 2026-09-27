@@ -19,6 +19,7 @@ import {
   downloadCatalogImportErrors,
   downloadCatalogImportTemplate
 } from '../../core/utils/catalog-import.util';
+import { getCurrentBrowserLocation } from '../../core/utils/location.util';
 import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 import { UiModalComponent } from '../../shared/components/ui-modal/ui-modal.component';
@@ -108,9 +109,14 @@ export class DashboardFerreteriaComponent implements OnInit {
     phone: '',
     city: '',
     commune: '',
-    address: ''
+    address: '',
+    storeLatitude: undefined as number | undefined,
+    storeLongitude: undefined as number | undefined
   };
   protected profileSaved = false;
+  protected profileLocationMessage = '';
+  protected profileLocationError = '';
+  protected isLocatingProfile = false;
 
   protected isInitialLoading = true;
   protected isSectionLoading = false;
@@ -584,6 +590,22 @@ export class DashboardFerreteriaComponent implements OnInit {
     this.importSummaryModalOpen = false;
   }
 
+  protected async updateProfileLocation(): Promise<void> {
+    this.profileLocationError = '';
+    this.profileLocationMessage = '';
+    this.isLocatingProfile = true;
+    try {
+      const location = await getCurrentBrowserLocation();
+      this.profileDraft.storeLatitude = location.latitude;
+      this.profileDraft.storeLongitude = location.longitude;
+      this.profileLocationMessage = 'Ubicacion del local actualizada. Guarda el perfil para confirmar.';
+    } catch (error) {
+      this.profileLocationError = error instanceof Error ? error.message : 'No se pudo obtener la ubicacion.';
+    } finally {
+      this.isLocatingProfile = false;
+    }
+  }
+
   protected async saveProfile(): Promise<void> {
     try {
       await this.authService.updateProfile(this.profileDraft);
@@ -698,8 +720,12 @@ export class DashboardFerreteriaComponent implements OnInit {
       phone: currentUser.phone || '',
       city: currentUser.city || '',
       commune: currentUser.commune || '',
-      address: currentUser.address || ''
+      address: currentUser.address || '',
+      storeLatitude: currentUser.storeLatitude,
+      storeLongitude: currentUser.storeLongitude
     };
+    this.profileLocationMessage = '';
+    this.profileLocationError = '';
   }
 
   @HostListener('window:resize')
