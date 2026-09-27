@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FamilyProductRow, ProjectSummary, SessionUser, TaxonomyOption } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
 import { MockApiService } from '../../core/services/mock-api.service';
+import { shareQuotationPdf } from '../../core/utils/quotation-pdf.util';
 import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 
@@ -30,6 +31,7 @@ interface MaestroProfileDraft {
   styleUrl: './dashboard-maestro.component.scss'
 })
 export class DashboardMaestroComponent implements OnInit {
+  protected readonly maxSavedQuotations = 2;
   protected readonly sections: MaestroSectionMeta[] = [
     { id: 'inicio', label: 'Inicio', description: 'Revisa tus cotizaciones recientes y el ahorro estimado.' },
     { id: 'buscar', label: 'Buscar productos', description: 'Busca materiales y compara precios entre ferreterias activas.' },
@@ -59,6 +61,7 @@ export class DashboardMaestroComponent implements OnInit {
   protected profileDraft: MaestroProfileDraft = { displayName: '', phone: '', commune: '' };
   protected profileSaved = false;
   protected profileError = '';
+  protected quotationNotice = '';
 
   protected isInitialLoading = true;
   protected isSectionLoading = false;
@@ -166,6 +169,14 @@ export class DashboardMaestroComponent implements OnInit {
     return this.projects.reduce((sum, project) => sum + (project.saving || 0), 0);
   }
 
+  protected get canCreateQuotation(): boolean {
+    return this.projects.length < this.maxSavedQuotations;
+  }
+
+  protected get quotationLimitText(): string {
+    return `${this.projects.length}/${this.maxSavedQuotations} cotizaciones guardadas`;
+  }
+
   protected setSection(section: MaestroSection): void {
     this.currentSection = section;
     this.closeMobileMenu();
@@ -267,11 +278,38 @@ export class DashboardMaestroComponent implements OnInit {
   }
 
   protected goToNewProject(): void {
+    if (!this.canCreateQuotation) {
+      this.quotationNotice = 'Ya tienes 2 cotizaciones guardadas. Elimina una para crear otra.';
+      return;
+    }
+    this.quotationNotice = '';
     this.router.navigate(['/dashboard/maestro/cotizaciones/nuevo']);
   }
 
   protected goToProjectDetail(projectId: string): void {
     this.router.navigate(['/dashboard/maestro/cotizaciones', projectId]);
+  }
+
+  protected async shareProject(project: ProjectSummary): Promise<void> {
+    const quotation = this.apiService.buildProjectQuotation(project.items);
+    if (quotation.lines.length === 0) {
+      this.quotationNotice = 'Esta cotizacion no tiene productos para enviar.';
+      return;
+    }
+
+    try {
+      const result = await shareQuotationPdf({
+        projectName: project.name,
+        projectAddress: project.address || '',
+        maestroName: this.user?.displayName || '',
+        quotation
+      });
+      this.quotationNotice = result === 'shared'
+        ? 'Cotizacion lista para enviar al cliente.'
+        : 'Tu navegador no permite compartir el PDF directamente; se descargo para que puedas enviarlo.';
+    } catch (error) {
+      this.quotationNotice = error instanceof Error ? error.message : 'No se pudo preparar la cotizacion para enviar.';
+    }
   }
 
   protected async deleteProject(projectId: string): Promise<void> {
