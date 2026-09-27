@@ -37,6 +37,8 @@ export class ProyectoDetalleComponent implements OnInit {
   protected projectItems: ProjectItem[] = [];
   protected saveNotice = '';
   protected projectProximity?: SearchProximity;
+  protected selectedSingleStoreName = '';
+  protected singleStoreNotice = '';
   protected readonly nearbyRadiusOptions = [5, 10, 20, 50];
   protected locationNotice = '';
   protected locationError = '';
@@ -80,16 +82,37 @@ export class ProyectoDetalleComponent implements OnInit {
     return this.apiService.getProductOptions({}, this.projectProximity);
   }
 
-  protected get quotation(): ProjectQuotationView {
+  protected get mixedQuotation(): ProjectQuotationView {
     return this.apiService.buildProjectQuotation(this.projectItems, this.projectProximity);
+  }
+
+  protected get quotation(): ProjectQuotationView {
+    return this.apiService.buildProjectQuotation(
+      this.projectItems,
+      this.projectProximity,
+      this.selectedSingleStoreName || undefined
+    );
   }
 
   protected get comparisonStrategies(): ProjectComparisonStrategy[] {
     return this.apiService.getProjectComparisonStrategies(
       this.projectItems,
       this.projectAddress,
-      this.projectProximity
+      this.projectProximity,
+      this.quotation.appliedStoreName
     );
+  }
+
+  protected get singleStoreOptions() {
+    return this.mixedQuotation.singleStoreOptions;
+  }
+
+  protected get hasAppliedSingleStore(): boolean {
+    return !!this.quotation.appliedStoreName;
+  }
+
+  protected get singleStoreSelectionInvalid(): boolean {
+    return !!this.selectedSingleStoreName && !this.quotation.appliedStoreName;
   }
 
   protected get proximityEnabled(): boolean {
@@ -151,7 +174,11 @@ export class ProyectoDetalleComponent implements OnInit {
     if (!productName) {
       return 0;
     }
-    return this.apiService.getBestOfferForProduct(productName, this.projectProximity)?.price || 0;
+    return this.apiService.getBestOfferForProduct(
+      productName,
+      this.projectProximity,
+      this.quotation.appliedStoreName
+    )?.price || 0;
   }
 
   protected getRowBestStore(item: ProjectItem): string {
@@ -159,7 +186,11 @@ export class ProyectoDetalleComponent implements OnInit {
     if (!productName) {
       return 'Sin tienda';
     }
-    return this.apiService.getBestOfferForProduct(productName, this.projectProximity)?.storeName || 'Sin tienda';
+    return this.apiService.getBestOfferForProduct(
+      productName,
+      this.projectProximity,
+      this.quotation.appliedStoreName
+    )?.storeName || 'Sin tienda';
   }
 
   protected getRowTotal(item: ProjectItem): number {
@@ -185,7 +216,8 @@ export class ProyectoDetalleComponent implements OnInit {
           name,
           this.projectItems,
           this.projectAddress,
-          this.projectProximity
+          this.projectProximity,
+          this.quotation.appliedStoreName
         );
         this.saveNotice = 'Cotizacion creada correctamente.';
         this.clearDraft();
@@ -204,7 +236,8 @@ export class ProyectoDetalleComponent implements OnInit {
       name,
       this.projectItems,
       this.projectAddress,
-      this.projectProximity
+      this.projectProximity,
+      this.quotation.appliedStoreName
     );
     if (!updated) {
       this.saveNotice = 'No se pudo actualizar la cotizacion.';
@@ -226,6 +259,48 @@ export class ProyectoDetalleComponent implements OnInit {
         draftAddress: this.isNewProject ? this.projectAddress : null
       }
     });
+  }
+
+  protected async applySingleStore(storeName: string): Promise<void> {
+    const option = this.singleStoreOptions.find((item) => item.storeName === storeName);
+    if (!option) {
+      this.singleStoreNotice = 'Esta ferreteria ya no tiene todos los productos disponibles.';
+      return;
+    }
+
+    const previous = this.selectedSingleStoreName;
+    this.selectedSingleStoreName = storeName;
+    this.singleStoreNotice = `${storeName} aplicada a todos los productos de la cotizacion.`;
+    this.persistDraftIfNeeded();
+
+    if (!this.isNewProject) {
+      const saved = await this.persistExistingPurchaseSelection();
+      if (!saved) {
+        this.selectedSingleStoreName = previous;
+        this.singleStoreNotice = 'No se pudo guardar la ferreteria seleccionada.';
+      }
+    }
+  }
+
+  protected async useMixedPurchase(): Promise<void> {
+    if (!this.selectedSingleStoreName) return;
+
+    const previous = this.selectedSingleStoreName;
+    this.selectedSingleStoreName = '';
+    this.singleStoreNotice = 'Volviste a la compra combinada de menor precio.';
+    this.persistDraftIfNeeded();
+
+    if (!this.isNewProject) {
+      const saved = await this.persistExistingPurchaseSelection();
+      if (!saved) {
+        this.selectedSingleStoreName = previous;
+        this.singleStoreNotice = 'No se pudo actualizar la estrategia de compra.';
+      }
+    }
+  }
+
+  protected singleStoreDifference(total: number): number {
+    return Math.max(0, total - this.mixedQuotation.mixedTotal);
   }
 
   protected async toggleProjectProximity(): Promise<void> {
@@ -341,6 +416,7 @@ export class ProyectoDetalleComponent implements OnInit {
         quantity: item.quantity
       }));
       this.projectProximity = draft?.proximity || nearbyPreference || undefined;
+      this.selectedSingleStoreName = draft?.singleStoreName || '';
       return;
     }
 
@@ -360,6 +436,7 @@ export class ProyectoDetalleComponent implements OnInit {
       this.projectName = refreshed.name;
       this.projectAddress = refreshed.address || '';
       this.projectProximity = refreshed.proximity;
+      this.selectedSingleStoreName = refreshed.singleStoreName || '';
       this.syncNearbyPreference();
       this.projectItems = refreshed.items.map((item) => ({
         productName: item.productName,
@@ -371,6 +448,7 @@ export class ProyectoDetalleComponent implements OnInit {
     this.projectName = project.name;
     this.projectAddress = project.address || '';
     this.projectProximity = project.proximity;
+    this.selectedSingleStoreName = project.singleStoreName || '';
     this.syncNearbyPreference();
     this.projectItems = project.items.map((item) => ({
       productName: item.productName,
@@ -389,12 +467,19 @@ export class ProyectoDetalleComponent implements OnInit {
       name: this.projectName,
       address: this.projectAddress,
       items: this.projectItems,
-      proximity: this.projectProximity
+      proximity: this.projectProximity,
+      singleStoreName: this.quotation.appliedStoreName
     };
     window.localStorage.setItem(this.draftStorageKey, JSON.stringify(payload));
   }
 
-  private readDraft(): { name: string; address: string; items: ProjectItem[]; proximity?: SearchProximity } | null {
+  private readDraft(): {
+    name: string;
+    address: string;
+    items: ProjectItem[];
+    proximity?: SearchProximity;
+    singleStoreName?: string;
+  } | null {
     if (typeof window === 'undefined') {
       return null;
     }
@@ -405,7 +490,13 @@ export class ProyectoDetalleComponent implements OnInit {
     }
 
     try {
-      return JSON.parse(raw) as { name: string; address: string; items: ProjectItem[]; proximity?: SearchProximity };
+      return JSON.parse(raw) as {
+        name: string;
+        address: string;
+        items: ProjectItem[];
+        proximity?: SearchProximity;
+        singleStoreName?: string;
+      };
     } catch {
       return null;
     }
@@ -620,6 +711,23 @@ export class ProyectoDetalleComponent implements OnInit {
       .replace(/^-+|-+$/g, '');
 
     return normalized || 'cotizacion';
+  }
+
+  private async persistExistingPurchaseSelection(): Promise<boolean> {
+    const currentUser = this.user;
+    if (!currentUser || this.isNewProject) return true;
+
+    const updated = await this.apiService.updateProject(
+      currentUser.id,
+      this.projectId,
+      this.projectName.trim() || 'Cotizacion',
+      this.projectItems,
+      this.projectAddress,
+      this.projectProximity,
+      this.quotation.appliedStoreName
+    );
+
+    return !!updated;
   }
 
   private syncNearbyPreference(): void {
