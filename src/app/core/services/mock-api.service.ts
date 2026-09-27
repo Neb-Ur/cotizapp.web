@@ -968,7 +968,8 @@ export class MockApiService {
     name: string,
     items: ProjectItem[],
     address = '',
-    proximity?: SearchProximity
+    proximity?: SearchProximity,
+    singleStoreName?: string
   ): Promise<ProjectSummary> {
     try {
       const created = await this.apiPost<any>(`/maestros/${ownerId}/proyectos`, {
@@ -979,6 +980,7 @@ export class MockApiService {
           longitude: proximity.longitude,
           radiusKm: proximity.radiusKm
         } : null,
+        ferreteriaUnica: singleStoreName?.trim() || null,
         items: items.map((item) => ({
           productName: item.productName.trim(),
           quantity: Math.max(1, Math.floor(Number(item.quantity) || 0))
@@ -1000,7 +1002,8 @@ export class MockApiService {
     name: string,
     items: ProjectItem[],
     address = '',
-    proximity?: SearchProximity
+    proximity?: SearchProximity,
+    singleStoreName?: string
   ): Promise<ProjectSummary | null> {
     try {
       const updated = await this.apiPut<any>(`/maestros/${ownerId}/proyectos/${projectId}`, {
@@ -1011,6 +1014,7 @@ export class MockApiService {
           longitude: proximity.longitude,
           radiusKm: proximity.radiusKm
         } : null,
+        ferreteriaUnica: singleStoreName?.trim() || null,
         items: items.map((item) => ({
           productName: item.productName.trim(),
           quantity: Math.max(1, Math.floor(Number(item.quantity) || 0))
@@ -1217,12 +1221,14 @@ export class MockApiService {
 
   getBestOfferForProduct(
     productName: string,
-    proximity?: SearchProximity
+    proximity?: SearchProximity,
+    singleStoreName?: string
   ): { storeName: string; price: number } | null {
     this.ensureSearchRowsLoaded();
 
     const rows = this.filterSearchRowsByProximity(this.searchRows, proximity)
       .filter((row) => row.productName.toLowerCase() === productName.toLowerCase())
+      .filter((row) => !singleStoreName || row.storeName === singleStoreName)
       .sort((a, b) => a.price - b.price);
 
     if (rows.length === 0) {
@@ -1235,11 +1241,16 @@ export class MockApiService {
     };
   }
 
-  buildProjectQuotation(items: ProjectItem[], proximity?: SearchProximity): ProjectQuotationView {
+  buildProjectQuotation(
+    items: ProjectItem[],
+    proximity?: SearchProximity,
+    singleStoreName?: string
+  ): ProjectQuotationView {
     this.ensureSearchRowsLoaded();
     return buildQuotationOptimization(
       items,
-      this.filterSearchRowsByProximity(this.searchRows, proximity)
+      this.filterSearchRowsByProximity(this.searchRows, proximity),
+      singleStoreName
     );
   }
 
@@ -1247,9 +1258,10 @@ export class MockApiService {
   getProjectComparisonStrategies(
     items: ProjectItem[],
     _projectAddress = '',
-    proximity?: SearchProximity
+    proximity?: SearchProximity,
+    singleStoreName?: string
   ): ProjectComparisonStrategy[] {
-    const quotation = this.buildProjectQuotation(items, proximity);
+    const quotation = this.buildProjectQuotation(items, proximity, singleStoreName);
     const storesUsed = new Set(
       quotation.lines
         .map((line) => line.bestStoreName)
@@ -1561,6 +1573,9 @@ export class MockApiService {
         name: row.name,
         address: row.address || '',
         proximity: this.mapSearchProximity(row.proximity),
+        singleStoreName: typeof row.singleStoreName === 'string' && row.singleStoreName.trim()
+          ? row.singleStoreName.trim()
+          : undefined,
         createdAt: row.createdAt,
         items: (row.items || []).map((item: any) => ({
           productName: item.productName,
@@ -1584,6 +1599,10 @@ export class MockApiService {
       name: row.nombre,
       address: row.direccionObra || '',
       proximity: this.mapSearchProximity(row.proximity || row.proximidad),
+      singleStoreName: typeof (row.singleStoreName || row.ferreteriaUnica) === 'string'
+        && String(row.singleStoreName || row.ferreteriaUnica).trim()
+        ? String(row.singleStoreName || row.ferreteriaUnica).trim()
+        : undefined,
       createdAt: row.creadoEn,
       items,
       totalOptimal: Number(latestQuotation?.total) || this.buildProjectQuotation(items).optimalTotal,
