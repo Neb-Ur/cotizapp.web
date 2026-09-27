@@ -382,7 +382,7 @@ export class DashboardMaestroComponent implements OnInit {
   }
 
   protected async shareProject(project: ProjectSummary): Promise<void> {
-    const quotation = this.apiService.buildProjectQuotation(project.items);
+    const quotation = this.apiService.buildProjectQuotation(project.items, project.proximity);
     if (quotation.lines.length === 0) {
       this.quotationNotice = 'Esta cotizacion no tiene productos para enviar.';
       return;
