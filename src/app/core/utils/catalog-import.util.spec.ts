@@ -1,4 +1,4 @@
-import { CATALOG_IMPORT_COLUMNS, catalogImportTemplateFileName, parseCatalogImportContent } from './catalog-import.util';
+import { CATALOG_IMPORT_COLUMNS, buildCatalogTemplateRows, catalogImportTemplateFileName, parseCatalogImportContent } from './catalog-import.util';
 
 describe('catalog import template', () => {
   it('mantiene el formato oficial de columnas', () => {
@@ -7,6 +7,19 @@ describe('catalog import template', () => {
 
   it('genera un nombre de archivo seguro por ferreteria', () => {
     expect(catalogImportTemplateFileName('Ferretería El Ñandú SpA')).toBe('cotizapp-catalogo-ferreteria-el-nandu-spa.xlsx');
+  });
+
+  it('genera el Excel de actualizacion con el catalogo actual de la ferreteria', () => {
+    const rows = buildCatalogTemplateRows([
+      { name: 'Cemento 25kg', sku: 'CEM25', price: 5490, stock: 80, barcode: '7800000000000' },
+      { name: 'OSB 11mm', sku: 'OSB11', price: 16990, stock: 25 }
+    ]);
+
+    expect(rows).toEqual([
+      ['nombre', 'sku', 'precio', 'stock', 'codigo_barras'],
+      ['Cemento 25kg', 'CEM25', 5490, 80, '7800000000000'],
+      ['OSB 11mm', 'OSB11', 16990, 25, '']
+    ]);
   });
 });
 
