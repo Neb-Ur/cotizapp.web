@@ -12,7 +12,13 @@ import {
 } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
 import { MockApiService } from '../../core/services/mock-api.service';
-import { CATALOG_IMPORT_TEMPLATE, catalogFileToCsv, catalogImportTemplateFileName, downloadCatalogImportTemplate } from '../../core/utils/catalog-import.util';
+import {
+  CATALOG_IMPORT_TEMPLATE,
+  catalogFileToCsv,
+  catalogImportTemplateFileName,
+  downloadCatalogImportErrors,
+  downloadCatalogImportTemplate
+} from '../../core/utils/catalog-import.util';
 import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 import { UiModalComponent } from '../../shared/components/ui-modal/ui-modal.component';
@@ -83,6 +89,7 @@ export class DashboardFerreteriaComponent implements OnInit {
   protected csvNotice = '';
   protected importSummaryModalOpen = false;
   protected importSummary: CatalogImportReport | null = null;
+  protected importSummaryView: Extract<CatalogImportOutcome, 'subido' | 'sin_cambios' | 'fallido'> = 'subido';
 
   protected requestDraft = { name: '', barcode: '', quantity: 1, price: 0 };
   protected requestError = '';
@@ -457,13 +464,24 @@ export class DashboardFerreteriaComponent implements OnInit {
         this.user.id,
         this.user.businessName || this.user.displayName,
         this.csvContent,
-        { categoryId: '', subcategoryId: '', familyId: '', brand: 'Sin marca', unitLabel: 'Unidad', isPublished: true }
+        {
+          categoryId: '',
+          subcategoryId: '',
+          familyId: '',
+          brand: 'Sin marca',
+          unitLabel: 'Unidad',
+          isPublished: true,
+          mode: 'update'
+        }
       );
       this.catalog = response.catalog;
       this.importSummary = response.report;
+      this.importSummaryView = response.report.failedCount > 0
+        ? 'fallido'
+        : (response.report.uploadedCount > 0 ? 'subido' : 'sin_cambios');
       this.importSummaryModalOpen = true;
       this.refreshSummary();
-      this.csvNotice = `Procesadas ${response.report.totalRows} fila(s).`;
+      this.csvNotice = `Procesadas ${response.report.totalRows} fila(s): ${response.report.uploadedCount} actualizadas, ${response.report.noChangeCount} sin cambios y ${response.report.failedCount} con error.`;
     } catch (error) {
       this.csvError = error instanceof Error ? error.message : 'No se pudo procesar el archivo.';
     }
@@ -499,6 +517,30 @@ export class DashboardFerreteriaComponent implements OnInit {
 
   protected importRows(outcome: CatalogImportOutcome): CatalogImportRowResult[] {
     return this.importSummary?.rows.filter((row) => row.outcome === outcome) || [];
+  }
+
+  protected setImportSummaryView(view: Extract<CatalogImportOutcome, 'subido' | 'sin_cambios' | 'fallido'>): void {
+    this.importSummaryView = view;
+  }
+
+  protected async downloadImportErrors(): Promise<void> {
+    const errors = this.importRows('fallido');
+    if (errors.length === 0) return;
+
+    try {
+      await downloadCatalogImportErrors(
+        errors.map((row) => ({
+          name: row.name,
+          sku: row.sku,
+          price: row.price,
+          stock: row.stock,
+          barcode: row.barcode,
+          message: row.message
+        }))
+      );
+    } catch (error) {
+      this.csvError = error instanceof Error ? error.message : 'No se pudo descargar el archivo de errores.';
+    }
   }
 
   protected closeImportSummaryModal(): void {
