@@ -89,6 +89,16 @@
         <small *ngIf="hasError('address')">Ingresa una dirección válida.</small>
       </div>
 
+      <div class="field field--full location-field" *ngIf="selectedRole === 'ferreteria'">
+        <label>Ubicación del local</label>
+        <p class="location-help">Activa la ubicación estando en la ferretería. Se usará para que los maestros puedan encontrarte por distancia.</p>
+        <button type="button" class="btn btn-dark" (click)="captureStoreLocation()" [disabled]="isLocatingStore">
+          {{ isLocatingStore ? 'Obteniendo ubicación...' : (storeLocation ? 'Actualizar ubicación del local' : 'Usar ubicación actual del local') }}
+        </button>
+        <small class="location-ok" *ngIf="locationMessage">{{ locationMessage }}</small>
+        <small class="location-error" *ngIf="locationError">{{ locationError }}</small>
+      </div>
+
       <div class="field--full form-actions">
         <button class="btn btn-dark btn-full" type="submit" [disabled]="isSubmitting">
           {{ isSubmitting ? 'Creando cuenta...' : 'Crear cuenta' }}
