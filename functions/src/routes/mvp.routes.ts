@@ -12,6 +12,12 @@ type ProjectItem = {
   quantity: number;
 };
 
+type ProjectProximity = {
+  latitude: number;
+  longitude: number;
+  radiusKm: number;
+};
+
 type SearchRow = {
   productoMaestroId: string;
   productoFerreteriaId: string;
@@ -68,6 +74,35 @@ function coordinateValue(value: unknown, min: number, max: number): number | nul
   if (value === undefined || value === null || value === '') return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed >= min && parsed <= max ? parsed : null;
+}
+
+function normalizeProjectProximity(value: unknown): ProjectProximity | null {
+  const raw = value as Record<string, unknown> | null | undefined;
+  if (!raw) return null;
+
+  const latitude = coordinateValue(raw['latitude'] ?? raw['latitud'], -90, 90);
+  const longitude = coordinateValue(raw['longitude'] ?? raw['longitud'], -180, 180);
+  const radiusKm = numberValue(raw['radiusKm'] ?? raw['radioKm']);
+
+  if (latitude === null || longitude === null || ![5, 10, 20, 50].includes(radiusKm)) return null;
+  return { latitude, longitude, radiusKm };
+}
+
+function geographicDistanceKm(
+  origin: { latitude: number; longitude: number },
+  destination: { latitude: number; longitude: number }
+): number {
+  const earthRadiusKm = 6371;
+  const toRadians = (degrees: number): number => degrees * (Math.PI / 180);
+  const lat1 = toRadians(origin.latitude);
+  const lat2 = toRadians(destination.latitude);
+  const deltaLat = toRadians(destination.latitude - origin.latitude);
+  const deltaLng = toRadians(destination.longitude - origin.longitude);
+  const haversine =
+    Math.sin(deltaLat / 2) ** 2
+    + Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLng / 2) ** 2;
+
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
 }
 
 function validRole(value: unknown): value is UserRole {
@@ -212,8 +247,17 @@ function normalizeItems(value: unknown): ProjectItem[] {
     .filter((item) => item.productName.length > 0);
 }
 
-async function optimizeItems(items: ProjectItem[]): Promise<any> {
-  const searchRows = await buildSearchRows();
+async function optimizeItems(items: ProjectItem[], proximity?: ProjectProximity | null): Promise<any> {
+  const allSearchRows = await buildSearchRows();
+  const searchRows = proximity
+    ? allSearchRows.filter((item) => {
+      if (item.storeLatitude === null || item.storeLongitude === null) return false;
+      return geographicDistanceKm(
+        { latitude: proximity.latitude, longitude: proximity.longitude },
+        { latitude: item.storeLatitude, longitude: item.storeLongitude }
+      ) <= proximity.radiusKm;
+    })
+    : allSearchRows;
   const normalized = normalizeItems(items);
   const lines = normalized.map((item) => {
     const candidates = searchRows
@@ -263,11 +307,13 @@ async function optimizeItems(items: ProjectItem[]): Promise<any> {
 
 async function projectView(project: any): Promise<any> {
   const items = normalizeItems(project.items);
-  const optimization = await optimizeItems(items);
+  const proximity = normalizeProjectProximity(project.proximity ?? project.proximidad);
+  const optimization = await optimizeItems(items, proximity);
   return {
     id: project.id,
     name: project.name || project.nombre || 'Cotizacion',
     address: project.address || project.direccionObra || '',
+    proximity: proximity || undefined,
     createdAt: project.createdAt || project.creadoEn || nowIso(),
     items,
     totalOptimal: optimization.optimalTotal,
@@ -775,6 +821,7 @@ mvpRouter.post('/maestros/:ownerId/proyectos', requireAuth, async (req, res) => 
     name,
     address: normalizeText(req.body?.direccionObra),
     items: normalizeItems(req.body?.items),
+    proximity: normalizeProjectProximity(req.body?.proximidad) || null,
     createdAt: nowIso()
   });
   return ok(res, await projectView(created), 201);
@@ -795,6 +842,7 @@ mvpRouter.put('/maestros/:ownerId/proyectos/:projectId', requireAuth, async (req
     name: normalizeText(req.body?.nombre) || project.name,
     address: normalizeText(req.body?.direccionObra),
     items: normalizeItems(req.body?.items),
+    proximity: normalizeProjectProximity(req.body?.proximidad) || null,
     updatedAt: nowIso()
   });
   return ok(res, await projectView(updated));
@@ -819,7 +867,13 @@ mvpRouter.delete('/maestros/:ownerId/proyectos/:projectId', requireAuth, async (
 });
 
 mvpRouter.post('/cotizaciones/optimizar', requireAuth, async (req, res) => {
-  return ok(res, await optimizeItems(normalizeItems(req.body?.items)));
+  return ok(
+    res,
+    await optimizeItems(
+      normalizeItems(req.body?.items),
+      normalizeProjectProximity(req.body?.proximidad)
+    )
+  );
 });
 
 
