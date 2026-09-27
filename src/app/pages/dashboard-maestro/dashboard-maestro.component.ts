@@ -393,7 +393,8 @@ export class DashboardMaestroComponent implements OnInit {
         projectName: project.name,
         projectAddress: project.address || '',
         maestroName: this.user?.displayName || '',
-        quotation
+        quotation,
+        proximity: project.proximity
       });
       this.quotationNotice = result === 'shared'
         ? 'Cotizacion lista para enviar al cliente.'
