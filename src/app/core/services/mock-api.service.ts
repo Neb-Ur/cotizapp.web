@@ -967,12 +967,18 @@ export class MockApiService {
     ownerId: string,
     name: string,
     items: ProjectItem[],
-    address = ''
+    address = '',
+    proximity?: SearchProximity
   ): Promise<ProjectSummary> {
     try {
       const created = await this.apiPost<any>(`/maestros/${ownerId}/proyectos`, {
         nombre: name.trim(),
         direccionObra: address.trim(),
+        proximidad: proximity ? {
+          latitude: proximity.latitude,
+          longitude: proximity.longitude,
+          radiusKm: proximity.radiusKm
+        } : null,
         items: items.map((item) => ({
           productName: item.productName.trim(),
           quantity: Math.max(1, Math.floor(Number(item.quantity) || 0))
@@ -988,11 +994,23 @@ export class MockApiService {
     }
   }
 
-  async updateProject(ownerId: string, projectId: string, name: string, items: ProjectItem[], address = ''): Promise<ProjectSummary | null> {
+  async updateProject(
+    ownerId: string,
+    projectId: string,
+    name: string,
+    items: ProjectItem[],
+    address = '',
+    proximity?: SearchProximity
+  ): Promise<ProjectSummary | null> {
     try {
       const updated = await this.apiPut<any>(`/maestros/${ownerId}/proyectos/${projectId}`, {
         nombre: name.trim(),
         direccionObra: address.trim(),
+        proximidad: proximity ? {
+          latitude: proximity.latitude,
+          longitude: proximity.longitude,
+          radiusKm: proximity.radiusKm
+        } : null,
         items: items.map((item) => ({
           productName: item.productName.trim(),
           quantity: Math.max(1, Math.floor(Number(item.quantity) || 0))
@@ -1197,10 +1215,13 @@ export class MockApiService {
     return cached;
   }
 
-  getBestOfferForProduct(productName: string): { storeName: string; price: number } | null {
+  getBestOfferForProduct(
+    productName: string,
+    proximity?: SearchProximity
+  ): { storeName: string; price: number } | null {
     this.ensureSearchRowsLoaded();
 
-    const rows = this.searchRows
+    const rows = this.filterSearchRowsByProximity(this.searchRows, proximity)
       .filter((row) => row.productName.toLowerCase() === productName.toLowerCase())
       .sort((a, b) => a.price - b.price);
 
@@ -1214,14 +1235,21 @@ export class MockApiService {
     };
   }
 
-  buildProjectQuotation(items: ProjectItem[]): ProjectQuotationView {
+  buildProjectQuotation(items: ProjectItem[], proximity?: SearchProximity): ProjectQuotationView {
     this.ensureSearchRowsLoaded();
-    return buildQuotationOptimization(items, this.searchRows);
+    return buildQuotationOptimization(
+      items,
+      this.filterSearchRowsByProximity(this.searchRows, proximity)
+    );
   }
 
 
-  getProjectComparisonStrategies(items: ProjectItem[], _projectAddress = ''): ProjectComparisonStrategy[] {
-    const quotation = this.buildProjectQuotation(items);
+  getProjectComparisonStrategies(
+    items: ProjectItem[],
+    _projectAddress = '',
+    proximity?: SearchProximity
+  ): ProjectComparisonStrategy[] {
+    const quotation = this.buildProjectQuotation(items, proximity);
     const storesUsed = new Set(
       quotation.lines
         .map((line) => line.bestStoreName)
@@ -1532,6 +1560,7 @@ export class MockApiService {
         id: row.id,
         name: row.name,
         address: row.address || '',
+        proximity: this.mapSearchProximity(row.proximity),
         createdAt: row.createdAt,
         items: (row.items || []).map((item: any) => ({
           productName: item.productName,
@@ -1554,11 +1583,27 @@ export class MockApiService {
       id: row.id,
       name: row.nombre,
       address: row.direccionObra || '',
+      proximity: this.mapSearchProximity(row.proximity || row.proximidad),
       createdAt: row.creadoEn,
       items,
       totalOptimal: Number(latestQuotation?.total) || this.buildProjectQuotation(items).optimalTotal,
       saving: Number(latestQuotation?.ahorroEstimado) || 0
     };
+  }
+
+  private mapSearchProximity(value: any): SearchProximity | undefined {
+    if (!value) return undefined;
+    const latitude = Number(value.latitude ?? value.latitud);
+    const longitude = Number(value.longitude ?? value.longitud);
+    const radiusKm = Number(value.radiusKm ?? value.radioKm);
+    if (
+      !Number.isFinite(latitude)
+      || !Number.isFinite(longitude)
+      || ![5, 10, 20, 50].includes(radiusKm)
+    ) {
+      return undefined;
+    }
+    return { latitude, longitude, radiusKm };
   }
 
   private mapFamilyTemplate(familyId: string, familyName: string, definitions: any[]): FamilyTemplate {
