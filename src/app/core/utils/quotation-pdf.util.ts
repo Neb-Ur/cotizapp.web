@@ -62,6 +62,11 @@ function buildQuotationPdfLines(input: QuotationPdfInput, exportedAt: Date): str
       ? `Busqueda por cercania: hasta ${input.proximity.radiusKm} km desde la ubicacion del maestro`
       : 'Busqueda por cercania: todas las ferreterias'
   );
+  lines.push(
+    input.quotation.appliedStoreName
+      ? `Estrategia de compra: todo en ${input.quotation.appliedStoreName}`
+      : 'Estrategia de compra: compra combinada'
+  );
   lines.push('');
   lines.push('DETALLE DE ARTICULOS');
 
