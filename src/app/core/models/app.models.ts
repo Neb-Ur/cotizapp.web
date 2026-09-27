@@ -176,6 +176,7 @@ export interface ProjectSummary {
   name: string;
   address?: string;
   proximity?: SearchProximity;
+  singleStoreName?: string;
   createdAt: string;
   items: ProjectItem[];
   totalOptimal: number;
@@ -198,9 +199,12 @@ export interface ProjectQuotationLine {
 export interface ProjectQuotationView {
   lines: ProjectQuotationLine[];
   totalsByStore: ProjectStoreTotal[];
+  singleStoreOptions: ProjectStoreTotal[];
   bestStore: ProjectStoreTotal;
   optimalTotal: number;
+  mixedTotal: number;
   mixedSaving: number;
+  appliedStoreName?: string;
 }
 
 export type ProjectComparisonStrategyId = 'cheapest' | 'same-store';
