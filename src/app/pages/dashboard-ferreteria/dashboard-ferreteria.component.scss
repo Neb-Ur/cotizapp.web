@@ -1094,6 +1094,68 @@ button.plan-card__action.is-disabled {
   font-weight: 700;
 }
 
+.catalog-edit-modal {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.catalog-edit-summary {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.8rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.catalog-edit-summary strong {
+  color: var(--navy-900);
+  font-size: 1.05rem;
+}
+
+.catalog-edit-summary span {
+  color: var(--slate-700);
+  font-size: 0.9rem;
+}
+
+.catalog-edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+}
+
+.catalog-edit-grid small,
+.catalog-edit-published small {
+  color: var(--slate-700);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.catalog-edit-published {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.catalog-edit-published input {
+  margin-top: 0.18rem;
+}
+
+.catalog-edit-published span {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.catalog-edit-error {
+  margin: 0;
+  color: #9b1f1f;
+  font-weight: 700;
+}
+
 .confirm-delete-modal {
   display: grid;
   gap: 0.8rem;
@@ -1150,6 +1212,7 @@ button.plan-card__action.is-disabled {
   }
 
   .stats-grid,
+  .catalog-edit-grid,
   .catalog-filters-grid,
   .metrics-kpi-grid,
   .upload-grid,
