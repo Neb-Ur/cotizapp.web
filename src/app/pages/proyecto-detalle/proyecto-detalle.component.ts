@@ -525,6 +525,11 @@ export class ProyectoDetalleComponent implements OnInit {
         ? `Busqueda por cercania: hasta ${this.projectProximity.radiusKm} km desde la ubicacion del maestro`
         : 'Busqueda por cercania: todas las ferreterias'
     );
+    lines.push(
+      this.quotation.appliedStoreName
+        ? `Estrategia de compra: todo en ${this.quotation.appliedStoreName}`
+        : 'Estrategia de compra: compra combinada'
+    );
     lines.push('');
     lines.push('DETALLE DE ARTICULOS');
 
