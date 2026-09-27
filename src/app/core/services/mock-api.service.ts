@@ -1124,10 +1124,10 @@ export class MockApiService {
       .slice(0, Math.max(1, limit));
   }
 
-  getProductOptions(filters: SearchFilters = {}): string[] {
+  getProductOptions(filters: SearchFilters = {}, proximity?: SearchProximity): string[] {
     this.ensureSearchRowsLoaded();
     return Array.from(new Set(
-      this.searchRows
+      this.filterSearchRowsByProximity(this.searchRows, proximity)
         .filter((row) => !filters.categoryId || row.categoryId === filters.categoryId)
         .filter((row) => !filters.subcategoryId || row.subcategoryId === filters.subcategoryId)
         .filter((row) => !filters.familyId || row.familyId === filters.familyId)
