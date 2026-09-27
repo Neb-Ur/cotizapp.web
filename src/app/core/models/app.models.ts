@@ -175,6 +175,7 @@ export interface ProjectSummary {
   id: string;
   name: string;
   address?: string;
+  proximity?: SearchProximity;
   createdAt: string;
   items: ProjectItem[];
   totalOptimal: number;
