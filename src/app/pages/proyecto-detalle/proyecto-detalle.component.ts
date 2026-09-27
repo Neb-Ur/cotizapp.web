@@ -7,10 +7,17 @@ import {
   ProjectComparisonStrategy,
   ProjectItem,
   ProjectQuotationView,
+  SearchProximity,
   SessionUser
 } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
 import { MockApiService } from '../../core/services/mock-api.service';
+import {
+  clearNearbySearchPreference,
+  getCurrentBrowserLocation,
+  readNearbySearchPreference,
+  saveNearbySearchPreference
+} from '../../core/utils/location.util';
 import { shareQuotationPdf } from '../../core/utils/quotation-pdf.util';
 
 @Component({
@@ -29,6 +36,11 @@ export class ProyectoDetalleComponent implements OnInit {
   protected projectAddress = '';
   protected projectItems: ProjectItem[] = [];
   protected saveNotice = '';
+  protected projectProximity?: SearchProximity;
+  protected readonly nearbyRadiusOptions = [5, 10, 20, 50];
+  protected locationNotice = '';
+  protected locationError = '';
+  protected isLocating = false;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -65,15 +77,29 @@ export class ProyectoDetalleComponent implements OnInit {
   }
 
   protected get productOptions(): string[] {
-    return this.apiService.getProductOptions();
+    return this.apiService.getProductOptions({}, this.projectProximity);
   }
 
   protected get quotation(): ProjectQuotationView {
-    return this.apiService.buildProjectQuotation(this.projectItems);
+    return this.apiService.buildProjectQuotation(this.projectItems, this.projectProximity);
   }
 
   protected get comparisonStrategies(): ProjectComparisonStrategy[] {
-    return this.apiService.getProjectComparisonStrategies(this.projectItems, this.projectAddress);
+    return this.apiService.getProjectComparisonStrategies(
+      this.projectItems,
+      this.projectAddress,
+      this.projectProximity
+    );
+  }
+
+  protected get proximityEnabled(): boolean {
+    return !!this.projectProximity;
+  }
+
+  protected get proximityLabel(): string {
+    return this.projectProximity
+      ? `Cerca de mi · hasta ${this.projectProximity.radiusKm} km`
+      : 'Todas las ferreterias';
   }
 
 
@@ -120,7 +146,7 @@ export class ProyectoDetalleComponent implements OnInit {
     if (!productName) {
       return 0;
     }
-    return this.apiService.getBestOfferForProduct(productName)?.price || 0;
+    return this.apiService.getBestOfferForProduct(productName, this.projectProximity)?.price || 0;
   }
 
   protected getRowBestStore(item: ProjectItem): string {
@@ -128,7 +154,7 @@ export class ProyectoDetalleComponent implements OnInit {
     if (!productName) {
       return 'Sin tienda';
     }
-    return this.apiService.getBestOfferForProduct(productName)?.storeName || 'Sin tienda';
+    return this.apiService.getBestOfferForProduct(productName, this.projectProximity)?.storeName || 'Sin tienda';
   }
 
   protected getRowTotal(item: ProjectItem): number {
@@ -149,7 +175,13 @@ export class ProyectoDetalleComponent implements OnInit {
 
     if (this.isNewProject) {
       try {
-        const created = await this.apiService.saveProject(currentUser.id, name, this.projectItems, this.projectAddress);
+        const created = await this.apiService.saveProject(
+          currentUser.id,
+          name,
+          this.projectItems,
+          this.projectAddress,
+          this.projectProximity
+        );
         this.saveNotice = 'Cotizacion creada correctamente.';
         this.clearDraft();
         this.router.navigate(['/dashboard/maestro/cotizaciones', created.id]);
@@ -161,7 +193,14 @@ export class ProyectoDetalleComponent implements OnInit {
       return;
     }
 
-    const updated = await this.apiService.updateProject(currentUser.id, this.projectId, name, this.projectItems, this.projectAddress);
+    const updated = await this.apiService.updateProject(
+      currentUser.id,
+      this.projectId,
+      name,
+      this.projectItems,
+      this.projectAddress,
+      this.projectProximity
+    );
     if (!updated) {
       this.saveNotice = 'No se pudo actualizar la cotizacion.';
       return;
@@ -173,6 +212,7 @@ export class ProyectoDetalleComponent implements OnInit {
   protected goToSearchForProduct(): void {
     const projectTarget = this.isNewProject ? 'nuevo' : this.projectId;
     this.persistDraftIfNeeded();
+    this.syncNearbyPreference();
     this.router.navigate(['/dashboard/maestro'], {
       queryParams: {
         section: 'buscar',
@@ -181,6 +221,54 @@ export class ProyectoDetalleComponent implements OnInit {
         draftAddress: this.isNewProject ? this.projectAddress : null
       }
     });
+  }
+
+  protected async toggleProjectProximity(): Promise<void> {
+    this.locationError = '';
+    this.locationNotice = '';
+
+    if (this.projectProximity) {
+      this.projectProximity = undefined;
+      clearNearbySearchPreference();
+      this.locationNotice = 'La cotizacion ahora considera todas las ferreterias.';
+      this.persistDraftIfNeeded();
+      return;
+    }
+
+    this.isLocating = true;
+    try {
+      const current = await getCurrentBrowserLocation();
+      const saved = readNearbySearchPreference();
+      const radiusKm = saved?.radiusKm && this.nearbyRadiusOptions.includes(saved.radiusKm)
+        ? saved.radiusKm
+        : 10;
+
+      this.projectProximity = {
+        latitude: current.latitude,
+        longitude: current.longitude,
+        radiusKm
+      };
+      this.syncNearbyPreference();
+      this.locationNotice = `La cotizacion ahora considera ferreterias a hasta ${radiusKm} km.`;
+      this.persistDraftIfNeeded();
+    } catch (error) {
+      this.locationError = error instanceof Error ? error.message : 'No se pudo obtener tu ubicacion.';
+    } finally {
+      this.isLocating = false;
+    }
+  }
+
+  protected onProjectRadiusChange(value: number | string): void {
+    if (!this.projectProximity) return;
+    const parsed = Number(value);
+    const radiusKm = this.nearbyRadiusOptions.includes(parsed) ? parsed : 10;
+    this.projectProximity = {
+      ...this.projectProximity,
+      radiusKm
+    };
+    this.syncNearbyPreference();
+    this.locationNotice = `Radio actualizado a ${radiusKm} km. Guarda la cotizacion para conservar el cambio.`;
+    this.persistDraftIfNeeded();
   }
 
   protected async shareQuotation(): Promise<void> {
@@ -239,12 +327,14 @@ export class ProyectoDetalleComponent implements OnInit {
 
     if (this.isNewProject) {
       const draft = this.readDraft();
+      const nearbyPreference = readNearbySearchPreference();
       this.projectName = draftName || draft?.name || '';
       this.projectAddress = draftAddress || draft?.address || '';
       this.projectItems = (draft?.items || []).map((item) => ({
         productName: item.productName,
         quantity: item.quantity
       }));
+      this.projectProximity = draft?.proximity || nearbyPreference || undefined;
       return;
     }
 
@@ -263,6 +353,8 @@ export class ProyectoDetalleComponent implements OnInit {
       }
       this.projectName = refreshed.name;
       this.projectAddress = refreshed.address || '';
+      this.projectProximity = refreshed.proximity;
+      this.syncNearbyPreference();
       this.projectItems = refreshed.items.map((item) => ({
         productName: item.productName,
         quantity: item.quantity
@@ -272,6 +364,8 @@ export class ProyectoDetalleComponent implements OnInit {
 
     this.projectName = project.name;
     this.projectAddress = project.address || '';
+    this.projectProximity = project.proximity;
+    this.syncNearbyPreference();
     this.projectItems = project.items.map((item) => ({
       productName: item.productName,
       quantity: item.quantity
@@ -288,12 +382,13 @@ export class ProyectoDetalleComponent implements OnInit {
     const payload = {
       name: this.projectName,
       address: this.projectAddress,
-      items: this.projectItems
+      items: this.projectItems,
+      proximity: this.projectProximity
     };
     window.localStorage.setItem(this.draftStorageKey, JSON.stringify(payload));
   }
 
-  private readDraft(): { name: string; address: string; items: ProjectItem[] } | null {
+  private readDraft(): { name: string; address: string; items: ProjectItem[]; proximity?: SearchProximity } | null {
     if (typeof window === 'undefined') {
       return null;
     }
@@ -304,7 +399,7 @@ export class ProyectoDetalleComponent implements OnInit {
     }
 
     try {
-      return JSON.parse(raw) as { name: string; address: string; items: ProjectItem[] };
+      return JSON.parse(raw) as { name: string; address: string; items: ProjectItem[]; proximity?: SearchProximity };
     } catch {
       return null;
     }
@@ -328,6 +423,11 @@ export class ProyectoDetalleComponent implements OnInit {
     lines.push(`Maestro: ${maestroName}`);
     lines.push(`Fecha de exportacion: ${this.formatExportDate(exportedAt)}`);
     lines.push(`Direccion de obra: ${workAddress}`);
+    lines.push(
+      this.projectProximity
+        ? `Busqueda por cercania: hasta ${this.projectProximity.radiusKm} km desde la ubicacion del maestro`
+        : 'Busqueda por cercania: todas las ferreterias'
+    );
     lines.push('');
     lines.push('DETALLE DE ARTICULOS');
 
@@ -514,6 +614,19 @@ export class ProyectoDetalleComponent implements OnInit {
       .replace(/^-+|-+$/g, '');
 
     return normalized || 'cotizacion';
+  }
+
+  private syncNearbyPreference(): void {
+    if (!this.projectProximity) {
+      clearNearbySearchPreference();
+      return;
+    }
+
+    saveNearbySearchPreference({
+      latitude: this.projectProximity.latitude,
+      longitude: this.projectProximity.longitude,
+      radiusKm: this.projectProximity.radiusKm
+    });
   }
 
   private clearAddProductQueryParams(): void {
