@@ -17,6 +17,8 @@ export interface SessionUser {
   businessName?: string;
   rut?: string;
   address?: string;
+  storeLatitude?: number;
+  storeLongitude?: number;
 }
 
 export interface LoginPayload {
@@ -37,11 +39,18 @@ export interface RegisterPayload {
   businessName?: string;
   rut?: string;
   address: string;
+  storeLatitude?: number;
+  storeLongitude?: number;
 }
 
 export interface SearchRow {
   productName: string;
   storeName: string;
+  storeId?: string;
+  storeLatitude?: number | null;
+  storeLongitude?: number | null;
+  storeAddress?: string;
+  storeCommune?: string;
   price: number;
   categoryId: string;
   categoryName: string;
@@ -56,6 +65,12 @@ export interface SearchFilters {
   categoryId?: string;
   subcategoryId?: string;
   familyId?: string;
+}
+
+export interface SearchProximity {
+  latitude: number;
+  longitude: number;
+  radiusKm: number;
 }
 
 export interface TaxonomyOption {
@@ -96,12 +111,19 @@ export interface FamilyProductRow {
   brand: string;
   productType: string;
   sellers: string[];
+  nearestDistanceKm?: number;
 }
 
 export interface ProductStoreOfferRow {
   storeName: string;
   price: number;
   stock: number;
+  storeId?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  address?: string;
+  commune?: string;
+  distanceKm?: number;
 }
 
 export interface ProductTechSpecRow {
