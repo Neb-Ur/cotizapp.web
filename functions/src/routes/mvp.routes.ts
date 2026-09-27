@@ -694,6 +694,12 @@ mvpRouter.patch('/ferreterias/:storeId/catalogo/:offerId', requireAuth, async (r
 
 mvpRouter.delete('/ferreterias/:storeId/catalogo/:offerId', requireAuth, async (req, res) => {
   if (!(await requireStoreWriteAccess(req, res, req.params.storeId))) return;
+
+  const existing = await row(COLLECTIONS.storeProducts, req.params.offerId);
+  if (!existing || existing.ferreteriaId !== req.params.storeId) {
+    return fail(res, 'CATALOGO_NOT_FOUND', 'Producto de ferreteria no encontrado.', 404);
+  }
+
   await db.collection(COLLECTIONS.storeProducts).doc(req.params.offerId).delete();
   return ok(res, { deleted: true });
 });
