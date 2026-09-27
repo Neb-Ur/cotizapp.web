@@ -179,25 +179,71 @@
       </ng-template>
     </section>
 
-    <section class="store-totals-card" *ngIf="!isNewProject && quotation.totalsByStore.length > 0">
-      <h2>Totales por ferreteria</h2>
-      <p class="section-note">Comparativo rapido para elegir la tienda mas conveniente.</p>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Ferreteria</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let row of quotation.totalsByStore">
-              <td>{{ row.storeName }}</td>
-              <td>{{ formatCurrency(row.total) }}</td>
-            </tr>
-          </tbody>
-        </table>
+    <section class="same-store-card" *ngIf="hasItemsInTable">
+      <div class="same-store-header">
+        <div>
+          <h2>Si compras todo en una misma ferreteria</h2>
+          <p class="section-note">
+            Solo mostramos ferreterias que ya participan en tu cotizacion combinada y que tienen todos los productos con stock suficiente.
+          </p>
+        </div>
+        <button
+          *ngIf="hasAppliedSingleStore"
+          type="button"
+          class="secondary"
+          (click)="useMixedPurchase()"
+        >
+          Volver a compra combinada
+        </button>
       </div>
+
+      <p class="nearby-warning" *ngIf="singleStoreSelectionInvalid">
+        La ferreteria que habias aplicado ya no tiene todos los productos disponibles. CotizApp volvio temporalmente a la compra combinada.
+      </p>
+
+      <div class="same-store-applied" *ngIf="quotation.appliedStoreName">
+        <span>Aplicada a la cotizacion</span>
+        <strong>{{ quotation.appliedStoreName }}</strong>
+        <p>Todos los precios y totales de arriba corresponden ahora a esta ferreteria.</p>
+      </div>
+
+      <div class="same-store-grid" *ngIf="singleStoreOptions.length > 0; else noSingleStore">
+        <article
+          class="same-store-option"
+          *ngFor="let option of singleStoreOptions"
+          [class.applied]="option.storeName === quotation.appliedStoreName"
+        >
+          <div>
+            <h3>{{ option.storeName }}</h3>
+            <p>Todos los productos disponibles</p>
+          </div>
+          <div class="same-store-price">
+            <strong>{{ formatCurrency(option.total) }}</strong>
+            <span *ngIf="singleStoreDifference(option.total) > 0">
+              {{ formatCurrency(singleStoreDifference(option.total)) }} mas que la compra combinada
+            </span>
+            <span *ngIf="singleStoreDifference(option.total) === 0">
+              Mismo total que la compra combinada
+            </span>
+          </div>
+          <button
+            type="button"
+            (click)="applySingleStore(option.storeName)"
+            [disabled]="option.storeName === quotation.appliedStoreName"
+          >
+            {{ option.storeName === quotation.appliedStoreName ? 'Aplicada' : 'Aplicar' }}
+          </button>
+        </article>
+      </div>
+
+      <ng-template #noSingleStore>
+        <div class="empty-state compact">
+          <p class="empty-title">Ninguna de las ferreterias seleccionadas tiene toda la cotizacion disponible.</p>
+          <p>Puedes mantener la compra combinada o cambiar productos, cantidades o radio de busqueda.</p>
+        </div>
+      </ng-template>
+
+      <p class="saved" *ngIf="singleStoreNotice">{{ singleStoreNotice }}</p>
     </section>
   </article>
 </main>
