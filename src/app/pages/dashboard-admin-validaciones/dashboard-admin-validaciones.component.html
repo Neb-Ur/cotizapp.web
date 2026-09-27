@@ -99,7 +99,10 @@
 
       <section class="card" style="margin-top:1rem;">
         <h4>Carga inicial de catalogo</h4>
-        <p>Selecciona una ferreteria y sube el Excel/CSV que te entregue. Despues la tienda mantiene precio y stock desde su panel.</p>
+        <p>Selecciona una ferreteria, descarga el template CotizApp, pasa ahi los datos que te entregue y sube el archivo normalizado. Despues la tienda mantiene precio y stock desde su panel.</p>
+        <div class="actions" style="margin-bottom:1rem;">
+          <button type="button" class="ghost" (click)="downloadOnboardingCatalogTemplate()">Descargar template CotizApp</button>
+        </div>
 
         <div class="form-grid">
           <label>
