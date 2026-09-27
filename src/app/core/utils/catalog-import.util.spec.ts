@@ -21,6 +21,27 @@ describe('catalog import template', () => {
       ['OSB 11mm', 'OSB11', 16990, 25, '']
     ]);
   });
+
+  it('rechaza stock negativo sin invalidar otras filas', async () => {
+    const rows = await parseCatalogImportContent(
+      'nombre,sku,precio,stock\nCemento,CEM,5490,-2\nOSB,OSB,16990,8'
+    );
+
+    expect(rows.length).toBe(2);
+    expect(rows[0].valid).toBeFalse();
+    expect(rows[0].error).toContain('negativo');
+    expect(rows[1].valid).toBeTrue();
+    expect(rows[1].stock).toBe(8);
+  });
+
+  it('rechaza texto no numerico en stock', async () => {
+    const rows = await parseCatalogImportContent(
+      'nombre,sku,precio,stock\nCemento,CEM,5490,sin stock'
+    );
+
+    expect(rows[0].valid).toBeFalse();
+    expect(rows[0].error).toContain('numero valido');
+  });
 });
 
 describe('parseCatalogImportContent', () => {
@@ -47,6 +68,6 @@ describe('parseCatalogImportContent', () => {
 
     expect(rows.length).toBe(1);
     expect(rows[0].valid).toBeFalse();
-    expect(rows[0].error).toContain('nombre y precio');
+    expect(rows[0].error).toContain('nombre');
   });
 });
