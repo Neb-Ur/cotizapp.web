@@ -1,10 +1,11 @@
-import { ProjectQuotationView } from '../models/app.models';
+import { ProjectQuotationView, SearchProximity } from '../models/app.models';
 
 export interface QuotationPdfInput {
   projectName: string;
   projectAddress?: string;
   maestroName: string;
   quotation: ProjectQuotationView;
+  proximity?: SearchProximity;
   exportedAt?: Date;
 }
 
@@ -56,6 +57,11 @@ function buildQuotationPdfLines(input: QuotationPdfInput, exportedAt: Date): str
   lines.push(`Maestro: ${input.maestroName || 'No definido'}`);
   lines.push(`Fecha de exportacion: ${formatExportDate(exportedAt)}`);
   lines.push(`Direccion de obra: ${input.projectAddress?.trim() || 'Sin direccion de obra'}`);
+  lines.push(
+    input.proximity
+      ? `Busqueda por cercania: hasta ${input.proximity.radiusKm} km desde la ubicacion del maestro`
+      : 'Busqueda por cercania: todas las ferreterias'
+  );
   lines.push('');
   lines.push('DETALLE DE ARTICULOS');
 
