@@ -247,7 +247,11 @@ function normalizeItems(value: unknown): ProjectItem[] {
     .filter((item) => item.productName.length > 0);
 }
 
-async function optimizeItems(items: ProjectItem[], proximity?: ProjectProximity | null): Promise<any> {
+async function optimizeItems(
+  items: ProjectItem[],
+  proximity?: ProjectProximity | null,
+  requestedStoreName?: string
+): Promise<any> {
   const allSearchRows = await buildSearchRows();
   const searchRows = proximity
     ? allSearchRows.filter((item) => {
@@ -258,10 +262,15 @@ async function optimizeItems(items: ProjectItem[], proximity?: ProjectProximity 
       ) <= proximity.radiusKm;
     })
     : allSearchRows;
+
   const normalized = normalizeItems(items);
-  const lines = normalized.map((item) => {
+
+  const mixedLines = normalized.map((item) => {
     const candidates = searchRows
-      .filter((offer) => offer.productName.toLowerCase() === item.productName.toLowerCase() && offer.stock >= item.quantity)
+      .filter((offer) =>
+        offer.productName.toLowerCase() === item.productName.toLowerCase()
+        && offer.stock >= item.quantity
+      )
       .sort((a, b) => a.price - b.price);
     const best = candidates[0];
     const unitPrice = best?.price || 0;
@@ -275,18 +284,25 @@ async function optimizeItems(items: ProjectItem[], proximity?: ProjectProximity 
     };
   });
 
-  const optimalTotal = lines.reduce((acc, item) => acc + item.subtotal, 0);
+  const mixedTotal = mixedLines.reduce((acc, item) => acc + item.subtotal, 0);
+  const selectedStoreNames = Array.from(new Set(
+    mixedLines
+      .map((item) => item.bestStoreName)
+      .filter((storeName) => storeName && storeName !== 'Sin datos')
+  ));
 
-  const storeNames = Array.from(new Set(searchRows.map((item) => item.storeName)));
-  const totalsByStore = storeNames
+  const singleStoreOptions = selectedStoreNames
     .map((storeName) => {
       let total = 0;
       for (const item of normalized) {
         const offer = searchRows
-          .filter((candidate) => candidate.storeName === storeName
+          .filter((candidate) =>
+            candidate.storeName === storeName
             && candidate.productName.toLowerCase() === item.productName.toLowerCase()
-            && candidate.stock >= item.quantity)
+            && candidate.stock >= item.quantity
+          )
           .sort((a, b) => a.price - b.price)[0];
+
         if (!offer) return null;
         total += offer.price * item.quantity;
       }
@@ -295,25 +311,60 @@ async function optimizeItems(items: ProjectItem[], proximity?: ProjectProximity 
     .filter((item): item is { storeName: string; total: number } => item !== null)
     .sort((a, b) => a.total - b.total);
 
-  const bestStore = totalsByStore[0] || { storeName: 'Sin tienda unica disponible', total: optimalTotal };
+  const requested = normalizeText(requestedStoreName);
+  const appliedStore = requested
+    ? singleStoreOptions.find((item) => item.storeName === requested)
+    : undefined;
+
+  const lines = appliedStore
+    ? normalized.map((item) => {
+      const offer = searchRows
+        .filter((candidate) =>
+          candidate.storeName === appliedStore.storeName
+          && candidate.productName.toLowerCase() === item.productName.toLowerCase()
+          && candidate.stock >= item.quantity
+        )
+        .sort((a, b) => a.price - b.price)[0];
+      const unitPrice = offer?.price || 0;
+      return {
+        productName: item.productName,
+        quantity: item.quantity,
+        bestStoreName: offer ? appliedStore.storeName : 'Sin datos',
+        unitPrice,
+        subtotal: unitPrice * item.quantity,
+        productoFerreteriaId: offer?.productoFerreteriaId || null
+      };
+    })
+    : mixedLines;
+
+  const optimalTotal = lines.reduce((acc, item) => acc + item.subtotal, 0);
+  const bestStore = appliedStore
+    || singleStoreOptions[0]
+    || { storeName: 'Sin tienda unica disponible', total: mixedTotal };
+
   return {
     lines,
-    totalsByStore,
+    totalsByStore: singleStoreOptions,
+    singleStoreOptions,
     bestStore,
     optimalTotal,
-    mixedSaving: Math.max(0, bestStore.total - optimalTotal)
+    mixedTotal,
+    mixedSaving: appliedStore ? 0 : Math.max(0, bestStore.total - mixedTotal),
+    appliedStoreName: appliedStore?.storeName
   };
 }
 
 async function projectView(project: any): Promise<any> {
   const items = normalizeItems(project.items);
   const proximity = normalizeProjectProximity(project.proximity ?? project.proximidad);
-  const optimization = await optimizeItems(items, proximity);
+  const requestedStoreName = normalizeText(project.singleStoreName ?? project.ferreteriaUnica);
+  const optimization = await optimizeItems(items, proximity, requestedStoreName);
   return {
     id: project.id,
     name: project.name || project.nombre || 'Cotizacion',
     address: project.address || project.direccionObra || '',
     proximity: proximity || undefined,
+    singleStoreName: optimization.appliedStoreName || undefined,
     createdAt: project.createdAt || project.creadoEn || nowIso(),
     items,
     totalOptimal: optimization.optimalTotal,
@@ -822,6 +873,7 @@ mvpRouter.post('/maestros/:ownerId/proyectos', requireAuth, async (req, res) => 
     address: normalizeText(req.body?.direccionObra),
     items: normalizeItems(req.body?.items),
     proximity: normalizeProjectProximity(req.body?.proximidad) || null,
+    singleStoreName: normalizeText(req.body?.ferreteriaUnica) || null,
     createdAt: nowIso()
   });
   return ok(res, await projectView(created), 201);
@@ -843,6 +895,7 @@ mvpRouter.put('/maestros/:ownerId/proyectos/:projectId', requireAuth, async (req
     address: normalizeText(req.body?.direccionObra),
     items: normalizeItems(req.body?.items),
     proximity: normalizeProjectProximity(req.body?.proximidad) || null,
+    singleStoreName: normalizeText(req.body?.ferreteriaUnica) || null,
     updatedAt: nowIso()
   });
   return ok(res, await projectView(updated));
@@ -871,7 +924,8 @@ mvpRouter.post('/cotizaciones/optimizar', requireAuth, async (req, res) => {
     res,
     await optimizeItems(
       normalizeItems(req.body?.items),
-      normalizeProjectProximity(req.body?.proximidad)
+      normalizeProjectProximity(req.body?.proximidad),
+      normalizeText(req.body?.ferreteriaUnica)
     )
   );
 });
