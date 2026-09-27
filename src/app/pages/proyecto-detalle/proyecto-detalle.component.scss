@@ -310,3 +310,89 @@ tfoot .total-final td {
     grid-template-columns: 1fr;
   }
 }
+
+
+.quotation-nearby-card {
+  margin-top: 0.8rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.8rem 1rem;
+  align-items: center;
+  padding: 0.85rem;
+  border: 1px solid #dbe4ef;
+  border-radius: 14px;
+  background: #f8fbff;
+}
+
+.quotation-nearby-copy {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.quotation-nearby-label {
+  color: #5f6b7a;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.quotation-nearby-copy strong {
+  color: #14243b;
+}
+
+.quotation-nearby-copy small {
+  color: #536174;
+  line-height: 1.4;
+}
+
+.quotation-nearby-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.quotation-nearby-actions label {
+  min-width: 100px;
+}
+
+.nearby-notice,
+.nearby-error,
+.nearby-warning {
+  margin: 0;
+  font-weight: 700;
+}
+
+.nearby-notice,
+.nearby-error {
+  grid-column: 1 / -1;
+}
+
+.nearby-notice {
+  color: #177245;
+}
+
+.nearby-error,
+.nearby-warning {
+  color: #9b1f1f;
+}
+
+.nearby-warning {
+  margin-top: 0.7rem;
+}
+
+@media (max-width: 760px) {
+  .quotation-nearby-card {
+    grid-template-columns: 1fr;
+  }
+
+  .quotation-nearby-actions {
+    align-items: stretch;
+  }
+
+  .quotation-nearby-actions label,
+  .quotation-nearby-actions button {
+    width: 100%;
+  }
+}
