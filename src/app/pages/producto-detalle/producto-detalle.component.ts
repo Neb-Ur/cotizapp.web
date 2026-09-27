@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProductDetailView, ProductStoreOfferRow, ProjectSummary, SessionUser } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
 import { MockApiService } from '../../core/services/mock-api.service';
+import { GeoCoordinates, distanceKm, hasValidCoordinates } from '../../core/utils/location.util';
 
 @Component({
   selector: 'app-producto-detalle',
@@ -23,6 +24,9 @@ export class ProductoDetalleComponent implements OnInit {
   protected projects: ProjectSummary[] = [];
   protected displayStores: ProductStoreOfferRow[] = [];
   protected quoteFeedback = '';
+  protected nearbyEnabled = false;
+  protected nearbyRadiusKm = 10;
+  protected nearbyLocation: GeoCoordinates | null = null;
   private openExtraSectionIds = new Set<string>();
 
   constructor(
@@ -35,6 +39,14 @@ export class ProductoDetalleComponent implements OnInit {
   ngOnInit(): void {
     this.route.queryParamMap.subscribe(async (params) => {
       const productName = params.get('product') || '';
+      const nearby = params.get('nearby') === '1';
+      const latitude = Number(params.get('lat'));
+      const longitude = Number(params.get('lng'));
+      const radius = Number(params.get('radius'));
+      this.nearbyEnabled = nearby && Number.isFinite(latitude) && Number.isFinite(longitude);
+      this.nearbyLocation = this.nearbyEnabled ? { latitude, longitude } : null;
+      this.nearbyRadiusKm = [5, 10, 20, 50].includes(radius) ? radius : 10;
+
       const currentUser = this.user;
       if (currentUser) {
         await this.apiService.refreshMaestroData(currentUser.id);
@@ -51,7 +63,7 @@ export class ProductoDetalleComponent implements OnInit {
       this.quoteFeedback = '';
       this.openExtraSectionIds.clear();
       this.loadProjects();
-      this.displayStores = [...(this.detail?.stores || [])].sort((left, right) => left.price - right.price);
+      this.displayStores = this.buildDisplayStores(this.detail?.stores || []);
     });
   }
 
@@ -61,6 +73,18 @@ export class ProductoDetalleComponent implements OnInit {
 
   protected get bestPriceStoreName(): string {
     return this.displayStores[0]?.storeName || 'Sin datos';
+  }
+
+  protected get visibleMinPrice(): number {
+    return this.displayStores.length > 0
+      ? Math.min(...this.displayStores.map((store) => store.price))
+      : 0;
+  }
+
+  protected get visibleMaxPrice(): number {
+    return this.displayStores.length > 0
+      ? Math.max(...this.displayStores.map((store) => store.price))
+      : 0;
   }
 
   protected get currentImageUrl(): string {
@@ -142,11 +166,45 @@ export class ProductoDetalleComponent implements OnInit {
   }
 
   protected backToSearch(): void {
-    this.router.navigate(['/dashboard/maestro'], { queryParams: { section: 'buscar' } });
+    this.router.navigate(['/dashboard/maestro'], {
+      queryParams: {
+        section: 'buscar',
+        nearby: this.nearbyEnabled && this.nearbyLocation ? 1 : null,
+        lat: this.nearbyEnabled ? this.nearbyLocation?.latitude : null,
+        lng: this.nearbyEnabled ? this.nearbyLocation?.longitude : null,
+        radius: this.nearbyEnabled ? this.nearbyRadiusKm : null
+      }
+    });
+  }
+
+  protected formatDistance(value: number | undefined): string {
+    if (value === undefined) return '';
+    if (value < 1) return `${Math.round(value * 1000)} m`;
+    return `${value.toFixed(1)} km`;
   }
 
   protected formatCurrency(value: number): string {
     return this.apiService.formatCurrency(value);
+  }
+
+  private buildDisplayStores(stores: ProductStoreOfferRow[]): ProductStoreOfferRow[] {
+    return stores
+      .map((store) => {
+        if (!this.nearbyLocation || !hasValidCoordinates(store.latitude, store.longitude)) {
+          return { ...store, distanceKm: undefined };
+        }
+
+        return {
+          ...store,
+          distanceKm: distanceKm(
+            this.nearbyLocation,
+            { latitude: store.latitude, longitude: store.longitude as number }
+          )
+        };
+      })
+      .filter((store) => !this.nearbyEnabled
+        || (store.distanceKm !== undefined && store.distanceKm <= this.nearbyRadiusKm))
+      .sort((left, right) => left.price - right.price);
   }
 
   private loadProjects(): void {
