@@ -218,7 +218,7 @@ export interface CatalogProduct {
   updatedAt?: string;
 }
 
-export type CatalogImportOutcome = 'subido' | 'fallido' | 'nuevo_validacion' | 'posible_match';
+export type CatalogImportOutcome = 'subido' | 'sin_cambios' | 'fallido' | 'nuevo_validacion' | 'posible_match';
 export type CatalogValidationType = 'nuevo_producto' | 'posible_match';
 export type CatalogValidationStatus = 'pendiente' | 'aprobado' | 'rechazado';
 export type CatalogValidationDecision = 'aprobar_match' | 'aprobar_nuevo' | 'rechazar';
@@ -236,6 +236,7 @@ export interface CatalogImportRowResult {
   rawLine: string;
   name: string;
   sku: string;
+  barcode?: string;
   price: number;
   stock: number;
   outcome: CatalogImportOutcome;
@@ -251,6 +252,7 @@ export interface CatalogImportReport {
   ownerLabel: string;
   totalRows: number;
   uploadedCount: number;
+  noChangeCount: number;
   failedCount: number;
   pendingNewCount: number;
   possibleMatchCount: number;
