@@ -35,4 +35,64 @@ describe('buildQuotationOptimization', () => {
     expect(result.bestStore).toEqual({ storeName: 'Con stock', total: 50000 });
     expect(result.mixedSaving).toBe(0);
   });
+  it('solo ofrece como tienda unica ferreterias ya usadas por la compra combinada', () => {
+    const result = buildQuotationOptimization(
+      [
+        { productName: 'Cemento', quantity: 1 },
+        { productName: 'OSB', quantity: 1 }
+      ],
+      [
+        { productName: 'Cemento', storeName: 'Ferreteria A', price: 5000, stock: 10 },
+        { productName: 'OSB', storeName: 'Ferreteria A', price: 9000, stock: 10 },
+        { productName: 'Cemento', storeName: 'Ferreteria B', price: 7000, stock: 10 },
+        { productName: 'OSB', storeName: 'Ferreteria B', price: 6000, stock: 10 },
+        { productName: 'Cemento', storeName: 'Ferreteria D', price: 6000, stock: 10 },
+        { productName: 'OSB', storeName: 'Ferreteria D', price: 7000, stock: 10 }
+      ]
+    );
+
+    expect(result.lines.map((line) => line.bestStoreName)).toEqual(['Ferreteria A', 'Ferreteria B']);
+    expect(result.singleStoreOptions.map((row) => row.storeName)).toEqual(['Ferreteria B', 'Ferreteria A']);
+    expect(result.singleStoreOptions.some((row) => row.storeName === 'Ferreteria D')).toBeFalse();
+  });
+
+  it('aplica una ferreteria valida a todos los productos de la cotizacion', () => {
+    const items = [
+      { productName: 'Cemento', quantity: 2 },
+      { productName: 'OSB', quantity: 1 }
+    ];
+    const offers = [
+      { productName: 'Cemento', storeName: 'Ferreteria A', price: 5000, stock: 10 },
+      { productName: 'OSB', storeName: 'Ferreteria A', price: 9000, stock: 10 },
+      { productName: 'Cemento', storeName: 'Ferreteria B', price: 7000, stock: 10 },
+      { productName: 'OSB', storeName: 'Ferreteria B', price: 6000, stock: 10 }
+    ];
+
+    const result = buildQuotationOptimization(items, offers, 'Ferreteria A');
+
+    expect(result.appliedStoreName).toBe('Ferreteria A');
+    expect(result.lines.every((line) => line.bestStoreName === 'Ferreteria A')).toBeTrue();
+    expect(result.optimalTotal).toBe(19000);
+    expect(result.mixedTotal).toBe(16000);
+  });
+
+  it('ignora una tienda aplicada si deja de tener toda la cotizacion disponible', () => {
+    const result = buildQuotationOptimization(
+      [
+        { productName: 'Cemento', quantity: 2 },
+        { productName: 'OSB', quantity: 1 }
+      ],
+      [
+        { productName: 'Cemento', storeName: 'Ferreteria A', price: 5000, stock: 10 },
+        { productName: 'OSB', storeName: 'Ferreteria A', price: 9000, stock: 0 },
+        { productName: 'Cemento', storeName: 'Ferreteria B', price: 7000, stock: 10 },
+        { productName: 'OSB', storeName: 'Ferreteria B', price: 6000, stock: 10 }
+      ],
+      'Ferreteria A'
+    );
+
+    expect(result.appliedStoreName).toBeUndefined();
+    expect(result.lines.map((line) => line.bestStoreName)).toEqual(['Ferreteria A', 'Ferreteria B']);
+  });
+
 });
