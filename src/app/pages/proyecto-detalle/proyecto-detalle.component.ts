@@ -112,6 +112,10 @@ export class ProyectoDetalleComponent implements OnInit {
     return this.projectItems.length > 0;
   }
 
+  protected get unavailableItemCount(): number {
+    return this.quotation.lines.filter((line) => line.unitPrice <= 0).length;
+  }
+
   protected get validItemCount(): number {
     return this.projectItems.filter((item) => item.productName.trim()).length;
   }
