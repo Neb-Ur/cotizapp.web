@@ -85,16 +85,18 @@ jobs:
             else
               echo "- Requested action: validate"
             fi
-            echo "- Push/PR behavior: validate only"
-            echo "- Production deploy: manual publish only"
+            echo "- Push behavior: validate + deploy to QA"
+            echo "- QA deploy: automatic on push to main; manual publish also available"
           } >> "$GITHUB_STEP_SUMMARY"
 
   deploy:
     name: Deploy Firebase production
     if: >-
       needs.ci.result == 'success' &&
-      github.event_name == 'workflow_dispatch' &&
-      inputs.action == 'publish'
+      (
+        github.event_name == 'push' ||
+        (github.event_name == 'workflow_dispatch' && inputs.action == 'publish')
+      )
     needs: ci
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -191,5 +193,5 @@ jobs:
             echo "- URL: $PRODUCTION_URL"
             echo "- Firebase project: $FIREBASE_PROJECT_ID"
             echo "- Commit: ${GITHUB_SHA:0:7}"
-            echo "- Trigger: manual publish"
+            echo "- Trigger: push to main or manual publish"
           } >> "$GITHUB_STEP_SUMMARY"
