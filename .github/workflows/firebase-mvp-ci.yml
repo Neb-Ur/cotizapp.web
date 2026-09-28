@@ -8,12 +8,21 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      action:
+        description: Qué quieres ejecutar sobre main
+        required: true
+        default: validate
+        type: choice
+        options:
+          - validate
+          - publish
 
 permissions:
   contents: read
 
 concurrency:
-  group: cotizapp-${{ github.ref }}
+  group: cotizapp-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 env:
@@ -65,12 +74,33 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+      - name: Pipeline summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## CotizApp pipeline"
+            if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+              echo "- Requested action: ${{ inputs.action }}"
+            else
+              echo "- Requested action: validate"
+            fi
+            echo "- Push/PR behavior: validate only"
+            echo "- Production deploy: manual publish only"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   deploy:
     name: Deploy Firebase production
-    if: github.event_name != 'pull_request'
+    if: >-
+      needs.ci.result == 'success' &&
+      github.event_name == 'workflow_dispatch' &&
+      inputs.action == 'publish'
     needs: ci
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    environment:
+      name: production
+      url: https://cotizacion-77802.web.app
 
     env:
       FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON || secrets.FIREBASE_SERVICE_ACCOUNT_COTIZACION_77802 }}
@@ -118,7 +148,7 @@ jobs:
             echo "FIREBASE_AUTH_MODE=token" >> "$GITHUB_ENV"
             echo "Firebase authentication: CI token"
           else
-            echo "::error::Configure FIREBASE_SERVICE_ACCOUNT_JSON, FIREBASE_SERVICE_ACCOUNT_COTIZACION_77802 or FIREBASE_TOKEN in GitHub Actions secrets."
+            echo "::error::Falta configurar FIREBASE_SERVICE_ACCOUNT_JSON, FIREBASE_SERVICE_ACCOUNT_COTIZACION_77802 o FIREBASE_TOKEN en GitHub Actions secrets."
             exit 1
           fi
 
@@ -161,5 +191,5 @@ jobs:
             echo "- URL: $PRODUCTION_URL"
             echo "- Firebase project: $FIREBASE_PROJECT_ID"
             echo "- Commit: ${GITHUB_SHA:0:7}"
-            echo "- Trigger: ${{ github.event_name }}"
+            echo "- Trigger: manual publish"
           } >> "$GITHUB_STEP_SUMMARY"
