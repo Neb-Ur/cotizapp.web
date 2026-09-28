@@ -6,7 +6,7 @@
 .hero {
   position: relative;
   overflow: hidden;
-  background: var(--ink-950);
+  background: var(--ink-900);
   padding: 6rem 2rem 5rem;
 }
 
@@ -38,8 +38,7 @@
   height: 7px;
   border-radius: 50%;
   background: var(--emerald);
-  box-shadow: 0 0 8px var(--emerald);
-  animation: pulse 2s ease-in-out infinite;
+  flex: 0 0 auto;
 }
 
 @keyframes pulse {
@@ -114,11 +113,7 @@
 
 /* Decorative orbs */
 .orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  pointer-events: none;
-  z-index: 1;
+  display: none;
 }
 
 .orb-1 {

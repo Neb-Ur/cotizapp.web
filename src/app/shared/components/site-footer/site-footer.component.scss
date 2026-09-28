@@ -28,16 +28,10 @@
 
 .brand-mark {
   flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   width: 38px;
   height: 38px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, var(--ink-900), #36506b);
-  color: #fff;
-  font-size: 0.92rem;
-  font-weight: 900;
+  border-radius: 10px;
   margin-top: 2px;
   box-shadow: 0 16px 26px rgba(22, 33, 46, 0.18);
 }
