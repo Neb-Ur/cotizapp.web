@@ -28,8 +28,8 @@ concurrency:
 env:
   NODE_VERSION: '20'
   FUNCTIONS_NODE_VERSION: '22'
-  FIREBASE_PROJECT_ID: cotizacion-77802
-  PRODUCTION_URL: https://cotizacion-77802.web.app
+  FIREBASE_PROJECT_ID: cotizapp-d71c8
+  PRODUCTION_URL: https://cotizapp-d71c8.web.app
 
 jobs:
   ci:
@@ -100,10 +100,10 @@ jobs:
     timeout-minutes: 45
     environment:
       name: production
-      url: https://cotizacion-77802.web.app
+      url: https://cotizapp-d71c8.web.app
 
     env:
-      FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON || secrets.FIREBASE_SERVICE_ACCOUNT_COTIZACION_77802 }}
+      FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON || secrets.FIREBASE_SERVICE_ACCOUNT_COTIZAPP_D71C8 }}
       FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
     steps:
