@@ -199,6 +199,34 @@ jobs:
           fi
 
           printf 'FIREBASE_WEB_API_KEY=%s\n' "$FIREBASE_WEB_API_KEY" > _bootstrap-backend/.env
+
+          (
+            cd functions
+            node --input-type=module <<'NODE'
+          import { GoogleAuth } from 'google-auth-library';
+
+          const projectId = process.env.FIREBASE_PROJECT_ID;
+          const googleAuth = new GoogleAuth({
+            scopes: ['https://www.googleapis.com/auth/cloud-platform']
+          });
+          const client = await googleAuth.getClient();
+          await client.request({
+            url: `https://identitytoolkit.googleapis.com/admin/v2/projects/${projectId}/config?updateMask=signIn.email.enabled,signIn.email.passwordRequired`,
+            method: 'PATCH',
+            headers: { 'X-Goog-User-Project': projectId },
+            data: {
+              signIn: {
+                email: {
+                  enabled: true,
+                  passwordRequired: true
+                }
+              }
+            }
+          });
+          console.log('Firebase Email/Password authentication enabled.');
+          NODE
+          )
+
           node _bootstrap-backend/scripts/bootstrap-users.mjs
           node functions/scripts/seed-firestore.mjs
 
