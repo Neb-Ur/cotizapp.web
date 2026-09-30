@@ -250,6 +250,22 @@ export type CatalogValidationType = 'nuevo_producto' | 'posible_match';
 export type CatalogValidationStatus = 'pendiente' | 'aprobado' | 'rechazado';
 export type CatalogValidationDecision = 'aprobar_match' | 'aprobar_nuevo' | 'rechazar';
 
+export type ContactRequestStatus = 'pendiente' | 'contactado' | 'cerrado';
+
+export interface ContactRequest {
+  id: string;
+  type: 'maestro' | 'ferreteria' | 'otro';
+  name: string;
+  email: string;
+  message: string;
+  businessName: string;
+  phone: string;
+  commune: string;
+  status: ContactRequestStatus;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export interface CatalogMatchSuggestion {
   masterProductId: string;
   name: string;

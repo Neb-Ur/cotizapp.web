@@ -1,48 +1,38 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
-import { PublicLayoutComponent } from './layouts/public-layout/public-layout.component';
-import { ForgotPasswordComponent } from './pages/auth/forgot-password/forgot-password.component';
-import { LoginComponent } from './pages/auth/login/login.component';
-import { RegisterComponent } from './pages/auth/register/register.component';
-import { DashboardFerreteriaComponent } from './pages/dashboard-ferreteria/dashboard-ferreteria.component';
-import { DashboardAdminValidacionesComponent } from './pages/dashboard-admin-validaciones/dashboard-admin-validaciones.component';
-import { DashboardMaestroComponent } from './pages/dashboard-maestro/dashboard-maestro.component';
-import { HomeComponent } from './pages/home/home.component';
-import { ProductoDetalleComponent } from './pages/producto-detalle/producto-detalle.component';
-import { ProyectoDetalleComponent } from './pages/proyecto-detalle/proyecto-detalle.component';
-import { ContactoComponent } from './pages/public/contacto/contacto.component';
-import { FerreteriasComponent } from './pages/public/ferreterias/ferreterias.component';
-import { MaestrosComponent } from './pages/public/maestros/maestros.component';
-import { PreguntasFrecuentesComponent } from './pages/public/preguntas-frecuentes/preguntas-frecuentes.component';
-import { PrivacidadComponent } from './pages/public/privacidad/privacidad.component';
-import { TerminosComponent } from './pages/public/terminos/terminos.component';
 
 export const routes: Routes = [
   {
     path: '',
-    component: PublicLayoutComponent,
+    loadComponent: () => import('./layouts/public-layout/public-layout.component').then((module) => module.PublicLayoutComponent),
     children: [
-      { path: '', component: HomeComponent },
-      { path: 'maestros', component: MaestrosComponent },
-      { path: 'ferreterias', component: FerreteriasComponent },
-      { path: 'contacto', component: ContactoComponent },
-      { path: 'terminos-condiciones', component: TerminosComponent },
-      { path: 'privacidad', component: PrivacidadComponent },
-      { path: 'preguntas-frecuentes', component: PreguntasFrecuentesComponent }
+      { path: '', loadComponent: () => import('./pages/home/home.component').then((module) => module.HomeComponent) },
+      {
+        path: 'buscar',
+        loadComponent: () => import('./pages/dashboard-maestro/dashboard-maestro.component').then((module) => module.DashboardMaestroComponent),
+        data: { publicCatalog: true }
+      },
+      { path: 'producto', loadComponent: () => import('./pages/producto-detalle/producto-detalle.component').then((module) => module.ProductoDetalleComponent) },
+      { path: 'maestros', loadComponent: () => import('./pages/public/maestros/maestros.component').then((module) => module.MaestrosComponent) },
+      { path: 'ferreterias', loadComponent: () => import('./pages/public/ferreterias/ferreterias.component').then((module) => module.FerreteriasComponent) },
+      { path: 'contacto', loadComponent: () => import('./pages/public/contacto/contacto.component').then((module) => module.ContactoComponent) },
+      { path: 'terminos-condiciones', loadComponent: () => import('./pages/public/terminos/terminos.component').then((module) => module.TerminosComponent) },
+      { path: 'privacidad', loadComponent: () => import('./pages/public/privacidad/privacidad.component').then((module) => module.PrivacidadComponent) },
+      { path: 'preguntas-frecuentes', loadComponent: () => import('./pages/public/preguntas-frecuentes/preguntas-frecuentes.component').then((module) => module.PreguntasFrecuentesComponent) }
     ]
   },
   {
     path: 'login',
-    component: LoginComponent
+    loadComponent: () => import('./pages/auth/login/login.component').then((module) => module.LoginComponent)
   },
   {
     path: 'registro',
-    component: RegisterComponent
+    loadComponent: () => import('./pages/auth/register/register.component').then((module) => module.RegisterComponent)
   },
   {
     path: 'recuperar-clave',
-    component: ForgotPasswordComponent
+    loadComponent: () => import('./pages/auth/forgot-password/forgot-password.component').then((module) => module.ForgotPasswordComponent)
   },
   {
     path: 'auth',
@@ -51,25 +41,21 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard/maestro',
-    component: DashboardMaestroComponent,
+    loadComponent: () => import('./pages/dashboard-maestro/dashboard-maestro.component').then((module) => module.DashboardMaestroComponent),
     canActivate: [authGuard, roleGuard],
     data: { role: 'maestro' }
   },
   {
     path: 'dashboard/maestro/producto-detalle',
-    component: ProductoDetalleComponent,
-    canActivate: [authGuard, roleGuard],
-    data: { role: 'maestro' }
+    redirectTo: 'producto'
   },
   {
     path: 'dashboard/maestro/cotizaciones/nuevo',
-    component: ProyectoDetalleComponent,
-    canActivate: [authGuard, roleGuard],
-    data: { role: 'maestro' }
+    loadComponent: () => import('./pages/proyecto-detalle/proyecto-detalle.component').then((module) => module.ProyectoDetalleComponent)
   },
   {
     path: 'dashboard/maestro/cotizaciones/:projectId',
-    component: ProyectoDetalleComponent,
+    loadComponent: () => import('./pages/proyecto-detalle/proyecto-detalle.component').then((module) => module.ProyectoDetalleComponent),
     canActivate: [authGuard, roleGuard],
     data: { role: 'maestro' }
   },
@@ -85,7 +71,7 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard/ferreteria',
-    component: DashboardFerreteriaComponent,
+    loadComponent: () => import('./pages/dashboard-ferreteria/dashboard-ferreteria.component').then((module) => module.DashboardFerreteriaComponent),
     canActivate: [authGuard, roleGuard],
     data: { role: 'ferreteria' }
   },
@@ -96,7 +82,7 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard/admin/validaciones',
-    component: DashboardAdminValidacionesComponent,
+    loadComponent: () => import('./pages/dashboard-admin-validaciones/dashboard-admin-validaciones.component').then((module) => module.DashboardAdminValidacionesComponent),
     canActivate: [authGuard, roleGuard],
     data: { role: 'admin' }
   },

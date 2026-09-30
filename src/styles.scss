@@ -45,11 +45,11 @@
   --shadow-lg: 0 28px 56px rgba(12, 18, 26, 0.11);
   --shadow-xl: 0 42px 90px rgba(12, 18, 26, 0.14);
 
-  --r-xs: 8px;
-  --r-sm: 14px;
-  --r-md: 18px;
-  --r-lg: 26px;
-  --r-xl: 36px;
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 8px;
+  --r-xl: 8px;
   --r-full: 9999px;
 
   --space-1: 0.25rem;
@@ -103,10 +103,7 @@ body {
   font-size: 16px;
   line-height: 1.6;
   color: var(--ink-900);
-  background:
-    radial-gradient(circle at top left, rgba(217, 109, 44, 0.10), transparent 24%),
-    radial-gradient(circle at top right, rgba(10, 148, 168, 0.08), transparent 20%),
-    linear-gradient(180deg, #f8f3ea 0%, #f4f7fb 45%, #eef2f7 100%);
+  background: linear-gradient(180deg, #fbf8f2 0%, #f4f7fb 52%, #eef2f7 100%);
   -webkit-tap-highlight-color: transparent;
   overflow-x: hidden;
 }
@@ -138,12 +135,29 @@ a {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Space Grotesk', 'Manrope', sans-serif;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
 }
 
 button, input, select, textarea {
   font: inherit;
   -webkit-tap-highlight-color: transparent;
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid rgba(217, 109, 44, 0.42);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 button, a[role="button"], input[type="button"], input[type="submit"] {
@@ -237,10 +251,10 @@ button, a[role="button"], input[type="button"], input[type="submit"] {
   gap: 0.45rem;
   padding: 0.8rem 1.25rem;
   border: 1px solid transparent;
-  border-radius: 999px;
+  border-radius: var(--r-sm);
   font-size: 0.9rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   cursor: pointer;
   transition: background var(--t-fast), transform var(--t-fast), box-shadow var(--t-fast), opacity var(--t-fast);
   white-space: nowrap;
@@ -249,23 +263,23 @@ button, a[role="button"], input[type="button"], input[type="submit"] {
 .btn:active { transform: scale(0.97); }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--orange) 0%, #c55217 100%);
+  background: var(--orange);
   color: #fff;
-  box-shadow: 0 18px 30px rgba(217, 109, 44, 0.24);
+  box-shadow: 0 2px 5px rgba(190, 92, 31, 0.18);
 }
 .btn-primary:hover {
   background: var(--orange-hover);
-  box-shadow: 0 22px 36px rgba(217, 109, 44, 0.28);
+  box-shadow: 0 3px 7px rgba(190, 92, 31, 0.24);
 }
 
 .btn-secondary {
-  background: linear-gradient(135deg, var(--emerald) 0%, #167a58 100%);
+  background: var(--emerald);
   color: #fff;
-  box-shadow: 0 18px 30px rgba(29, 143, 104, 0.20);
+  box-shadow: 0 2px 5px rgba(20, 116, 84, 0.16);
 }
 .btn-secondary:hover {
   background: var(--emerald-hover);
-  box-shadow: 0 22px 36px rgba(29, 143, 104, 0.24);
+  box-shadow: 0 3px 7px rgba(20, 116, 84, 0.22);
 }
 
 .btn-outline {
@@ -289,9 +303,9 @@ button, a[role="button"], input[type="button"], input[type="submit"] {
 }
 
 .btn-dark {
-  background: linear-gradient(135deg, var(--ink-900) 0%, #243a4f 100%);
+  background: var(--ink-900);
   color: #fff;
-  box-shadow: 0 18px 30px rgba(22, 33, 46, 0.22);
+  box-shadow: 0 2px 5px rgba(22, 33, 46, 0.18);
 }
 .btn-dark:hover {
   background: var(--ink-800);
@@ -312,7 +326,7 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 3px solid rgba(10, 148, 168, 0.22);
+  outline: 3px solid rgba(10, 148, 168, 0.42);
   outline-offset: 2px;
 }
 
@@ -321,7 +335,7 @@ select,
 textarea {
   width: 100%;
   border: 1px solid rgba(35, 50, 68, 0.14);
-  border-radius: 16px;
+  border-radius: var(--r-sm);
   padding: 0.85rem 1rem;
   background: rgba(255, 255, 255, 0.86);
   color: var(--ink-900);
@@ -368,7 +382,30 @@ th {
 
 ::-webkit-scrollbar-thumb {
   background: rgba(56, 80, 106, 0.24);
-  border-radius: 999px;
+  border-radius: var(--r-xs);
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+::selection {
+  color: var(--ink-950);
+  background: rgba(243, 201, 105, 0.72);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 ::-webkit-scrollbar-track {

@@ -9,6 +9,8 @@ import {
   CatalogValidationRequest,
   CatalogValidationStatus,
   CatalogValidationType,
+  ContactRequest,
+  ContactRequestStatus,
   FamilyProductRow,
   FamilySpecField,
   FamilyTemplate,
@@ -180,6 +182,14 @@ export class MockApiService {
 
   async refreshAdminRequestsSection(force = false): Promise<void> {
     await this.ensureValidationQueueLoaded(force);
+  }
+
+  async getContactRequestsForAdmin(): Promise<ContactRequest[]> {
+    return this.apiGet<ContactRequest[]>('/admin/solicitudes-contacto', true);
+  }
+
+  async updateContactRequestStatus(requestId: string, status: ContactRequestStatus): Promise<ContactRequest> {
+    return this.apiPatch<ContactRequest>(`/admin/solicitudes-contacto/${requestId}`, { status }, true);
   }
 
   dashboardByRole(user: SessionUser | null): string {

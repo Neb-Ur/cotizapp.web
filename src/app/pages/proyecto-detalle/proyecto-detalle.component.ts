@@ -75,7 +75,8 @@ export class ProyectoDetalleComponent implements OnInit {
   }
 
   protected get user(): SessionUser | null {
-    return this.authService.currentUser();
+    const currentUser = this.authService.currentUser();
+    return currentUser?.role === 'maestro' ? currentUser : null;
   }
 
   protected get productOptions(): string[] {
@@ -201,6 +202,10 @@ export class ProyectoDetalleComponent implements OnInit {
   protected async saveProject(): Promise<void> {
     const currentUser = this.user;
     if (!currentUser) {
+      this.persistDraftIfNeeded();
+      await this.router.navigate(['/registro'], {
+        queryParams: { returnUrl: '/dashboard/maestro/cotizaciones/nuevo' }
+      });
       return;
     }
 
@@ -394,7 +399,9 @@ export class ProyectoDetalleComponent implements OnInit {
 
   protected backToProjects(): void {
     this.persistDraftIfNeeded();
-    this.router.navigate(['/dashboard/maestro'], { queryParams: { section: 'cotizaciones' } });
+    this.router.navigate(['/dashboard/maestro'], {
+      queryParams: { section: this.user ? 'cotizaciones' : 'buscar' }
+    });
   }
 
   protected formatCurrency(value: number): string {
@@ -557,7 +564,7 @@ export class ProyectoDetalleComponent implements OnInit {
     });
 
     lines.push('');
-    lines.push('Documento generado por ConstruComparador.');
+    lines.push('Documento generado por CotizApp.');
 
     return lines.flatMap((line) => this.wrapLine(line, 95));
   }

@@ -1,10 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { RegisterPayload, UserRole } from '../../../core/models/app.models';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { RegisterPayload } from '../../../core/models/app.models';
 import { AuthService } from '../../../core/services/auth.service';
-import { GeoCoordinates, getCurrentBrowserLocation } from '../../../core/utils/location.util';
 
 @Component({
   selector: 'app-register',
@@ -14,64 +13,23 @@ import { GeoCoordinates, getCurrentBrowserLocation } from '../../../core/utils/l
   styleUrl: './register.component.scss'
 })
 export class RegisterComponent {
-  protected step = 1;
-  protected selectedRole: UserRole | null = null;
   protected errorMessage = '';
   protected isSubmitting = false;
-  protected storeLocation: GeoCoordinates | null = null;
-  protected locationMessage = '';
-  protected locationError = '';
-  protected isLocatingStore = false;
 
   protected readonly form = this.formBuilder.nonNullable.group({
-    role: ['maestro' as UserRole, Validators.required],
     name: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
     phone: ['', [Validators.required, Validators.minLength(8)]],
-    commune: ['', [Validators.required, Validators.minLength(2)]],
-    businessName: [''],
-    rut: [''],
-    address: ['']
+    commune: ['', [Validators.required, Validators.minLength(2)]]
   });
 
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly authService: AuthService,
+    private readonly route: ActivatedRoute,
     private readonly router: Router
   ) {}
-
-  protected chooseRole(role: UserRole): void {
-    this.selectedRole = role;
-    this.form.controls.role.setValue(role);
-    this.syncRoleValidators(role);
-    this.step = 2;
-    this.errorMessage = '';
-    if (role !== 'ferreteria') {
-      this.storeLocation = null;
-      this.locationMessage = '';
-      this.locationError = '';
-    }
-  }
-
-  protected backToStepOne(): void {
-    this.step = 1;
-    this.errorMessage = '';
-  }
-
-  protected async captureStoreLocation(): Promise<void> {
-    this.locationError = '';
-    this.locationMessage = '';
-    this.isLocatingStore = true;
-    try {
-      this.storeLocation = await getCurrentBrowserLocation();
-      this.locationMessage = 'Ubicacion del local registrada correctamente.';
-    } catch (error) {
-      this.locationError = error instanceof Error ? error.message : 'No se pudo obtener la ubicacion.';
-    } finally {
-      this.isLocatingStore = false;
-    }
-  }
 
   protected async submit(): Promise<void> {
     this.errorMessage = '';
@@ -80,14 +38,9 @@ export class RegisterComponent {
       return;
     }
 
-    if (this.selectedRole === 'ferreteria' && !this.storeLocation) {
-      this.locationError = 'Registra la ubicacion del local antes de crear la cuenta.';
-      return;
-    }
-
     const values = this.form.getRawValue();
     const payload: RegisterPayload = {
-      role: values.role,
+      role: 'maestro',
       name: values.name.trim().replace(/\s+/g, ' '),
       email: values.email.trim(),
       password: values.password,
@@ -95,17 +48,17 @@ export class RegisterComponent {
       commune: values.commune.trim(),
       region: '',
       city: '',
-      address: values.role === 'ferreteria' ? values.address.trim() : '',
-      businessName: values.role === 'ferreteria' ? values.businessName.trim() : undefined,
-      rut: values.role === 'ferreteria' ? values.rut.trim() : undefined,
-      storeLatitude: values.role === 'ferreteria' ? this.storeLocation?.latitude : undefined,
-      storeLongitude: values.role === 'ferreteria' ? this.storeLocation?.longitude : undefined
+      address: ''
     };
 
     this.isSubmitting = true;
     try {
       const user = await this.authService.register(payload);
-      await this.router.navigateByUrl(this.authService.dashboardRouteForUser(user));
+      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+      const destination = returnUrl?.startsWith('/')
+        ? returnUrl
+        : this.authService.dashboardRouteForUser(user);
+      await this.router.navigateByUrl(destination);
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : 'No se pudo crear la cuenta.';
     } finally {
@@ -113,31 +66,8 @@ export class RegisterComponent {
     }
   }
 
-  protected hasError(controlName: 'name' | 'email' | 'password' | 'phone' | 'commune' | 'businessName' | 'rut' | 'address'): boolean {
+  protected hasError(controlName: 'name' | 'email' | 'password' | 'phone' | 'commune'): boolean {
     const control = this.form.controls[controlName];
     return control.invalid && (control.touched || control.dirty);
-  }
-
-  private syncRoleValidators(role: UserRole): void {
-    const businessName = this.form.controls.businessName;
-    const rut = this.form.controls.rut;
-    const address = this.form.controls.address;
-
-    if (role === 'ferreteria') {
-      businessName.setValidators([Validators.required, Validators.minLength(2)]);
-      rut.setValidators([Validators.required, Validators.minLength(7)]);
-      address.setValidators([Validators.required, Validators.minLength(4)]);
-    } else {
-      businessName.clearValidators();
-      rut.clearValidators();
-      address.clearValidators();
-      businessName.setValue('');
-      rut.setValue('');
-      address.setValue('');
-    }
-
-    businessName.updateValueAndValidity();
-    rut.updateValueAndValidity();
-    address.updateValueAndValidity();
   }
 }

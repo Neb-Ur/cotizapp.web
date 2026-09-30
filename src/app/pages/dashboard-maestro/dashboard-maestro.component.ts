@@ -92,6 +92,9 @@ export class DashboardMaestroComponent implements OnInit {
 
   ngOnInit(): void {
     this.syncViewportState();
+    if (!this.user) {
+      this.currentSection = 'buscar';
+    }
     const savedNearby = readNearbySearchPreference();
     if (savedNearby) {
       this.nearbyEnabled = true;
@@ -105,7 +108,7 @@ export class DashboardMaestroComponent implements OnInit {
 
     this.route.queryParamMap.subscribe((params) => {
       const requested = params.get('section');
-      if (this.isValidSection(requested)) {
+      if (this.isValidSection(requested) && (this.user || requested === 'buscar')) {
         this.currentSection = requested;
       }
 
@@ -123,7 +126,9 @@ export class DashboardMaestroComponent implements OnInit {
   }
 
   protected get user(): SessionUser | null {
-    return this.authService.currentUser();
+    if (this.route.snapshot.data['publicCatalog']) return null;
+    const currentUser = this.authService.currentUser();
+    return currentUser?.role === 'maestro' ? currentUser : null;
   }
 
   protected get currentSectionLabel(): string {
@@ -347,7 +352,7 @@ export class DashboardMaestroComponent implements OnInit {
   }
 
   protected viewProductDetails(productName: string): void {
-    this.router.navigate(['/dashboard/maestro/producto-detalle'], {
+    this.router.navigate(['/producto'], {
       queryParams: { product: productName }
     });
   }
@@ -369,6 +374,10 @@ export class DashboardMaestroComponent implements OnInit {
   }
 
   protected goToNewProject(): void {
+    if (!this.user) {
+      this.router.navigate(['/dashboard/maestro/cotizaciones/nuevo']);
+      return;
+    }
     if (!this.canCreateQuotation) {
       this.quotationNotice = 'Ya tienes 2 cotizaciones guardadas. Elimina una para crear otra.';
       return;
@@ -461,6 +470,10 @@ export class DashboardMaestroComponent implements OnInit {
     this.router.navigateByUrl('/');
   }
 
+  protected goToLogin(): void {
+    this.router.navigate(['/login']);
+  }
+
   private async initializeDashboard(): Promise<void> {
     try {
       await this.ensureSectionData(this.currentSection, true);
@@ -471,7 +484,8 @@ export class DashboardMaestroComponent implements OnInit {
 
   private async ensureSectionData(section: MaestroSection, force = false): Promise<void> {
     const currentUser = this.user;
-    if (!currentUser || (!force && this.loadedSections.has(section))) return;
+    if (!force && this.loadedSections.has(section)) return;
+    if (!currentUser && section !== 'buscar') return;
 
     this.isSectionLoading = true;
     try {
@@ -480,7 +494,7 @@ export class DashboardMaestroComponent implements OnInit {
         this.refreshProductRows();
       }
 
-      if (section === 'inicio' || section === 'cotizaciones' || section === 'historial') {
+      if (currentUser && (section === 'inicio' || section === 'cotizaciones' || section === 'historial')) {
         await this.apiService.refreshMaestroProjectsSection(currentUser.id, force);
         this.projects = [...this.apiService.getProjects(currentUser.id)]
           .sort((left, right) => right.createdAt.localeCompare(left.createdAt));

@@ -1,19 +1,20 @@
 <section class="wrapper">
   <article class="card">
     <h1>Contacto</h1>
-    <p>Escribenos y te ayudamos con onboarding, soporte y activacion de cuenta.</p>
+    <p *ngIf="!isStoreRequest">Escribenos y te ayudamos con tus dudas sobre CotizApp.</p>
+    <p *ngIf="isStoreRequest">Completa la solicitud para evaluar la incorporacion de tu ferreteria al piloto.</p>
 
-    <form [formGroup]="form" (ngSubmit)="submit()">
+    <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="isSubmitting">
       <label>
-        Nombre
-        <input formControlName="name" type="text" placeholder="Tu nombre" />
-        <small *ngIf="hasError('name')">Ingresa al menos 2 caracteres.</small>
+        <span>Nombre</span>
+        <input formControlName="name" type="text" placeholder="Tu nombre" autocomplete="name" [attr.aria-invalid]="hasError('name')" aria-describedby="contact-name-error" />
+        <small id="contact-name-error" *ngIf="hasError('name')">Ingresa al menos 2 caracteres.</small>
       </label>
 
       <label>
-        Email
-        <input formControlName="email" type="email" placeholder="correo@dominio.com" />
-        <small *ngIf="hasError('email')">Correo invalido.</small>
+        <span>Email</span>
+        <input formControlName="email" type="email" placeholder="correo@dominio.com" autocomplete="email" [attr.aria-invalid]="hasError('email')" aria-describedby="contact-email-error" />
+        <small id="contact-email-error" *ngIf="hasError('email')">Correo invalido.</small>
       </label>
 
       <label>
@@ -25,16 +26,44 @@
         </select>
       </label>
 
+      <ng-container *ngIf="isStoreRequest">
+        <label>
+          <span>Nombre de la ferreteria</span>
+          <input formControlName="businessName" type="text" placeholder="Nombre comercial" autocomplete="organization" [attr.aria-invalid]="hasError('businessName')" aria-describedby="contact-business-error" />
+          <small id="contact-business-error" *ngIf="hasError('businessName')">Ingresa el nombre de la ferreteria.</small>
+        </label>
+
+        <label>
+          <span>Telefono de contacto</span>
+          <input formControlName="phone" type="tel" placeholder="+56 9 ..." autocomplete="tel" [attr.aria-invalid]="hasError('phone')" aria-describedby="contact-phone-error" />
+          <small id="contact-phone-error" *ngIf="hasError('phone')">Ingresa un telefono valido.</small>
+        </label>
+
+        <label>
+          <span>Comuna</span>
+          <input formControlName="commune" type="text" placeholder="Ej: La Florida" autocomplete="address-level2" [attr.aria-invalid]="hasError('commune')" aria-describedby="contact-commune-error" />
+          <small id="contact-commune-error" *ngIf="hasError('commune')">Ingresa la comuna de la ferreteria.</small>
+        </label>
+      </ng-container>
+
       <label>
-        Mensaje
-        <textarea formControlName="message" rows="5" placeholder="Cuentanos en que te ayudamos"></textarea>
-        <small *ngIf="hasError('message')">Describe tu solicitud en al menos 8 caracteres.</small>
+        <span>Mensaje</span>
+        <textarea formControlName="message" rows="5" placeholder="Cuentanos en que te ayudamos" [attr.aria-invalid]="hasError('message')" aria-describedby="contact-message-error"></textarea>
+        <small id="contact-message-error" *ngIf="hasError('message')">Describe tu solicitud en al menos 8 caracteres.</small>
       </label>
 
-      <button type="submit">Enviar</button>
+      <label class="form-trap" aria-hidden="true">
+        Sitio web
+        <input formControlName="website" type="text" tabindex="-1" autocomplete="off" />
+      </label>
+
+      <button type="submit" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Enviando...' : (isStoreRequest ? 'Enviar solicitud' : 'Enviar mensaje') }}
+      </button>
     </form>
 
-    <p class="success" *ngIf="sent">Mensaje enviado. Te responderemos a la brevedad.</p>
+    <p class="success" *ngIf="sent" role="status">Solicitud recibida. Te responderemos a la brevedad.</p>
+    <p class="error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
   </article>
 
   <article class="card info">

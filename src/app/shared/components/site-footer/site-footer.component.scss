@@ -13,9 +13,9 @@
   max-width: 1240px;
   margin: 0 auto;
   padding: 2.5rem 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.62);
-  border-radius: 28px 28px 0 0;
-  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md) var(--r-md) 0 0;
+  background: rgba(255, 255, 255, 0.84);
   backdrop-filter: blur(18px);
   box-shadow: var(--shadow-sm);
 }
@@ -26,21 +26,7 @@
   align-items: flex-start;
 }
 
-.brand-mark {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, var(--ink-900), #36506b);
-  color: #fff;
-  font-size: 0.92rem;
-  font-weight: 900;
-  margin-top: 2px;
-  box-shadow: 0 16px 26px rgba(22, 33, 46, 0.18);
-}
+app-brand-mark { margin-top: 2px; }
 
 .brand-name {
   margin: 0;

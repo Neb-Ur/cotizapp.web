@@ -1,110 +1,50 @@
 <main class="register-page">
-  <section class="auth-card" *ngIf="step === 1">
+  <section class="auth-card auth-card--wide">
     <a routerLink="/" class="back-link">&larr; Volver al inicio</a>
     <div class="auth-header">
+      <div class="role-pill">Cuenta de maestro</div>
       <h1>Crea tu cuenta</h1>
-      <p>Selecciona cómo usarás CotizApp.</p>
+      <p>Guarda tus cotizaciones y consulta tu historial de proyectos.</p>
     </div>
 
-    <div class="role-grid">
-      <button type="button" class="role-btn" (click)="chooseRole('maestro')">
-        <span class="role-icon role-icon--orange">M</span>
-        <div>
-          <h3>Maestro</h3>
-          <span>Compara precios y optimiza tu lista de materiales.</span>
-        </div>
-        <span class="role-arrow">&rarr;</span>
-      </button>
-
-      <button type="button" class="role-btn" (click)="chooseRole('ferreteria')">
-        <span class="role-icon role-icon--green">F</span>
-        <div>
-          <h3>Ferreteria</h3>
-          <span>Mantiene precio y stock para aparecer en el comparador.</span>
-        </div>
-        <span class="role-arrow">&rarr;</span>
-      </button>
-    </div>
-
-    <p class="auth-switch">¿Ya tienes cuenta? <a routerLink="/login">Iniciar sesión</a></p>
-  </section>
-
-  <section class="auth-card auth-card--wide" *ngIf="step === 2">
-    <button type="button" class="back-link" (click)="backToStepOne()">&larr; Cambiar tipo de usuario</button>
-
-    <div class="auth-header">
-      <div class="role-pill" [class.role-pill--green]="selectedRole === 'ferreteria'">
-        {{ selectedRole === 'ferreteria' ? 'Ferretería' : 'Maestro' }}
-      </div>
-      <h1>Completa tu registro</h1>
-      <p>Solo pedimos los datos necesarios para el piloto.</p>
-    </div>
-
-    <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form auth-form--grid">
-      <div class="field" *ngIf="selectedRole === 'ferreteria'">
-        <label>Nombre del negocio</label>
-        <input formControlName="businessName" type="text" placeholder="Ferretería El Constructor" />
-        <small *ngIf="hasError('businessName')">Ingresa el nombre del negocio.</small>
-      </div>
-
-      <div class="field" *ngIf="selectedRole === 'ferreteria'">
-        <label>RUT del negocio</label>
-        <input formControlName="rut" type="text" placeholder="76.123.456-7" />
-        <small *ngIf="hasError('rut')">Ingresa un RUT válido.</small>
+    <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form auth-form--grid" [attr.aria-busy]="isSubmitting">
+      <div class="field">
+        <label for="register-name">Nombre y apellido</label>
+        <input id="register-name" formControlName="name" type="text" autocomplete="name" [attr.aria-invalid]="hasError('name')" aria-describedby="register-name-error" />
+        <small id="register-name-error" *ngIf="hasError('name')">Ingresa un nombre válido.</small>
       </div>
 
       <div class="field">
-        <label>{{ selectedRole === 'ferreteria' ? 'Nombre de contacto' : 'Nombre y apellido' }}</label>
-        <input formControlName="name" type="text" />
-        <small *ngIf="hasError('name')">Ingresa un nombre válido.</small>
+        <label for="register-email">Email</label>
+        <input id="register-email" formControlName="email" type="email" placeholder="correo@dominio.com" autocomplete="email" [attr.aria-invalid]="hasError('email')" aria-describedby="register-email-error" />
+        <small id="register-email-error" *ngIf="hasError('email')">Ingresa un correo válido.</small>
       </div>
 
       <div class="field">
-        <label>Email</label>
-        <input formControlName="email" type="email" placeholder="correo@dominio.com" />
-        <small *ngIf="hasError('email')">Ingresa un correo válido.</small>
+        <label for="register-password">Contraseña</label>
+        <input id="register-password" formControlName="password" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password" [attr.aria-invalid]="hasError('password')" aria-describedby="register-password-error" />
+        <small id="register-password-error" *ngIf="hasError('password')">Mínimo 6 caracteres.</small>
       </div>
 
       <div class="field">
-        <label>Contraseña</label>
-        <input formControlName="password" type="password" placeholder="Mínimo 6 caracteres" />
-        <small *ngIf="hasError('password')">Mínimo 6 caracteres.</small>
+        <label for="register-phone">Teléfono</label>
+        <input id="register-phone" formControlName="phone" type="tel" placeholder="+56 9 ..." autocomplete="tel" [attr.aria-invalid]="hasError('phone')" aria-describedby="register-phone-error" />
+        <small id="register-phone-error" *ngIf="hasError('phone')">Ingresa un teléfono válido.</small>
       </div>
 
       <div class="field">
-        <label>Teléfono</label>
-        <input formControlName="phone" type="text" placeholder="+56 9 ..." />
-        <small *ngIf="hasError('phone')">Ingresa un teléfono válido.</small>
-      </div>
-
-      <div class="field">
-        <label>Comuna</label>
-        <input formControlName="commune" type="text" placeholder="Ej: La Florida" />
-        <small *ngIf="hasError('commune')">Ingresa tu comuna.</small>
-      </div>
-
-      <div class="field field--full" *ngIf="selectedRole === 'ferreteria'">
-        <label>Dirección de la ferretería</label>
-        <input formControlName="address" type="text" placeholder="Av. Principal 1234" />
-        <small *ngIf="hasError('address')">Ingresa una dirección válida.</small>
-      </div>
-
-      <div class="field field--full location-field" *ngIf="selectedRole === 'ferreteria'">
-        <label>Ubicación del local</label>
-        <p class="location-help">Activa la ubicación estando en la ferretería. Se usará para que los maestros puedan encontrarte por distancia.</p>
-        <button type="button" class="btn btn-dark" (click)="captureStoreLocation()" [disabled]="isLocatingStore">
-          {{ isLocatingStore ? 'Obteniendo ubicación...' : (storeLocation ? 'Actualizar ubicación del local' : 'Usar ubicación actual del local') }}
-        </button>
-        <small class="location-ok" *ngIf="locationMessage">{{ locationMessage }}</small>
-        <small class="location-error" *ngIf="locationError">{{ locationError }}</small>
+        <label for="register-commune">Comuna</label>
+        <input id="register-commune" formControlName="commune" type="text" placeholder="Ej: La Florida" autocomplete="address-level2" [attr.aria-invalid]="hasError('commune')" aria-describedby="register-commune-error" />
+        <small id="register-commune-error" *ngIf="hasError('commune')">Ingresa tu comuna.</small>
       </div>
 
       <div class="field--full form-actions">
         <button class="btn btn-dark btn-full" type="submit" [disabled]="isSubmitting">
           {{ isSubmitting ? 'Creando cuenta...' : 'Crear cuenta' }}
         </button>
-        <p class="form-error" *ngIf="errorMessage">{{ errorMessage }}</p>
+        <p class="form-error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
       </div>
     </form>
+    <p class="auth-switch">¿Ya tienes cuenta? <a routerLink="/login">Iniciar sesión</a></p>
   </section>
 </main>

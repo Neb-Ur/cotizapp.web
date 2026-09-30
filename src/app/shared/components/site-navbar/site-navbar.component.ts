@@ -2,11 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { BrandMarkComponent } from '../brand-mark/brand-mark.component';
 
 @Component({
   selector: 'app-site-navbar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive, BrandMarkComponent],
   templateUrl: './site-navbar.component.html',
   styleUrl: './site-navbar.component.scss'
 })

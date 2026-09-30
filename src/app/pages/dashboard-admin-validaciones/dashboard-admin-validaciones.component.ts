@@ -8,7 +8,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
   faChevronRight,
@@ -25,6 +25,8 @@ import {
   CatalogValidationRequest,
   CatalogValidationStatus,
   CatalogValidationType,
+  ContactRequest,
+  ContactRequestStatus,
   SessionUser,
   TaxonomyOption,
   UserRole
@@ -35,7 +37,7 @@ import { CATALOG_IMPORT_TEMPLATE, catalogFileToCsv, catalogImportTemplateFileNam
 import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 
-type AdminSection = 'ferreterias' | 'productos' | 'solicitudes' | 'usuarios';
+type AdminSection = 'ferreterias' | 'productos' | 'solicitudes' | 'contacto' | 'usuarios';
 
 interface MasterProductDraft {
   masterProductId: string;
@@ -109,7 +111,6 @@ interface AdminSectionMeta {
   imports: [
     CommonModule,
     FormsModule,
-    RouterLink,
     DashboardMenuComponent,
     MatButtonModule,
     MatCardModule,
@@ -151,6 +152,11 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       description: 'Resuelve productos que las ferreterias no encuentran en el catalogo maestro.'
     },
     {
+      id: 'contacto',
+      label: 'Solicitudes de acceso',
+      description: 'Gestiona solicitudes comerciales de ferreterias y mensajes de contacto.'
+    },
+    {
       id: 'usuarios',
       label: 'Usuarios',
       description: 'Gestiona las cuentas y sus estados de acceso.'
@@ -160,6 +166,8 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   protected catalogAdminView: 'productos' | 'taxonomia' = 'productos';
   protected users: SessionUser[] = [];
   protected validationRequests: CatalogValidationRequest[] = [];
+  protected contactRequests: ContactRequest[] = [];
+  protected contactStatusFilter: ContactRequestStatus | 'all' = 'pendiente';
 
   protected validationStatusFilter: CatalogValidationStatus | 'all' = 'pendiente';
   protected validationTypeFilter: CatalogValidationType | 'all' = 'all';
@@ -257,6 +265,24 @@ export class DashboardAdminValidacionesComponent implements OnInit {
           || item.row.sku.toLowerCase().includes(query)
           || (item.row.barcode || '').toLowerCase().includes(query);
       });
+  }
+
+  protected get contactRequestRows(): ContactRequest[] {
+    return this.contactRequests.filter((request) => (
+      this.contactStatusFilter === 'all' || request.status === this.contactStatusFilter
+    ));
+  }
+
+  protected async setContactRequestStatus(request: ContactRequest, status: ContactRequestStatus): Promise<void> {
+    this.notice = '';
+    this.error = '';
+    try {
+      const updated = await this.apiService.updateContactRequestStatus(request.id, status);
+      this.contactRequests = this.contactRequests.map((item) => item.id === updated.id ? updated : item);
+      this.notice = 'Solicitud actualizada correctamente.';
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : 'No se pudo actualizar la solicitud.';
+    }
   }
 
   protected get onboardingFerreterias(): SessionUser[] {
@@ -1232,6 +1258,10 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       if (section === 'solicitudes') {
         await this.apiService.refreshAdminRequestsSection(force);
         this.syncValidationRequestsState();
+      }
+
+      if (section === 'contacto') {
+        this.contactRequests = await this.apiService.getContactRequestsForAdmin();
       }
 
       if (section === 'usuarios') {

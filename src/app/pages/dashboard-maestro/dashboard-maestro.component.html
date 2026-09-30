@@ -1,7 +1,8 @@
-<main class="dashboard">
+<main class="dashboard" [class.dashboard--public]="!user">
   <app-dashboard-menu
+    *ngIf="user"
     title="Panel Maestro"
-    [userName]="user?.displayName || ''"
+    [userName]="user.displayName || ''"
     [sections]="sections"
     [activeSection]="currentSection"
     [isMobileViewport]="isMobileViewport"
@@ -12,15 +13,20 @@
   />
 
   <section class="content">
-    <header class="content-header">
+    <header class="content-header" [class.content-header--public]="!user">
       <div class="title-row">
-        <button *ngIf="isMobileViewport" type="button" class="menu-toggle menu-icon" (click)="toggleMobileMenu()" aria-label="Abrir menu">
+        <button *ngIf="user && isMobileViewport" type="button" class="menu-toggle menu-icon" (click)="toggleMobileMenu()" aria-label="Abrir menu">
           <span></span><span></span><span></span>
         </button>
         <div>
+          <span class="catalog-eyebrow" *ngIf="!user">Catalogo de materiales</span>
           <h1>{{ currentSectionLabel }}</h1>
-          <p>{{ currentSectionDescription }}</p>
+          <p *ngIf="user">{{ currentSectionDescription }}</p>
+          <p *ngIf="!user">Compara precios y disponibilidad entre ferreterias activas. No necesitas una cuenta para comenzar.</p>
         </div>
+      </div>
+      <div class="catalog-header-actions" *ngIf="!user">
+        <button type="button" (click)="goToNewProject()">Crear cotizacion</button>
       </div>
     </header>
 
@@ -32,11 +38,11 @@
       <div class="projects-topbar">
         <div>
           <h3>Tu actividad</h3>
-          <p style="margin:0.25rem 0 0;color:#4a5568;">Cotiza materiales y compara cuanto puedes ahorrar.</p>
+          <p class="section-copy">Cotiza materiales y compara cuanto puedes ahorrar.</p>
         </div>
         <button type="button" (click)="goToNewProject()" [disabled]="!canCreateQuotation">Nueva cotizacion</button>
       </div>
-      <p style="margin:0.75rem 0 0;color:#4a5568;font-weight:700;">{{ quotationLimitText }}</p>
+      <p class="quota-text">{{ quotationLimitText }}</p>
       <p class="saved" *ngIf="quotationNotice">{{ quotationNotice }}</p>
       <div class="stats-grid">
         <section><h3>Cotizaciones guardadas</h3><p>{{ projects.length }}</p></section>
@@ -44,6 +50,7 @@
       </div>
       <div class="table-wrap" *ngIf="recentProjects.length > 0">
         <table>
+          <caption class="visually-hidden">Cotizaciones recientes</caption>
           <thead><tr><th>Cotizacion</th><th>Fecha</th><th>Items</th><th>Ahorro</th><th></th></tr></thead>
           <tbody>
             <tr *ngFor="let project of recentProjects">
@@ -59,7 +66,23 @@
     </article>
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'buscar'">
-      <div class="filters-grid">
+      <section class="search-primary" aria-labelledby="product-search-label">
+        <label class="top-product-search" id="product-search-label">
+          <span>¿Que material necesitas?</span>
+          <input [(ngModel)]="tableProductSearch" (ngModelChange)="onProductSearchChange()" type="search" placeholder="Busca cemento, OSB, yeso..." />
+        </label>
+        <p>Busca por nombre o acota los resultados por categoria, subcategoria y familia.</p>
+      </section>
+
+      <section class="filters-section" aria-label="Filtros del catalogo">
+        <div class="filters-heading">
+          <div>
+            <h2>Filtros</h2>
+            <p>Afina los resultados del catalogo.</p>
+          </div>
+          <button type="button" class="clear-filters-button" (click)="clearSearchFilters()">Limpiar filtros</button>
+        </div>
+        <div class="filters-grid">
         <label>
           Categoria
           <input list="category-options" [(ngModel)]="categorySearch" (ngModelChange)="onCategoryInput($event)" placeholder="Categoria" />
@@ -75,29 +98,25 @@
           <input list="family-options" [(ngModel)]="familySearch" (ngModelChange)="onFamilyInput($event)" [disabled]="!selectedSubcategoryId" placeholder="Familia" />
           <datalist id="family-options"><option *ngFor="let option of familyOptions" [value]="option.name"></option></datalist>
         </label>
-        <div class="filters-actions"><button type="button" (click)="clearSearchFilters()">Limpiar</button></div>
-      </div>
-
-      <label class="top-product-search">
-        Buscar producto
-        <input [(ngModel)]="tableProductSearch" (ngModelChange)="onProductSearchChange()" type="text" placeholder="Ej: cemento, OSB, yeso" />
-      </label>
+        </div>
+      </section>
 
       <section class="nearby-search-card">
         <div class="nearby-search-copy">
-          <strong>Buscar ferreterias cerca de mi</strong>
-          <span *ngIf="!nearbyEnabled">Usa tu ubicacion solo para filtrar las ofertas visibles por distancia.</span>
-          <span *ngIf="nearbyEnabled">Filtro activo: solo ferreterias con ubicacion registrada dentro del radio seleccionado.</span>
+          <span class="nearby-kicker">Compra local</span>
+          <strong>Ferreterias cerca de ti</strong>
+          <span *ngIf="!nearbyEnabled">Filtra ofertas por distancia usando tu ubicacion actual.</span>
+          <span *ngIf="nearbyEnabled">Mostrando solo ferreterias con ubicacion dentro del radio seleccionado.</span>
         </div>
         <div class="nearby-search-actions">
           <label>
-            Radio
+            Radio de busqueda
             <select [ngModel]="nearbyRadiusKm" (ngModelChange)="onNearbyRadiusChange($event)" [disabled]="isLocatingNearby">
               <option *ngFor="let radius of nearbyRadiusOptions" [value]="radius">{{ radius }} km</option>
             </select>
           </label>
           <button type="button" [class.secondary]="nearbyEnabled" (click)="toggleNearbySearch()" [disabled]="isLocatingNearby">
-            {{ isLocatingNearby ? 'Obteniendo ubicacion...' : (nearbyEnabled ? 'Ver todas las ferreterias' : 'Buscar cerca de mi') }}
+            {{ isLocatingNearby ? 'Obteniendo ubicacion...' : (nearbyEnabled ? 'Ver todo el catalogo' : 'Usar mi ubicacion') }}
           </button>
         </div>
         <p class="nearby-message" *ngIf="nearbyMessage">{{ nearbyMessage }}</p>
@@ -113,6 +132,14 @@
       <p class="project-pick-context" *ngIf="isPickingProductForProject">
         Selecciona un producto para agregarlo a tu cotizacion.
       </p>
+
+      <div class="results-heading">
+        <div>
+          <span>Resultados</span>
+          <h2>{{ productRows.length }} productos encontrados</h2>
+        </div>
+        <p *ngIf="productRows.length > 0">Ordenados por disponibilidad y precio.</p>
+      </div>
 
       <div class="product-cards" *ngIf="productRows.length > 0; else emptyProducts">
         <article class="product-card" *ngFor="let row of paginatedProductRows">
@@ -168,14 +195,15 @@
       <div class="projects-topbar">
         <div>
           <h3>Mis cotizaciones</h3>
-          <p style="margin:0.25rem 0 0;color:#4a5568;">Puedes guardar hasta 2 cotizaciones y enviarlas directamente a tus clientes.</p>
-          <p style="margin:0.25rem 0 0;color:#4a5568;font-weight:700;">{{ quotationLimitText }}</p>
+          <p class="section-copy">Puedes guardar hasta 2 cotizaciones y enviarlas directamente a tus clientes.</p>
+          <p class="quota-text">{{ quotationLimitText }}</p>
         </div>
         <button type="button" (click)="goToNewProject()" [disabled]="!canCreateQuotation">Nueva cotizacion</button>
       </div>
       <p class="saved" *ngIf="quotationNotice">{{ quotationNotice }}</p>
       <div class="table-wrap" *ngIf="projects.length > 0; else emptyQuotes">
         <table>
+          <caption class="visually-hidden">Cotizaciones guardadas</caption>
           <thead><tr><th>Cotizacion</th><th>Fecha</th><th>Items</th><th>Total optimo</th><th>Ahorro</th><th>Acciones</th></tr></thead>
           <tbody>
             <tr *ngFor="let project of projects">
@@ -231,7 +259,7 @@
         <button type="button" class="secondary" (click)="resetProfileDraft()">Restaurar</button>
       </div>
       <p class="saved" *ngIf="profileSaved">Perfil actualizado.</p>
-      <p class="profile-error" *ngIf="profileError" style="color:#9b1f1f;font-weight:700;">{{ profileError }}</p>
+      <p class="profile-error" *ngIf="profileError">{{ profileError }}</p>
     </article>
   </section>
 </main>

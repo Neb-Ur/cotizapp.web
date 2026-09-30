@@ -3,8 +3,8 @@
   <aside class="auth-panel">
     <div class="panel-inner">
       <div class="panel-brand">
-        <span class="brand-mark">C</span>
-        <span>ConstruComparador</span>
+        <app-brand-mark />
+        <span>CotizApp</span>
       </div>
       <blockquote class="panel-quote">
         “Antes perdia horas comparando precios.
@@ -12,8 +12,6 @@
       </blockquote>
       <p class="panel-author">Rubén M. — Maestro independiente</p>
     </div>
-    <div class="panel-orb panel-orb-1"></div>
-    <div class="panel-orb panel-orb-2"></div>
   </aside>
 
   <!-- Right: form -->
@@ -27,7 +25,7 @@
       <p>Accede a tu cuenta para continuar.</p>
     </div>
 
-    <div class="support-banner" *ngIf="supportBannerMessage">
+    <div class="support-banner" *ngIf="supportBannerMessage" role="alert">
       {{ supportBannerMessage }}
     </div>
 
@@ -37,15 +35,15 @@
       </div>
 
       <div class="field">
-        <label>Email</label>
-        <input type="email" formControlName="email" placeholder="correo@dominio.com" [disabled]="isSubmitting" />
-        <small *ngIf="hasError('email')">Ingresa un correo válido.</small>
+        <label for="login-email">Email</label>
+        <input id="login-email" type="email" formControlName="email" placeholder="correo@dominio.com" autocomplete="email" [disabled]="isSubmitting" [attr.aria-invalid]="hasError('email')" aria-describedby="login-email-error" />
+        <small id="login-email-error" *ngIf="hasError('email')">Ingresa un correo válido.</small>
       </div>
 
       <div class="field">
-        <label>Contraseña</label>
-        <input type="password" formControlName="password" placeholder="Mínimo 6 caracteres" [disabled]="isSubmitting" />
-        <small *ngIf="hasError('password')">Mínimo 6 caracteres.</small>
+        <label for="login-password">Contraseña</label>
+        <input id="login-password" type="password" formControlName="password" placeholder="Mínimo 6 caracteres" autocomplete="current-password" [disabled]="isSubmitting" [attr.aria-invalid]="hasError('password')" aria-describedby="login-password-error" />
+        <small id="login-password-error" *ngIf="hasError('password')">Mínimo 6 caracteres.</small>
       </div>
 
       <div class="field-row">
@@ -59,15 +57,10 @@
       <button class="btn btn-dark btn-full" type="submit" [disabled]="isSubmitting">
         {{ isSubmitting ? 'Ingresando...' : 'Iniciar sesión' }}
       </button>
-      <p class="form-error" *ngIf="errorMessage">{{ errorMessage }}</p>
+      <p class="form-error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
     </form>
 
-    <p class="auth-switch">No tienes cuenta? <a routerLink="/registro">Crear cuenta gratis</a></p>
+    <p class="auth-switch">¿Eres maestro y no tienes cuenta? <a routerLink="/registro">Crear cuenta</a></p>
 
-    <div class="demo-hints">
-      <p>Demo maestro: maestro&#64;demo.cl / 123456</p>
-      <p>Demo ferreteria: ferreteria&#64;demo.cl / 123456</p>
-      <p>Demo admin: admin&#64;demo.cl / 123456</p>
-    </div>
   </section>
 </main>

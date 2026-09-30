@@ -3,12 +3,13 @@ import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService, LOGIN_SUPPORT_ERROR_MESSAGE } from '../../../core/services/auth.service';
+import { BrandMarkComponent } from '../../../shared/components/brand-mark/brand-mark.component';
 import { UiLoaderComponent } from '../../../shared/components/ui-loader/ui-loader.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, UiLoaderComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandMarkComponent, UiLoaderComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })

@@ -8,9 +8,8 @@
         Publica tus productos, administra precios y stock en tiempo real,
         y recibe más consultas de maestros que buscan comprar cerca.
       </p>
-      <a class="btn btn-secondary btn-lg" routerLink="/registro">Registrarme como Ferretería</a>
+      <a class="btn btn-secondary btn-lg" routerLink="/contacto" [queryParams]="{ type: 'Ferreteria' }">Solicitar acceso</a>
     </div>
-    <div class="pub-hero-orb"></div>
   </section>
 
   <!-- Features -->
@@ -38,14 +37,14 @@
   <section class="pub-pricing">
     <div class="pub-pricing-inner">
       <div class="pricing-card">
-        <h3>Acceso piloto para ferreterías</h3>
+        <h2>Acceso piloto para ferreterías</h2>
         <p>Durante el MVP no hay suscripciones ni pagos automáticos dentro de CotizApp.</p>
         <ul>
           <li>Catálogo digital editable</li>
           <li>Precio y stock actualizables</li>
           <li>Activación manual de la cuenta por administración</li>
         </ul>
-        <a class="btn btn-secondary" routerLink="/registro">Solicitar acceso</a>
+        <a class="btn btn-secondary" routerLink="/contacto" [queryParams]="{ type: 'Ferreteria' }">Completar solicitud</a>
       </div>
     </div>
   </section></div>

@@ -72,7 +72,8 @@ export class ProductoDetalleComponent implements OnInit {
   }
 
   protected get user(): SessionUser | null {
-    return this.authService.currentUser();
+    const currentUser = this.authService.currentUser();
+    return currentUser?.role === 'maestro' ? currentUser : null;
   }
 
   protected get bestPriceStoreName(): string {
@@ -170,7 +171,7 @@ export class ProductoDetalleComponent implements OnInit {
   }
 
   protected backToSearch(): void {
-    this.router.navigate(['/dashboard/maestro'], { queryParams: { section: 'buscar' } });
+    this.router.navigate(['/buscar']);
   }
 
   protected formatDistance(value: number | undefined): string {

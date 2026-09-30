@@ -8,23 +8,23 @@
 
 <header class="navbar">
   <a class="brand" routerLink="/" (click)="closeMenu()">
-    <span class="brand-mark">C</span>
+    <app-brand-mark />
     <span class="brand-copy">
-      <span class="brand-kicker">Marketplace ferretero</span>
-      <span class="brand-name">Constru<strong>Comparador</strong></span>
+      <span class="brand-kicker">Cotizaciones de obra</span>
+      <span class="brand-name"><strong>Cotiz</strong>App</span>
     </span>
   </a>
 
-  <nav class="links" [class.open]="menuOpen">
+  <nav class="links" id="primary-navigation" [class.open]="menuOpen" aria-label="Navegacion principal">
     <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Inicio</a>
-    <a routerLink="/maestros" routerLinkActive="active" (click)="closeMenu()">Maestros</a>
+    <a routerLink="/buscar" routerLinkActive="active" (click)="closeMenu()">Buscar productos</a>
     <a routerLink="/ferreterias" routerLinkActive="active" (click)="closeMenu()">Ferreterias</a>
     <a routerLink="/preguntas-frecuentes" routerLinkActive="active" (click)="closeMenu()">FAQ</a>
 
     <ng-container *ngIf="!isLogged; else loggedActions">
       <div class="auth-group">
         <a class="nav-login" routerLink="/login" (click)="closeMenu()">Iniciar sesión</a>
-        <a class="btn btn-primary btn-sm" routerLink="/registro" (click)="closeMenu()">Comenzar gratis</a>
+        <a class="btn btn-primary btn-sm" routerLink="/registro" (click)="closeMenu()">Crear cuenta</a>
       </div>
     </ng-container>
 
@@ -36,7 +36,7 @@
     </ng-template>
   </nav>
 
-  <button class="hamburger" type="button" (click)="toggleMenu()" aria-label="Abrir menu" [class.open]="menuOpen">
+  <button class="hamburger" type="button" (click)="toggleMenu()" aria-label="Abrir menu" aria-controls="primary-navigation" [attr.aria-expanded]="menuOpen" [class.open]="menuOpen">
     <span></span>
     <span></span>
     <span></span>

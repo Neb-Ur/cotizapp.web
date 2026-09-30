@@ -21,9 +21,9 @@
       </div>
     </header>
 
-    <article class="panel" *ngIf="user?.accountStatus && user?.accountStatus !== 'activo'" style="border:1px solid #f0c36d;background:#fffaf0;">
-      <h3 style="margin-top:0;">Cuenta pendiente de activacion</h3>
-      <p style="margin-bottom:0;">Puedes preparar tu catalogo, pero tus precios no participan en el comparador hasta que CotizApp active la cuenta.</p>
+    <article class="panel panel--pending" *ngIf="user && user.accountStatus && user.accountStatus !== 'activo'">
+      <h3 class="flush-heading">Cuenta pendiente de activacion</h3>
+      <p class="flush-copy">Puedes preparar tu catalogo, pero tus precios no participan en el comparador hasta que CotizApp active la cuenta.</p>
     </article>
 
     <article class="panel panel--loading" *ngIf="isInitialLoading || isSectionLoading">
@@ -46,7 +46,7 @@
       <div class="projects-topbar">
         <div>
           <h3>Mantener precios y stock</h3>
-          <p style="margin:0.25rem 0 0;color:#4a5568;">{{ catalogQuotaText }} CotizApp puede realizar la carga inicial por ti.</p>
+          <p class="helper-text">{{ catalogQuotaText }} CotizApp puede realizar la carga inicial por ti.</p>
         </div>
         <div class="form-actions">
           <button type="button" class="secondary" (click)="goToExcelImport()">Actualizar por Excel</button>
@@ -60,7 +60,7 @@
       </label>
 
       <p class="saved" *ngIf="catalogNotice">{{ catalogNotice }}</p>
-      <p *ngIf="catalogError" style="color:#9b1f1f;font-weight:700;">{{ catalogError }}</p>
+      <p *ngIf="catalogError" class="error-text">{{ catalogError }}</p>
 
       <div class="table-wrap" *ngIf="filteredCatalog.length > 0; else emptyCatalog">
         <table>
@@ -105,7 +105,7 @@
       <div class="projects-topbar">
         <div>
           <h3>Agregar o actualizar productos</h3>
-          <p style="margin:0.25rem 0 0;color:#4a5568;">Esta opción forma parte de Mantener catálogo.</p>
+          <p class="helper-text">Esta opción forma parte de Mantener catálogo.</p>
         </div>
         <button type="button" class="ghost" (click)="closeAddProducts()">Volver al catálogo</button>
       </div>
@@ -142,7 +142,7 @@
           </label>
         </div>
 
-        <p *ngIf="relationError" style="color:#9b1f1f;font-weight:700;">{{ relationError }}</p>
+        <p *ngIf="relationError" class="error-text">{{ relationError }}</p>
         <p *ngIf="relationNotice" class="saved">{{ relationNotice }}</p>
         <p *ngIf="masterLoading">Cargando catalogo maestro...</p>
 
@@ -180,8 +180,8 @@
         </div>
         <input type="file" accept=".xlsx,.xls,.csv,.txt" (change)="onCatalogFileSelected($event)" [disabled]="isReadingCatalogFile" />
         <p>{{ catalogFileName || 'Ningun archivo seleccionado' }}</p>
-        <textarea [(ngModel)]="csvContent" rows="10" style="width:100%;"></textarea>
-        <p *ngIf="csvError" style="color:#9b1f1f;font-weight:700;">{{ csvError }}</p>
+        <textarea class="full-textarea" [(ngModel)]="csvContent" rows="10"></textarea>
+        <p *ngIf="csvError" class="error-text">{{ csvError }}</p>
         <p *ngIf="csvNotice" class="saved">{{ csvNotice }}</p>
         <div class="form-actions">
           <button type="button" (click)="importCatalogFile()" [disabled]="isReadingCatalogFile || !csvContent.trim()">Aplicar actualización masiva</button>
@@ -197,7 +197,7 @@
           <label>Precio<input [(ngModel)]="requestDraft.price" type="number" min="1" /></label>
           <label>Stock inicial<input [(ngModel)]="requestDraft.quantity" type="number" min="1" /></label>
         </div>
-        <p *ngIf="requestError" style="color:#9b1f1f;font-weight:700;">{{ requestError }}</p>
+        <p *ngIf="requestError" class="error-text">{{ requestError }}</p>
         <p *ngIf="requestNotice" class="saved">{{ requestNotice }}</p>
         <button type="button" (click)="submitProductRequest()">Enviar solicitud</button>
       </section>

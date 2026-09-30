@@ -78,7 +78,7 @@
       </div>
       <ng-template #noStores><p>No hay ferreterias registradas.</p></ng-template>
 
-      <section class="card" *ngIf="selectedStoreCatalogLabel" style="margin-top:1rem;">
+      <section class="card section-spaced" *ngIf="selectedStoreCatalogLabel">
         <h4>Catalogo de {{ selectedStoreCatalogLabel }}</h4>
         <div class="table-wrap" *ngIf="selectedStoreCatalog.length > 0; else emptyStoreCatalog">
           <table>
@@ -97,10 +97,10 @@
         <ng-template #emptyStoreCatalog><p>Esta ferreteria aun no tiene productos cargados.</p></ng-template>
       </section>
 
-      <section class="card" style="margin-top:1rem;">
+      <section class="card section-spaced">
         <h4>Carga inicial de catalogo</h4>
         <p>Selecciona una ferreteria, descarga el template CotizApp, pasa ahi los datos que te entregue y sube el archivo normalizado. Despues la tienda mantiene precio y stock desde su panel.</p>
-        <div class="actions" style="margin-bottom:1rem;">
+        <div class="actions actions-spaced">
           <button type="button" class="ghost" (click)="downloadOnboardingCatalogTemplate()">Descargar template CotizApp</button>
         </div>
 
@@ -124,7 +124,7 @@
           </label>
         </div>
 
-        <textarea [(ngModel)]="onboardingCsvContent" rows="9" style="width:100%;"></textarea>
+        <textarea class="full-textarea" [(ngModel)]="onboardingCsvContent" rows="9"></textarea>
         <p *ngIf="onboardingError" class="error">{{ onboardingError }}</p>
         <p *ngIf="onboardingNotice" class="saved">{{ onboardingNotice }}</p>
         <div class="actions">
@@ -604,6 +604,57 @@
 
         <p class="empty" *ngIf="validationRows.length === 0">No hay solicitudes para este filtro.</p>
       </ng-container>
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'contacto'">
+      <div class="toolbar">
+        <label>
+          Estado
+          <select [(ngModel)]="contactStatusFilter">
+            <option value="pendiente">Pendientes</option>
+            <option value="contactado">Contactadas</option>
+            <option value="cerrado">Cerradas</option>
+            <option value="all">Todas</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="contact-request-grid" *ngIf="contactRequestRows.length > 0; else emptyContactRequests">
+        <article class="contact-request-card" *ngFor="let request of contactRequestRows">
+          <header>
+            <div>
+              <span class="request-kind">{{ request.type === 'ferreteria' ? 'Solicitud de ferreteria' : 'Contacto' }}</span>
+              <h2>{{ request.businessName || request.name }}</h2>
+            </div>
+            <span class="status-chip" [class.ok]="request.status === 'contactado'" [class.bad]="request.status === 'cerrado'">
+              {{ request.status }}
+            </span>
+          </header>
+
+          <dl>
+            <div><dt>Contacto</dt><dd>{{ request.name }}</dd></div>
+            <div><dt>Email</dt><dd><a [href]="'mailto:' + request.email">{{ request.email }}</a></dd></div>
+            <div *ngIf="request.phone"><dt>Telefono</dt><dd>{{ request.phone }}</dd></div>
+            <div *ngIf="request.commune"><dt>Comuna</dt><dd>{{ request.commune }}</dd></div>
+            <div><dt>Recibida</dt><dd>{{ request.createdAt | date:'short' }}</dd></div>
+          </dl>
+
+          <p class="request-message">{{ request.message }}</p>
+
+          <div class="actions">
+            <button type="button" *ngIf="request.status === 'pendiente'" (click)="setContactRequestStatus(request, 'contactado')">
+              Marcar contactada
+            </button>
+            <button type="button" class="ghost" *ngIf="request.status !== 'cerrado'" (click)="setContactRequestStatus(request, 'cerrado')">
+              Cerrar
+            </button>
+            <button type="button" class="ghost" *ngIf="request.status !== 'pendiente'" (click)="setContactRequestStatus(request, 'pendiente')">
+              Reabrir
+            </button>
+          </div>
+        </article>
+      </div>
+      <ng-template #emptyContactRequests><p class="empty">No hay solicitudes para este estado.</p></ng-template>
     </article>
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'usuarios'">

@@ -12,7 +12,7 @@ import { RouterLink } from '@angular/router';
 export class PreguntasFrecuentesComponent {
   protected readonly faqItems = [
     {
-      question: 'Como funciona ConstruComparador para maestros?',
+      question: 'Como funciona CotizApp para maestros?',
       answer: 'Permite comparar precios entre ferreterias, crear cotizaciones y organizar compras por proyecto.'
     },
     {

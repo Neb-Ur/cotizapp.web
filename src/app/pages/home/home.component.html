@@ -17,16 +17,11 @@
     </p>
 
     <div class="hero-actions">
-      <a class="btn btn-primary btn-lg" routerLink="/registro">Empezar gratis</a>
+      <a class="btn btn-primary btn-lg" routerLink="/buscar">Buscar productos</a>
       <a class="btn btn-ghost-white btn-lg" routerLink="/maestros">Ver cómo funciona</a>
     </div>
 
   </div>
-
-  <!-- Decorative orbs -->
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
 </section>
 
 <!-- ── HOW IT WORKS ────────────────────────────── -->
@@ -112,7 +107,7 @@
           <li><span class="check-icon">✓</span> Optimización por menor costo</li>
           <li><span class="check-icon">✓</span> Historial de cotizaciones</li>
         </ul>
-        <a class="btn btn-dark" routerLink="/registro">Crear cuenta</a>
+        <a class="btn btn-dark" routerLink="/registro">Crear cuenta de maestro</a>
       </article>
 
       <article class="price-card price-card--featured">
@@ -129,7 +124,7 @@
           <li><span class="check-icon">✓</span> Activación manual por administración</li>
           <li><span class="check-icon">✓</span> Sin planes Básico, Pro o Premium</li>
         </ul>
-        <a class="btn btn-primary" routerLink="/registro">Solicitar acceso</a>
+        <a class="btn btn-primary" routerLink="/contacto" [queryParams]="{ type: 'Ferreteria' }">Solicitar acceso</a>
       </article>
     </div>
   </div>
@@ -139,12 +134,10 @@
 <section class="cta-section">
   <div class="cta-inner">
     <h2>¿Listo para optimizar tus obras?</h2>
-    <p>Crea tu cuenta y participa en el piloto de CotizApp.</p>
+    <p>Busca y cotiza sin cuenta. Regístrate como maestro cuando quieras guardar tu cotización.</p>
     <div class="cta-actions">
-      <a class="btn btn-primary btn-lg" routerLink="/registro">Crear cuenta gratis</a>
+      <a class="btn btn-primary btn-lg" routerLink="/registro">Crear cuenta de maestro</a>
       <a class="btn btn-ghost-white btn-lg" routerLink="/contacto">Contactar a CotizApp</a>
     </div>
   </div>
-  <div class="orb orb-cta-1"></div>
-  <div class="orb orb-cta-2"></div>
 </section>

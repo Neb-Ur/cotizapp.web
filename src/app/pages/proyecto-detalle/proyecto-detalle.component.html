@@ -1,6 +1,6 @@
 <main class="project-detail-page">
   <header class="page-header">
-    <button type="button" (click)="backToProjects()">Volver a mis cotizaciones</button>
+    <button type="button" (click)="backToProjects()">{{ user ? 'Volver a mis cotizaciones' : 'Volver al buscador' }}</button>
     <div class="page-title">
       <h1>{{ isNewProject ? 'Nueva cotizacion' : 'Detalle de cotizacion' }}</h1>
       <p>
@@ -61,7 +61,7 @@
 
         <div class="actions">
           <button type="button" (click)="saveProject()">
-            {{ isNewProject ? 'Guardar cotizacion' : 'Actualizar cotizacion' }}
+            {{ !user ? 'Crear cuenta para guardar' : (isNewProject ? 'Guardar cotizacion' : 'Actualizar cotizacion') }}
           </button>
           <button type="button" class="export" [disabled]="!hasQuotation" (click)="exportQuotation()">
             Exportar cotizacion PDF

@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { SeoService } from './core/services/seo.service';
 import { SiteFooterComponent } from './shared/components/site-footer/site-footer.component';
 
 @Component({
@@ -9,4 +10,10 @@ import { SiteFooterComponent } from './shared/components/site-footer/site-footer
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
-export class AppComponent {}
+export class AppComponent {
+  private readonly seoService = inject(SeoService);
+
+  constructor() {
+    this.seoService.initialize();
+  }
+}
