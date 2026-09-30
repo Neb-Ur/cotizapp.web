@@ -8,19 +8,28 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      action:
+        description: Qué quieres ejecutar sobre main
+        required: true
+        default: validate
+        type: choice
+        options:
+          - validate
+          - publish
 
 permissions:
   contents: read
 
 concurrency:
-  group: cotizapp-${{ github.ref }}
+  group: cotizapp-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 env:
   NODE_VERSION: '20'
   FUNCTIONS_NODE_VERSION: '22'
-  FIREBASE_PROJECT_ID: cotizacion-77802
-  PRODUCTION_URL: https://cotizacion-77802.web.app
+  FIREBASE_PROJECT_ID: cotizapp-d71c8
+  PRODUCTION_URL: https://cotizapp-d71c8.web.app
 
 jobs:
   ci:
@@ -65,15 +74,38 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+      - name: Pipeline summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## CotizApp pipeline"
+            if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+              echo "- Requested action: ${{ inputs.action }}"
+            else
+              echo "- Requested action: validate"
+            fi
+            echo "- Push behavior: validate + deploy to QA"
+            echo "- QA deploy: automatic on push to main; manual publish also available"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   deploy:
     name: Deploy Firebase production
-    if: github.event_name != 'pull_request'
+    if: >-
+      needs.ci.result == 'success' &&
+      (
+        github.event_name == 'push' ||
+        (github.event_name == 'workflow_dispatch' && inputs.action == 'publish')
+      )
     needs: ci
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    environment:
+      name: production
+      url: https://cotizapp-d71c8.web.app
 
     env:
-      FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON || secrets.FIREBASE_SERVICE_ACCOUNT_COTIZACION_77802 }}
+      FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON || secrets.FIREBASE_SERVICE_ACCOUNT_COTIZAPP_D71C8 }}
       FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
     steps:
@@ -118,7 +150,7 @@ jobs:
             echo "FIREBASE_AUTH_MODE=token" >> "$GITHUB_ENV"
             echo "Firebase authentication: CI token"
           else
-            echo "::error::Configure FIREBASE_SERVICE_ACCOUNT_JSON, FIREBASE_SERVICE_ACCOUNT_COTIZACION_77802 or FIREBASE_TOKEN in GitHub Actions secrets."
+            echo "::error::Falta configurar FIREBASE_SERVICE_ACCOUNT_JSON, FIREBASE_SERVICE_ACCOUNT_COTIZACION_77802 o FIREBASE_TOKEN en GitHub Actions secrets."
             exit 1
           fi
 
@@ -127,6 +159,11 @@ jobs:
         run: |
           set -euo pipefail
 
+          if [[ "${{ github.event_name }}" == "push" && "${{ contains(github.event.head_commit.message, '[seed-firestore]') }}" == "true" ]]; then
+            echo "Seed-only push: skipping Firebase deploy; proceeding directly to Auth + Firestore data seed."
+            exit 0
+          fi
+
           DEPLOY_TARGETS="hosting,functions,firestore:rules,firestore:indexes"
 
           if [[ "$FIREBASE_AUTH_MODE" == "token" ]]; then
@@ -134,6 +171,64 @@ jobs:
           else
             npx --yes firebase-tools@latest deploy               --only "$DEPLOY_TARGETS"               --project "$FIREBASE_PROJECT_ID"               --non-interactive
           fi
+
+      - name: Checkout Firebase demo-user bootstrap
+        if: github.event_name == 'push' && contains(github.event.head_commit.message, '[seed-firestore]')
+        uses: actions/checkout@v4
+        with:
+          repository: Neb-Ur/cotizapp.backend
+          ref: main
+          path: _bootstrap-backend
+
+      - name: Bootstrap Firebase Auth demo users and seed Firestore
+        if: github.event_name == 'push' && contains(github.event.head_commit.message, '[seed-firestore]')
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${FIREBASE_AUTH_MODE}" != "adc" ]]; then
+            echo "::error::La carga de Firestore requiere service account / ADC."
+            exit 1
+          fi
+
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 5             "$PRODUCTION_URL/__/firebase/init.json" > /tmp/firebase-init.json
+
+          FIREBASE_WEB_API_KEY="$(node -e "const fs=require('fs'); const c=JSON.parse(fs.readFileSync('/tmp/firebase-init.json','utf8')); process.stdout.write(c.apiKey || '')")"
+          if [[ -z "$FIREBASE_WEB_API_KEY" ]]; then
+            echo "::error::No se pudo resolver FIREBASE_WEB_API_KEY desde Firebase Hosting."
+            exit 1
+          fi
+
+          printf 'FIREBASE_WEB_API_KEY=%s\n' "$FIREBASE_WEB_API_KEY" > _bootstrap-backend/.env
+
+          (
+            cd functions
+            node --input-type=module <<'NODE'
+          import { GoogleAuth } from 'google-auth-library';
+
+          const projectId = process.env.FIREBASE_PROJECT_ID;
+          const googleAuth = new GoogleAuth({
+            scopes: ['https://www.googleapis.com/auth/cloud-platform']
+          });
+          const client = await googleAuth.getClient();
+          await client.request({
+            url: `https://identitytoolkit.googleapis.com/admin/v2/projects/${projectId}/config?updateMask=signIn.email.enabled,signIn.email.passwordRequired`,
+            method: 'PATCH',
+            headers: { 'X-Goog-User-Project': projectId },
+            data: {
+              signIn: {
+                email: {
+                  enabled: true,
+                  passwordRequired: true
+                }
+              }
+            }
+          });
+          console.log('Firebase Email/Password authentication enabled.');
+          NODE
+          )
+
+          node _bootstrap-backend/scripts/bootstrap-users.mjs
+          node functions/scripts/seed-firestore.mjs
 
       - name: Smoke test production
         shell: bash
@@ -161,5 +256,5 @@ jobs:
             echo "- URL: $PRODUCTION_URL"
             echo "- Firebase project: $FIREBASE_PROJECT_ID"
             echo "- Commit: ${GITHUB_SHA:0:7}"
-            echo "- Trigger: ${{ github.event_name }}"
+            echo "- Trigger: push to main or manual publish"
           } >> "$GITHUB_STEP_SUMMARY"
