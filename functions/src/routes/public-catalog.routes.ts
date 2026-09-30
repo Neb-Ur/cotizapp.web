@@ -1,23 +1,23 @@
 import { Router } from 'express';
-import { getPublicCatalogSnapshot } from '../lib/public-catalog-cache.js';
+import { getPublicCatalogMetadata, getPublicCatalogSnapshot } from '../lib/public-catalog-cache.js';
 
 export const publicCatalogRouter = Router();
 
 publicCatalogRouter.get('/catalogo-publico/version', async (_req, res) => {
-  const snapshot = await getPublicCatalogSnapshot();
+  const metadata = await getPublicCatalogMetadata();
   res.set('Cache-Control', 'public, max-age=10, s-maxage=15, stale-while-revalidate=60');
   return res.json({
     ok: true,
-    data: {
-      version: snapshot.version,
-      updatedAt: snapshot.updatedAt
-    }
+    data: metadata
   });
 });
 
 publicCatalogRouter.get('/catalogo-publico', async (req, res) => {
-  const snapshot = await getPublicCatalogSnapshot({ allowStale: true });
   const requestedVersion = String(req.query['v'] || '').trim();
+  const snapshot = await getPublicCatalogSnapshot({
+    allowStale: !requestedVersion.startsWith('dirty-'),
+    expectedVersion: requestedVersion || undefined
+  });
 
   if (requestedVersion && requestedVersion === snapshot.version) {
     res.set('Cache-Control', 'public, max-age=300, s-maxage=86400, stale-while-revalidate=604800');
