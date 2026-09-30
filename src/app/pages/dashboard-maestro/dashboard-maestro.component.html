@@ -30,7 +30,7 @@
       </div>
     </header>
 
-    <article class="panel panel--loading" *ngIf="isInitialLoading || isSectionLoading">
+    <article class="panel panel--loading" *ngIf="user && (isInitialLoading || isSectionLoading)">
       <app-ui-loader [label]="!user && currentSection === 'buscar' ? 'Cargando productos...' : (isInitialLoading ? 'Cargando CotizApp...' : 'Cargando seccion...')" />
     </article>
 
@@ -65,7 +65,7 @@
       </div>
     </article>
 
-    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'buscar'">
+    <article class="panel" *ngIf="currentSection === 'buscar' && (!user || (!isInitialLoading && !isSectionLoading))">
       <section class="search-primary" aria-labelledby="product-search-label">
         <label class="top-product-search" id="product-search-label">
           <span>¿Que material necesitas?</span>
@@ -170,10 +170,13 @@
       </div>
 
       <ng-template #emptyProducts>
-        <p class="cards-empty" *ngIf="!nearbyEnabled">No encontramos productos para la busqueda actual.</p>
-        <p class="cards-empty" *ngIf="nearbyEnabled">
-          No encontramos ferreterias con estos productos dentro de {{ nearbyRadiusKm }} km. Prueba aumentando el radio o viendo todas las ferreterias.
-        </p>
+        <p class="cards-empty" *ngIf="isPublicCatalogRefreshing">Actualizando productos disponibles...</p>
+        <ng-container *ngIf="!isPublicCatalogRefreshing">
+          <p class="cards-empty" *ngIf="!nearbyEnabled">No encontramos productos para la busqueda actual.</p>
+          <p class="cards-empty" *ngIf="nearbyEnabled">
+            No encontramos ferreterias con estos productos dentro de {{ nearbyRadiusKm }} km. Prueba aumentando el radio o viendo todas las ferreterias.
+          </p>
+        </ng-container>
       </ng-template>
 
       <div class="table-pagination" *ngIf="productRows.length > 0">
