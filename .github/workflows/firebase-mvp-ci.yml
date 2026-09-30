@@ -106,7 +106,6 @@ jobs:
 
     env:
       FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON || secrets.FIREBASE_SERVICE_ACCOUNT_COTIZAPP_D71C8 }}
-      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
     steps:
       - name: Checkout
@@ -139,36 +138,19 @@ jobs:
         run: |
           set -euo pipefail
 
-          if [[ -n "${FIREBASE_SERVICE_ACCOUNT_JSON:-}" ]]; then
-            CREDENTIALS="$RUNNER_TEMP/firebase-service-account.json"
-            printf '%s' "$FIREBASE_SERVICE_ACCOUNT_JSON" > "$CREDENTIALS"
-            chmod 600 "$CREDENTIALS"
-            echo "GOOGLE_APPLICATION_CREDENTIALS=$CREDENTIALS" >> "$GITHUB_ENV"
-            echo "FIREBASE_AUTH_MODE=adc" >> "$GITHUB_ENV"
-            echo "Firebase authentication: service account / ADC"
-          elif [[ -n "${FIREBASE_TOKEN:-}" ]]; then
-            CREDENTIALS="$RUNNER_TEMP/firebase-user-adc.json"
-            CREDENTIALS="$CREDENTIALS" node --input-type=module <<'NODE'
-          import { writeFileSync } from 'node:fs';
-
-          writeFileSync(process.env.CREDENTIALS, JSON.stringify({
-            type: 'authorized_user',
-            client_id: '563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com',
-            client_secret: 'j9iVZfS8kkCEFUPaAeJV0sAi',
-            refresh_token: process.env.FIREBASE_TOKEN,
-            quota_project_id: process.env.FIREBASE_PROJECT_ID
-          }));
-          NODE
-            chmod 600 "$CREDENTIALS"
-            echo "GOOGLE_APPLICATION_CREDENTIALS=$CREDENTIALS" >> "$GITHUB_ENV"
-            echo "FIREBASE_AUTH_MODE=token" >> "$GITHUB_ENV"
-            echo "Firebase authentication: CI token exposed as temporary ADC"
-          else
-            echo "::error::Falta configurar FIREBASE_SERVICE_ACCOUNT_JSON, FIREBASE_SERVICE_ACCOUNT_COTIZACION_77802 o FIREBASE_TOKEN en GitHub Actions secrets."
+          if [[ -z "${FIREBASE_SERVICE_ACCOUNT_JSON:-}" ]]; then
+            echo "::error::Falta configurar FIREBASE_SERVICE_ACCOUNT_JSON o FIREBASE_SERVICE_ACCOUNT_COTIZAPP_D71C8 en GitHub Actions secrets."
             exit 1
           fi
 
-      - name: Deploy Hosting, Functions and Firestore
+          CREDENTIALS="$RUNNER_TEMP/firebase-service-account.json"
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT_JSON" > "$CREDENTIALS"
+          chmod 600 "$CREDENTIALS"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$CREDENTIALS" >> "$GITHUB_ENV"
+          echo "FIREBASE_AUTH_MODE=adc" >> "$GITHUB_ENV"
+          echo "Firebase authentication: service account / ADC"
+
+      - name: Deploy Firebase application
         shell: bash
         run: |
           set -euo pipefail
@@ -180,23 +162,23 @@ jobs:
 
           if [[ "${{ github.event_name }}" == "push" && "${{ contains(github.event.head_commit.message, '[hosting-only]') }}" == "true" ]]; then
             DEPLOY_TARGETS="hosting"
-            echo "Hosting-only push: deploying the validated Angular bundle without Functions or Firestore rules."
+            echo "Hosting-only push: deploying only Hosting."
+          elif [[ "${{ github.event_name }}" == "push" && "${{ contains(github.event.head_commit.message, '[firestore-deploy]') }}" == "true" ]]; then
+            DEPLOY_TARGETS="functions,hosting,firestore:rules,firestore:indexes"
+            echo "Firestore-deploy push: deploying application plus Firestore rules and indexes."
           else
-            DEPLOY_TARGETS="hosting,functions,firestore:rules,firestore:indexes"
+            DEPLOY_TARGETS="functions,hosting"
+            echo "Standard push: deploying Functions and Hosting. Firestore rules/indexes are unchanged."
           fi
 
-          if [[ "$FIREBASE_AUTH_MODE" == "token" ]]; then
-            npx --yes firebase-tools@latest deploy               --only "$DEPLOY_TARGETS"               --project "$FIREBASE_PROJECT_ID"               --token "$FIREBASE_TOKEN"               --non-interactive
-          else
-            npx --yes firebase-tools@latest deploy               --only "$DEPLOY_TARGETS"               --project "$FIREBASE_PROJECT_ID"               --non-interactive
-          fi
+          npx --yes firebase-tools@latest deploy             --only "$DEPLOY_TARGETS"             --project "$FIREBASE_PROJECT_ID"             --non-interactive
 
       - name: Create Firebase Auth demo users and seed Firestore
         if: github.event_name == 'push' && contains(github.event.head_commit.message, '[seed-firestore]')
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "${FIREBASE_AUTH_MODE}" != "adc" && "${FIREBASE_AUTH_MODE}" != "token" ]]; then
+          if [[ "${FIREBASE_AUTH_MODE}" != "adc" ]]; then
             echo "::error::La carga de Firestore requiere credenciales ADC."
             exit 1
           fi
