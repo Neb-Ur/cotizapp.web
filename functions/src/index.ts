@@ -25,7 +25,6 @@ export const api = onRequest(
   {
     region: 'southamerica-west1',
     cors: true,
-    minInstances: 1,
     maxInstances: 10
   },
   app
