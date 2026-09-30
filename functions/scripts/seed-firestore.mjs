@@ -7,7 +7,7 @@ const app = initializeApp({ credential: applicationDefault(), projectId });
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const seedTag = 'pilot-catalog-auth-2026-09-30';
+const seedTag = 'pilot-catalog-auth-v2-2026-09-30';
 const createdAt = '2026-09-30T10:40:00.000Z';
 const updatedAt = new Date().toISOString();
 
@@ -109,6 +109,7 @@ for (const store of stores) {
   storeAuth.push({ ...store, uid: firebaseUser.uid });
 }
 const adminAuthUser = await auth.getUserByEmail('admin@demo.cl');
+const maestroAuthUser = await auth.getUserByEmail('maestro@demo.cl');
 
 const batch = db.batch();
 const merge = true;
@@ -203,6 +204,20 @@ batch.set(db.collection('usuarios').doc(adminAuthUser.uid), {
   seedTag
 }, { merge });
 
+batch.set(db.collection('usuarios').doc(maestroAuthUser.uid), {
+  rol: 'maestro',
+  nombre: 'Maestro Demo',
+  correo: 'maestro@demo.cl',
+  telefono: '+56900000000',
+  region: 'Región Metropolitana',
+  ciudad: 'Santiago',
+  comuna: 'Santiago',
+  direccion: 'Santiago',
+  estadoCuenta: 'activo',
+  creadoEn: createdAt,
+  seedTag
+}, { merge });
+
 for (const staleId of ['user-piloto-centro', 'user-piloto-maipu', 'user-piloto-florida']) {
   batch.delete(db.collection('usuarios').doc(staleId));
 }
@@ -219,5 +234,6 @@ console.log(JSON.stringify({
   masterProducts: products.length,
   stores: stores.length,
   storeProducts: stores.length * products.length,
-  adminUid: adminAuthUser.uid
+  adminUid: adminAuthUser.uid,
+  maestroUid: maestroAuthUser.uid
 }, null, 2));
