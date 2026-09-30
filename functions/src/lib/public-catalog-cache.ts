@@ -49,6 +49,12 @@ const COLLECTIONS = {
 const META_ID = 'meta';
 const CHUNK_SIZE = 150;
 let rebuildPromise: Promise<PublicCatalogSnapshot> | null = null;
+let memorySnapshot: PublicCatalogSnapshot | null = null;
+
+function rememberSnapshot(snapshot: PublicCatalogSnapshot): PublicCatalogSnapshot {
+  memorySnapshot = snapshot;
+  return snapshot;
+}
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -266,7 +272,7 @@ async function rebuildPublicCatalogCache(): Promise<PublicCatalogSnapshot> {
       const meta = await db.collection(COLLECTIONS.publicCache).doc(META_ID).get();
       const data = meta.data();
       if (data && data.dirty === false && data.version === latest.version) {
-        return latest;
+        return rememberSnapshot(latest);
       }
     }
 
@@ -303,7 +309,7 @@ async function readPublishedSnapshot(meta: any): Promise<PublicCatalogSnapshot> 
   }
 
   const taxonomy = taxonomySnapshot.data() as any;
-  return {
+  return rememberSnapshot({
     version: String(meta.version),
     updatedAt: String(meta.updatedAt || ''),
     taxonomy: {
@@ -319,7 +325,7 @@ async function readPublishedSnapshot(meta: any): Promise<PublicCatalogSnapshot> 
       const data = snapshot.data() as any;
       return Array.isArray(data?.items) ? data.items as PublicSearchRow[] : [];
     })
-  };
+  });
 }
 
 export async function markPublicCatalogDirty(): Promise<void> {
@@ -335,15 +341,49 @@ export async function markPublicCatalogDirty(): Promise<void> {
   });
 }
 
+export async function getPublicCatalogMetadata(): Promise<{ version: string; updatedAt: string }> {
+  const metaSnapshot = await db.collection(COLLECTIONS.publicCache).doc(META_ID).get();
+  const meta = metaSnapshot.exists ? metaSnapshot.data() as any : null;
+
+  if (!meta) {
+    return { version: '', updatedAt: '' };
+  }
+
+  const publishedVersion = String(meta.version || '');
+  const generation = Number(meta.generation || 0);
+  return {
+    version: meta.dirty === true
+      ? `dirty-${generation}-${publishedVersion || 'none'}`
+      : publishedVersion,
+    updatedAt: String(meta.updatedAt || meta.invalidatedAt || '')
+  };
+}
+
 export async function getPublicCatalogSnapshot(
-  options: { allowStale?: boolean } = {}
+  options: { allowStale?: boolean; expectedVersion?: string } = {}
 ): Promise<PublicCatalogSnapshot> {
+  if (memorySnapshot) {
+    if (options.allowStale && !options.expectedVersion) {
+      return memorySnapshot;
+    }
+    if (options.expectedVersion && options.expectedVersion === memorySnapshot.version) {
+      return memorySnapshot;
+    }
+  }
+
   const metaRef = db.collection(COLLECTIONS.publicCache).doc(META_ID);
   const metaSnapshot = await metaRef.get();
   const meta = metaSnapshot.exists ? metaSnapshot.data() as any : null;
 
   let publishedSnapshot: PublicCatalogSnapshot | null = null;
   if (meta?.version && meta?.taxonomyDocId) {
+    if (
+      memorySnapshot?.version === String(meta.version)
+      && (meta.dirty === false || options.allowStale)
+    ) {
+      return memorySnapshot;
+    }
+
     try {
       publishedSnapshot = await readPublishedSnapshot(meta);
       if (meta.dirty === false || options.allowStale) {
@@ -355,7 +395,7 @@ export async function getPublicCatalogSnapshot(
   }
 
   try {
-    return await rebuildPublicCatalogCache();
+    return rememberSnapshot(await rebuildPublicCatalogCache());
   } catch (error) {
     if (publishedSnapshot) {
       return publishedSnapshot;
