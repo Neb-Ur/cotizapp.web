@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import type { DocumentReference } from 'firebase-admin/firestore';
 import { db } from './firebase.js';
 
 export type PublicSearchRow = {
@@ -282,9 +283,9 @@ async function rebuildPublicCatalogCache(): Promise<PublicCatalogSnapshot> {
 
 async function readPublishedSnapshot(meta: any): Promise<PublicCatalogSnapshot> {
   const taxonomyRef = db.collection(COLLECTIONS.publicCache).doc(String(meta.taxonomyDocId));
-  const offerRefs = (Array.isArray(meta.offerDocIds) ? meta.offerDocIds : [])
+  const offerRefs: DocumentReference[] = (Array.isArray(meta.offerDocIds) ? meta.offerDocIds : [])
     .map((id: unknown) => db.collection(COLLECTIONS.publicCache).doc(String(id)));
-  const productRefs = (Array.isArray(meta.productDocIds) ? meta.productDocIds : [])
+  const productRefs: DocumentReference[] = (Array.isArray(meta.productDocIds) ? meta.productDocIds : [])
     .map((id: unknown) => db.collection(COLLECTIONS.publicCache).doc(String(id)));
 
   const [taxonomySnapshot, offerSnapshots, productSnapshots] = await Promise.all([
