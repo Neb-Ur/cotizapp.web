@@ -31,7 +31,7 @@
     </header>
 
     <article class="panel panel--loading" *ngIf="isInitialLoading || isSectionLoading">
-      <app-ui-loader [label]="isInitialLoading ? 'Cargando CotizApp...' : 'Cargando seccion...'" />
+      <app-ui-loader [label]="!user && currentSection === 'buscar' ? 'Cargando productos...' : (isInitialLoading ? 'Cargando CotizApp...' : 'Cargando seccion...')" />
     </article>
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'inicio'">

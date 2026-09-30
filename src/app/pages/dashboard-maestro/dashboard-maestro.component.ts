@@ -497,8 +497,17 @@ export class DashboardMaestroComponent implements OnInit {
     this.isSectionLoading = true;
     try {
       if (section === 'buscar') {
-        await this.apiService.refreshMaestroSearchSection(force);
-        this.refreshProductRows();
+        if (currentUser) {
+          await this.apiService.refreshMaestroSearchSection(force);
+          this.refreshProductRows();
+        } else {
+          await this.apiService.refreshPublicCatalogSection(force);
+          this.refreshProductRows();
+
+          void this.apiService.refreshPublicCatalogEnhancements(force)
+            .then(() => this.refreshProductRows())
+            .catch(() => undefined);
+        }
       }
 
       if (currentUser && (section === 'inicio' || section === 'cotizaciones' || section === 'historial')) {

@@ -113,6 +113,7 @@ export class MockApiService {
 
   private readonly validationQueue: CatalogValidationRequest[] = [];
 
+  private basicTaxonomyPromise: Promise<void> | null = null;
   private taxonomyPromise: Promise<void> | null = null;
   private masterPromise: Promise<void> | null = null;
   private searchPromise: Promise<void> | null = null;
@@ -123,11 +124,7 @@ export class MockApiService {
   constructor(
     private readonly http: HttpClient,
     private readonly authService: AuthService
-  ) {
-    this.ensureTaxonomyLoaded();
-    this.ensureSearchRowsLoaded();
-    this.ensureMasterCatalogLoaded();
-  }
+  ) {}
 
   async refreshMaestroData(ownerId: string): Promise<void> {
     await Promise.all([
@@ -141,8 +138,19 @@ export class MockApiService {
 
   async refreshMaestroSearchSection(force = false): Promise<void> {
     await Promise.all([
-      this.ensureTaxonomyLoaded(force),
+      this.ensureBasicTaxonomyLoaded(force),
       this.ensureSearchRowsLoaded(force),
+      this.ensureMasterCatalogLoaded(force)
+    ]);
+  }
+
+  async refreshPublicCatalogSection(force = false): Promise<void> {
+    await this.ensureSearchRowsLoaded(force);
+  }
+
+  async refreshPublicCatalogEnhancements(force = false): Promise<void> {
+    await Promise.all([
+      this.ensureBasicTaxonomyLoaded(force),
       this.ensureMasterCatalogLoaded(force)
     ]);
   }
@@ -206,12 +214,12 @@ export class MockApiService {
   }
 
   getCategoryOptions(): TaxonomyOption[] {
-    this.ensureTaxonomyLoaded();
+    this.ensureBasicTaxonomyLoaded();
     return this.categories;
   }
 
   getSubcategoryOptions(categoryId?: string): TaxonomyOption[] {
-    this.ensureTaxonomyLoaded();
+    this.ensureBasicTaxonomyLoaded();
     if (!categoryId) {
       return this.subcategories;
     }
@@ -219,7 +227,7 @@ export class MockApiService {
   }
 
   getFamilyOptions(subcategoryId?: string): TaxonomyOption[] {
-    this.ensureTaxonomyLoaded();
+    this.ensureBasicTaxonomyLoaded();
     if (!subcategoryId) {
       return this.families;
     }
@@ -1332,12 +1340,12 @@ export class MockApiService {
     });
   }
 
-  private ensureTaxonomyLoaded(force = false): Promise<void> {
-    if (!force && this.taxonomyPromise) {
-      return this.taxonomyPromise;
+  private ensureBasicTaxonomyLoaded(force = false): Promise<void> {
+    if (!force && this.basicTaxonomyPromise) {
+      return this.basicTaxonomyPromise;
     }
 
-    this.taxonomyPromise = (async () => {
+    this.basicTaxonomyPromise = (async () => {
       try {
         const [categories, subcategories, families] = await Promise.all([
           this.apiGet<any[]>('/categorias'),
@@ -1348,21 +1356,33 @@ export class MockApiService {
         this.replaceArray(this.categories, categories.map((item) => ({ id: item.id, name: item.nombre })));
         this.replaceArray(this.subcategories, subcategories.map((item) => ({ id: item.id, parentId: item.categoriaId, name: item.nombre })));
         this.replaceArray(this.families, families.map((item) => ({ id: item.id, parentId: item.subcategoriaId, name: item.nombre })));
-        this.familyDefinitionsByFamily.clear();
-
-        await Promise.all(this.families.map(async (family) => {
-          try {
-            const definitions = await this.apiGet<any[]>(`/familias/${family.id}/atributos-definicion`);
-            this.familyDefinitionsByFamily.set(family.id, definitions as TaxonomyDefinitionApi[]);
-            this.familyTemplates.set(family.id, this.mapFamilyTemplate(family.id, family.name, definitions));
-          } catch {
-            this.familyDefinitionsByFamily.set(family.id, []);
-            this.familyTemplates.set(family.id, this.mapFamilyTemplate(family.id, family.name, []));
-          }
-        }));
       } catch {
-        // noop
+        // Keep the catalog usable even if taxonomy metadata is temporarily unavailable.
       }
+    })();
+
+    return this.basicTaxonomyPromise;
+  }
+
+  private ensureTaxonomyLoaded(force = false): Promise<void> {
+    if (!force && this.taxonomyPromise) {
+      return this.taxonomyPromise;
+    }
+
+    this.taxonomyPromise = (async () => {
+      await this.ensureBasicTaxonomyLoaded(force);
+      this.familyDefinitionsByFamily.clear();
+
+      await Promise.all(this.families.map(async (family) => {
+        try {
+          const definitions = await this.apiGet<any[]>(`/familias/${family.id}/atributos-definicion`);
+          this.familyDefinitionsByFamily.set(family.id, definitions as TaxonomyDefinitionApi[]);
+          this.familyTemplates.set(family.id, this.mapFamilyTemplate(family.id, family.name, definitions));
+        } catch {
+          this.familyDefinitionsByFamily.set(family.id, []);
+          this.familyTemplates.set(family.id, this.mapFamilyTemplate(family.id, family.name, []));
+        }
+      }));
     })();
 
     return this.taxonomyPromise;
@@ -1411,21 +1431,23 @@ export class MockApiService {
 
     this.masterPromise = (async () => {
       try {
-        await Promise.all([this.ensureTaxonomyLoaded(), this.ensureSearchRowsLoaded()]);
-        const products = await this.apiGet<ProductoMaestroApi[]>('/productos-maestro');
+        const [products] = await Promise.all([
+          this.apiGet<ProductoMaestroApi[]>('/productos-maestro'),
+          this.ensureSearchRowsLoaded(force)
+        ]);
 
-        const rows = await Promise.all(products.map(async (product) => {
+        const rows = products.map((product) => {
           const relatedOffers = this.searchRows.filter((row) => row.productoMaestroId === product.id);
           const minPrice = relatedOffers.length > 0
             ? Math.min(...relatedOffers.map((row) => row.price))
             : 0;
 
           return this.mapMasterProduct(product, minPrice);
-        }));
+        });
 
         this.replaceArray(this.masterCatalog, rows.sort((a, b) => a.name.localeCompare(b.name)));
       } catch {
-        // noop
+        // Search rows remain enough to render the public catalog.
       }
     })();
 
