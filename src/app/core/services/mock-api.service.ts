@@ -248,21 +248,21 @@ export class MockApiService {
     return '/dashboard/maestro';
   }
 
-  getCategoryOptions(): TaxonomyOption[] {
-    this.ensureBasicTaxonomyLoaded();
+  getCategoryOptions(autoLoad = true): TaxonomyOption[] {
+    if (autoLoad) this.ensureBasicTaxonomyLoaded();
     return this.categories;
   }
 
-  getSubcategoryOptions(categoryId?: string): TaxonomyOption[] {
-    this.ensureBasicTaxonomyLoaded();
+  getSubcategoryOptions(categoryId?: string, autoLoad = true): TaxonomyOption[] {
+    if (autoLoad) this.ensureBasicTaxonomyLoaded();
     if (!categoryId) {
       return this.subcategories;
     }
     return this.subcategories.filter((item) => item.parentId === categoryId);
   }
 
-  getFamilyOptions(subcategoryId?: string): TaxonomyOption[] {
-    this.ensureBasicTaxonomyLoaded();
+  getFamilyOptions(subcategoryId?: string, autoLoad = true): TaxonomyOption[] {
+    if (autoLoad) this.ensureBasicTaxonomyLoaded();
     if (!subcategoryId) {
       return this.families;
     }
@@ -1109,10 +1109,13 @@ export class MockApiService {
   getFamilyProductRows(
     familyId: string,
     searchTerm = '',
-    proximity?: SearchProximity
+    proximity?: SearchProximity,
+    autoLoad = true
   ): FamilyProductRow[] {
-    this.ensureSearchRowsLoaded();
-    this.ensureMasterCatalogLoaded();
+    if (autoLoad) {
+      this.ensureSearchRowsLoaded();
+      this.ensureMasterCatalogLoaded();
+    }
 
     const query = searchTerm.trim().toLowerCase();
     const masterByName = new Map(
@@ -1177,8 +1180,13 @@ export class MockApiService {
       .sort((a, b) => a.productName.localeCompare(b.productName));
   }
 
-  getPopularProductRows(searchTerm = '', limit = 12, proximity?: SearchProximity): FamilyProductRow[] {
-    const rows = this.getFamilyProductRows('', searchTerm, proximity);
+  getPopularProductRows(
+    searchTerm = '',
+    limit = 12,
+    proximity?: SearchProximity,
+    autoLoad = true
+  ): FamilyProductRow[] {
+    const rows = this.getFamilyProductRows('', searchTerm, proximity, autoLoad);
     return rows
       .sort((a, b) => b.storeCount - a.storeCount || a.productName.localeCompare(b.productName))
       .slice(0, Math.max(1, limit));
