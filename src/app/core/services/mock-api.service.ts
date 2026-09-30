@@ -1072,6 +1072,9 @@ export class MockApiService {
     this.ensureMasterCatalogLoaded();
 
     const query = searchTerm.trim().toLowerCase();
+    const masterByName = new Map(
+      this.masterCatalog.map((item) => [item.name.toLowerCase(), item] as const)
+    );
     const byProduct = new Map<string, {
       productName: string;
       minPrice: number;
@@ -1087,7 +1090,7 @@ export class MockApiService {
       .filter((row) => !familyId || row.familyId === familyId)
       .filter((row) => !query || row.productName.toLowerCase().includes(query))
       .forEach((row) => {
-        const master = this.masterCatalog.find((item) => item.name.toLowerCase() === row.productName.toLowerCase());
+        const master = masterByName.get(row.productName.toLowerCase());
         const rowDistance = proximity && hasValidCoordinates(row.storeLatitude, row.storeLongitude)
           ? distanceKm(
             { latitude: proximity.latitude, longitude: proximity.longitude },
@@ -1101,7 +1104,7 @@ export class MockApiService {
           sellers: new Set<string>(),
           brand: master?.brand || 'Sin marca',
           productType: master?.productType || 'Producto ferretero',
-          imageUrl: master?.imageUrl || 'https://via.placeholder.com/600x420?text=Producto',
+          imageUrl: master?.imageUrl && !master.imageUrl.includes('via.placeholder.com') ? master.imageUrl : '',
           nearestDistanceKm: rowDistance
         };
 

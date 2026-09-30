@@ -184,9 +184,9 @@
               <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
             </select>
           </label>
-          <button type="button" (click)="previousPage()" [disabled]="currentPage === 1">Anterior</button>
-          <button type="button" *ngFor="let page of pageNumbers" [class.active]="page === currentPage" (click)="goToPage(page)">{{ page }}</button>
-          <button type="button" (click)="nextPage()" [disabled]="currentPage === totalPages">Siguiente</button>
+          <button type="button" class="pager-nav" (click)="previousPage()" [disabled]="currentPage === 1">Anterior</button>
+          <button type="button" class="pager-page" *ngFor="let page of pageNumbers" [class.active]="page === currentPage" (click)="goToPage(page)">{{ page }}</button>
+          <button type="button" class="pager-nav" (click)="nextPage()" [disabled]="currentPage === totalPages">Siguiente</button>
         </div>
       </div>
     </article>

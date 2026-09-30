@@ -82,6 +82,7 @@ export class DashboardMaestroComponent implements OnInit {
   protected isMobileViewport = false;
   protected isMobileMenuVisible = false;
   private readonly loadedSections = new Set<MaestroSection>();
+  private productSearchTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private readonly authService: AuthService,
@@ -318,7 +319,13 @@ export class DashboardMaestroComponent implements OnInit {
 
   protected onProductSearchChange(): void {
     this.currentPage = 1;
-    this.refreshProductRows();
+    if (this.productSearchTimer) {
+      clearTimeout(this.productSearchTimer);
+    }
+    this.productSearchTimer = setTimeout(() => {
+      this.productSearchTimer = null;
+      this.refreshProductRows();
+    }, 180);
   }
 
   protected clearSearchFilters(): void {
@@ -476,7 +483,7 @@ export class DashboardMaestroComponent implements OnInit {
 
   private async initializeDashboard(): Promise<void> {
     try {
-      await this.ensureSectionData(this.currentSection, true);
+      await this.ensureSectionData(this.currentSection);
     } finally {
       this.isInitialLoading = false;
     }

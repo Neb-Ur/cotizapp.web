@@ -178,7 +178,12 @@ jobs:
             exit 0
           fi
 
-          DEPLOY_TARGETS="hosting,functions,firestore:rules,firestore:indexes"
+          if [[ "${{ github.event_name }}" == "push" && "${{ contains(github.event.head_commit.message, '[hosting-only]') }}" == "true" ]]; then
+            DEPLOY_TARGETS="hosting"
+            echo "Hosting-only push: deploying the validated Angular bundle without Functions or Firestore rules."
+          else
+            DEPLOY_TARGETS="hosting,functions,firestore:rules,firestore:indexes"
+          fi
 
           if [[ "$FIREBASE_AUTH_MODE" == "token" ]]; then
             npx --yes firebase-tools@latest deploy               --only "$DEPLOY_TARGETS"               --project "$FIREBASE_PROJECT_ID"               --token "$FIREBASE_TOKEN"               --non-interactive
