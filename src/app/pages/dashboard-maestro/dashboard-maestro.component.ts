@@ -142,15 +142,19 @@ export class DashboardMaestroComponent implements OnInit {
   }
 
   protected get categoryOptions(): TaxonomyOption[] {
-    return this.apiService.getCategoryOptions();
+    return this.apiService.getCategoryOptions(!!this.user);
   }
 
   protected get subcategoryOptions(): TaxonomyOption[] {
-    return this.selectedCategoryId ? this.apiService.getSubcategoryOptions(this.selectedCategoryId) : [];
+    return this.selectedCategoryId
+      ? this.apiService.getSubcategoryOptions(this.selectedCategoryId, !!this.user)
+      : [];
   }
 
   protected get familyOptions(): TaxonomyOption[] {
-    return this.selectedSubcategoryId ? this.apiService.getFamilyOptions(this.selectedSubcategoryId) : [];
+    return this.selectedSubcategoryId
+      ? this.apiService.getFamilyOptions(this.selectedSubcategoryId, !!this.user)
+      : [];
   }
 
   protected get selectedCategoryName(): string {
@@ -540,9 +544,10 @@ export class DashboardMaestroComponent implements OnInit {
 
   private refreshProductRows(): void {
     const query = this.tableProductSearch.trim();
+    const autoLoad = !!this.user;
     this.productRows = this.selectedFamilyId
-      ? this.apiService.getFamilyProductRows(this.selectedFamilyId, query, this.currentProximity)
-      : this.apiService.getPopularProductRows(query, 100, this.currentProximity);
+      ? this.apiService.getFamilyProductRows(this.selectedFamilyId, query, this.currentProximity, autoLoad)
+      : this.apiService.getPopularProductRows(query, 100, this.currentProximity, autoLoad);
 
     this.currentPage = Math.min(this.currentPage, this.totalPages);
   }
