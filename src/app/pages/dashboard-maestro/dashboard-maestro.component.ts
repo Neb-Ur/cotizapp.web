@@ -79,6 +79,7 @@ export class DashboardMaestroComponent implements OnInit {
 
   protected isInitialLoading = true;
   protected isSectionLoading = false;
+  protected isPublicCatalogRefreshing = false;
   protected isMobileViewport = false;
   protected isMobileMenuVisible = false;
   private readonly loadedSections = new Set<MaestroSection>();
@@ -501,12 +502,23 @@ export class DashboardMaestroComponent implements OnInit {
           await this.apiService.refreshMaestroSearchSection(force);
           this.refreshProductRows();
         } else {
-          await this.apiService.refreshPublicCatalogSection(force);
+          this.isPublicCatalogRefreshing = true;
+
+          // The service restores browser cache before its first await, so cached
+          // products can render immediately while the network refresh continues.
+          const initialLoad = this.apiService.refreshPublicCatalogSection(force);
           this.refreshProductRows();
 
-          void this.apiService.refreshPublicCatalogEnhancements(force)
+          void initialLoad
+            .then(() => {
+              this.refreshProductRows();
+              return this.apiService.refreshPublicCatalogEnhancements(force);
+            })
             .then(() => this.refreshProductRows())
-            .catch(() => undefined);
+            .catch(() => undefined)
+            .finally(() => {
+              this.isPublicCatalogRefreshing = false;
+            });
         }
       }
 
