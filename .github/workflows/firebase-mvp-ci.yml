@@ -167,6 +167,17 @@ jobs:
             npx --yes firebase-tools@latest deploy               --only "$DEPLOY_TARGETS"               --project "$FIREBASE_PROJECT_ID"               --non-interactive
           fi
 
+      - name: Seed Firestore pilot catalog
+        if: github.event_name == 'push' && contains(github.event.head_commit.message, '[seed-firestore]')
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${FIREBASE_AUTH_MODE}" != "adc" ]]; then
+            echo "::error::La carga de Firestore requiere service account / ADC."
+            exit 1
+          fi
+          node functions/scripts/seed-firestore.mjs
+
       - name: Smoke test production
         shell: bash
         run: |
