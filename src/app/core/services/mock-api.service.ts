@@ -76,6 +76,20 @@ interface PaginatedMasterCatalogApi {
   totalPages: number;
 }
 
+interface PublicCatalogSnapshotApi {
+  version: string;
+  updatedAt: string;
+  taxonomy: {
+    categories: any[];
+    subcategories: any[];
+    families: any[];
+  };
+  products: ProductoMaestroApi[];
+  searchRows: any[];
+}
+
+const PUBLIC_CATALOG_STORAGE_KEY = 'cotizapp.publicCatalog.v1';
+
 export interface TaxonomyDefinitionApi {
   id: string;
   familiaId: string;
@@ -120,6 +134,7 @@ export class MockApiService {
   private readonly projectsPromiseByOwner = new Map<string, Promise<void>>();
   private readonly catalogPromiseByOwner = new Map<string, Promise<void>>();
   private validationPromise: Promise<void> | null = null;
+  private publicCatalogVersion = '';
 
   constructor(
     private readonly http: HttpClient,
@@ -145,14 +160,34 @@ export class MockApiService {
   }
 
   async refreshPublicCatalogSection(force = false): Promise<void> {
-    await this.ensureSearchRowsLoaded(force);
+    if (!force && this.restorePublicCatalogBrowserCache()) {
+      return;
+    }
+
+    try {
+      await this.fetchPublicCatalogSnapshot();
+    } catch {
+      await Promise.all([
+        this.ensureBasicTaxonomyLoaded(force),
+        this.ensureSearchRowsLoaded(force),
+        this.ensureMasterCatalogLoaded(force)
+      ]);
+    }
   }
 
   async refreshPublicCatalogEnhancements(force = false): Promise<void> {
-    await Promise.all([
-      this.ensureBasicTaxonomyLoaded(force),
-      this.ensureMasterCatalogLoaded(force)
-    ]);
+    try {
+      const metadata = await this.apiGet<{ version: string; updatedAt: string }>('/catalogo-publico/version');
+      if (!force && metadata.version && metadata.version === this.publicCatalogVersion) {
+        return;
+      }
+      await this.fetchPublicCatalogSnapshot(metadata.version);
+    } catch {
+      await Promise.all([
+        this.ensureBasicTaxonomyLoaded(force),
+        this.ensureMasterCatalogLoaded(force)
+      ]);
+    }
   }
 
   async refreshMaestroProjectsSection(ownerId: string, force = false): Promise<void> {
@@ -1338,6 +1373,99 @@ export class MockApiService {
       );
       return km <= proximity.radiusKm;
     });
+  }
+
+  private restorePublicCatalogBrowserCache(): boolean {
+    if (typeof localStorage === 'undefined') return false;
+
+    try {
+      const raw = localStorage.getItem(PUBLIC_CATALOG_STORAGE_KEY);
+      if (!raw) return false;
+      const snapshot = JSON.parse(raw) as PublicCatalogSnapshotApi;
+      if (!snapshot?.version || !Array.isArray(snapshot.searchRows) || !Array.isArray(snapshot.products)) {
+        return false;
+      }
+      this.applyPublicCatalogSnapshot(snapshot);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private async fetchPublicCatalogSnapshot(version?: string): Promise<void> {
+    const snapshot = await this.apiGet<PublicCatalogSnapshotApi>('/catalogo-publico', false, { v: version });
+    this.applyPublicCatalogSnapshot(snapshot);
+
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem(PUBLIC_CATALOG_STORAGE_KEY, JSON.stringify(snapshot));
+      } catch {
+        // Browser storage is optional; server-side cache remains authoritative.
+      }
+    }
+  }
+
+  private applyPublicCatalogSnapshot(snapshot: PublicCatalogSnapshotApi): void {
+    this.publicCatalogVersion = snapshot.version || '';
+
+    const categories = Array.isArray(snapshot.taxonomy?.categories) ? snapshot.taxonomy.categories : [];
+    const subcategories = Array.isArray(snapshot.taxonomy?.subcategories) ? snapshot.taxonomy.subcategories : [];
+    const families = Array.isArray(snapshot.taxonomy?.families) ? snapshot.taxonomy.families : [];
+
+    this.replaceArray(this.categories, categories.map((item) => ({
+      id: item.id,
+      name: item.nombre
+    })));
+    this.replaceArray(this.subcategories, subcategories.map((item) => ({
+      id: item.id,
+      parentId: item.categoriaId,
+      name: item.nombre
+    })));
+    this.replaceArray(this.families, families.map((item) => ({
+      id: item.id,
+      parentId: item.subcategoriaId,
+      name: item.nombre
+    })));
+
+    const mappedSearchRows: SearchRowExtended[] = (snapshot.searchRows || []).map((item) => ({
+      productName: item.productName,
+      storeName: item.storeName,
+      storeId: item.storeId,
+      storeLatitude: typeof item.storeLatitude === 'number' ? item.storeLatitude : null,
+      storeLongitude: typeof item.storeLongitude === 'number' ? item.storeLongitude : null,
+      storeAddress: item.storeAddress || '',
+      storeCommune: item.storeCommune || '',
+      price: Number(item.price) || 0,
+      categoryId: item.categoryId,
+      categoryName: item.categoryName,
+      subcategoryId: item.subcategoryId,
+      subcategoryName: item.subcategoryName,
+      familyId: item.familyId,
+      familyName: item.familyName,
+      productoMaestroId: item.productoMaestroId,
+      productoFerreteriaId: item.productoFerreteriaId,
+      sku: item.sku,
+      stock: Number(item.stock) || 0
+    }));
+    this.replaceArray(this.searchRows, mappedSearchRows);
+
+    const minPriceByProduct = new Map<string, number>();
+    mappedSearchRows.forEach((row) => {
+      const current = minPriceByProduct.get(row.productoMaestroId);
+      minPriceByProduct.set(
+        row.productoMaestroId,
+        current === undefined ? row.price : Math.min(current, row.price)
+      );
+    });
+
+    const mappedProducts = (snapshot.products || []).map((product) =>
+      this.mapMasterProduct(product, minPriceByProduct.get(product.id) || 0)
+    );
+    this.replaceArray(this.masterCatalog, mappedProducts.sort((a, b) => a.name.localeCompare(b.name)));
+
+    this.searchPromise = Promise.resolve();
+    this.masterPromise = Promise.resolve();
+    this.basicTaxonomyPromise = Promise.resolve();
   }
 
   private ensureBasicTaxonomyLoaded(force = false): Promise<void> {
