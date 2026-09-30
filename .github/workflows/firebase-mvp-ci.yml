@@ -147,8 +147,22 @@ jobs:
             echo "FIREBASE_AUTH_MODE=adc" >> "$GITHUB_ENV"
             echo "Firebase authentication: service account / ADC"
           elif [[ -n "${FIREBASE_TOKEN:-}" ]]; then
+            CREDENTIALS="$RUNNER_TEMP/firebase-user-adc.json"
+            CREDENTIALS="$CREDENTIALS" node --input-type=module <<'NODE'
+          import { writeFileSync } from 'node:fs';
+
+          writeFileSync(process.env.CREDENTIALS, JSON.stringify({
+            type: 'authorized_user',
+            client_id: '563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com',
+            client_secret: 'j9iVZfS8kkCEFUPaAeJV0sAi',
+            refresh_token: process.env.FIREBASE_TOKEN,
+            quota_project_id: process.env.FIREBASE_PROJECT_ID
+          }));
+          NODE
+            chmod 600 "$CREDENTIALS"
+            echo "GOOGLE_APPLICATION_CREDENTIALS=$CREDENTIALS" >> "$GITHUB_ENV"
             echo "FIREBASE_AUTH_MODE=token" >> "$GITHUB_ENV"
-            echo "Firebase authentication: CI token"
+            echo "Firebase authentication: CI token exposed as temporary ADC"
           else
             echo "::error::Falta configurar FIREBASE_SERVICE_ACCOUNT_JSON, FIREBASE_SERVICE_ACCOUNT_COTIZACION_77802 o FIREBASE_TOKEN en GitHub Actions secrets."
             exit 1
@@ -177,8 +191,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "${FIREBASE_AUTH_MODE}" != "adc" ]]; then
-            echo "::error::La carga de Firestore requiere service account / ADC."
+          if [[ "${FIREBASE_AUTH_MODE}" != "adc" && "${FIREBASE_AUTH_MODE}" != "token" ]]; then
+            echo "::error::La carga de Firestore requiere credenciales ADC."
             exit 1
           fi
 
@@ -192,19 +206,42 @@ jobs:
             scopes: ['https://www.googleapis.com/auth/cloud-platform']
           });
           const client = await googleAuth.getClient();
-          await client.request({
-            url: `https://identitytoolkit.googleapis.com/admin/v2/projects/${projectId}/config?updateMask=signIn.email.enabled,signIn.email.passwordRequired`,
-            method: 'PATCH',
-            headers: { 'X-Goog-User-Project': projectId },
-            data: {
-              signIn: {
-                email: {
-                  enabled: true,
-                  passwordRequired: true
+          const safeError = (error, action) => {
+            const status = error?.response?.status || 'unknown';
+            const message = error?.response?.data?.error?.message || error?.message || 'unknown error';
+            return new Error(`${action} (${status}): ${message}`);
+          };
+
+          try {
+            await client.request({
+              url: `https://identitytoolkit.googleapis.com/v2/projects/${projectId}/identityPlatform:initializeAuth`,
+              method: 'POST',
+              headers: { 'X-Goog-User-Project': projectId },
+              data: {}
+            });
+            console.log('Firebase Authentication initialized.');
+          } catch (error) {
+            if (error?.response?.status !== 409) throw safeError(error, 'Unable to initialize Firebase Authentication');
+            console.log('Firebase Authentication was already initialized.');
+          }
+
+          try {
+            await client.request({
+              url: `https://identitytoolkit.googleapis.com/admin/v2/projects/${projectId}/config?updateMask=signIn.email.enabled,signIn.email.passwordRequired`,
+              method: 'PATCH',
+              headers: { 'X-Goog-User-Project': projectId },
+              data: {
+                signIn: {
+                  email: {
+                    enabled: true,
+                    passwordRequired: true
+                  }
                 }
               }
-            }
-          });
+            });
+          } catch (error) {
+            throw safeError(error, 'Unable to enable Email/Password authentication');
+          }
           console.log('Firebase Email/Password authentication enabled.');
           NODE
           )
