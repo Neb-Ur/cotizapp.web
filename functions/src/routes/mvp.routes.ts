@@ -3,6 +3,7 @@ import { Router, type Request, type Response } from 'express';
 import { adminAuth, db } from '../lib/firebase.js';
 import { requireAuth, requireRole } from '../lib/auth.js';
 import { fail, ok } from '../lib/http.js';
+import { getPublicCatalogSnapshot } from '../lib/public-catalog-cache.js';
 
 export const mvpRouter = Router();
 
@@ -724,7 +725,7 @@ mvpRouter.get('/busqueda', async (req, res) => {
   const categoryId = normalizeText(req.query['categoriaId']);
   const subcategoryId = normalizeText(req.query['subcategoriaId']);
   const familyId = normalizeText(req.query['familiaId']);
-  const data = (await buildSearchRows())
+  const data = (await getPublicCatalogSnapshot()).searchRows
     .filter((item) => !q || item.productName.toLowerCase().includes(q) || item.sku.toLowerCase().includes(q))
     .filter((item) => !categoryId || item.categoryId === categoryId)
     .filter((item) => !subcategoryId || item.subcategoryId === subcategoryId)
