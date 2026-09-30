@@ -16,13 +16,13 @@ publicCatalogRouter.get('/catalogo-publico/version', async (_req, res) => {
 });
 
 publicCatalogRouter.get('/catalogo-publico', async (req, res) => {
-  const snapshot = await getPublicCatalogSnapshot();
+  const snapshot = await getPublicCatalogSnapshot({ allowStale: true });
   const requestedVersion = String(req.query['v'] || '').trim();
 
   if (requestedVersion && requestedVersion === snapshot.version) {
     res.set('Cache-Control', 'public, max-age=300, s-maxage=86400, stale-while-revalidate=604800');
   } else {
-    res.set('Cache-Control', 'public, max-age=30, s-maxage=60, stale-while-revalidate=300');
+    res.set('Cache-Control', 'public, max-age=300, s-maxage=86400, stale-while-revalidate=604800');
   }
 
   res.set('ETag', `"catalog-${snapshot.version}"`);
