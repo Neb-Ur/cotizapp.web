@@ -1,11 +1,13 @@
 import { applicationDefault, initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 
 const projectId = process.env.FIREBASE_PROJECT_ID || 'cotizapp-d71c8';
-initializeApp({ credential: applicationDefault(), projectId });
-const db = getFirestore();
+const app = initializeApp({ credential: applicationDefault(), projectId });
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-const seedTag = 'pilot-catalog-2026-09-30';
+const seedTag = 'pilot-catalog-auth-2026-09-30';
 const createdAt = '2026-09-30T10:40:00.000Z';
 const updatedAt = new Date().toISOString();
 
@@ -69,43 +71,44 @@ const products = [
 ];
 
 const stores = [
-  {
-    id: 'store-piloto-centro',
-    ownerId: 'user-piloto-centro',
-    nombre: 'Ferretería Piloto Centro',
-    correo: 'piloto-centro@demo.cotizapp.local',
-    comuna: 'Santiago',
-    direccion: 'Santiago Centro',
-    latitud: -33.4489,
-    longitud: -70.6693,
-    priceFactor: 1.00,
-    stockFactor: 1.00
-  },
-  {
-    id: 'store-piloto-maipu',
-    ownerId: 'user-piloto-maipu',
-    nombre: 'Ferretería Piloto Maipú',
-    correo: 'piloto-maipu@demo.cotizapp.local',
-    comuna: 'Maipú',
-    direccion: 'Maipú',
-    latitud: -33.5106,
-    longitud: -70.7572,
-    priceFactor: 0.97,
-    stockFactor: 0.85
-  },
-  {
-    id: 'store-piloto-florida',
-    ownerId: 'user-piloto-florida',
-    nombre: 'Ferretería Piloto La Florida',
-    correo: 'piloto-florida@demo.cotizapp.local',
-    comuna: 'La Florida',
-    direccion: 'La Florida',
-    latitud: -33.5227,
-    longitud: -70.5986,
-    priceFactor: 1.04,
-    stockFactor: 1.15
-  }
-];
+  ['store-piloto-centro', 'Ferretería Demo Santiago Centro', 'Santiago', 'Santiago Centro', -33.4489, -70.6693],
+  ['store-piloto-maipu', 'Ferretería Demo Maipú', 'Maipú', 'Maipú', -33.5106, -70.7572],
+  ['store-piloto-florida', 'Ferretería Demo La Florida', 'La Florida', 'La Florida', -33.5227, -70.5986],
+  ['store-piloto-nunoa', 'Ferretería Demo Ñuñoa', 'Ñuñoa', 'Ñuñoa', -33.4569, -70.5979],
+  ['store-piloto-providencia', 'Ferretería Demo Providencia', 'Providencia', 'Providencia', -33.4319, -70.6093],
+  ['store-piloto-las-condes', 'Ferretería Demo Las Condes', 'Las Condes', 'Las Condes', -33.4088, -70.5671],
+  ['store-piloto-penalolen', 'Ferretería Demo Peñalolén', 'Peñalolén', 'Peñalolén', -33.4862, -70.5334],
+  ['store-piloto-puente-alto', 'Ferretería Demo Puente Alto', 'Puente Alto', 'Puente Alto', -33.6117, -70.5758],
+  ['store-piloto-san-miguel', 'Ferretería Demo San Miguel', 'San Miguel', 'San Miguel', -33.4977, -70.6518],
+  ['store-piloto-la-cisterna', 'Ferretería Demo La Cisterna', 'La Cisterna', 'La Cisterna', -33.5344, -70.6630],
+  ['store-piloto-quilicura', 'Ferretería Demo Quilicura', 'Quilicura', 'Quilicura', -33.3667, -70.7333],
+  ['store-piloto-huechuraba', 'Ferretería Demo Huechuraba', 'Huechuraba', 'Huechuraba', -33.3742, -70.6360],
+  ['store-piloto-recoleta', 'Ferretería Demo Recoleta', 'Recoleta', 'Recoleta', -33.4063, -70.6425],
+  ['store-piloto-independencia', 'Ferretería Demo Independencia', 'Independencia', 'Independencia', -33.4167, -70.6333],
+  ['store-piloto-pudahuel', 'Ferretería Demo Pudahuel', 'Pudahuel', 'Pudahuel', -33.4378, -70.7606],
+  ['store-piloto-cerrillos', 'Ferretería Demo Cerrillos', 'Cerrillos', 'Cerrillos', -33.5028, -70.7167],
+  ['store-piloto-estacion-central', 'Ferretería Demo Estación Central', 'Estación Central', 'Estación Central', -33.4592, -70.6996],
+  ['store-piloto-macul', 'Ferretería Demo Macul', 'Macul', 'Macul', -33.4869, -70.5996],
+  ['store-piloto-la-reina', 'Ferretería Demo La Reina', 'La Reina', 'La Reina', -33.4411, -70.5344],
+  ['store-piloto-san-bernardo', 'Ferretería Demo San Bernardo', 'San Bernardo', 'San Bernardo', -33.5922, -70.6996]
+].map((row, index) => ({
+  id: row[0],
+  nombre: row[1],
+  comuna: row[2],
+  direccion: row[3],
+  latitud: row[4],
+  longitud: row[5],
+  correo: 'ferreteria' + String(index + 1).padStart(2, '0') + '@demo.cl',
+  priceFactor: [1.00,0.97,1.04,0.99,1.02,1.06,0.96,0.95,1.01,0.98,1.03,1.05,0.99,1.00,0.97,1.02,1.04,0.98,1.01,0.96][index],
+  stockFactor: [1.00,0.85,1.15,1.05,0.95,0.90,1.10,1.20,0.92,1.08,1.12,0.88,1.00,0.94,1.06,1.14,0.98,1.03,0.91,1.18][index]
+}));
+
+const storeAuth = [];
+for (const store of stores) {
+  const firebaseUser = await auth.getUserByEmail(store.correo);
+  storeAuth.push({ ...store, uid: firebaseUser.uid });
+}
+const adminAuthUser = await auth.getUserByEmail('admin@demo.cl');
 
 const batch = db.batch();
 const merge = true;
@@ -137,12 +140,12 @@ for (const product of products) {
   }, { merge });
 }
 
-for (const store of stores) {
-  batch.set(db.collection('usuarios').doc(store.ownerId), {
+for (const store of storeAuth) {
+  batch.set(db.collection('usuarios').doc(store.uid), {
     rol: 'ferreteria',
     nombre: store.nombre,
     correo: store.correo,
-    telefono: '',
+    telefono: '+56900000000',
     region: 'Región Metropolitana',
     ciudad: 'Santiago',
     comuna: store.comuna,
@@ -153,7 +156,7 @@ for (const store of stores) {
   }, { merge });
 
   batch.set(db.collection('ferreterias').doc(store.id), {
-    usuarioDuenoId: store.ownerId,
+    usuarioDuenoId: store.uid,
     nombreComercial: store.nombre,
     rut: '',
     latitud: store.latitud,
@@ -168,12 +171,12 @@ for (const store of stores) {
     const priceWave = [1, 1.015, 0.985, 1.03, 0.97][i % 5];
     const price = Math.max(100, Math.round((product.basePrice * store.priceFactor * priceWave) / 10) * 10);
     const stock = Math.max(1, Math.round(product.stock * store.stockFactor) - (i % 7));
-    const offerId = `offer-${store.id}-${product.id}`;
+    const offerId = 'offer-' + store.id + '-' + product.id;
 
     batch.set(db.collection('productosFerreteria').doc(offerId), {
       ferreteriaId: store.id,
       productoMaestroId: product.id,
-      skuFerreteria: `${store.id.replace('store-piloto-', '').toUpperCase()}-${String(i + 1).padStart(3, '0')}`,
+      skuFerreteria: store.id.replace('store-piloto-', '').toUpperCase() + '-' + String(i + 1).padStart(3, '0'),
       codigoBarras: null,
       precio: price,
       stock,
@@ -184,6 +187,24 @@ for (const store of stores) {
       seedTag
     }, { merge });
   }
+}
+
+batch.set(db.collection('usuarios').doc(adminAuthUser.uid), {
+  rol: 'admin',
+  nombre: 'Admin Demo CotizApp',
+  correo: 'admin@demo.cl',
+  telefono: '+56900000000',
+  region: 'Región Metropolitana',
+  ciudad: 'Santiago',
+  comuna: 'Santiago',
+  direccion: 'Santiago',
+  estadoCuenta: 'activo',
+  creadoEn: createdAt,
+  seedTag
+}, { merge });
+
+for (const staleId of ['user-piloto-centro', 'user-piloto-maipu', 'user-piloto-florida']) {
+  batch.delete(db.collection('usuarios').doc(staleId));
 }
 
 await batch.commit();
@@ -197,5 +218,6 @@ console.log(JSON.stringify({
   families: families.length,
   masterProducts: products.length,
   stores: stores.length,
-  storeProducts: stores.length * products.length
+  storeProducts: stores.length * products.length,
+  adminUid: adminAuthUser.uid
 }, null, 2));
