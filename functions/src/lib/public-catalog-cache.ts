@@ -335,24 +335,30 @@ export async function markPublicCatalogDirty(): Promise<void> {
   });
 }
 
-export async function getPublicCatalogSnapshot(): Promise<PublicCatalogSnapshot> {
+export async function getPublicCatalogSnapshot(
+  options: { allowStale?: boolean } = {}
+): Promise<PublicCatalogSnapshot> {
   const metaRef = db.collection(COLLECTIONS.publicCache).doc(META_ID);
   const metaSnapshot = await metaRef.get();
   const meta = metaSnapshot.exists ? metaSnapshot.data() as any : null;
 
-  if (meta && meta.dirty === false && meta.version && meta.taxonomyDocId) {
+  let publishedSnapshot: PublicCatalogSnapshot | null = null;
+  if (meta?.version && meta?.taxonomyDocId) {
     try {
-      return await readPublishedSnapshot(meta);
+      publishedSnapshot = await readPublishedSnapshot(meta);
+      if (meta.dirty === false || options.allowStale) {
+        return publishedSnapshot;
+      }
     } catch {
-      // Rebuild below.
+      publishedSnapshot = null;
     }
   }
 
   try {
     return await rebuildPublicCatalogCache();
   } catch (error) {
-    if (meta?.version && meta?.taxonomyDocId) {
-      return readPublishedSnapshot(meta);
+    if (publishedSnapshot) {
+      return publishedSnapshot;
     }
     throw error;
   }
