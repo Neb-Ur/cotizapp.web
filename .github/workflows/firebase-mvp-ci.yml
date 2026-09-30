@@ -172,15 +172,7 @@ jobs:
             npx --yes firebase-tools@latest deploy               --only "$DEPLOY_TARGETS"               --project "$FIREBASE_PROJECT_ID"               --non-interactive
           fi
 
-      - name: Checkout Firebase demo-user bootstrap
-        if: github.event_name == 'push' && contains(github.event.head_commit.message, '[seed-firestore]')
-        uses: actions/checkout@v4
-        with:
-          repository: Neb-Ur/cotizapp.backend
-          ref: main
-          path: _bootstrap-backend
-
-      - name: Bootstrap Firebase Auth demo users and seed Firestore
+      - name: Create Firebase Auth demo users and seed Firestore
         if: github.event_name == 'push' && contains(github.event.head_commit.message, '[seed-firestore]')
         shell: bash
         run: |
@@ -189,16 +181,6 @@ jobs:
             echo "::error::La carga de Firestore requiere service account / ADC."
             exit 1
           fi
-
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 5             "$PRODUCTION_URL/__/firebase/init.json" > /tmp/firebase-init.json
-
-          FIREBASE_WEB_API_KEY="$(node -e "const fs=require('fs'); const c=JSON.parse(fs.readFileSync('/tmp/firebase-init.json','utf8')); process.stdout.write(c.apiKey || '')")"
-          if [[ -z "$FIREBASE_WEB_API_KEY" ]]; then
-            echo "::error::No se pudo resolver FIREBASE_WEB_API_KEY desde Firebase Hosting."
-            exit 1
-          fi
-
-          printf 'FIREBASE_WEB_API_KEY=%s\n' "$FIREBASE_WEB_API_KEY" > _bootstrap-backend/.env
 
           (
             cd functions
@@ -227,8 +209,7 @@ jobs:
           NODE
           )
 
-          node _bootstrap-backend/scripts/bootstrap-users.mjs
-          node functions/scripts/seed-firestore.mjs
+          DEMO_PASSWORD=123456 node functions/scripts/seed-firestore.mjs
 
       - name: Smoke test production
         shell: bash

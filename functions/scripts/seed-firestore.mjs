@@ -7,9 +7,10 @@ const app = initializeApp({ credential: applicationDefault(), projectId });
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const seedTag = 'pilot-catalog-auth-v2-2026-09-30';
+const seedTag = 'pilot-catalog-auth-v3-2026-09-30';
 const createdAt = '2026-09-30T10:40:00.000Z';
 const updatedAt = new Date().toISOString();
+const demoPassword = process.env.DEMO_PASSWORD || '123456';
 
 const categories = [
   { id: 'cat-obra-gruesa', nombre: 'Obra gruesa' },
@@ -67,7 +68,47 @@ const products = [
   { id: 'prod-interruptor-simple-10a', categoriaId: 'cat-electricidad', subcategoriaId: 'sub-cables-mecanismos', familiaId: 'fam-electricos', nombre: 'Interruptor simple 10 A', basePrice: 3490, stock: 60 },
   { id: 'prod-tornillo-yesocarton-1', categoriaId: 'cat-fijaciones-sellantes', subcategoriaId: 'sub-tornillos-tarugos', familiaId: 'fam-fijaciones', nombre: 'Tornillo yeso-cartón punta fina 1" caja 100', basePrice: 3990, stock: 85 },
   { id: 'prod-tarugo-nylon-8mm', categoriaId: 'cat-fijaciones-sellantes', subcategoriaId: 'sub-tornillos-tarugos', familiaId: 'fam-fijaciones', nombre: 'Tarugo nylon 8 mm bolsa 50', basePrice: 2990, stock: 70 },
-  { id: 'prod-silicona-transparente-300', categoriaId: 'cat-fijaciones-sellantes', subcategoriaId: 'sub-sellantes', familiaId: 'fam-sellantes', nombre: 'Silicona sellante transparente 300 ml', basePrice: 4490, stock: 44 }
+  { id: 'prod-silicona-transparente-300', categoriaId: 'cat-fijaciones-sellantes', subcategoriaId: 'sub-sellantes', familiaId: 'fam-sellantes', nombre: 'Silicona sellante transparente 300 ml', basePrice: 4490, stock: 44 },
+  { id: 'prod-cemento-alta-resistencia-25kg', categoriaId: 'cat-obra-gruesa', subcategoriaId: 'sub-cementos-morteros', familiaId: 'fam-cemento', nombre: 'Cemento alta resistencia 25 kg', basePrice: 5790, stock: 105 },
+  { id: 'prod-cemento-especial-425kg', categoriaId: 'cat-obra-gruesa', subcategoriaId: 'sub-cementos-morteros', familiaId: 'fam-cemento', nombre: 'Cemento especial 42,5 kg', basePrice: 8790, stock: 82 },
+  { id: 'prod-mortero-estuco-25kg', categoriaId: 'cat-obra-gruesa', subcategoriaId: 'sub-cementos-morteros', familiaId: 'fam-mortero', nombre: 'Mortero estuco exterior 25 kg', basePrice: 6190, stock: 68 },
+  { id: 'prod-mortero-radier-25kg', categoriaId: 'cat-obra-gruesa', subcategoriaId: 'sub-cementos-morteros', familiaId: 'fam-mortero', nombre: 'Mortero para radier 25 kg', basePrice: 6790, stock: 74 },
+  { id: 'prod-arena-fina-40kg', categoriaId: 'cat-obra-gruesa', subcategoriaId: 'sub-aridos', familiaId: 'fam-aridos', nombre: 'Arena fina saco 40 kg', basePrice: 3190, stock: 95 },
+  { id: 'prod-estabilizado-40kg', categoriaId: 'cat-obra-gruesa', subcategoriaId: 'sub-aridos', familiaId: 'fam-aridos', nombre: 'Estabilizado saco 40 kg', basePrice: 3690, stock: 78 },
+  { id: 'prod-mdf-15mm', categoriaId: 'cat-maderas-tableros', subcategoriaId: 'sub-tableros', familiaId: 'fam-tableros', nombre: 'Plancha MDF 15 mm 1,52 x 2,44 m', basePrice: 26990, stock: 28 },
+  { id: 'prod-melamina-blanca-15mm', categoriaId: 'cat-maderas-tableros', subcategoriaId: 'sub-tableros', familiaId: 'fam-tableros', nombre: 'Melamina blanca 15 mm 1,83 x 2,50 m', basePrice: 42990, stock: 22 },
+  { id: 'prod-osb-111mm', categoriaId: 'cat-maderas-tableros', subcategoriaId: 'sub-tableros', familiaId: 'fam-tableros', nombre: 'Plancha OSB 11,1 mm 1,22 x 2,44 m', basePrice: 18990, stock: 38 },
+  { id: 'prod-terciado-9mm', categoriaId: 'cat-maderas-tableros', subcategoriaId: 'sub-tableros', familiaId: 'fam-tableros', nombre: 'Terciado estructural 9 mm 1,22 x 2,44 m', basePrice: 17990, stock: 31 },
+  { id: 'prod-pino-2x2-320', categoriaId: 'cat-maderas-tableros', subcategoriaId: 'sub-madera-dimensionada', familiaId: 'fam-madera', nombre: 'Pino dimensionado 2x2\" 3,20 m', basePrice: 3290, stock: 125 },
+  { id: 'prod-pino-2x3-320', categoriaId: 'cat-maderas-tableros', subcategoriaId: 'sub-madera-dimensionada', familiaId: 'fam-madera', nombre: 'Pino dimensionado 2x3\" 3,20 m', basePrice: 4290, stock: 115 },
+  { id: 'prod-pino-1x4-320', categoriaId: 'cat-maderas-tableros', subcategoriaId: 'sub-madera-dimensionada', familiaId: 'fam-madera', nombre: 'Pino cepillado 1x4\" 3,20 m', basePrice: 3990, stock: 88 },
+  { id: 'prod-yesocarton-rh-125mm', categoriaId: 'cat-terminaciones', subcategoriaId: 'sub-yeso-carton', familiaId: 'fam-yeso-carton', nombre: 'Plancha yeso-cartón RH 12,5 mm 1,20 x 2,40 m', basePrice: 14990, stock: 42 },
+  { id: 'prod-yesocarton-rf-15mm', categoriaId: 'cat-terminaciones', subcategoriaId: 'sub-yeso-carton', familiaId: 'fam-yeso-carton', nombre: 'Plancha yeso-cartón RF 15 mm 1,20 x 2,40 m', basePrice: 17990, stock: 36 },
+  { id: 'prod-pasta-muro-25kg', categoriaId: 'cat-terminaciones', subcategoriaId: 'sub-pinturas', familiaId: 'fam-pinturas', nombre: 'Pasta muro interior 25 kg', basePrice: 20990, stock: 33 },
+  { id: 'prod-latex-exterior-galon', categoriaId: 'cat-terminaciones', subcategoriaId: 'sub-pinturas', familiaId: 'fam-pinturas', nombre: 'Pintura látex exterior blanca 1 galón', basePrice: 22990, stock: 27 },
+  { id: 'prod-esmalte-sintetico-galon', categoriaId: 'cat-terminaciones', subcategoriaId: 'sub-pinturas', familiaId: 'fam-pinturas', nombre: 'Esmalte sintético brillante 1 galón', basePrice: 25990, stock: 21 },
+  { id: 'prod-primer-anticorrosivo-galon', categoriaId: 'cat-terminaciones', subcategoriaId: 'sub-pinturas', familiaId: 'fam-pinturas', nombre: 'Primer anticorrosivo gris 1 galón', basePrice: 23990, stock: 19 },
+  { id: 'prod-pvc-75x6', categoriaId: 'cat-gasfiteria', subcategoriaId: 'sub-pvc', familiaId: 'fam-pvc', nombre: 'Tubería PVC sanitario 75 mm x 6 m', basePrice: 8990, stock: 44 },
+  { id: 'prod-codo-pvc-110', categoriaId: 'cat-gasfiteria', subcategoriaId: 'sub-pvc', familiaId: 'fam-pvc', nombre: 'Codo PVC sanitario 110 mm 87,5°', basePrice: 3490, stock: 72 },
+  { id: 'prod-codo-pvc-50', categoriaId: 'cat-gasfiteria', subcategoriaId: 'sub-pvc', familiaId: 'fam-pvc', nombre: 'Codo PVC sanitario 50 mm 87,5°', basePrice: 1490, stock: 96 },
+  { id: 'prod-tee-pvc-110', categoriaId: 'cat-gasfiteria', subcategoriaId: 'sub-pvc', familiaId: 'fam-pvc', nombre: 'Tee PVC sanitario 110 mm', basePrice: 5790, stock: 51 },
+  { id: 'prod-copla-pvc-50', categoriaId: 'cat-gasfiteria', subcategoriaId: 'sub-pvc', familiaId: 'fam-pvc', nombre: 'Copla PVC sanitario 50 mm', basePrice: 990, stock: 110 },
+  { id: 'prod-cable-thhn-15-100', categoriaId: 'cat-electricidad', subcategoriaId: 'sub-cables-mecanismos', familiaId: 'fam-electricos', nombre: 'Cable eléctrico THHN 1,5 mm² 100 m', basePrice: 28990, stock: 24 },
+  { id: 'prod-cable-thhn-4-100', categoriaId: 'cat-electricidad', subcategoriaId: 'sub-cables-mecanismos', familiaId: 'fam-electricos', nombre: 'Cable eléctrico THHN 4 mm² 100 m', basePrice: 61990, stock: 14 },
+  { id: 'prod-conduit-20x3', categoriaId: 'cat-electricidad', subcategoriaId: 'sub-cables-mecanismos', familiaId: 'fam-electricos', nombre: 'Tubo conduit PVC 20 mm x 3 m', basePrice: 2390, stock: 130 },
+  { id: 'prod-enchufe-doble-10a', categoriaId: 'cat-electricidad', subcategoriaId: 'sub-cables-mecanismos', familiaId: 'fam-electricos', nombre: 'Enchufe doble 10 A blanco', basePrice: 4990, stock: 68 },
+  { id: 'prod-automatico-16a', categoriaId: 'cat-electricidad', subcategoriaId: 'sub-cables-mecanismos', familiaId: 'fam-electricos', nombre: 'Interruptor automático 1P 16 A', basePrice: 6490, stock: 47 },
+  { id: 'prod-diferencial-25a', categoriaId: 'cat-electricidad', subcategoriaId: 'sub-cables-mecanismos', familiaId: 'fam-electricos', nombre: 'Interruptor diferencial 2P 25 A 30 mA', basePrice: 23990, stock: 16 },
+  { id: 'prod-caja-embutir-electrica', categoriaId: 'cat-electricidad', subcategoriaId: 'sub-cables-mecanismos', familiaId: 'fam-electricos', nombre: 'Caja eléctrica para embutir 5/8', basePrice: 690, stock: 160 },
+  { id: 'prod-tornillo-yesocarton-158', categoriaId: 'cat-fijaciones-sellantes', subcategoriaId: 'sub-tornillos-tarugos', familiaId: 'fam-fijaciones', nombre: 'Tornillo yeso-cartón punta fina 1 5/8\" caja 100', basePrice: 4990, stock: 76 },
+  { id: 'prod-tornillo-roscalata-8x1', categoriaId: 'cat-fijaciones-sellantes', subcategoriaId: 'sub-tornillos-tarugos', familiaId: 'fam-fijaciones', nombre: 'Tornillo roscalata 8 x 1\" caja 100', basePrice: 4590, stock: 81 },
+  { id: 'prod-tarugo-nylon-6mm', categoriaId: 'cat-fijaciones-sellantes', subcategoriaId: 'sub-tornillos-tarugos', familiaId: 'fam-fijaciones', nombre: 'Tarugo nylon 6 mm bolsa 100', basePrice: 2690, stock: 92 },
+  { id: 'prod-clavo-corriente-2', categoriaId: 'cat-fijaciones-sellantes', subcategoriaId: 'sub-tornillos-tarugos', familiaId: 'fam-fijaciones', nombre: 'Clavo corriente 2\" bolsa 1 kg', basePrice: 3990, stock: 64 },
+  { id: 'prod-perno-anclaje-38x3', categoriaId: 'cat-fijaciones-sellantes', subcategoriaId: 'sub-tornillos-tarugos', familiaId: 'fam-fijaciones', nombre: 'Perno de anclaje 3/8 x 3\" unidad', basePrice: 1290, stock: 118 },
+  { id: 'prod-sellante-poliuretano-gris', categoriaId: 'cat-fijaciones-sellantes', subcategoriaId: 'sub-sellantes', familiaId: 'fam-sellantes', nombre: 'Sellante poliuretano gris 300 ml', basePrice: 7990, stock: 39 },
+  { id: 'prod-sellante-acrilico-blanco', categoriaId: 'cat-fijaciones-sellantes', subcategoriaId: 'sub-sellantes', familiaId: 'fam-sellantes', nombre: 'Sellante acrílico blanco 300 ml', basePrice: 3490, stock: 53 },
+  { id: 'prod-espuma-poliuretano-500', categoriaId: 'cat-fijaciones-sellantes', subcategoriaId: 'sub-sellantes', familiaId: 'fam-sellantes', nombre: 'Espuma expansiva poliuretano 500 ml', basePrice: 6990, stock: 41 },
+  { id: 'prod-adhesivo-montaje-300', categoriaId: 'cat-fijaciones-sellantes', subcategoriaId: 'sub-sellantes', familiaId: 'fam-sellantes', nombre: 'Adhesivo de montaje 300 ml', basePrice: 5490, stock: 46 }
 ];
 
 const stores = [
@@ -103,36 +144,95 @@ const stores = [
   stockFactor: [1.00,0.85,1.15,1.05,0.95,0.90,1.10,1.20,0.92,1.08,1.12,0.88,1.00,0.94,1.06,1.14,0.98,1.03,0.91,1.18][index]
 }));
 
+async function ensureAuthUser(email, displayName) {
+  try {
+    const existing = await auth.getUserByEmail(email);
+    return auth.updateUser(existing.uid, {
+      displayName,
+      password: demoPassword,
+      emailVerified: true,
+      disabled: false
+    });
+  } catch (error) {
+    if (error?.code !== 'auth/user-not-found') throw error;
+    return auth.createUser({
+      email,
+      displayName,
+      password: demoPassword,
+      emailVerified: true,
+      disabled: false
+    });
+  }
+}
+
 const storeAuth = [];
 for (const store of stores) {
-  const firebaseUser = await auth.getUserByEmail(store.correo);
+  const firebaseUser = await ensureAuthUser(store.correo, store.nombre);
   storeAuth.push({ ...store, uid: firebaseUser.uid });
 }
-const adminAuthUser = await auth.getUserByEmail('admin@demo.cl');
-const maestroAuthUser = await auth.getUserByEmail('maestro@demo.cl');
+const adminAuthUser = await ensureAuthUser('admin@demo.cl', 'Admin Demo CotizApp');
+const maestroAuthUser = await ensureAuthUser('maestro@demo.cl', 'Maestro Demo');
 
-const batch = db.batch();
+const brandByFamily = {
+  'fam-cemento': 'Melón',
+  'fam-mortero': 'Topex',
+  'fam-aridos': 'Áridos Santiago',
+  'fam-tableros': 'Arauco',
+  'fam-madera': 'Arauco',
+  'fam-yeso-carton': 'Volcán',
+  'fam-pinturas': 'Ceresita',
+  'fam-pvc': 'Vinilit',
+  'fam-electricos': 'Schneider Electric',
+  'fam-fijaciones': 'Fixser',
+  'fam-sellantes': 'Sika'
+};
+
+const maxWritesPerBatch = 400;
+let batch = db.batch();
+let pendingWrites = 0;
+let committedBatches = 0;
+
+async function flushBatch() {
+  if (pendingWrites === 0) return;
+  await batch.commit();
+  batch = db.batch();
+  pendingWrites = 0;
+  committedBatches += 1;
+}
+
+async function setDoc(ref, data, options = { merge: true }) {
+  batch.set(ref, data, options);
+  pendingWrites += 1;
+  if (pendingWrites >= maxWritesPerBatch) await flushBatch();
+}
+
+async function deleteDoc(ref) {
+  batch.delete(ref);
+  pendingWrites += 1;
+  if (pendingWrites >= maxWritesPerBatch) await flushBatch();
+}
+
 const merge = true;
 
 for (const item of categories) {
-  batch.set(db.collection('categorias').doc(item.id), { nombre: item.nombre, seedTag }, { merge });
+  await setDoc(db.collection('categorias').doc(item.id), { nombre: item.nombre, seedTag }, { merge });
 }
 for (const item of subcategories) {
-  batch.set(db.collection('subcategorias').doc(item.id), { categoriaId: item.categoriaId, nombre: item.nombre, seedTag }, { merge });
+  await setDoc(db.collection('subcategorias').doc(item.id), { categoriaId: item.categoriaId, nombre: item.nombre, seedTag }, { merge });
 }
 for (const item of families) {
-  batch.set(db.collection('familias').doc(item.id), { subcategoriaId: item.subcategoriaId, nombre: item.nombre, seedTag }, { merge });
+  await setDoc(db.collection('familias').doc(item.id), { subcategoriaId: item.subcategoriaId, nombre: item.nombre, seedTag }, { merge });
 }
 
 for (const product of products) {
-  batch.set(db.collection('productosMaestro').doc(product.id), {
+  await setDoc(db.collection('productosMaestro').doc(product.id), {
     categoriaId: product.categoriaId,
     subcategoriaId: product.subcategoriaId,
     familiaId: product.familiaId,
     nombre: product.nombre,
-    marca: 'Genérico',
-    descripcionCorta: 'Producto de catálogo piloto para pruebas funcionales de CotizApp.',
-    descripcionLarga: 'Dato demostrativo. Precio y stock deben reemplazarse por información entregada por la ferretería antes de uso comercial.',
+    marca: brandByFamily[product.familiaId] || 'Genérico',
+    descripcionCorta: `${product.nombre}, disponible para cotización y comparación de precios.`,
+    descripcionLarga: `Ficha demostrativa de ${product.nombre}. Datos de precio, disponibilidad y stock generados para pruebas funcionales de CotizApp.`,
     imagenPrincipalUrl: '',
     galeriaJson: [],
     estado: 'activo',
@@ -142,7 +242,7 @@ for (const product of products) {
 }
 
 for (const store of storeAuth) {
-  batch.set(db.collection('usuarios').doc(store.uid), {
+  await setDoc(db.collection('usuarios').doc(store.uid), {
     rol: 'ferreteria',
     nombre: store.nombre,
     correo: store.correo,
@@ -156,7 +256,7 @@ for (const store of storeAuth) {
     seedTag
   }, { merge });
 
-  batch.set(db.collection('ferreterias').doc(store.id), {
+  await setDoc(db.collection('ferreterias').doc(store.id), {
     usuarioDuenoId: store.uid,
     nombreComercial: store.nombre,
     rut: '',
@@ -174,7 +274,7 @@ for (const store of storeAuth) {
     const stock = Math.max(1, Math.round(product.stock * store.stockFactor) - (i % 7));
     const offerId = 'offer-' + store.id + '-' + product.id;
 
-    batch.set(db.collection('productosFerreteria').doc(offerId), {
+    await setDoc(db.collection('productosFerreteria').doc(offerId), {
       ferreteriaId: store.id,
       productoMaestroId: product.id,
       skuFerreteria: store.id.replace('store-piloto-', '').toUpperCase() + '-' + String(i + 1).padStart(3, '0'),
@@ -190,7 +290,7 @@ for (const store of storeAuth) {
   }
 }
 
-batch.set(db.collection('usuarios').doc(adminAuthUser.uid), {
+await setDoc(db.collection('usuarios').doc(adminAuthUser.uid), {
   rol: 'admin',
   nombre: 'Admin Demo CotizApp',
   correo: 'admin@demo.cl',
@@ -204,7 +304,7 @@ batch.set(db.collection('usuarios').doc(adminAuthUser.uid), {
   seedTag
 }, { merge });
 
-batch.set(db.collection('usuarios').doc(maestroAuthUser.uid), {
+await setDoc(db.collection('usuarios').doc(maestroAuthUser.uid), {
   rol: 'maestro',
   nombre: 'Maestro Demo',
   correo: 'maestro@demo.cl',
@@ -219,10 +319,10 @@ batch.set(db.collection('usuarios').doc(maestroAuthUser.uid), {
 }, { merge });
 
 for (const staleId of ['user-piloto-centro', 'user-piloto-maipu', 'user-piloto-florida']) {
-  batch.delete(db.collection('usuarios').doc(staleId));
+  await deleteDoc(db.collection('usuarios').doc(staleId));
 }
 
-await batch.commit();
+await flushBatch();
 
 console.log(JSON.stringify({
   ok: true,
@@ -234,6 +334,8 @@ console.log(JSON.stringify({
   masterProducts: products.length,
   stores: stores.length,
   storeProducts: stores.length * products.length,
+  authUsers: storeAuth.length + 2,
+  committedBatches,
   adminUid: adminAuthUser.uid,
   maestroUid: maestroAuthUser.uid
 }, null, 2));

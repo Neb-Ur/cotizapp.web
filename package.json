@@ -9,6 +9,7 @@
     "test": "ng test",
     "functions:build": "npm --prefix functions run build",
     "functions:serve": "npm --prefix functions run serve",
+    "seed:firebase": "node functions/scripts/seed-firestore.mjs",
     "deploy": "npm run build && npm run functions:build && firebase deploy",
     "deploy:hosting": "firebase deploy --only hosting",
     "deploy:functions": "npm --prefix functions run build && firebase deploy --only functions,firestore:rules",
