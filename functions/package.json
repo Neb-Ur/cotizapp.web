@@ -10,7 +10,8 @@
   "scripts": {
     "build": "tsc",
     "serve": "npm run build && firebase emulators:start --only functions,firestore,auth,hosting",
-    "deploy": "firebase deploy --only functions,firestore:rules"
+    "deploy": "firebase deploy --only functions,firestore:rules",
+    "test": "npm run build && node --test tests/*.test.mjs"
   },
   "dependencies": {
     "cors": "^2.8.5",

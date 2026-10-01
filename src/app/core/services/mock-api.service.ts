@@ -1,6 +1,5 @@
-import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
 import {
   CatalogImportReport,
   CatalogImportRowResult,
@@ -27,20 +26,10 @@ import {
   TaxonomyOption
 } from '../models/app.models';
 import { AuthService } from './auth.service';
-import { API_BASE_URL } from '../config/api.config';
+import { ApiClientService } from './api-client.service';
 import { parseCatalogImportContent } from '../utils/catalog-import.util';
 import { buildQuotationOptimization } from '../utils/quotation-optimizer.util';
 import { distanceKm, hasValidCoordinates } from '../utils/location.util';
-
-interface ApiEnvelope<T> {
-  ok: boolean;
-  data: T;
-  error?: {
-    code: string;
-    message: string;
-    details?: unknown;
-  };
-}
 
 interface CatalogMeta {
   ferreteriaId: string;
@@ -106,9 +95,6 @@ export interface TaxonomyDefinitionApi {
   providedIn: 'root'
 })
 export class MockApiService {
-  private readonly apiBaseUrl = API_BASE_URL;
-
-
   private readonly categories: TaxonomyOption[] = [];
   private readonly subcategories: TaxonomyOption[] = [];
   private readonly families: TaxonomyOption[] = [];
@@ -137,7 +123,7 @@ export class MockApiService {
   private publicCatalogVersion = '';
 
   constructor(
-    private readonly http: HttpClient,
+    private readonly apiClient: ApiClientService,
     private readonly authService: AuthService
   ) {}
 
@@ -177,7 +163,7 @@ export class MockApiService {
 
   async refreshPublicCatalogEnhancements(force = false): Promise<void> {
     try {
-      const metadata = await this.apiGet<{ version: string; updatedAt: string }>('/catalogo-publico/version');
+      const metadata = await this.apiClient.get<{ version: string; updatedAt: string }>('/catalogo-publico/version');
       if (!force && metadata.version && metadata.version === this.publicCatalogVersion) {
         return;
       }
@@ -228,11 +214,11 @@ export class MockApiService {
   }
 
   async getContactRequestsForAdmin(): Promise<ContactRequest[]> {
-    return this.apiGet<ContactRequest[]>('/admin/solicitudes-contacto', true);
+    return this.apiClient.get<ContactRequest[]>('/admin/solicitudes-contacto', true);
   }
 
   async updateContactRequestStatus(requestId: string, status: ContactRequestStatus): Promise<ContactRequest> {
-    return this.apiPatch<ContactRequest>(`/admin/solicitudes-contacto/${requestId}`, { status }, true);
+    return this.apiClient.patch<ContactRequest>(`/admin/solicitudes-contacto/${requestId}`, { status }, true);
   }
 
   dashboardByRole(user: SessionUser | null): string {
@@ -280,24 +266,24 @@ export class MockApiService {
   }
 
   async createCategory(name: string): Promise<TaxonomyOption> {
-    const created = await this.apiPost<any>('/categorias', { nombre: name.trim() }, true);
+    const created = await this.apiClient.post<any>('/categorias', { nombre: name.trim() }, true);
     await this.ensureTaxonomyLoaded(true);
     return { id: created.id, name: created.nombre };
   }
 
   async updateCategory(categoryId: string, name: string): Promise<TaxonomyOption> {
-    const updated = await this.apiPatch<any>(`/categorias/${categoryId}`, { nombre: name.trim() }, true);
+    const updated = await this.apiClient.patch<any>(`/categorias/${categoryId}`, { nombre: name.trim() }, true);
     await this.ensureTaxonomyLoaded(true);
     return { id: updated.id, name: updated.nombre };
   }
 
   async deleteCategory(categoryId: string): Promise<void> {
-    await this.apiDelete(`/categorias/${categoryId}`, true);
+    await this.apiClient.delete(`/categorias/${categoryId}`, true);
     await this.ensureTaxonomyLoaded(true);
   }
 
   async createSubcategory(categoryId: string, name: string): Promise<TaxonomyOption> {
-    const created = await this.apiPost<any>('/subcategorias', {
+    const created = await this.apiClient.post<any>('/subcategorias', {
       categoriaId: categoryId,
       nombre: name.trim()
     }, true);
@@ -306,7 +292,7 @@ export class MockApiService {
   }
 
   async updateSubcategory(subcategoryId: string, categoryId: string, name: string): Promise<TaxonomyOption> {
-    const updated = await this.apiPatch<any>(`/subcategorias/${subcategoryId}`, {
+    const updated = await this.apiClient.patch<any>(`/subcategorias/${subcategoryId}`, {
       categoriaId: categoryId,
       nombre: name.trim()
     }, true);
@@ -315,12 +301,12 @@ export class MockApiService {
   }
 
   async deleteSubcategory(subcategoryId: string): Promise<void> {
-    await this.apiDelete(`/subcategorias/${subcategoryId}`, true);
+    await this.apiClient.delete(`/subcategorias/${subcategoryId}`, true);
     await this.ensureTaxonomyLoaded(true);
   }
 
   async createFamily(subcategoryId: string, name: string): Promise<TaxonomyOption> {
-    const created = await this.apiPost<any>('/familias', {
+    const created = await this.apiClient.post<any>('/familias', {
       subcategoriaId: subcategoryId,
       nombre: name.trim()
     }, true);
@@ -329,7 +315,7 @@ export class MockApiService {
   }
 
   async updateFamily(familyId: string, subcategoryId: string, name: string): Promise<TaxonomyOption> {
-    const updated = await this.apiPatch<any>(`/familias/${familyId}`, {
+    const updated = await this.apiClient.patch<any>(`/familias/${familyId}`, {
       subcategoriaId: subcategoryId,
       nombre: name.trim()
     }, true);
@@ -338,24 +324,24 @@ export class MockApiService {
   }
 
   async deleteFamily(familyId: string): Promise<void> {
-    await this.apiDelete(`/familias/${familyId}`, true);
+    await this.apiClient.delete(`/familias/${familyId}`, true);
     await this.ensureTaxonomyLoaded(true);
   }
 
   async createFamilyDefinition(familyId: string, payload: Omit<TaxonomyDefinitionApi, 'id' | 'familiaId'>): Promise<TaxonomyDefinitionApi> {
-    const created = await this.apiPost<TaxonomyDefinitionApi>(`/familias/${familyId}/atributos-definicion`, payload, true);
+    const created = await this.apiClient.post<TaxonomyDefinitionApi>(`/familias/${familyId}/atributos-definicion`, payload, true);
     await this.ensureTaxonomyLoaded(true);
     return created;
   }
 
   async updateFamilyDefinition(familyId: string, definitionId: string, payload: Partial<Omit<TaxonomyDefinitionApi, 'id' | 'familiaId'>>): Promise<TaxonomyDefinitionApi> {
-    const updated = await this.apiPatch<TaxonomyDefinitionApi>(`/familias/${familyId}/atributos-definicion/${definitionId}`, payload, true);
+    const updated = await this.apiClient.patch<TaxonomyDefinitionApi>(`/familias/${familyId}/atributos-definicion/${definitionId}`, payload, true);
     await this.ensureTaxonomyLoaded(true);
     return updated;
   }
 
   async deleteFamilyDefinition(familyId: string, definitionId: string): Promise<void> {
-    await this.apiDelete(`/familias/${familyId}/atributos-definicion/${definitionId}`, true);
+    await this.apiClient.delete(`/familias/${familyId}/atributos-definicion/${definitionId}`, true);
     await this.ensureTaxonomyLoaded(true);
   }
 
@@ -381,7 +367,7 @@ export class MockApiService {
   }> {
     await this.ensureSearchRowsLoaded();
 
-    const raw = await this.apiGet<PaginatedMasterCatalogApi>('/productos-maestro/paginado', false, {
+    const raw = await this.apiClient.get<PaginatedMasterCatalogApi>('/productos-maestro/paginado', false, {
       query: payload.query?.trim() || undefined,
       categoriaId: payload.categoryId || undefined,
       subcategoriaId: payload.subcategoryId || undefined,
@@ -412,7 +398,7 @@ export class MockApiService {
     product: CatalogProduct | null;
     attributes: any[];
   }> {
-    const raw = await this.apiGet<any>(`/productos-maestro/${masterProductId}`);
+    const raw = await this.apiClient.get<any>(`/productos-maestro/${masterProductId}`);
     const product = this.mapMasterProduct({
       id: raw.id,
       categoriaId: raw.categoriaId,
@@ -440,7 +426,7 @@ export class MockApiService {
   async createMasterCatalogProduct(payload: Partial<CatalogProduct> & {
     descriptionText?: string;
   }): Promise<CatalogProduct> {
-    const created = await this.apiPost<any>('/productos-maestro', {
+    const created = await this.apiClient.post<any>('/productos-maestro', {
       nombre: payload.name,
       marca: payload.brand,
       categoriaId: payload.categoryId,
@@ -476,7 +462,7 @@ export class MockApiService {
 
     const cleaned = this.removeUndefined(payload);
 
-    await this.apiPatch(`/productos-maestro/${masterProductId}`, cleaned, true);
+    await this.apiClient.patch(`/productos-maestro/${masterProductId}`, cleaned, true);
     await this.ensureMasterCatalogLoaded(true);
     return this.masterCatalog.find((item) => (item.masterProductId || item.id) === masterProductId) || null;
   }
@@ -488,11 +474,11 @@ export class MockApiService {
     valorBooleano?: boolean | null;
     valorOpcion?: string | null;
   }>): Promise<void> {
-    await this.apiPut(`/productos-maestro/${masterProductId}/atributos`, rows, true);
+    await this.apiClient.put(`/productos-maestro/${masterProductId}/atributos`, rows, true);
   }
 
   async deleteMasterCatalogProduct(masterProductId: string): Promise<void> {
-    await this.apiDelete(`/productos-maestro/${masterProductId}`, true);
+    await this.apiClient.delete(`/productos-maestro/${masterProductId}`, true);
     await this.ensureMasterCatalogLoaded(true);
     await this.ensureSearchRowsLoaded(true);
   }
@@ -508,7 +494,7 @@ export class MockApiService {
     const meta = this.getMeta(ownerId, payload.id);
 
     if (meta) {
-      await this.apiPatch(`/ferreterias/${ferreteriaId}/catalogo/${meta.productoFerreteriaId}`, {
+      await this.apiClient.patch(`/ferreterias/${ferreteriaId}/catalogo/${meta.productoFerreteriaId}`, {
         skuFerreteria: payload.sku,
         codigoBarras: payload.barcode || null,
         precio: payload.price,
@@ -526,7 +512,7 @@ export class MockApiService {
       throw new Error('Solo puedes subir productos que existan en el catalogo maestro.');
     }
 
-    await this.apiPost<any>(`/ferreterias/${ferreteriaId}/catalogo`, {
+    await this.apiClient.post<any>(`/ferreterias/${ferreteriaId}/catalogo`, {
       productoMaestroId: masterId,
       skuFerreteria: payload.sku || `SKU-${masterId.slice(0, 8).toUpperCase()}`,
       codigoBarras: payload.barcode || null,
@@ -546,7 +532,7 @@ export class MockApiService {
       return this.getCatalog(ownerId);
     }
 
-    await this.apiDelete(`/ferreterias/${meta.ferreteriaId}/catalogo/${meta.productoFerreteriaId}`, true);
+    await this.apiClient.delete(`/ferreterias/${meta.ferreteriaId}/catalogo/${meta.productoFerreteriaId}`, true);
     await this.ensureCatalogLoaded(ownerId, true);
     return this.getCatalog(ownerId);
   }
@@ -652,7 +638,7 @@ export class MockApiService {
       return barcodeMatches || nameMatches;
     });
 
-    const created = await this.apiPost<{ id: string }>(`/ferreterias/${ferreteriaId}/solicitudes-creacion-producto`, {
+    const created = await this.apiClient.post<{ id: string }>(`/ferreterias/${ferreteriaId}/solicitudes-creacion-producto`, {
       nombreProducto: draft.name.trim(),
       codigoBarras: draft.barcode.trim(),
       cantidadReferencia: Math.max(1, Math.floor(Number(draft.quantity) || 1)),
@@ -975,7 +961,7 @@ export class MockApiService {
     let suggestedMasterProductId = options?.selectedMasterProductId;
 
     if (action === 'aprobar_nuevo' && options?.masterDraft?.name && options.masterDraft.categoryId && options.masterDraft.subcategoryId && options.masterDraft.familyId) {
-      const created = await this.apiPost<{ id: string }>('/productos-maestro', {
+      const created = await this.apiClient.post<{ id: string }>('/productos-maestro', {
         nombre: options.masterDraft.name,
         marca: options.masterDraft.brand || 'Sin marca',
         categoriaId: options.masterDraft.categoryId,
@@ -996,7 +982,7 @@ export class MockApiService {
       await this.ensureMasterCatalogLoaded(true);
     }
 
-    await this.apiPost(`/solicitudes-creacion-producto/${requestId}/resolver`, {
+    await this.apiClient.post(`/solicitudes-creacion-producto/${requestId}/resolver`, {
       accion: action === 'rechazar' ? 'rechazar' : 'aprobar',
       productoMaestroSugeridoId: suggestedMasterProductId,
       notaAdmin: options?.adminNote || ''
@@ -1025,7 +1011,7 @@ export class MockApiService {
     singleStoreName?: string
   ): Promise<ProjectSummary> {
     try {
-      const created = await this.apiPost<any>(`/maestros/${ownerId}/proyectos`, {
+      const created = await this.apiClient.post<any>(`/maestros/${ownerId}/proyectos`, {
         nombre: name.trim(),
         direccionObra: address.trim(),
         proximidad: proximity ? {
@@ -1059,7 +1045,7 @@ export class MockApiService {
     singleStoreName?: string
   ): Promise<ProjectSummary | null> {
     try {
-      const updated = await this.apiPut<any>(`/maestros/${ownerId}/proyectos/${projectId}`, {
+      const updated = await this.apiClient.put<any>(`/maestros/${ownerId}/proyectos/${projectId}`, {
         nombre: name.trim(),
         direccionObra: address.trim(),
         proximidad: proximity ? {
@@ -1085,7 +1071,7 @@ export class MockApiService {
 
   async addItemToProject(ownerId: string, projectId: string, item: ProjectItem): Promise<ProjectSummary | null> {
     try {
-      const updated = await this.apiPost<any>(`/maestros/${ownerId}/proyectos/${projectId}/items`, {
+      const updated = await this.apiClient.post<any>(`/maestros/${ownerId}/proyectos/${projectId}/items`, {
         productName: item.productName.trim(),
         quantity: Math.max(1, Math.floor(Number(item.quantity) || 0))
       }, true);
@@ -1100,7 +1086,7 @@ export class MockApiService {
   }
 
   async deleteProject(ownerId: string, projectId: string): Promise<ProjectSummary[]> {
-    await this.apiDelete(`/maestros/${ownerId}/proyectos/${projectId}`, true);
+    await this.apiClient.delete(`/maestros/${ownerId}/proyectos/${projectId}`, true);
     await this.ensureProjectsLoaded(ownerId, true);
     this.invalidateMaestroState(ownerId);
     return this.getProjects(ownerId);
@@ -1218,7 +1204,7 @@ export class MockApiService {
     }
 
     try {
-      const raw = await this.apiGet<any>('/productos/detalle', false, {
+      const raw = await this.apiClient.get<any>('/productos/detalle', false, {
         producto: selectedName
       });
 
@@ -1401,7 +1387,7 @@ export class MockApiService {
   }
 
   private async fetchPublicCatalogSnapshot(version?: string): Promise<void> {
-    const snapshot = await this.apiGet<PublicCatalogSnapshotApi>('/catalogo-publico', false, { v: version });
+    const snapshot = await this.apiClient.get<PublicCatalogSnapshotApi>('/catalogo-publico', false, { v: version });
     this.applyPublicCatalogSnapshot(snapshot);
 
     if (typeof localStorage !== 'undefined') {
@@ -1484,9 +1470,9 @@ export class MockApiService {
     this.basicTaxonomyPromise = (async () => {
       try {
         const [categories, subcategories, families] = await Promise.all([
-          this.apiGet<any[]>('/categorias'),
-          this.apiGet<any[]>('/subcategorias'),
-          this.apiGet<any[]>('/familias')
+          this.apiClient.get<any[]>('/categorias'),
+          this.apiClient.get<any[]>('/subcategorias'),
+          this.apiClient.get<any[]>('/familias')
         ]);
 
         this.replaceArray(this.categories, categories.map((item) => ({ id: item.id, name: item.nombre })));
@@ -1511,7 +1497,7 @@ export class MockApiService {
 
       await Promise.all(this.families.map(async (family) => {
         try {
-          const definitions = await this.apiGet<any[]>(`/familias/${family.id}/atributos-definicion`);
+          const definitions = await this.apiClient.get<any[]>(`/familias/${family.id}/atributos-definicion`);
           this.familyDefinitionsByFamily.set(family.id, definitions as TaxonomyDefinitionApi[]);
           this.familyTemplates.set(family.id, this.mapFamilyTemplate(family.id, family.name, definitions));
         } catch {
@@ -1531,7 +1517,7 @@ export class MockApiService {
 
     this.searchPromise = (async () => {
       try {
-        const rows = await this.apiGet<any[]>('/busqueda');
+        const rows = await this.apiClient.get<any[]>('/busqueda');
         this.replaceArray(this.searchRows, rows.map((item) => ({
           productName: item.productName,
           storeName: item.storeName,
@@ -1568,7 +1554,7 @@ export class MockApiService {
     this.masterPromise = (async () => {
       try {
         const [products] = await Promise.all([
-          this.apiGet<ProductoMaestroApi[]>('/productos-maestro'),
+          this.apiClient.get<ProductoMaestroApi[]>('/productos-maestro'),
           this.ensureSearchRowsLoaded(force)
         ]);
 
@@ -1598,7 +1584,7 @@ export class MockApiService {
 
     const promise = (async () => {
       try {
-        const rows = await this.apiGet<any[]>(`/maestros/${ownerId}/proyectos`, true);
+        const rows = await this.apiClient.get<any[]>(`/maestros/${ownerId}/proyectos`, true);
         const mapped = rows.map((item) => this.mapProjectRow(item));
         this.replaceArray(this.getOrCreateProjectsBucket(ownerId), mapped);
       } catch {
@@ -1619,7 +1605,7 @@ export class MockApiService {
     const promise = (async () => {
       try {
         const ferreteriaId = await this.resolveFerreteriaId(ownerId);
-        const rows = await this.apiGet<any[]>(`/ferreterias/${ferreteriaId}/catalogo`, true);
+        const rows = await this.apiClient.get<any[]>(`/ferreterias/${ferreteriaId}/catalogo`, true);
         const mapped = rows.map((item) => this.mapCatalogRow(ownerId, ferreteriaId, item));
         this.replaceArray(this.getOrCreateCatalogBucket(ownerId), mapped);
       } catch {
@@ -1643,7 +1629,7 @@ export class MockApiService {
           this.ensureMasterCatalogLoaded()
         ]);
 
-        const rows = await this.apiGet<any[]>('/solicitudes-creacion-producto', true);
+        const rows = await this.apiClient.get<any[]>('/solicitudes-creacion-producto', true);
         const mapped = rows.map((item) => this.mapValidationRequest(item));
         this.replaceArray(this.validationQueue, mapped);
       } catch {
@@ -1666,7 +1652,7 @@ export class MockApiService {
       return current.ferreteriaId;
     }
 
-    const data = await this.apiGet<{ id: string }>(`/ferreterias/by-owner/${ownerId}`, true);
+    const data = await this.apiClient.get<{ id: string }>(`/ferreterias/by-owner/${ownerId}`, true);
     this.ferreteriaIdByOwner.set(ownerId, data.id);
     return data.id;
   }
@@ -1994,81 +1980,6 @@ export class MockApiService {
 
   private removeUndefined<T extends Record<string, unknown>>(payload: T): Partial<T> {
     return Object.fromEntries(Object.entries(payload).filter(([, value]) => value !== undefined)) as Partial<T>;
-  }
-
-  private headers(requireAuth: boolean): HttpHeaders {
-    if (!requireAuth) {
-      return new HttpHeaders();
-    }
-
-    const token = this.authService.getToken();
-    if (!token) {
-      throw new Error('No hay sesion activa para llamar al backend.');
-    }
-
-    return new HttpHeaders({ Authorization: `Bearer ${token}` });
-  }
-
-  private async apiGet<T>(path: string, requireAuth = false, query?: Record<string, string | number | undefined>): Promise<T> {
-    const params = this.toHttpParams(query);
-    const response = await firstValueFrom(
-      this.http.get<ApiEnvelope<T>>(`${this.apiBaseUrl}${path}`, {
-        headers: this.headers(requireAuth),
-        params
-      })
-    );
-    return response.data;
-  }
-
-  private async apiPost<T>(path: string, body: unknown, requireAuth = false): Promise<T> {
-    const response = await firstValueFrom(
-      this.http.post<ApiEnvelope<T>>(`${this.apiBaseUrl}${path}`, body, {
-        headers: this.headers(requireAuth)
-      })
-    );
-    return response.data;
-  }
-
-  private async apiPatch<T>(path: string, body: unknown, requireAuth = false): Promise<T> {
-    const response = await firstValueFrom(
-      this.http.patch<ApiEnvelope<T>>(`${this.apiBaseUrl}${path}`, body, {
-        headers: this.headers(requireAuth)
-      })
-    );
-    return response.data;
-  }
-
-  private async apiPut<T>(path: string, body: unknown, requireAuth = false): Promise<T> {
-    const response = await firstValueFrom(
-      this.http.put<ApiEnvelope<T>>(`${this.apiBaseUrl}${path}`, body, {
-        headers: this.headers(requireAuth)
-      })
-    );
-    return response.data;
-  }
-
-  private async apiDelete<T>(path: string, requireAuth = false): Promise<T> {
-    const response = await firstValueFrom(
-      this.http.delete<ApiEnvelope<T>>(`${this.apiBaseUrl}${path}`, {
-        headers: this.headers(requireAuth)
-      })
-    );
-    return response.data;
-  }
-
-  private toHttpParams(query?: Record<string, string | number | undefined>): HttpParams {
-    let params = new HttpParams();
-    if (!query) {
-      return params;
-    }
-
-    Object.entries(query).forEach(([key, value]) => {
-      if (value === undefined || value === null || value === '') {
-        return;
-      }
-      params = params.set(key, String(value));
-    });
-    return params;
   }
 
   private normalizeError(error: unknown, fallback = 'No fue posible conectar con el backend.'): Error {

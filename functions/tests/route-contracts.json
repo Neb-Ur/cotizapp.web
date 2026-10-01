@@ -1,0 +1,338 @@
+[
+  {
+    "method": "get",
+    "path": "/health",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "post",
+    "path": "/solicitudes-contacto",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "get",
+    "path": "/admin/solicitudes-contacto",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "patch",
+    "path": "/admin/solicitudes-contacto/:id",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "post",
+    "path": "/auth/register",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "get",
+    "path": "/auth/me",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "patch",
+    "path": "/auth/me",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "post",
+    "path": "/auth/logout",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "get",
+    "path": "/categorias",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "post",
+    "path": "/categorias",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "patch",
+    "path": "/categorias/:id",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "delete",
+    "path": "/categorias/:id",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "get",
+    "path": "/subcategorias",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "post",
+    "path": "/subcategorias",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "patch",
+    "path": "/subcategorias/:id",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "delete",
+    "path": "/subcategorias/:id",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "get",
+    "path": "/familias",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "post",
+    "path": "/familias",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "patch",
+    "path": "/familias/:id",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "delete",
+    "path": "/familias/:id",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "get",
+    "path": "/familias/:familyId/atributos-definicion",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "post",
+    "path": "/familias/:familyId/atributos-definicion",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "patch",
+    "path": "/familias/:familyId/atributos-definicion/:definitionId",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "delete",
+    "path": "/familias/:familyId/atributos-definicion/:definitionId",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "get",
+    "path": "/productos-maestro",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "get",
+    "path": "/productos-maestro/paginado",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "get",
+    "path": "/productos-maestro/:id",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "post",
+    "path": "/productos-maestro",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "patch",
+    "path": "/productos-maestro/:id",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "put",
+    "path": "/productos-maestro/:id/atributos",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "delete",
+    "path": "/productos-maestro/:id",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "get",
+    "path": "/busqueda",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "get",
+    "path": "/productos/opciones",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "get",
+    "path": "/familias/:familyId/productos",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "get",
+    "path": "/productos/populares",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "get",
+    "path": "/productos/detalle",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "get",
+    "path": "/ofertas/mejor",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "get",
+    "path": "/ferreterias/by-owner/:ownerId",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "get",
+    "path": "/ferreterias/:storeId/catalogo",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "post",
+    "path": "/ferreterias/:storeId/catalogo",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "patch",
+    "path": "/ferreterias/:storeId/catalogo/:offerId",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "delete",
+    "path": "/ferreterias/:storeId/catalogo/:offerId",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "get",
+    "path": "/maestros/:ownerId/proyectos",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "post",
+    "path": "/maestros/:ownerId/proyectos",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "get",
+    "path": "/maestros/:ownerId/proyectos/:projectId",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "put",
+    "path": "/maestros/:ownerId/proyectos/:projectId",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "post",
+    "path": "/maestros/:ownerId/proyectos/:projectId/items",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "delete",
+    "path": "/maestros/:ownerId/proyectos/:projectId",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "post",
+    "path": "/cotizaciones/optimizar",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "post",
+    "path": "/ferreterias/:storeId/solicitudes-creacion-producto",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "get",
+    "path": "/solicitudes-creacion-producto",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "post",
+    "path": "/solicitudes-creacion-producto/:id/resolver",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "get",
+    "path": "/admin/usuarios",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "post",
+    "path": "/admin/usuarios",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "patch",
+    "path": "/admin/usuarios/:id",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "delete",
+    "path": "/admin/usuarios/:id",
+    "auth": true,
+    "middlewareCount": 3
+  }
+]
