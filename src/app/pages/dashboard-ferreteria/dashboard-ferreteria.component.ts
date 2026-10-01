@@ -48,10 +48,12 @@ interface MasterCatalogSelectionDraft {
 })
 export class DashboardFerreteriaComponent implements OnInit {
   protected readonly sections: FerreteriaSectionMeta[] = [
-    { id: 'catalogo', label: 'Mantener catálogo', description: 'Mantiene precio, stock y agrega productos cuando lo necesites.' }
+    { id: 'inicio', label: 'Inicio', description: 'Resumen de la actividad de tu ferretería.' },
+    { id: 'catalogo', label: 'Mantener catálogo', description: 'Mantiene precio, stock y agrega productos cuando lo necesites.' },
+    { id: 'perfil', label: 'Editar perfil', description: 'Actualiza los datos visibles y la ubicación de tu ferretería.' }
   ];
 
-  protected currentSection: FerreteriaSection = 'catalogo';
+  protected currentSection: FerreteriaSection = 'inicio';
   protected catalogView: 'maintain' | 'add' = 'maintain';
   protected catalog: CatalogProduct[] = [];
   protected catalogSearch = '';
@@ -112,6 +114,8 @@ export class DashboardFerreteriaComponent implements OnInit {
     storeLongitude: undefined as number | undefined
   };
   protected profileSaved = false;
+  protected profileSaving = false;
+  protected profileError = '';
   protected profileLocationMessage = '';
   protected profileLocationError = '';
   protected isLocatingProfile = false;
@@ -591,12 +595,17 @@ export class DashboardFerreteriaComponent implements OnInit {
   }
 
   protected async saveProfile(): Promise<void> {
+    this.profileSaved = false;
+    this.profileError = '';
+    this.profileSaving = true;
     try {
       await this.authService.updateProfile(this.profileDraft);
       this.profileSaved = true;
       setTimeout(() => this.profileSaved = false, 1800);
-    } catch {
-      this.profileSaved = false;
+    } catch (error) {
+      this.profileError = error instanceof Error ? error.message : 'No se pudo actualizar el perfil.';
+    } finally {
+      this.profileSaving = false;
     }
   }
 

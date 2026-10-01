@@ -45,11 +45,23 @@
       </div>
 
       <nav aria-label="Secciones del panel">
-        <button type="button" class="active" (click)="setSection('catalogo')">
+        <button type="button" [class.active]="currentSection === 'inicio'" (click)="setSection('inicio')">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="m12 3-9 7v11h7v-6h4v6h7V10l-9-7Zm7 16h-3v-6H8v6H5v-8l7-5.4 7 5.4v8Z" />
+          </svg>
+          <span><strong>Inicio</strong><small>Resumen del negocio</small></span>
+        </button>
+        <button type="button" [class.active]="currentSection === 'catalogo'" (click)="setSection('catalogo')">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="M4 3h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm0 10h7a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2Zm11 0h5a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-5v-8Z" />
           </svg>
           <span><strong>Mantener catálogo</strong><small>Precios, stock y productos</small></span>
+        </button>
+        <button type="button" [class.active]="currentSection === 'perfil'" (click)="setSection('perfil')">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0-2a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm0 4c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Zm-6.8 6c.5-2.2 3.3-4 6.8-4s6.3 1.8 6.8 4H5.2Z" />
+          </svg>
+          <span><strong>Editar perfil</strong><small>Datos y ubicación</small></span>
         </button>
       </nav>
 
@@ -61,11 +73,6 @@
     </aside>
 
     <section class="content">
-      <header class="content-header">
-        <span class="content-eyebrow">Catálogo</span>
-        <h2>{{ catalogView === 'maintain' ? 'Mantener catálogo' : 'Agregar productos' }}</h2>
-        <p>{{ catalogView === 'maintain' ? 'Actualiza precios, stock y visibilidad de tus productos.' : 'Incorpora productos desde el catálogo maestro o mediante una carga masiva.' }}</p>
-      </header>
 
     <article class="panel panel--pending" *ngIf="user && user.accountStatus && user.accountStatus !== 'activo'">
       <h3 class="flush-heading">Cuenta pendiente de activacion</h3>
@@ -74,6 +81,38 @@
 
     <article class="panel panel--loading" *ngIf="isInitialLoading || isSectionLoading">
       <app-ui-loader [label]="isInitialLoading ? 'Cargando ferreteria...' : 'Cargando seccion...'" />
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'inicio'">
+      <div class="projects-topbar">
+        <div>
+          <span class="store-kicker">Resumen</span>
+          <h3>Hola, {{ user?.businessName || user?.displayName }}</h3>
+          <p class="helper-text">Revisa rápidamente el estado de tu catálogo.</p>
+        </div>
+        <button type="button" (click)="setSection('catalogo')">Ir al catálogo</button>
+      </div>
+
+      <div class="metrics-kpi-grid">
+        <section class="kpi-card">
+          <h4>Productos publicados</h4>
+          <p>{{ totalProducts }}</p>
+        </section>
+        <section class="kpi-card">
+          <h4>Productos sin stock</h4>
+          <p>{{ outOfStock }}</p>
+        </section>
+        <section class="kpi-card">
+          <h4>Última actualización</h4>
+          <p>{{ lastCatalogUpdate ? (lastCatalogUpdate | date:'dd/MM/yyyy') : 'Sin datos' }}</p>
+        </section>
+      </div>
+
+      <h3 class="top-title">Acciones rápidas</h3>
+      <div class="form-actions">
+        <button type="button" (click)="openAddProducts('buscar')">Agregar productos</button>
+        <button type="button" class="ghost" (click)="goToExcelImport()">Actualizar por Excel</button>
+      </div>
     </article>
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'catalogo' && catalogView === 'maintain'">
@@ -257,6 +296,48 @@
         <p *ngIf="requestNotice" class="saved">{{ requestNotice }}</p>
         <button type="button" (click)="submitProductRequest()">Enviar solicitud</button>
       </section>
+    </article>
+
+    <article class="panel profile-panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'perfil'">
+      <div class="profile-heading">
+        <div>
+          <span>Perfil de la tienda</span>
+          <h3>Información de la ferretería</h3>
+          <p>Estos datos identifican tu negocio frente a los clientes.</p>
+        </div>
+        <span class="profile-email">{{ user?.email }}</span>
+      </div>
+
+      <div class="form-grid profile-form">
+        <label>Nombre comercial<input [(ngModel)]="profileDraft.businessName" autocomplete="organization" /></label>
+        <label>Nombre de contacto<input [(ngModel)]="profileDraft.displayName" autocomplete="name" /></label>
+        <label>Teléfono<input [(ngModel)]="profileDraft.phone" autocomplete="tel" /></label>
+        <label>Ciudad<input [(ngModel)]="profileDraft.city" autocomplete="address-level2" /></label>
+        <label>Comuna<input [(ngModel)]="profileDraft.commune" autocomplete="address-level3" /></label>
+        <label>Dirección<input [(ngModel)]="profileDraft.address" autocomplete="street-address" /></label>
+      </div>
+
+      <div class="profile-location">
+        <div>
+          <strong>Ubicación del local</strong>
+          <p *ngIf="profileDraft.storeLatitude !== undefined && profileDraft.storeLongitude !== undefined">Ubicación registrada para las búsquedas por cercanía.</p>
+          <p *ngIf="profileDraft.storeLatitude === undefined || profileDraft.storeLongitude === undefined">Agrega la ubicación para aparecer en búsquedas cercanas.</p>
+        </div>
+        <button type="button" class="ghost" (click)="updateProfileLocation()" [disabled]="isLocatingProfile">
+          {{ isLocatingProfile ? 'Obteniendo ubicación...' : 'Usar ubicación actual' }}
+        </button>
+      </div>
+
+      <p class="saved" *ngIf="profileLocationMessage">{{ profileLocationMessage }}</p>
+      <p class="error-text" *ngIf="profileLocationError">{{ profileLocationError }}</p>
+      <p class="saved" *ngIf="profileSaved">Perfil actualizado correctamente.</p>
+      <p class="error-text" *ngIf="profileError">{{ profileError }}</p>
+
+      <div class="profile-actions">
+        <button type="button" (click)="saveProfile()" [disabled]="profileSaving">
+          {{ profileSaving ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+      </div>
     </article>
 
     </section>
