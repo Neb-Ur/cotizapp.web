@@ -21,7 +21,6 @@ import {
   downloadCatalogImportTemplate
 } from '../../core/utils/catalog-import.util';
 import { getCurrentBrowserLocation } from '../../core/utils/location.util';
-import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 import { UiModalComponent } from '../../shared/components/ui-modal/ui-modal.component';
 
@@ -43,18 +42,16 @@ interface MasterCatalogSelectionDraft {
 @Component({
   selector: 'app-dashboard-ferreteria',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginatorModule, UiModalComponent, UiLoaderComponent, DashboardMenuComponent],
+  imports: [CommonModule, FormsModule, PaginatorModule, UiModalComponent, UiLoaderComponent],
   templateUrl: './dashboard-ferreteria.component.html',
   styleUrl: './dashboard-ferreteria.component.scss'
 })
 export class DashboardFerreteriaComponent implements OnInit {
   protected readonly sections: FerreteriaSectionMeta[] = [
-    { id: 'inicio', label: 'Inicio', description: 'Revisa el estado basico de tu catalogo.' },
-    { id: 'catalogo', label: 'Mantener catalogo', description: 'Mantiene precio, stock y agrega productos cuando lo necesites.' },
-    { id: 'perfil', label: 'Perfil', description: 'Mantiene los datos basicos de tu ferreteria.' }
+    { id: 'catalogo', label: 'Mantener catálogo', description: 'Mantiene precio, stock y agrega productos cuando lo necesites.' }
   ];
 
-  protected currentSection: FerreteriaSection = 'inicio';
+  protected currentSection: FerreteriaSection = 'catalogo';
   protected catalogView: 'maintain' | 'add' = 'maintain';
   protected catalog: CatalogProduct[] = [];
   protected catalogSearch = '';
