@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProductDetailView, ProductStoreOfferRow, ProjectSummary, SessionUser } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
-import { MockApiService } from '../../core/services/mock-api.service';
+import { FirebaseDataService } from '../../core/services/firebase-data.service';
 import {
   GeoCoordinates,
   distanceKm,
@@ -21,12 +21,19 @@ import {
 })
 export class ProductoDetalleComponent implements OnInit {
   protected detail: ProductDetailView | null = null;
-  protected activeTab: 'descripcion' | 'adicional' = 'descripcion';
+  protected isLoading = true;
+  protected activeTab: 'descripcion' | 'ficha' | 'adicional' = 'descripcion';
   protected selectedImageIndex = 0;
   protected selectedStoreName = '';
   protected selectedQuantity = 1;
   protected selectedProjectId = '';
   protected projects: ProjectSummary[] = [];
+  protected readonly createQuotationOptionValue = '__create_quotation__';
+  protected isCreateQuotationModalOpen = false;
+  protected newQuotationName = '';
+  protected newQuotationAddress = '';
+  protected createQuotationError = '';
+  protected isCreatingQuotation = false;
   protected displayStores: ProductStoreOfferRow[] = [];
   protected quoteFeedback = '';
   protected nearbyEnabled = false;
@@ -38,11 +45,13 @@ export class ProductoDetalleComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly authService: AuthService,
-    private readonly apiService: MockApiService
+    private readonly apiService: FirebaseDataService
   ) {}
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe(async (params) => {
+      this.isLoading = true;
+      this.detail = null;
       const productName = params.get('product') || '';
       const nearbyPreference = readNearbySearchPreference();
       this.nearbyEnabled = !!nearbyPreference;
@@ -51,23 +60,26 @@ export class ProductoDetalleComponent implements OnInit {
         : null;
       this.nearbyRadiusKm = nearbyPreference?.radiusKm || 10;
 
-      const currentUser = this.user;
-      if (currentUser) {
-        await this.apiService.refreshMaestroData(currentUser.id);
+      try {
+        const currentUser = this.user;
+        if (currentUser) {
+          await this.apiService.refreshMaestroData(currentUser.id);
+        }
+
+        this.detail = await this.apiService.loadProductDetail(productName)
+          || this.apiService.getProductDetail(productName);
+
+        this.selectedImageIndex = 0;
+        this.selectedStoreName = '';
+        this.selectedQuantity = 1;
+        this.selectedProjectId = '';
+        this.quoteFeedback = '';
+        this.openExtraSectionIds.clear();
+        this.loadProjects();
+        this.displayStores = this.buildDisplayStores(this.detail?.stores || []);
+      } finally {
+        this.isLoading = false;
       }
-
-      this.detail = await this.apiService.loadProductDetail(productName)
-        || this.apiService.getProductDetail(productName)
-        || this.apiService.getProductDetail();
-
-      this.selectedImageIndex = 0;
-      this.selectedStoreName = '';
-      this.selectedQuantity = 1;
-      this.selectedProjectId = '';
-      this.quoteFeedback = '';
-      this.openExtraSectionIds.clear();
-      this.loadProjects();
-      this.displayStores = this.buildDisplayStores(this.detail?.stores || []);
     });
   }
 
@@ -137,11 +149,73 @@ export class ProductoDetalleComponent implements OnInit {
   }
 
   protected onProjectChange(projectId: string): void {
+    if (projectId === this.createQuotationOptionValue) {
+      this.selectedProjectId = '';
+      this.openCreateQuotationModal();
+      return;
+    }
+
     this.selectedProjectId = projectId;
     this.quoteFeedback = '';
   }
 
-  protected setTab(tab: 'descripcion' | 'adicional'): void {
+  protected openCreateQuotationModal(): void {
+    this.newQuotationName = '';
+    this.newQuotationAddress = '';
+    this.createQuotationError = '';
+    this.isCreateQuotationModalOpen = true;
+  }
+
+  protected closeCreateQuotationModal(): void {
+    if (this.isCreatingQuotation) return;
+    this.isCreateQuotationModalOpen = false;
+    this.createQuotationError = '';
+  }
+
+  protected async createQuotation(): Promise<void> {
+    const currentUser = this.user;
+    const name = this.newQuotationName.trim();
+
+    if (!currentUser) {
+      this.createQuotationError = 'Inicia sesion como maestro para crear una cotizacion.';
+      return;
+    }
+
+    if (!name) {
+      this.createQuotationError = 'Escribe un nombre para la cotizacion.';
+      return;
+    }
+
+    this.isCreatingQuotation = true;
+    this.createQuotationError = '';
+
+    try {
+      const created = await this.apiService.saveProject(
+        currentUser.id,
+        name,
+        [],
+        this.newQuotationAddress
+      );
+      this.projects = [...this.apiService.getProjects(currentUser.id)];
+      this.selectedProjectId = created.id;
+      this.isCreateQuotationModalOpen = false;
+      this.quoteFeedback = `Cotizacion "${created.name}" creada y seleccionada.`;
+    } catch (error) {
+      this.createQuotationError = error instanceof Error
+        ? error.message
+        : 'No se pudo crear la cotizacion.';
+    } finally {
+      this.isCreatingQuotation = false;
+    }
+  }
+
+  protected goToLoginFromQuotationModal(): void {
+    void this.router.navigate(['/login'], {
+      queryParams: { returnUrl: this.router.url }
+    });
+  }
+
+  protected setTab(tab: 'descripcion' | 'ficha' | 'adicional'): void {
     this.activeTab = tab;
   }
 

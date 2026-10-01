@@ -212,8 +212,12 @@ td {
 
 .actions {
   display: flex;
+  align-items: center;
   gap: 0.35rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  width: 1%;
+  min-width: 84px;
+  white-space: nowrap;
 }
 
 .actions button,
@@ -248,14 +252,46 @@ button.ghost {
   color: #fff !important;
 }
 
-.actions .danger {
-  background: #b83636;
-}
-
-.actions .ghost {
-  border: 1px solid var(--border-soft);
+.actions .table-action-button {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid #d9e2ef;
+  border-radius: 9px;
+  padding: 0;
   background: #fff;
   color: var(--navy-800);
+  transition: border-color 140ms ease, background-color 140ms ease, color 140ms ease;
+}
+
+.actions .table-action-button svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.actions .table-action-button--edit:hover,
+.actions .table-action-button--edit:focus-visible {
+  border-color: #9fb4cf;
+  background: #edf4fc;
+}
+
+.actions .table-action-button--delete {
+  border-color: #efcaca;
+  color: #a72d2d;
+}
+
+.actions .table-action-button--delete:hover,
+.actions .table-action-button--delete:focus-visible {
+  border-color: #d99090;
+  background: #fff0f0;
+}
+
+.actions .table-action-button:focus-visible {
+  outline: 3px solid rgb(31 70 112 / 16%);
+  outline-offset: 1px;
 }
 
 .upload-grid {
@@ -1232,5 +1268,4 @@ button.plan-card__action.is-disabled {
     min-height: auto;
   }
 }
-
 

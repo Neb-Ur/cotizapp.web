@@ -11,7 +11,7 @@ import {
   SessionUser
 } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
-import { MockApiService } from '../../core/services/mock-api.service';
+import { FirebaseDataService } from '../../core/services/firebase-data.service';
 import {
   clearNearbySearchPreference,
   getCurrentBrowserLocation,
@@ -48,7 +48,7 @@ export class ProyectoDetalleComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly authService: AuthService,
-    private readonly apiService: MockApiService
+    private readonly apiService: FirebaseDataService
   ) {}
 
   ngOnInit(): void {

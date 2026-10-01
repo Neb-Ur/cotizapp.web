@@ -77,7 +77,8 @@ interface PublicCatalogSnapshotApi {
   searchRows: any[];
 }
 
-const PUBLIC_CATALOG_STORAGE_KEY = 'cotizapp.publicCatalog.v1';
+const PUBLIC_CATALOG_STORAGE_KEY = 'cotizapp.publicCatalog.v2';
+const LEGACY_PUBLIC_CATALOG_STORAGE_KEY = 'cotizapp.publicCatalog.v1';
 
 export interface TaxonomyDefinitionApi {
   id: string;
@@ -94,7 +95,7 @@ export interface TaxonomyDefinitionApi {
 @Injectable({
   providedIn: 'root'
 })
-export class MockApiService {
+export class FirebaseDataService {
   private readonly categories: TaxonomyOption[] = [];
   private readonly subcategories: TaxonomyOption[] = [];
   private readonly families: TaxonomyOption[] = [];
@@ -1178,8 +1179,8 @@ export class MockApiService {
       .slice(0, Math.max(1, limit));
   }
 
-  getProductOptions(filters: SearchFilters = {}, proximity?: SearchProximity): string[] {
-    this.ensureSearchRowsLoaded();
+  getProductOptions(filters: SearchFilters = {}, proximity?: SearchProximity, autoLoad = true): string[] {
+    if (autoLoad) this.ensureSearchRowsLoaded();
     return Array.from(new Set(
       this.filterSearchRowsByProximity(this.searchRows, proximity)
         .filter((row) => !filters.categoryId || row.categoryId === filters.categoryId)
@@ -1190,8 +1191,11 @@ export class MockApiService {
   }
 
   async loadProductDetail(productName?: string): Promise<ProductDetailView | null> {
-    this.ensureSearchRowsLoaded();
-    this.ensureMasterCatalogLoaded();
+    await Promise.all([
+      this.ensureBasicTaxonomyLoaded(),
+      this.ensureSearchRowsLoaded(),
+      this.ensureMasterCatalogLoaded()
+    ]);
 
     const selectedName = productName?.trim() || this.searchRows[0]?.productName || this.masterCatalog[0]?.name || '';
     if (!selectedName) {
@@ -1373,21 +1377,27 @@ export class MockApiService {
     if (typeof localStorage === 'undefined') return false;
 
     try {
+      localStorage.removeItem(LEGACY_PUBLIC_CATALOG_STORAGE_KEY);
       const raw = localStorage.getItem(PUBLIC_CATALOG_STORAGE_KEY);
       if (!raw) return false;
       const snapshot = JSON.parse(raw) as PublicCatalogSnapshotApi;
-      if (!snapshot?.version || !Array.isArray(snapshot.searchRows) || !Array.isArray(snapshot.products)) {
+      if (!this.isUsablePublicCatalogSnapshot(snapshot)) {
+        localStorage.removeItem(PUBLIC_CATALOG_STORAGE_KEY);
         return false;
       }
       this.applyPublicCatalogSnapshot(snapshot);
       return true;
     } catch {
+      localStorage.removeItem(PUBLIC_CATALOG_STORAGE_KEY);
       return false;
     }
   }
 
   private async fetchPublicCatalogSnapshot(version?: string): Promise<void> {
     const snapshot = await this.apiClient.get<PublicCatalogSnapshotApi>('/catalogo-publico', false, { v: version });
+    if (!this.isUsablePublicCatalogSnapshot(snapshot)) {
+      throw new Error('El catalogo publico recibido no contiene productos disponibles.');
+    }
     this.applyPublicCatalogSnapshot(snapshot);
 
     if (typeof localStorage !== 'undefined') {
@@ -1397,6 +1407,14 @@ export class MockApiService {
         // Browser storage is optional; server-side cache remains authoritative.
       }
     }
+  }
+
+  private isUsablePublicCatalogSnapshot(snapshot: PublicCatalogSnapshotApi | null | undefined): snapshot is PublicCatalogSnapshotApi {
+    return !!snapshot?.version
+      && Array.isArray(snapshot.searchRows)
+      && snapshot.searchRows.length > 0
+      && Array.isArray(snapshot.products)
+      && snapshot.products.length > 0;
   }
 
   private applyPublicCatalogSnapshot(snapshot: PublicCatalogSnapshotApi): void {

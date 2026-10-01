@@ -32,7 +32,7 @@ import {
   UserRole
 } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
-import { MockApiService, TaxonomyDefinitionApi } from '../../core/services/mock-api.service';
+import { FirebaseDataService, TaxonomyDefinitionApi } from '../../core/services/firebase-data.service';
 import { CATALOG_IMPORT_TEMPLATE, catalogFileToCsv, catalogImportTemplateFileName, downloadCatalogImportTemplate } from '../../core/utils/catalog-import.util';
 import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
@@ -228,7 +228,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   private readonly loadedSections = new Set<AdminSection>();
 
   constructor(
-    private readonly apiService: MockApiService,
+    private readonly apiService: FirebaseDataService,
     private readonly authService: AuthService,
     private readonly router: Router
   ) {}

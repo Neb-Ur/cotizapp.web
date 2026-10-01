@@ -1,4 +1,7 @@
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
+@import 'primeng/resources/themes/lara-light-blue/theme.css';
+@import 'primeng/resources/primeng.css';
+@import 'primeicons/primeicons.css';
 
 :root {
   --ink-950: #0d141d;
@@ -181,6 +184,72 @@ button, a[role="button"], input[type="button"], input[type="submit"] {
   clip: rect(0,0,0,0);
   white-space: nowrap;
   border: 0;
+}
+
+.cotizapp-paginator.p-paginator {
+  justify-content: flex-end;
+  gap: 0.2rem;
+  margin-top: 1rem;
+  padding: 0.65rem 0;
+  color: var(--ink-700);
+  background: transparent;
+  border: 0;
+  font-family: inherit;
+}
+
+.cotizapp-paginator .p-paginator-current {
+  margin-right: auto;
+  color: var(--ink-500);
+  font-size: 0.875rem;
+}
+
+.cotizapp-paginator .p-paginator-page,
+.cotizapp-paginator .p-paginator-first,
+.cotizapp-paginator .p-paginator-prev,
+.cotizapp-paginator .p-paginator-next,
+.cotizapp-paginator .p-paginator-last {
+  min-width: 2.35rem;
+  min-height: 2.35rem;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: var(--r-full);
+  color: var(--ink-700);
+}
+
+.cotizapp-paginator .p-paginator-page.p-highlight {
+  color: #fff;
+  background: var(--ink-900);
+}
+
+.cotizapp-paginator .p-dropdown {
+  min-width: 4.5rem;
+  height: 2.5rem;
+  border-color: var(--border-med);
+  border-radius: var(--r-full);
+}
+
+.cotizapp-paginator .p-dropdown-label {
+  padding: 0.45rem 0.4rem 0.45rem 0.85rem;
+}
+
+@media (max-width: 640px) {
+  .cotizapp-paginator.p-paginator {
+    justify-content: center;
+    row-gap: 0.55rem;
+  }
+
+  .cotizapp-paginator .p-paginator-current {
+    flex: 0 0 100%;
+    order: -1;
+    justify-content: center;
+    margin: 0;
+    text-align: center;
+  }
+
+  .cotizapp-paginator .p-paginator-first,
+  .cotizapp-paginator .p-paginator-last {
+    display: none;
+  }
 }
 
 .container {

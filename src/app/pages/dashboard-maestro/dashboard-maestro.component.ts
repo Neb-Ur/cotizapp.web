@@ -2,9 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faArrowDownWideShort, faChevronDown, faLocationDot, faSliders, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import { FamilyProductRow, ProjectSummary, SearchProximity, SessionUser, TaxonomyOption } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
-import { MockApiService } from '../../core/services/mock-api.service';
+import { FirebaseDataService } from '../../core/services/firebase-data.service';
 import {
   GeoCoordinates,
   clearNearbySearchPreference,
@@ -33,11 +36,16 @@ interface MaestroProfileDraft {
 @Component({
   selector: 'app-dashboard-maestro',
   standalone: true,
-  imports: [CommonModule, FormsModule, DashboardMenuComponent, UiLoaderComponent],
+  imports: [CommonModule, FormsModule, FontAwesomeModule, PaginatorModule, DashboardMenuComponent, UiLoaderComponent],
   templateUrl: './dashboard-maestro.component.html',
   styleUrl: './dashboard-maestro.component.scss'
 })
 export class DashboardMaestroComponent implements OnInit {
+  protected readonly faFilters = faSliders;
+  protected readonly faSort = faArrowDownWideShort;
+  protected readonly faLocation = faLocationDot;
+  protected readonly faChevronDown = faChevronDown;
+  protected readonly faRemove = faXmark;
   protected readonly maxSavedQuotations = 2;
   protected readonly sections: MaestroSectionMeta[] = [
     { id: 'inicio', label: 'Inicio', description: 'Revisa tus cotizaciones recientes y el ahorro estimado.' },
@@ -56,7 +64,7 @@ export class DashboardMaestroComponent implements OnInit {
   protected selectedSubcategoryId = '';
   protected selectedFamilyId = '';
   protected productRows: FamilyProductRow[] = [];
-  protected pageSize = 10;
+  protected pageSize = 20;
   protected currentPage = 1;
   protected readonly pageSizeOptions = [10, 20, 50];
   protected readonly nearbyRadiusOptions = [5, 10, 20, 50];
@@ -66,6 +74,9 @@ export class DashboardMaestroComponent implements OnInit {
   protected nearbyMessage = '';
   protected nearbyError = '';
   protected isLocatingNearby = false;
+  protected filtersPanelOpen = false;
+  protected nearbyPanelOpen = false;
+  protected productSort = 'relevance';
 
   protected projectTarget = '';
   protected draftProjectName = '';
@@ -87,7 +98,7 @@ export class DashboardMaestroComponent implements OnInit {
 
   constructor(
     private readonly authService: AuthService,
-    private readonly apiService: MockApiService,
+    private readonly apiService: FirebaseDataService,
     private readonly route: ActivatedRoute,
     private readonly router: Router
   ) {}
@@ -112,6 +123,21 @@ export class DashboardMaestroComponent implements OnInit {
       const requested = params.get('section');
       if (this.isValidSection(requested) && (this.user || requested === 'buscar')) {
         this.currentSection = requested;
+      }
+      const requestedCategory = params.get('categoria') || '';
+      const requestedSubcategory = params.get('subcategoria') || '';
+      const requestedFamily = params.get('familia') || '';
+      if (
+        requestedCategory !== this.selectedCategoryId
+        || requestedSubcategory !== this.selectedSubcategoryId
+        || requestedFamily !== this.selectedFamilyId
+      ) {
+        this.selectedCategoryId = requestedCategory;
+        this.selectedSubcategoryId = requestedSubcategory;
+        this.selectedFamilyId = requestedFamily;
+        this.syncTaxonomySearchLabels();
+        this.currentPage = 1;
+        this.refreshProductRows();
       }
 
       this.projectTarget = params.get('projectTarget') || '';
@@ -222,6 +248,11 @@ export class DashboardMaestroComponent implements OnInit {
     };
   }
 
+  protected get taxonomyFilterCount(): number {
+    return [this.selectedCategoryId, this.selectedSubcategoryId, this.selectedFamilyId]
+      .filter(Boolean).length;
+  }
+
   protected setSection(section: MaestroSection): void {
     this.currentSection = section;
     this.closeMobileMenu();
@@ -235,6 +266,14 @@ export class DashboardMaestroComponent implements OnInit {
 
   protected closeMobileMenu(): void {
     this.isMobileMenuVisible = false;
+  }
+
+  protected toggleNearbyPanel(): void {
+    this.nearbyPanelOpen = !this.nearbyPanelOpen;
+  }
+
+  protected toggleFiltersPanel(): void {
+    this.filtersPanelOpen = !this.filtersPanelOpen;
   }
 
   protected async toggleNearbySearch(): Promise<void> {
@@ -333,11 +372,16 @@ export class DashboardMaestroComponent implements OnInit {
     }, 180);
   }
 
-  protected clearSearchFilters(): void {
+  protected onProductSortChange(value: string): void {
+    this.productSort = value;
+    this.currentPage = 1;
+    this.sortProductRows();
+  }
+
+  protected clearCategoryFilter(): void {
     this.categorySearch = '';
     this.subcategorySearch = '';
     this.familySearch = '';
-    this.tableProductSearch = '';
     this.selectedCategoryId = '';
     this.selectedSubcategoryId = '';
     this.selectedFamilyId = '';
@@ -345,22 +389,44 @@ export class DashboardMaestroComponent implements OnInit {
     this.refreshProductRows();
   }
 
-  protected onPageSizeChange(value: number | string): void {
-    const parsed = Number(value);
-    this.pageSize = this.pageSizeOptions.includes(parsed) ? parsed : 10;
+  protected clearSubcategoryFilter(): void {
+    this.subcategorySearch = '';
+    this.familySearch = '';
+    this.selectedSubcategoryId = '';
+    this.selectedFamilyId = '';
     this.currentPage = 1;
+    this.refreshProductRows();
   }
 
-  protected previousPage(): void {
-    if (this.currentPage > 1) this.currentPage -= 1;
+  protected clearFamilyFilter(): void {
+    this.familySearch = '';
+    this.selectedFamilyId = '';
+    this.currentPage = 1;
+    this.refreshProductRows();
   }
 
-  protected nextPage(): void {
-    if (this.currentPage < this.totalPages) this.currentPage += 1;
+  protected clearNearbyFilter(): void {
+    this.nearbyEnabled = false;
+    this.maestroLocation = null;
+    this.nearbyMessage = '';
+    this.nearbyError = '';
+    clearNearbySearchPreference();
+    this.currentPage = 1;
+    this.refreshProductRows();
   }
 
-  protected goToPage(page: number): void {
-    if (page >= 1 && page <= this.totalPages) this.currentPage = page;
+  protected onProductsPageChange(event: PaginatorState): void {
+    this.pageSize = event.rows ?? this.pageSize;
+    this.currentPage = (event.page ?? 0) + 1;
+  }
+
+  protected selectProductCard(productName: string): void {
+    if (this.isPickingProductForProject) {
+      this.addProductToProject(productName);
+      return;
+    }
+
+    this.viewProductDetails(productName);
   }
 
   protected viewProductDetails(productName: string): void {
@@ -543,13 +609,41 @@ export class DashboardMaestroComponent implements OnInit {
   }
 
   private refreshProductRows(): void {
+    this.syncTaxonomySearchLabels();
     const query = this.tableProductSearch.trim();
     const autoLoad = !!this.user;
-    this.productRows = this.selectedFamilyId
+    const hasTaxonomyFilter = !!(this.selectedCategoryId || this.selectedSubcategoryId || this.selectedFamilyId);
+    const rows = hasTaxonomyFilter
       ? this.apiService.getFamilyProductRows(this.selectedFamilyId, query, this.currentProximity, autoLoad)
       : this.apiService.getPopularProductRows(query, 100, this.currentProximity, autoLoad);
 
+    if (hasTaxonomyFilter) {
+      const allowedProducts = new Set(this.apiService.getProductOptions({
+        categoryId: this.selectedCategoryId,
+        subcategoryId: this.selectedSubcategoryId,
+        familyId: this.selectedFamilyId
+      }, this.currentProximity, autoLoad));
+      this.productRows = rows.filter((row) => allowedProducts.has(row.productName));
+    } else {
+      this.productRows = rows;
+    }
+
+    this.sortProductRows();
     this.currentPage = Math.min(this.currentPage, this.totalPages);
+  }
+
+  private sortProductRows(): void {
+    const rows = [...this.productRows];
+    if (this.productSort === 'relevance') {
+      rows.sort((a, b) => b.storeCount - a.storeCount || a.minPrice - b.minPrice);
+    } else if (this.productSort === 'price-asc') {
+      rows.sort((a, b) => a.minPrice - b.minPrice);
+    } else if (this.productSort === 'price-desc') {
+      rows.sort((a, b) => b.minPrice - a.minPrice);
+    } else if (this.productSort === 'stores') {
+      rows.sort((a, b) => b.storeCount - a.storeCount || a.minPrice - b.minPrice);
+    }
+    this.productRows = rows;
   }
 
   private hydrateProfileDraft(): void {
@@ -565,6 +659,18 @@ export class DashboardMaestroComponent implements OnInit {
   private findByName(options: TaxonomyOption[], value: string): TaxonomyOption | null {
     const normalized = value.trim().toLowerCase();
     return options.find((option) => option.name.toLowerCase() === normalized) || null;
+  }
+
+  private syncTaxonomySearchLabels(): void {
+    this.categorySearch = this.selectedCategoryId
+      ? this.apiService.getCategoryOptions(false).find((option) => option.id === this.selectedCategoryId)?.name || this.categorySearch
+      : '';
+    this.subcategorySearch = this.selectedSubcategoryId
+      ? this.apiService.getSubcategoryOptions(this.selectedCategoryId, false).find((option) => option.id === this.selectedSubcategoryId)?.name || this.subcategorySearch
+      : '';
+    this.familySearch = this.selectedFamilyId
+      ? this.apiService.getFamilyOptions(this.selectedSubcategoryId, false).find((option) => option.id === this.selectedFamilyId)?.name || this.familySearch
+      : '';
   }
 
   private isValidSection(value: string | null): value is MaestroSection {

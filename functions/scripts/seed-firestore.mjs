@@ -1,11 +1,17 @@
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import { applicationDefault, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
+import { getStorage } from 'firebase-admin/storage';
 
 const projectId = process.env.FIREBASE_PROJECT_ID || 'cotizapp-d71c8';
-const app = initializeApp({ credential: applicationDefault(), projectId });
+const storageBucket = process.env.FIREBASE_STORAGE_BUCKET || `${projectId}-catalog-assets`;
+const app = initializeApp({ credential: applicationDefault(), projectId, storageBucket });
 const auth = getAuth(app);
 const db = getFirestore(app);
+const bucket = getStorage(app).bucket();
 
 const seedTag = 'pilot-catalog-auth-v3-2026-09-30';
 const createdAt = '2026-09-30T10:40:00.000Z';
@@ -187,6 +193,49 @@ const brandByFamily = {
   'fam-sellantes': 'Sika'
 };
 
+const catalogImageAssetByFamily = {
+  'fam-cemento': 'cement-bag.webp',
+  'fam-mortero': 'cement-bag.webp',
+  'fam-aridos': 'aggregates.webp',
+  'fam-tableros': 'wood-boards.webp',
+  'fam-madera': 'wood-boards.webp',
+  'fam-yeso-carton': 'drywall.webp',
+  'fam-pinturas': 'paint.webp',
+  'fam-pvc': 'pvc.webp',
+  'fam-electricos': 'electrical.webp',
+  'fam-fijaciones': 'fixings-sealants.webp',
+  'fam-sellantes': 'fixings-sealants.webp'
+};
+
+async function uploadCatalogImage(assetName) {
+  const sourcePath = fileURLToPath(new URL(`./assets/catalog/${assetName}`, import.meta.url));
+  const source = await readFile(sourcePath);
+  const contentHash = createHash('sha256').update(source).digest('hex').slice(0, 12);
+  const destination = `catalogo/seed/${assetName.replace('.webp', '')}-${contentHash}.webp`;
+  const file = bucket.file(destination);
+  const [exists] = await file.exists();
+
+  if (!exists) {
+    await bucket.upload(sourcePath, {
+      destination,
+      resumable: false,
+      metadata: {
+        contentType: 'image/webp',
+        cacheControl: 'public,max-age=31536000,immutable',
+        metadata: { seedTag }
+      }
+    });
+  }
+
+  const publicObjectPath = destination.split('/').map(encodeURIComponent).join('/');
+  return `https://storage.googleapis.com/${bucket.name}/${publicObjectPath}`;
+}
+
+const catalogImageUrlByAsset = new Map();
+for (const assetName of new Set(Object.values(catalogImageAssetByFamily))) {
+  catalogImageUrlByAsset.set(assetName, await uploadCatalogImage(assetName));
+}
+
 const maxWritesPerBatch = 400;
 let batch = db.batch();
 let pendingWrites = 0;
@@ -225,6 +274,8 @@ for (const item of families) {
 }
 
 for (const product of products) {
+  const imageAsset = catalogImageAssetByFamily[product.familiaId];
+  const imageUrl = imageAsset ? catalogImageUrlByAsset.get(imageAsset) || '' : '';
   await setDoc(db.collection('productosMaestro').doc(product.id), {
     categoriaId: product.categoriaId,
     subcategoriaId: product.subcategoriaId,
@@ -233,8 +284,8 @@ for (const product of products) {
     marca: brandByFamily[product.familiaId] || 'Genérico',
     descripcionCorta: `${product.nombre}, disponible para cotización y comparación de precios.`,
     descripcionLarga: `Ficha demostrativa de ${product.nombre}. Datos de precio, disponibilidad y stock generados para pruebas funcionales de CotizApp.`,
-    imagenPrincipalUrl: '',
-    galeriaJson: [],
+    imagenPrincipalUrl: imageUrl,
+    galeriaJson: imageUrl ? [imageUrl] : [],
     estado: 'activo',
     creadoEn: createdAt,
     seedTag

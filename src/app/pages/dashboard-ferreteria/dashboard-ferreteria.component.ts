@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import {
   CatalogImportOutcome,
   CatalogImportReport,
@@ -11,7 +12,7 @@ import {
   TaxonomyOption
 } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
-import { MockApiService } from '../../core/services/mock-api.service';
+import { FirebaseDataService } from '../../core/services/firebase-data.service';
 import {
   CATALOG_IMPORT_TEMPLATE,
   catalogFileToCsv,
@@ -42,7 +43,7 @@ interface MasterCatalogSelectionDraft {
 @Component({
   selector: 'app-dashboard-ferreteria',
   standalone: true,
-  imports: [CommonModule, FormsModule, UiModalComponent, UiLoaderComponent, DashboardMenuComponent],
+  imports: [CommonModule, FormsModule, PaginatorModule, UiModalComponent, UiLoaderComponent, DashboardMenuComponent],
   templateUrl: './dashboard-ferreteria.component.html',
   styleUrl: './dashboard-ferreteria.component.scss'
 })
@@ -126,7 +127,7 @@ export class DashboardFerreteriaComponent implements OnInit {
 
   constructor(
     private readonly authService: AuthService,
-    private readonly apiService: MockApiService,
+    private readonly apiService: FirebaseDataService,
     private readonly router: Router
   ) {}
 
@@ -240,18 +241,9 @@ export class DashboardFerreteriaComponent implements OnInit {
     this.catalogPage = 1;
   }
 
-  protected onCatalogPageSizeChange(value: number | string): void {
-    const parsed = Number(value);
-    this.catalogPageSize = this.catalogPageSizeOptions.includes(parsed) ? parsed : 20;
-    this.catalogPage = 1;
-  }
-
-  protected previousCatalogPage(): void {
-    if (this.catalogPage > 1) this.catalogPage -= 1;
-  }
-
-  protected nextCatalogPage(): void {
-    if (this.catalogPage < this.catalogTotalPages) this.catalogPage += 1;
+  protected onCatalogPageChange(event: PaginatorState): void {
+    this.catalogPageSize = event.rows ?? this.catalogPageSize;
+    this.catalogPage = (event.page ?? 0) + 1;
   }
 
   protected openCatalogEdit(product: CatalogProduct): void {
@@ -434,18 +426,13 @@ export class DashboardFerreteriaComponent implements OnInit {
     }
   }
 
-  protected previousMasterPage(): void {
-    if (this.masterPage > 1) {
-      this.masterPage -= 1;
-      void this.loadMasterCatalog();
-    }
-  }
-
-  protected nextMasterPage(): void {
-    if (this.masterPage < this.masterTotalPages) {
-      this.masterPage += 1;
-      void this.loadMasterCatalog();
-    }
+  protected onMasterPageChange(event: PaginatorState): void {
+    const nextRows = event.rows ?? this.masterPageSize;
+    const nextPage = (event.page ?? 0) + 1;
+    if (nextRows === this.masterPageSize && nextPage === this.masterPage) return;
+    this.masterPageSize = nextRows;
+    this.masterPage = nextPage;
+    void this.loadMasterCatalog();
   }
 
   protected async onCatalogFileSelected(event: Event): Promise<void> {

@@ -4,6 +4,22 @@
     <a routerLink="/">Ir al sitio publico</a>
   </header>
 
+  <article class="detail-card detail-loading" *ngIf="isLoading" aria-live="polite" aria-label="Cargando producto">
+    <div class="loading-line loading-line-short"></div>
+    <section class="hero-grid">
+      <div class="loading-image"></div>
+      <div class="loading-summary">
+        <div class="loading-line loading-line-label"></div>
+        <div class="loading-line loading-line-title"></div>
+        <div class="loading-line"></div>
+        <div class="loading-line loading-line-price"></div>
+        <div class="loading-block"></div>
+      </div>
+    </section>
+    <span class="sr-only">Cargando información del producto…</span>
+  </article>
+
+  <ng-container *ngIf="!isLoading">
   <article class="detail-card" *ngIf="detail as product; else noData">
     <nav class="breadcrumb">
       <span>{{ product.categoryName }}</span>
@@ -52,6 +68,7 @@
             Cotizacion destino
             <select [ngModel]="selectedProjectId" (ngModelChange)="onProjectChange($event)">
               <option value="">Selecciona una cotizacion</option>
+              <option [value]="createQuotationOptionValue">+ Crear nueva cotizacion</option>
               <option *ngFor="let project of projects" [value]="project.id">{{ project.name }}</option>
             </select>
           </label>
@@ -105,19 +122,65 @@
       </aside>
     </section>
 
-    <section class="tab-header">
-      <button type="button" [class.active]="activeTab === 'descripcion'" (click)="setTab('descripcion')">
-        Descripcion y especificaciones
-      </button>
-      <button type="button" [class.active]="activeTab === 'adicional'" (click)="setTab('adicional')">
-        Informacion adicional
-      </button>
-    </section>
+    <section class="product-information">
+      <nav class="tab-header" role="tablist" aria-label="Informacion del producto">
+        <button
+          type="button"
+          role="tab"
+          id="tab-description"
+          aria-controls="panel-description"
+          [attr.aria-selected]="activeTab === 'descripcion'"
+          [class.active]="activeTab === 'descripcion'"
+          (click)="setTab('descripcion')"
+        >Descripcion</button>
+        <button
+          type="button"
+          role="tab"
+          id="tab-specifications"
+          aria-controls="panel-specifications"
+          [attr.aria-selected]="activeTab === 'ficha'"
+          [class.active]="activeTab === 'ficha'"
+          (click)="setTab('ficha')"
+        >Ficha tecnica</button>
+        <button
+          type="button"
+          role="tab"
+          id="tab-additional"
+          aria-controls="panel-additional"
+          [attr.aria-selected]="activeTab === 'adicional'"
+          [class.active]="activeTab === 'adicional'"
+          (click)="setTab('adicional')"
+        >Informacion adicional</button>
+      </nav>
 
-    <section class="content-grid" *ngIf="activeTab === 'descripcion'">
-      <article class="sheet-card">
+      <div
+        class="tab-panel description-card"
+        *ngIf="activeTab === 'descripcion'"
+        id="panel-description"
+        role="tabpanel"
+        aria-labelledby="tab-description"
+      >
+        <h2>Descripcion del producto</h2>
+        <p class="intro">{{ product.shortDescription }}</p>
+        <div class="description-block" *ngFor="let block of product.descriptionBlocks">
+          <h3 *ngIf="block.title">{{ block.title }}</h3>
+          <p>{{ block.text }}</p>
+        </div>
+        <ng-container *ngIf="product.featureBullets.length > 0">
+          <h3>Caracteristicas</h3>
+          <ul><li *ngFor="let feature of product.featureBullets">{{ feature }}</li></ul>
+        </ng-container>
+      </div>
+
+      <div
+        class="tab-panel sheet-card"
+        *ngIf="activeTab === 'ficha'"
+        id="panel-specifications"
+        role="tabpanel"
+        aria-labelledby="tab-specifications"
+      >
         <h2>Ficha tecnica</h2>
-        <table class="sheet-table">
+        <table class="sheet-table" *ngIf="product.technicalSheet.length > 0; else emptyTechnicalSheet">
           <tbody>
             <tr *ngFor="let row of product.technicalSheet">
               <th>{{ row.label }}</th>
@@ -125,32 +188,41 @@
             </tr>
           </tbody>
         </table>
-      </article>
+        <ng-template #emptyTechnicalSheet>
+          <p class="tab-empty">La ficha tecnica de este producto se encuentra en preparacion.</p>
+        </ng-template>
+      </div>
 
-      <article class="description-card">
-        <h2>Descripcion</h2>
-        <p class="intro">{{ product.shortDescription }}</p>
-        <div class="description-block" *ngFor="let block of product.descriptionBlocks">
-          <h3 *ngIf="block.title">{{ block.title }}</h3>
-          <p>{{ block.text }}</p>
-        </div>
-        <h3>Caracteristicas</h3>
-        <ul><li *ngFor="let feature of product.featureBullets">{{ feature }}</li></ul>
-      </article>
-    </section>
+      <div
+        class="tab-panel additional-card"
+        *ngIf="activeTab === 'adicional'"
+        id="panel-additional"
+        role="tabpanel"
+        aria-labelledby="tab-additional"
+      >
+        <h2>Informacion adicional</h2>
+        <dl class="additional-grid">
+          <div><dt>Marca</dt><dd>{{ product.brand }}</dd></div>
+          <div><dt>SKU referencial</dt><dd>{{ product.sku || 'No informado' }}</dd></div>
+          <div><dt>Familia</dt><dd>{{ product.familyName }}</dd></div>
+          <div><dt>Unidad de venta</dt><dd>{{ product.unitLabel }}</dd></div>
+        </dl>
 
-    <section class="extra-sections" *ngIf="activeTab === 'adicional'">
-      <article class="extra-item" *ngFor="let section of product.extraSections">
-        <button type="button" class="extra-trigger" (click)="toggleExtraSection(section.id)">
-          <span>{{ section.title }}</span>
-          <span>{{ isExtraSectionOpen(section.id) ? '−' : '+' }}</span>
-        </button>
-        <div class="extra-content" *ngIf="isExtraSectionOpen(section.id)">
-          <ul><li *ngFor="let point of section.points">{{ point }}</li></ul>
-        </div>
-      </article>
+        <section class="extra-sections" *ngIf="product.extraSections.length > 0">
+          <article class="extra-item" *ngFor="let section of product.extraSections">
+            <button type="button" class="extra-trigger" (click)="toggleExtraSection(section.id)">
+              <span>{{ section.title }}</span>
+              <span>{{ isExtraSectionOpen(section.id) ? '−' : '+' }}</span>
+            </button>
+            <div class="extra-content" *ngIf="isExtraSectionOpen(section.id)">
+              <ul><li *ngFor="let point of section.points">{{ point }}</li></ul>
+            </div>
+          </article>
+        </section>
+      </div>
     </section>
   </article>
+  </ng-container>
 
   <ng-template #noData>
     <article class="detail-card">
@@ -159,4 +231,86 @@
       <button type="button" (click)="backToSearch()">Volver</button>
     </article>
   </ng-template>
+
+  <div
+    class="quotation-modal-backdrop"
+    *ngIf="isCreateQuotationModalOpen"
+    (click)="closeCreateQuotationModal()"
+  >
+    <section
+      class="quotation-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="quotation-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="quotation-modal-header">
+        <div>
+          <span>Nueva cotizacion</span>
+          <h2 id="quotation-modal-title">¿Para que proyecto cotizaras?</h2>
+        </div>
+        <button
+          type="button"
+          class="quotation-modal-close"
+          aria-label="Cerrar"
+          [disabled]="isCreatingQuotation"
+          (click)="closeCreateQuotationModal()"
+        >×</button>
+      </header>
+
+      <form class="quotation-modal-form" (ngSubmit)="createQuotation()">
+        <label>
+          Nombre <strong aria-hidden="true">*</strong>
+          <input
+            name="quotationName"
+            type="text"
+            maxlength="80"
+            autocomplete="off"
+            placeholder="Ej: Remodelacion cocina"
+            [(ngModel)]="newQuotationName"
+            [disabled]="isCreatingQuotation"
+            required
+          />
+        </label>
+
+        <label>
+          Direccion <span>(opcional)</span>
+          <input
+            name="quotationAddress"
+            type="text"
+            maxlength="160"
+            autocomplete="street-address"
+            placeholder="Ej: Av. Principal 1234, Maipu"
+            [(ngModel)]="newQuotationAddress"
+            [disabled]="isCreatingQuotation"
+          />
+        </label>
+
+        <p class="quotation-modal-error" *ngIf="createQuotationError" role="alert">
+          {{ createQuotationError }}
+        </p>
+
+        <footer class="quotation-modal-actions">
+          <button
+            *ngIf="user; else loginToCreate"
+            type="submit"
+            class="quotation-modal-primary"
+            [disabled]="isCreatingQuotation || !newQuotationName.trim()"
+          >{{ isCreatingQuotation ? 'Creando...' : 'Crear y seleccionar' }}</button>
+          <button
+            type="button"
+            class="quotation-modal-secondary"
+            [disabled]="isCreatingQuotation"
+            (click)="closeCreateQuotationModal()"
+          >Cancelar</button>
+        </footer>
+
+        <ng-template #loginToCreate>
+          <button type="button" class="quotation-modal-primary" (click)="goToLoginFromQuotationModal()">
+            Iniciar sesion para crear
+          </button>
+        </ng-template>
+      </form>
+    </section>
+  </div>
 </main>

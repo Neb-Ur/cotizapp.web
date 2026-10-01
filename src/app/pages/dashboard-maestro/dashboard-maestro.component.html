@@ -13,20 +13,15 @@
   />
 
   <section class="content">
-    <header class="content-header" [class.content-header--public]="!user">
+    <header class="content-header" *ngIf="user">
       <div class="title-row">
-        <button *ngIf="user && isMobileViewport" type="button" class="menu-toggle menu-icon" (click)="toggleMobileMenu()" aria-label="Abrir menu">
+        <button *ngIf="isMobileViewport" type="button" class="menu-toggle menu-icon" (click)="toggleMobileMenu()" aria-label="Abrir menu">
           <span></span><span></span><span></span>
         </button>
         <div>
-          <span class="catalog-eyebrow" *ngIf="!user">Catalogo de materiales</span>
           <h1>{{ currentSectionLabel }}</h1>
-          <p *ngIf="user">{{ currentSectionDescription }}</p>
-          <p *ngIf="!user">Compara precios y disponibilidad entre ferreterias activas. No necesitas una cuenta para comenzar.</p>
+          <p>{{ currentSectionDescription }}</p>
         </div>
-      </div>
-      <div class="catalog-header-actions" *ngIf="!user">
-        <button type="button" (click)="goToNewProject()">Crear cotizacion</button>
       </div>
     </header>
 
@@ -74,59 +69,112 @@
         <p>Busca por nombre o acota los resultados por categoria, subcategoria y familia.</p>
       </section>
 
-      <section class="filters-section" aria-label="Filtros del catalogo">
-        <div class="filters-heading">
-          <div>
-            <h2>Filtros</h2>
-            <p>Afina los resultados del catalogo.</p>
-          </div>
-          <button type="button" class="clear-filters-button" (click)="clearSearchFilters()">Limpiar filtros</button>
-        </div>
-        <div class="filters-grid">
-        <label>
-          Categoria
-          <input list="category-options" [(ngModel)]="categorySearch" (ngModelChange)="onCategoryInput($event)" placeholder="Categoria" />
-          <datalist id="category-options"><option *ngFor="let option of categoryOptions" [value]="option.name"></option></datalist>
+      <div class="catalog-results-layout">
+      <section class="catalog-toolbar" aria-label="Controles del catalogo">
+        <button
+          type="button"
+          class="filters-disclosure"
+          (click)="toggleFiltersPanel()"
+          [attr.aria-expanded]="filtersPanelOpen"
+          aria-controls="catalog-filters-panel"
+        >
+          <fa-icon [icon]="faFilters" aria-hidden="true" />
+          Filtros
+          <span class="filter-count" *ngIf="taxonomyFilterCount">{{ taxonomyFilterCount }}</span>
+        </button>
+        <button
+          type="button"
+          class="nearby-toolbar-button"
+          [class.active]="nearbyEnabled"
+          (click)="toggleNearbyPanel()"
+          [attr.aria-expanded]="nearbyPanelOpen"
+          aria-controls="nearby-search-panel"
+        >
+          <fa-icon [icon]="faLocation" aria-hidden="true" />
+          <span>{{ nearbyEnabled ? 'Cerca · ' + nearbyRadiusKm + ' km' : 'Cerca de mí' }}</span>
+          <fa-icon class="nearby-toolbar-chevron" [icon]="faChevronDown" aria-hidden="true" />
+        </button>
+        <label class="sort-control">
+          <fa-icon [icon]="faSort" aria-hidden="true" />
+          <span>Ordenar por</span>
+          <select [ngModel]="productSort" (ngModelChange)="onProductSortChange($event)">
+            <option value="relevance">Recomendados</option>
+            <option value="price-asc">Menor precio</option>
+            <option value="price-desc">Mayor precio</option>
+            <option value="stores">Mas ferreterias</option>
+          </select>
         </label>
-        <label>
-          Subcategoria
-          <input list="subcategory-options" [(ngModel)]="subcategorySearch" (ngModelChange)="onSubcategoryInput($event)" [disabled]="!selectedCategoryId" placeholder="Subcategoria" />
-          <datalist id="subcategory-options"><option *ngFor="let option of subcategoryOptions" [value]="option.name"></option></datalist>
-        </label>
-        <label>
-          Familia
-          <input list="family-options" [(ngModel)]="familySearch" (ngModelChange)="onFamilyInput($event)" [disabled]="!selectedSubcategoryId" placeholder="Familia" />
-          <datalist id="family-options"><option *ngFor="let option of familyOptions" [value]="option.name"></option></datalist>
-        </label>
-        </div>
       </section>
 
-      <section class="nearby-search-card">
-        <div class="nearby-search-copy">
-          <span class="nearby-kicker">Compra local</span>
-          <strong>Ferreterias cerca de ti</strong>
-          <span *ngIf="!nearbyEnabled">Filtra ofertas por distancia usando tu ubicacion actual.</span>
-          <span *ngIf="nearbyEnabled">Mostrando solo ferreterias con ubicacion dentro del radio seleccionado.</span>
+      <section id="nearby-search-panel" class="nearby-search-panel" *ngIf="nearbyPanelOpen" aria-label="Buscar productos cerca de mi ubicación">
+        <div class="nearby-panel-copy">
+          <span class="nearby-panel-icon"><fa-icon [icon]="faLocation" aria-hidden="true" /></span>
+          <div>
+            <strong>Productos cerca de ti</strong>
+            <p>Usa tu ubicación para mostrar ofertas disponibles dentro del radio elegido.</p>
+          </div>
         </div>
         <div class="nearby-search-actions">
           <label>
-            Radio de busqueda
+            Radio
             <select [ngModel]="nearbyRadiusKm" (ngModelChange)="onNearbyRadiusChange($event)" [disabled]="isLocatingNearby">
               <option *ngFor="let radius of nearbyRadiusOptions" [value]="radius">{{ radius }} km</option>
             </select>
           </label>
           <button type="button" [class.secondary]="nearbyEnabled" (click)="toggleNearbySearch()" [disabled]="isLocatingNearby">
-            {{ isLocatingNearby ? 'Obteniendo ubicacion...' : (nearbyEnabled ? 'Ver todo el catalogo' : 'Usar mi ubicacion') }}
+            {{ isLocatingNearby ? 'Obteniendo ubicación...' : (nearbyEnabled ? 'Desactivar' : 'Usar mi ubicación') }}
+          </button>
+          <button type="button" class="nearby-panel-close" (click)="toggleNearbyPanel()" aria-label="Cerrar opciones de ubicación">
+            <fa-icon [icon]="faRemove" aria-hidden="true" />
           </button>
         </div>
         <p class="nearby-message" *ngIf="nearbyMessage">{{ nearbyMessage }}</p>
         <p class="nearby-error" *ngIf="nearbyError">{{ nearbyError }}</p>
       </section>
 
-      <div class="active-filters">
-        <span *ngIf="selectedCategoryId">Categoria: {{ selectedCategoryName }}</span>
-        <span *ngIf="selectedSubcategoryId">Subcategoria: {{ selectedSubcategoryName }}</span>
-        <span *ngIf="selectedFamilyId">Familia: {{ selectedFamilyName }}</span>
+      <aside id="catalog-filters-panel" class="filters-section" [class.filters-section--open]="filtersPanelOpen" aria-label="Filtros del catalogo">
+        <div class="filters-heading">
+          <div>
+            <span>Acotar por</span>
+            <h2>Filtros</h2>
+            <p>{{ productRows.length }} productos encontrados</p>
+          </div>
+          <div class="filters-heading-actions">
+            <button type="button" class="clear-filters-button" (click)="clearCategoryFilter()" [disabled]="taxonomyFilterCount === 0">Limpiar</button>
+            <button type="button" class="close-filters-button" (click)="toggleFiltersPanel()">Cerrar</button>
+          </div>
+        </div>
+        <div class="filters-grid">
+          <label>
+            Categoria
+            <input list="category-options" [(ngModel)]="categorySearch" (ngModelChange)="onCategoryInput($event)" placeholder="Todas" />
+            <datalist id="category-options"><option *ngFor="let option of categoryOptions" [value]="option.name"></option></datalist>
+          </label>
+          <label>
+            Subcategoria
+            <input list="subcategory-options" [(ngModel)]="subcategorySearch" (ngModelChange)="onSubcategoryInput($event)" [disabled]="!selectedCategoryId" placeholder="Todas" />
+            <datalist id="subcategory-options"><option *ngFor="let option of subcategoryOptions" [value]="option.name"></option></datalist>
+          </label>
+          <label>
+            Familia
+            <input list="family-options" [(ngModel)]="familySearch" (ngModelChange)="onFamilyInput($event)" [disabled]="!selectedSubcategoryId" placeholder="Todas" />
+            <datalist id="family-options"><option *ngFor="let option of familyOptions" [value]="option.name"></option></datalist>
+          </label>
+        </div>
+      </aside>
+
+      <div class="active-filters" *ngIf="taxonomyFilterCount > 0" aria-label="Filtros activos">
+        <span class="active-filters-label">Filtros activos</span>
+        <button type="button" *ngIf="selectedCategoryId" (click)="clearCategoryFilter()" [attr.aria-label]="'Quitar categoria ' + selectedCategoryName">
+          {{ selectedCategoryName }} <fa-icon [icon]="faRemove" aria-hidden="true" />
+        </button>
+        <button type="button" *ngIf="selectedSubcategoryId" (click)="clearSubcategoryFilter()" [attr.aria-label]="'Quitar subcategoria ' + selectedSubcategoryName">
+          {{ selectedSubcategoryName }} <fa-icon [icon]="faRemove" aria-hidden="true" />
+        </button>
+        <button type="button" *ngIf="selectedFamilyId" (click)="clearFamilyFilter()" [attr.aria-label]="'Quitar familia ' + selectedFamilyName">
+          {{ selectedFamilyName }} <fa-icon [icon]="faRemove" aria-hidden="true" />
+        </button>
+        <button type="button" class="clear-active-filters" (click)="clearCategoryFilter()">Limpiar todo</button>
       </div>
 
       <p class="project-pick-context" *ngIf="isPickingProductForProject">
@@ -142,31 +190,27 @@
       </div>
 
       <div class="product-cards" *ngIf="productRows.length > 0; else emptyProducts">
-        <article class="product-card" *ngFor="let row of paginatedProductRows">
+        <button
+          type="button"
+          class="product-card"
+          *ngFor="let row of paginatedProductRows"
+          (click)="selectProductCard(row.productName)"
+          [attr.aria-label]="(isPickingProductForProject ? 'Agregar ' : 'Ver precios de ') + row.productName"
+        >
           <div class="product-main">
             <div class="product-image-slot">
               <img *ngIf="row.imageUrl" [src]="row.imageUrl" [alt]="row.productName" />
-              <span *ngIf="!row.imageUrl">Imagen</span>
+              <img *ngIf="!row.imageUrl" class="product-image-fallback" src="assets/cotizapp-mark.svg" alt="" />
             </div>
             <div class="product-text">
               <h4>{{ row.productName }}</h4>
-              <p><strong>Marca:</strong> {{ row.brand }}</p>
             </div>
           </div>
           <div class="product-meta">
-            <p class="price-range">{{ formatCurrency(row.minPrice) }} - {{ formatCurrency(row.maxPrice) }}</p>
-            <p>{{ row.storeCount }} ferreteria(s) con precio</p>
-            <p class="nearby-distance" *ngIf="nearbyEnabled && row.nearestDistanceKm !== undefined">
-              Mas cercana: {{ formatDistance(row.nearestDistanceKm) }}
-            </p>
+            <span class="price-label">Desde</span>
+            <p class="price-range">{{ formatCurrency(row.minPrice) }}</p>
           </div>
-          <div class="product-card-actions">
-            <button type="button" class="details-button" (click)="viewProductDetails(row.productName)">Comparar precios</button>
-            <button type="button" class="add-project-button" *ngIf="isPickingProductForProject" (click)="addProductToProject(row.productName)">
-              Agregar a cotizacion
-            </button>
-          </div>
-        </article>
+        </button>
       </div>
 
       <ng-template #emptyProducts>
@@ -179,18 +223,17 @@
         </ng-container>
       </ng-template>
 
-      <div class="table-pagination" *ngIf="productRows.length > 0">
-        <p>Mostrando {{ pageStart }} - {{ pageEnd }} de {{ productRows.length }}</p>
-        <div class="pager-actions">
-          <label class="rows-select">Filas
-            <select [ngModel]="pageSize" (ngModelChange)="onPageSizeChange($event)">
-              <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
-            </select>
-          </label>
-          <button type="button" class="pager-nav" (click)="previousPage()" [disabled]="currentPage === 1">Anterior</button>
-          <button type="button" class="pager-page" *ngFor="let page of pageNumbers" [class.active]="page === currentPage" (click)="goToPage(page)">{{ page }}</button>
-          <button type="button" class="pager-nav" (click)="nextPage()" [disabled]="currentPage === totalPages">Siguiente</button>
-        </div>
+      <p-paginator
+        *ngIf="productRows.length > 0"
+        styleClass="cotizapp-paginator"
+        [first]="(currentPage - 1) * pageSize"
+        [rows]="pageSize"
+        [totalRecords]="productRows.length"
+        [rowsPerPageOptions]="pageSizeOptions"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="{first}–{last} de {totalRecords}"
+        (onPageChange)="onProductsPageChange($event)"
+      />
       </div>
     </article>
 
