@@ -51,6 +51,7 @@ interface ProductoMaestroApi {
   familiaId: string;
   nombre: string;
   marca: string;
+  codigoBarras?: string;
   descripcionCorta?: string;
   descripcionLarga?: string;
   imagenPrincipalUrl?: string;
@@ -116,6 +117,8 @@ export class FirebaseDataService {
 
   private basicTaxonomyPromise: Promise<void> | null = null;
   private taxonomyPromise: Promise<void> | null = null;
+  private basicTaxonomyLoading = false;
+  private taxonomyLoading = false;
   private masterPromise: Promise<void> | null = null;
   private searchPromise: Promise<void> | null = null;
   private readonly projectsPromiseByOwner = new Map<string, Promise<void>>();
@@ -185,15 +188,12 @@ export class FirebaseDataService {
 
 
   async refreshFerreteriaCatalogSection(ownerId: string, force = false): Promise<void> {
-    await Promise.all([
-      this.ensureTaxonomyLoaded(force),
-      this.ensureCatalogLoaded(ownerId, force)
-    ]);
+    await this.ensureCatalogLoaded(ownerId, force);
   }
 
   async refreshFerreteriaUploadSection(ownerId: string, force = false): Promise<void> {
     await Promise.all([
-      this.ensureTaxonomyLoaded(force),
+      this.ensureBasicTaxonomyLoaded(force),
       this.resolveFerreteriaId(ownerId)
     ]);
   }
@@ -205,9 +205,13 @@ export class FirebaseDataService {
 
   async refreshAdminProductsSection(force = false): Promise<void> {
     await Promise.all([
-      this.ensureTaxonomyLoaded(force),
+      this.ensureBasicTaxonomyLoaded(force),
       this.ensureMasterCatalogLoaded(force)
     ]);
+  }
+
+  async refreshAdminProductsTaxonomySection(force = false): Promise<void> {
+    await this.ensureBasicTaxonomyLoaded(force);
   }
 
   async refreshAdminRequestsSection(force = false): Promise<void> {
@@ -395,6 +399,38 @@ export class FirebaseDataService {
     };
   }
 
+  async getAdminMasterCatalogPage(payload: {
+    query?: string;
+    categoryId?: string;
+    subcategoryId?: string;
+    familyId?: string;
+    page?: number;
+    size?: number;
+  }): Promise<{
+    items: CatalogProduct[];
+    page: number;
+    size: number;
+    total: number;
+    totalPages: number;
+  }> {
+    const raw = await this.apiClient.get<PaginatedMasterCatalogApi>('/productos-maestro/paginado', false, {
+      query: payload.query?.trim() || undefined,
+      categoriaId: payload.categoryId || undefined,
+      subcategoriaId: payload.subcategoryId || undefined,
+      familiaId: payload.familyId || undefined,
+      page: payload.page || 1,
+      size: payload.size || 20
+    });
+
+    return {
+      items: (raw.items || []).map((product) => this.mapMasterProduct(product, 0)),
+      page: raw.page || 1,
+      size: raw.size || payload.size || 20,
+      total: raw.total || 0,
+      totalPages: raw.totalPages || 1
+    };
+  }
+
   async getMasterCatalogProductDetail(masterProductId: string): Promise<{
     product: CatalogProduct | null;
     attributes: any[];
@@ -407,6 +443,7 @@ export class FirebaseDataService {
       familiaId: raw.familiaId,
       nombre: raw.nombre,
       marca: raw.marca,
+      codigoBarras: raw.codigoBarras,
       descripcionCorta: raw.descripcionCorta,
       descripcionLarga: raw.descripcionLarga,
       imagenPrincipalUrl: raw.imagenPrincipalUrl,
@@ -426,10 +463,11 @@ export class FirebaseDataService {
 
   async createMasterCatalogProduct(payload: Partial<CatalogProduct> & {
     descriptionText?: string;
-  }): Promise<CatalogProduct> {
+  }, refreshCache = true): Promise<CatalogProduct> {
     const created = await this.apiClient.post<any>('/productos-maestro', {
       nombre: payload.name,
       marca: payload.brand,
+      codigoBarras: payload.barcode,
       categoriaId: payload.categoryId,
       subcategoriaId: payload.subcategoryId,
       familiaId: payload.familyId,
@@ -439,7 +477,7 @@ export class FirebaseDataService {
       galeriaJson: payload.gallery || []
     }, true);
 
-    await this.ensureMasterCatalogLoaded(true);
+    if (refreshCache) await this.ensureMasterCatalogLoaded(true);
     return this.masterCatalog.find((item) => (item.masterProductId || item.id) === created.id) || this.mapMasterProduct(created, 0);
   }
 
@@ -448,10 +486,11 @@ export class FirebaseDataService {
     logisticsWeightKg?: number;
     logisticsVolumeM3?: number;
     logisticsPalletUnits?: number;
-  }): Promise<CatalogProduct | null> {
+  }, refreshCache = true): Promise<CatalogProduct | null> {
     const payload = {
       nombre: patch.name,
       marca: patch.brand,
+      codigoBarras: patch.barcode,
       categoriaId: patch.categoryId,
       subcategoriaId: patch.subcategoryId,
       familiaId: patch.familyId,
@@ -463,9 +502,10 @@ export class FirebaseDataService {
 
     const cleaned = this.removeUndefined(payload);
 
-    await this.apiClient.patch(`/productos-maestro/${masterProductId}`, cleaned, true);
-    await this.ensureMasterCatalogLoaded(true);
-    return this.masterCatalog.find((item) => (item.masterProductId || item.id) === masterProductId) || null;
+    const updated = await this.apiClient.patch<any>(`/productos-maestro/${masterProductId}`, cleaned, true);
+    if (refreshCache) await this.ensureMasterCatalogLoaded(true);
+    return this.masterCatalog.find((item) => (item.masterProductId || item.id) === masterProductId)
+      || (updated ? this.mapMasterProduct(updated, 0) : null);
   }
 
   async saveMasterProductAttributes(masterProductId: string, rows: Array<{
@@ -478,10 +518,12 @@ export class FirebaseDataService {
     await this.apiClient.put(`/productos-maestro/${masterProductId}/atributos`, rows, true);
   }
 
-  async deleteMasterCatalogProduct(masterProductId: string): Promise<void> {
+  async deleteMasterCatalogProduct(masterProductId: string, refreshCache = true): Promise<void> {
     await this.apiClient.delete(`/productos-maestro/${masterProductId}`, true);
-    await this.ensureMasterCatalogLoaded(true);
-    await this.ensureSearchRowsLoaded(true);
+    if (refreshCache) {
+      await this.ensureMasterCatalogLoaded(true);
+      await this.ensureSearchRowsLoaded(true);
+    }
   }
 
   getCatalog(ownerId: string): CatalogProduct[] {
@@ -1481,10 +1523,11 @@ export class FirebaseDataService {
   }
 
   private ensureBasicTaxonomyLoaded(force = false): Promise<void> {
-    if (!force && this.basicTaxonomyPromise) {
+    if (this.basicTaxonomyPromise && (!force || this.basicTaxonomyLoading)) {
       return this.basicTaxonomyPromise;
     }
 
+    this.basicTaxonomyLoading = true;
     this.basicTaxonomyPromise = (async () => {
       try {
         const [categories, subcategories, families] = await Promise.all([
@@ -1498,6 +1541,8 @@ export class FirebaseDataService {
         this.replaceArray(this.families, families.map((item) => ({ id: item.id, parentId: item.subcategoriaId, name: item.nombre })));
       } catch {
         // Keep the catalog usable even if taxonomy metadata is temporarily unavailable.
+      } finally {
+        this.basicTaxonomyLoading = false;
       }
     })();
 
@@ -1505,24 +1550,35 @@ export class FirebaseDataService {
   }
 
   private ensureTaxonomyLoaded(force = false): Promise<void> {
-    if (!force && this.taxonomyPromise) {
+    if (this.taxonomyPromise && (!force || this.taxonomyLoading)) {
       return this.taxonomyPromise;
     }
 
+    this.taxonomyLoading = true;
     this.taxonomyPromise = (async () => {
-      await this.ensureBasicTaxonomyLoaded(force);
-      this.familyDefinitionsByFamily.clear();
+      try {
+        await this.ensureBasicTaxonomyLoaded(force);
+        const definitions = await this.apiClient.get<TaxonomyDefinitionApi[]>('/atributos-definicion');
+        const definitionsByFamily = new Map<string, TaxonomyDefinitionApi[]>();
 
-      await Promise.all(this.families.map(async (family) => {
-        try {
-          const definitions = await this.apiClient.get<any[]>(`/familias/${family.id}/atributos-definicion`);
-          this.familyDefinitionsByFamily.set(family.id, definitions as TaxonomyDefinitionApi[]);
-          this.familyTemplates.set(family.id, this.mapFamilyTemplate(family.id, family.name, definitions));
-        } catch {
-          this.familyDefinitionsByFamily.set(family.id, []);
-          this.familyTemplates.set(family.id, this.mapFamilyTemplate(family.id, family.name, []));
-        }
-      }));
+        definitions.forEach((definition) => {
+          const bucket = definitionsByFamily.get(definition.familiaId) || [];
+          bucket.push(definition);
+          definitionsByFamily.set(definition.familiaId, bucket);
+        });
+
+        this.familyDefinitionsByFamily.clear();
+        this.familyTemplates.clear();
+        this.families.forEach((family) => {
+          const familyDefinitions = definitionsByFamily.get(family.id) || [];
+          this.familyDefinitionsByFamily.set(family.id, familyDefinitions);
+          this.familyTemplates.set(family.id, this.mapFamilyTemplate(family.id, family.name, familyDefinitions));
+        });
+      } catch {
+        // Preserve the last complete taxonomy if the bulk endpoint is temporarily unavailable.
+      } finally {
+        this.taxonomyLoading = false;
+      }
     })();
 
     return this.taxonomyPromise;
@@ -1680,7 +1736,7 @@ export class FirebaseDataService {
       id: product.id,
       masterProductId: product.id,
       name: product.nombre,
-      barcode: '',
+      barcode: product.codigoBarras || '',
       categoryId: product.categoriaId,
       subcategoryId: product.subcategoriaId,
       familyId: product.familiaId,

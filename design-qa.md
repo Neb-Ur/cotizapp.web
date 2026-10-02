@@ -1,63 +1,63 @@
-# Design QA — Menú de taxonomía CotizApp
+# Design QA — Home de búsqueda CotizApp
 
-Source visual truth: captura de referencia Sodimac adjunta por el usuario en la conversación (2406 × 1432 px; vista normalizada por el cliente a 2048 × 1219 px). La referencia se usa únicamente para el patrón de interacción: lista de categorías a la izquierda y detalle jerárquico a la derecha.
+Source visual truth: `/Users/rabenavidess/.codex/generated_images/01a0fda8-75ce-7d71-970c-8351c7f766cc/exec-ed702a12-6c82-46bf-96f2-3831950abf53.png`
 
-Implementation evidence:
+Implementation screenshot: `/tmp/cotizapp-final-yvNF4K/home-1440.png`
 
-- Desktop abierto y categoría activa por hover: `/tmp/cotizapp-taxonomy-desktop.png`
-- Mobile drawer abierto y categoría expandida: `/tmp/cotizapp-taxonomy-mobile.png`
+Combined comparison evidence: `/tmp/cotizapp-final-yvNF4K/comparison.png`
 
-Viewport and state:
+Viewport and normalization:
 
-- Desktop: 1440 × 1000 CSS px, device scale factor 1, `/buscar`, menú abierto, `Fijaciones y sellantes` activa mediante `mouseenter`.
-- Mobile: 390 × 900 CSS px, device scale factor 1, `/buscar`, drawer abierto, `Maderas y tableros` expandida.
-- Fuente e implementación fueron comparadas en el mismo contexto visual de la conversación. No se persiste una copia local de la imagen adjunta del usuario.
+- Source: 1487 × 1058 px, normalized to 1440 × 1024 px for comparison.
+- Implementation: 1440 × 1024 px, Chrome headless, CSS viewport 1440 × 1024, device scale factor 1.
+- State: public home route `/`, desktop, catalog loaded, no menu or autocomplete overlay open.
 
 ## Full-view comparison evidence
 
-La implementación conserva el modelo mental de la referencia sin copiar su identidad: el panel baja desde la navegación; las categorías permanecen visibles en una columna; al recorrerlas cambia el contenido de la derecha; las subcategorías son encabezados y las familias aparecen debajo. CotizApp usa su propia marca, tipografía, paleta navy/sand/orange, escala, radios y copy.
+The normalized side-by-side comparison confirms the same primary composition: compact white navigation, full-width photographic hero, left-aligned search narrative, six category shortcuts at the bottom of the hero, and a four-column product area immediately afterward. The implementation preserves CotizApp's real header, taxonomy, routes, catalog data, and existing design tokens.
 
-En mobile, la misma información se adapta al drawer existente. La lista no intenta comprimir dos columnas: cada categoría se abre como acordeón y revela `Ver toda la categoría`, subcategorías y familias.
+The hero's height, fold position, search prominence, category density, product-section heading, and four-card rhythm now match the selected direction closely. Product subjects differ because the implementation deliberately renders the live catalog rather than mock products from the generated concept.
 
 ## Focused region comparison evidence
 
-- Desktop: se inspeccionaron apertura vertical, alineación con la navbar, estado hover/activo, columna izquierda, encabezado del detalle y jerarquía subcategoría/familia.
-- Mobile: se inspeccionaron overlay, bloqueo del fondo, control de cierre, categorías, estado expandido y sangría de los tres niveles.
-- No se requieren recursos raster ni fotografías para este componente. Los controles usan Font Awesome y los assets de marca existentes; no se recrearon iconos de la referencia.
+- Hero: checked headline wrapping, search-field width, photographic crop, dark text-safe area, category alignment, and hero-to-catalog transition.
+- Product region: checked four equal columns, white product photography surfaces, brand/type hierarchy, orange from-price, seller count, and arrow affordance.
+- Header: checked flat full-width surface, navigation spacing, authentication actions, and alignment with the 1320 px content grid.
+- No additional focused crop was necessary because all critical details remain legible in the 1440 px full-view comparison.
 
 ## Findings
 
-- P3 — Con la taxonomía piloto actual algunas categorías tienen solo una subcategoría y una familia, por lo que el panel derecho conserva espacio libre. Es un resultado correcto de los datos de Firebase y permitirá crecer sin rediseño.
+- P3 — Live catalog imagery and names do not reproduce the four mock products exactly. This is intentional: the home must represent current Firebase catalog data rather than static demo merchandise.
+- P3 — The existing brand lockup includes the small “Cotizaciones de obra” descriptor, while the selected mock shows only the product name. Retaining the established brand component avoids creating a homepage-only logo variant.
 
 ## Required fidelity surfaces
 
-- Fonts and typography: se mantienen Manrope/Space Grotesk, con jerarquía clara entre categoría, subcategoría y familia; no se imita la tipografía del retailer de referencia.
-- Spacing and layout rhythm: panel alineado bajo la navbar, navegación 280 px + detalle flexible, filas táctiles de al menos 48 px y drawer móvil desplazable.
-- Colors and visual tokens: se usan exclusivamente los tokens propios de CotizApp (`ink`, `sand`, `orange`, bordes y sombras existentes).
-- Image quality and asset fidelity: no hay imágenes de contenido en el menú; iconos funcionales provienen de Font Awesome y la marca sigue usando su componente existente.
-- Copy and content: copy propio de CotizApp y taxonomía real obtenida desde Firebase.
+- Fonts and typography: Space Grotesk/Manrope hierarchy is preserved; heading scale, optical weight, line height, and orange emphasis align with the reference. Body and UI labels remain readable at product sizes.
+- Spacing and layout rhythm: 1320 px content grid, full-width hero, 74 px navigation, six-column category rail, and four-column product grid match the reference's density and fold.
+- Colors and visual tokens: uses CotizApp ink, orange, emerald, sand, border, radius, and focus tokens; no parallel visual system was introduced.
+- Image quality and asset fidelity: a dedicated 1891 × 831 generated hero photograph is used at full resolution with a controlled responsive crop. Product images come from the real catalog. No CSS drawings, placeholder shapes, or screenshot crops replace visible assets.
+- Copy and content: hero and product-section copy match the selected direction while avoiding unsupported claims such as “main hardware stores.” Taxonomy labels and prices remain data-backed.
 
 ## Interaction checks
 
-- El menú desktop abre hacia abajo desde la navegación.
-- `mouseenter` sobre una categoría actualiza el encabezado, las subcategorías y las familias del panel derecho.
-- Categoría, subcategoría y familia navegan a `/buscar` con sus parámetros jerárquicos.
-- El drawer mobile conserva su desplazamiento lateral y expande una categoría por toque.
-- Cierre mediante botón, clic exterior y tecla Escape.
-- El fondo mobile queda bloqueado mientras el drawer está abierto.
-- Consola del navegador: sin errores de aplicación.
-- 25 pruebas unitarias aprobadas.
+- Search form accepts free text and navigates to `/buscar?q=...`.
+- Autocomplete continues to open from two characters and selected products navigate to `/producto`.
+- Category shortcuts navigate with the real taxonomy category ID.
+- Product cards navigate to their product-detail query.
+- `/buscar?q=Cemento` renders successfully through SSR.
+- `npm run build` passes; only pre-existing stylesheet-budget warnings remain in unrelated dashboards.
 
 ## Comparison history
 
-1. La primera implementación mostraba seis tarjetas simultáneas. Se identificó como P1 porque no reproducía la exploración progresiva pedida y ocupaba demasiado espacio visual.
-2. Se reemplazó por navegación de dos paneles: categorías persistentes a la izquierda y contenido contextual a la derecha.
-3. Mobile inicialmente solo enlazaba categorías. Se añadió expansión táctil con subcategorías y familias, manteniendo el drawer lateral existente.
-4. La revisión final confirmó jerarquía, estados activos, navegación, responsive y ausencia de errores de consola.
+1. Initial implementation kept the prior contained hero, centered copy, abstract background, and carousel. These were P1 mismatches against the selected full-width photographic direction.
+2. Added a dedicated hero photograph, moved the composition to a full-width left-aligned layout, flattened the public navigation, and aligned categories with the bottom of the hero.
+3. First browser capture showed the hero approximately 45 px too tall and the header still visually detached. Reduced top rhythm and changed the navigation to a flat 74 px bar.
+4. Second capture showed the carousel exposing fewer than four complete products, a P1 information-density mismatch. Replaced it with a deterministic responsive four-column product grid.
+5. Final combined comparison shows no remaining actionable P0, P1, or P2 issues.
 
 ## Follow-up polish
 
-- P3 opcional: incorporar iconos propios por categoría cuando la taxonomía y la biblioteca visual definitiva estén completas.
+- P3 optional: curate the catalog order editorially once a merchandising rule exists, so the first four products represent more varied categories.
 
 ## Final result
 

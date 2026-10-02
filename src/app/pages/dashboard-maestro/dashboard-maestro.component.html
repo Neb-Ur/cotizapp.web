@@ -35,7 +35,7 @@
           <h3>Tu actividad</h3>
           <p class="section-copy">Cotiza materiales y compara cuanto puedes ahorrar.</p>
         </div>
-        <button type="button" (click)="goToNewProject()" [disabled]="!canCreateQuotation">Nueva cotizacion</button>
+        <button type="button" (click)="goToNewProject()" [disabled]="!canCreateQuotation">Nueva cotización</button>
       </div>
       <p class="quota-text">{{ quotationLimitText }}</p>
       <p class="saved" *ngIf="quotationNotice">{{ quotationNotice }}</p>
@@ -46,7 +46,7 @@
       <div class="table-wrap" *ngIf="recentProjects.length > 0">
         <table>
           <caption class="visually-hidden">Cotizaciones recientes</caption>
-          <thead><tr><th>Cotizacion</th><th>Fecha</th><th>Items</th><th>Ahorro</th><th></th></tr></thead>
+          <thead><tr><th>Cotización</th><th>Fecha</th><th>Ítems</th><th>Ahorro</th><th></th></tr></thead>
           <tbody>
             <tr *ngFor="let project of recentProjects">
               <td>{{ project.name }}</td>
@@ -66,7 +66,7 @@
           <span>¿Que material necesitas?</span>
           <input [(ngModel)]="tableProductSearch" (ngModelChange)="onProductSearchChange()" type="search" placeholder="Busca cemento, OSB, yeso..." />
         </label>
-        <p>Busca por nombre o acota los resultados por categoria, subcategoria y familia.</p>
+        <p>Busca por nombre o acota los resultados por categoría, subcategoría y familia.</p>
       </section>
 
       <div class="catalog-results-layout">
@@ -101,7 +101,7 @@
             <option value="relevance">Recomendados</option>
             <option value="price-asc">Menor precio</option>
             <option value="price-desc">Mayor precio</option>
-            <option value="stores">Mas ferreterias</option>
+            <option value="stores">Más ferreterías</option>
           </select>
         </label>
       </section>
@@ -146,7 +146,7 @@
         </div>
         <div class="filters-grid">
           <label>
-            Categoria
+            Categoría
             <input list="category-options" [(ngModel)]="categorySearch" (ngModelChange)="onCategoryInput($event)" placeholder="Todas" />
             <datalist id="category-options"><option *ngFor="let option of categoryOptions" [value]="option.name"></option></datalist>
           </label>
@@ -178,7 +178,7 @@
       </div>
 
       <p class="project-pick-context" *ngIf="isPickingProductForProject">
-        Selecciona un producto para agregarlo a tu cotizacion.
+        Selecciona un producto para agregarlo a tu cotización.
       </p>
 
       <div class="results-heading">
@@ -216,9 +216,9 @@
       <ng-template #emptyProducts>
         <p class="cards-empty" *ngIf="isPublicCatalogRefreshing">Actualizando productos disponibles...</p>
         <ng-container *ngIf="!isPublicCatalogRefreshing">
-          <p class="cards-empty" *ngIf="!nearbyEnabled">No encontramos productos para la busqueda actual.</p>
+          <p class="cards-empty" *ngIf="!nearbyEnabled">No encontramos productos para la búsqueda actual.</p>
           <p class="cards-empty" *ngIf="nearbyEnabled">
-            No encontramos ferreterias con estos productos dentro de {{ nearbyRadiusKm }} km. Prueba aumentando el radio o viendo todas las ferreterias.
+            No encontramos ferreterías con estos productos dentro de {{ nearbyRadiusKm }} km. Prueba aumentando el radio o viendo todas las ferreterías.
           </p>
         </ng-container>
       </ng-template>
@@ -244,13 +244,13 @@
           <p class="section-copy">Puedes guardar hasta 2 cotizaciones y enviarlas directamente a tus clientes.</p>
           <p class="quota-text">{{ quotationLimitText }}</p>
         </div>
-        <button type="button" (click)="goToNewProject()" [disabled]="!canCreateQuotation">Nueva cotizacion</button>
+        <button type="button" (click)="goToNewProject()" [disabled]="!canCreateQuotation">Nueva cotización</button>
       </div>
       <p class="saved" *ngIf="quotationNotice">{{ quotationNotice }}</p>
       <div class="table-wrap" *ngIf="projects.length > 0; else emptyQuotes">
         <table>
           <caption class="visually-hidden">Cotizaciones guardadas</caption>
-          <thead><tr><th>Cotizacion</th><th>Fecha</th><th>Items</th><th>Total optimo</th><th>Ahorro</th><th>Acciones</th></tr></thead>
+          <thead><tr><th>Cotización</th><th>Fecha</th><th>Ítems</th><th>Total óptimo</th><th>Ahorro</th><th>Acciones</th></tr></thead>
           <tbody>
             <tr *ngFor="let project of projects">
               <td>{{ project.name }}</td>
@@ -267,7 +267,7 @@
           </tbody>
         </table>
       </div>
-      <ng-template #emptyQuotes><p>Aun no tienes cotizaciones. Crea la primera para comenzar a comparar.</p></ng-template>
+      <ng-template #emptyQuotes><p>Aún no tienes cotizaciones. Crea la primera para comenzar a comparar.</p></ng-template>
     </article>
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'historial'">
@@ -280,12 +280,12 @@
           <p>Total optimo: {{ formatCurrency(project.totalOptimal) }}</p>
           <p>Ahorro estimado: {{ formatCurrency(project.saving) }}</p>
           <div class="row-actions">
-            <button type="button" class="secondary" (click)="goToProjectDetail(project.id)">Ver cotizacion</button>
+            <button type="button" class="secondary" (click)="goToProjectDetail(project.id)">Ver cotización</button>
             <button type="button" (click)="shareProject(project)">Enviar al cliente</button>
           </div>
         </article>
       </div>
-      <ng-template #emptyHistory><p>Aun no tienes cotizaciones guardadas.</p></ng-template>
+      <ng-template #emptyHistory><p>Aún no tienes cotizaciones guardadas.</p></ng-template>
     </article>
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'perfil'">
@@ -296,7 +296,7 @@
         <section class="profile-card">
           <label>Nombre<input [(ngModel)]="profileDraft.displayName" type="text" /></label>
           <label>Correo<input [value]="user?.email || ''" type="text" disabled /></label>
-          <label>Telefono<input [(ngModel)]="profileDraft.phone" type="text" /></label>
+          <label>Teléfono<input [(ngModel)]="profileDraft.phone" type="text" /></label>
           <label>Comuna<input [(ngModel)]="profileDraft.commune" type="text" /></label>
         </section>
       </div>

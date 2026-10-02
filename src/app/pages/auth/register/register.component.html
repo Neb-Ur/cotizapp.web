@@ -39,7 +39,7 @@
       </div>
 
       <div class="field--full form-actions">
-        <button class="btn btn-dark btn-full" type="submit" [disabled]="isSubmitting">
+        <button class="btn btn-primary btn-full" type="submit" [disabled]="isSubmitting">
           {{ isSubmitting ? 'Creando cuenta...' : 'Crear cuenta' }}
         </button>
         <p class="form-error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>

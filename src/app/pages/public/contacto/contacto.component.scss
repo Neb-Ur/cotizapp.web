@@ -11,8 +11,8 @@
 }
 
 .card {
-  border-radius: 18px;
-  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.94);
   padding: 1.25rem;
 }
@@ -40,7 +40,7 @@ input,
 select,
 textarea {
   border: 1px solid var(--border-soft);
-  border-radius: 10px;
+  border-radius: var(--r-sm);
   padding: 0.65rem;
   background: #fff;
 }
@@ -50,17 +50,11 @@ textarea {
 }
 
 small {
-  color: #ad2e2e;
+  color: var(--danger-700);
 }
 
-button {
-  border: 0;
-  border-radius: 12px;
-  padding: 0.7rem 1rem;
-  color: #fff;
-  background: var(--navy-800);
-  font-weight: 700;
-  cursor: pointer;
+.btn {
+  width: 100%;
 }
 
 button:disabled {

@@ -7,7 +7,7 @@ import { rows, row, createRow, patchRow } from '../repositories/firestore.reposi
 import { requireStoreWriteAccess } from '../lib/ownership.js';
 export const productRequestsRouter = Router();
 
-productRequestsRouter.post('/ferreterias/:storeId/solicitudes-creacion-producto', requireAuth, async (req, res) => {
+productRequestsRouter.post('/ferreterias/:storeId/solicitudes-creacion-producto', requireAuth, requireRole('ferreteria', 'admin'), async (req, res) => {
   if (!(await requireStoreWriteAccess(req, res, req.params.storeId))) return;
   const created = await createRow(COLLECTIONS.productRequests, {
     ferreteriaId: req.params.storeId,

@@ -1,11 +1,27 @@
-<div class="overlay" *ngIf="open" (click)="close()">
-  <article class="dialog" (click)="$event.stopPropagation()">
-    <header>
-      <h3>{{ title }}</h3>
-      <button type="button" (click)="close()">Cerrar</button>
+<div class="overlay" *ngIf="open" (click)="onBackdropClick()">
+  <section
+    #dialog
+    class="dialog"
+    [class.dialog--sm]="size === 'sm'"
+    [class.dialog--lg]="size === 'lg'"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-labelledby]="titleId"
+    tabindex="-1"
+    (click)="$event.stopPropagation()"
+    (keydown.tab)="trapFocus($event)"
+  >
+    <header class="dialog-header">
+      <div>
+        <p class="eyebrow" *ngIf="eyebrow">{{ eyebrow }}</p>
+        <h2 [id]="titleId">{{ title }}</h2>
+      </div>
+      <button class="close-button" type="button" [disabled]="closeDisabled" (click)="close()" aria-label="Cerrar diálogo">
+        <span aria-hidden="true">×</span>
+      </button>
     </header>
     <div class="content">
       <ng-content></ng-content>
     </div>
-  </article>
+  </section>
 </div>

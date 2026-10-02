@@ -30,6 +30,10 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     req.authUserId = decoded.uid;
     const profile = await db.collection('usuarios').doc(decoded.uid).get();
     if (profile.exists) {
+      if (profile.data()?.['estadoCuenta'] === 'bloqueado') {
+        fail(res, 'AUTH_ACCOUNT_BLOCKED', 'Tu cuenta se encuentra bloqueada.', 403);
+        return;
+      }
       const role = profile.data()?.['rol'];
       if (role === 'maestro' || role === 'ferreteria' || role === 'admin') {
         req.authRole = role;

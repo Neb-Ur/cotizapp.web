@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { mvpRouter } from '../lib/routes/mvp.routes.js';
-import { requireAuth } from '../lib/lib/auth.js';
+import { requireAuth, requireRole } from '../lib/lib/auth.js';
+import { canAccessOwner } from '../lib/lib/ownership.js';
 import { normalizeProjectProximity, coordinateValue, geographicDistanceKm } from '../lib/lib/values.js';
 import { normalizeItems } from '../lib/services/quotation.service.js';
 
@@ -34,4 +35,40 @@ test('proximity supports both payload formats and rejects invalid coordinates an
 test('quotation item normalization preserves quantity rules and discards blank products', () => {
   assert.deepEqual(normalizeItems([{ productName: ' Cemento ', quantity: 2.9 }, { productName: '', quantity: 4 }, { productName: 'Clavos', quantity: -1 }]), [{ productName: 'Cemento', quantity: 2 }, { productName: 'Clavos', quantity: 1 }]);
   assert.deepEqual(normalizeItems(null), []);
+});
+
+test('role middleware rejects cross-role access with 403', async () => {
+  const request = { authUserId: 'maestro-1', authRole: 'maestro' };
+  const response = {
+    statusCode: 200,
+    payload: null,
+    status(code) { this.statusCode = code; return this; },
+    json(payload) { this.payload = payload; return this; }
+  };
+  let nextCalled = false;
+
+  await requireRole('admin')(request, response, () => { nextCalled = true; });
+
+  assert.equal(nextCalled, false);
+  assert.equal(response.statusCode, 403);
+  assert.equal(response.payload?.error?.code, 'AUTH_FORBIDDEN');
+});
+
+test('role middleware allows only declared roles and ownership stays scoped', async () => {
+  const response = {
+    status(code) { this.statusCode = code; return this; },
+    json(payload) { this.payload = payload; return this; }
+  };
+  let nextCalled = false;
+
+  await requireRole('maestro', 'admin')(
+    { authUserId: 'maestro-1', authRole: 'maestro' },
+    response,
+    () => { nextCalled = true; }
+  );
+
+  assert.equal(nextCalled, true);
+  assert.equal(canAccessOwner({ authUserId: 'maestro-1', authRole: 'maestro' }, 'maestro-1'), true);
+  assert.equal(canAccessOwner({ authUserId: 'maestro-1', authRole: 'maestro' }, 'maestro-2'), false);
+  assert.equal(canAccessOwner({ authUserId: 'admin-1', authRole: 'admin' }, 'maestro-2'), true);
 });

@@ -1,8 +1,8 @@
 <section class="wrapper">
   <article class="card">
     <h1>Contacto</h1>
-    <p *ngIf="!isStoreRequest">Escribenos y te ayudamos con tus dudas sobre CotizApp.</p>
-    <p *ngIf="isStoreRequest">Completa la solicitud para evaluar la incorporacion de tu ferreteria al piloto.</p>
+    <p *ngIf="!isStoreRequest">Escríbenos y te ayudamos con tus dudas sobre CotizApp.</p>
+    <p *ngIf="isStoreRequest">Completa la solicitud para evaluar la incorporación de tu ferretería al piloto.</p>
 
     <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="isSubmitting">
       <label>
@@ -14,41 +14,41 @@
       <label>
         <span>Email</span>
         <input formControlName="email" type="email" placeholder="correo@dominio.com" autocomplete="email" [attr.aria-invalid]="hasError('email')" aria-describedby="contact-email-error" />
-        <small id="contact-email-error" *ngIf="hasError('email')">Correo invalido.</small>
+        <small id="contact-email-error" *ngIf="hasError('email')">Correo inválido.</small>
       </label>
 
       <label>
         Tipo
         <select formControlName="type">
           <option>Maestro</option>
-          <option>Ferreteria</option>
+          <option value="Ferreteria">Ferretería</option>
           <option>Otro</option>
         </select>
       </label>
 
       <ng-container *ngIf="isStoreRequest">
         <label>
-          <span>Nombre de la ferreteria</span>
+          <span>Nombre de la ferretería</span>
           <input formControlName="businessName" type="text" placeholder="Nombre comercial" autocomplete="organization" [attr.aria-invalid]="hasError('businessName')" aria-describedby="contact-business-error" />
-          <small id="contact-business-error" *ngIf="hasError('businessName')">Ingresa el nombre de la ferreteria.</small>
+          <small id="contact-business-error" *ngIf="hasError('businessName')">Ingresa el nombre de la ferretería.</small>
         </label>
 
         <label>
-          <span>Telefono de contacto</span>
+          <span>Teléfono de contacto</span>
           <input formControlName="phone" type="tel" placeholder="+56 9 ..." autocomplete="tel" [attr.aria-invalid]="hasError('phone')" aria-describedby="contact-phone-error" />
-          <small id="contact-phone-error" *ngIf="hasError('phone')">Ingresa un telefono valido.</small>
+          <small id="contact-phone-error" *ngIf="hasError('phone')">Ingresa un teléfono válido.</small>
         </label>
 
         <label>
           <span>Comuna</span>
-          <input formControlName="commune" type="text" placeholder="Ej: La Florida" autocomplete="address-level2" [attr.aria-invalid]="hasError('commune')" aria-describedby="contact-commune-error" />
-          <small id="contact-commune-error" *ngIf="hasError('commune')">Ingresa la comuna de la ferreteria.</small>
+          <input formControlName="commune" type="text" placeholder="Ej.: La Florida" autocomplete="address-level2" [attr.aria-invalid]="hasError('commune')" aria-describedby="contact-commune-error" />
+          <small id="contact-commune-error" *ngIf="hasError('commune')">Ingresa la comuna de la ferretería.</small>
         </label>
       </ng-container>
 
       <label>
         <span>Mensaje</span>
-        <textarea formControlName="message" rows="5" placeholder="Cuentanos en que te ayudamos" [attr.aria-invalid]="hasError('message')" aria-describedby="contact-message-error"></textarea>
+        <textarea formControlName="message" rows="5" placeholder="Cuéntanos en qué te ayudamos" [attr.aria-invalid]="hasError('message')" aria-describedby="contact-message-error"></textarea>
         <small id="contact-message-error" *ngIf="hasError('message')">Describe tu solicitud en al menos 8 caracteres.</small>
       </label>
 
@@ -57,7 +57,7 @@
         <input formControlName="website" type="text" tabindex="-1" autocomplete="off" />
       </label>
 
-      <button type="submit" [disabled]="isSubmitting">
+      <button class="btn btn-primary" type="submit" [disabled]="isSubmitting">
         {{ isSubmitting ? 'Enviando...' : (isStoreRequest ? 'Enviar solicitud' : 'Enviar mensaje') }}
       </button>
     </form>
@@ -72,8 +72,8 @@
     <p><strong>WhatsApp:</strong> +56 9 5555 8888</p>
     <p><strong>Horario:</strong> Lunes a Viernes de 09:00 a 18:00</p>
     <p><strong>Base legal:</strong></p>
-    <p><a routerLink="/terminos-condiciones">Terminos y condiciones</a></p>
-    <p><a routerLink="/privacidad">Politica de privacidad</a></p>
+    <p><a routerLink="/terminos-condiciones">Términos y condiciones</a></p>
+    <p><a routerLink="/privacidad">Política de privacidad</a></p>
     <p><a routerLink="/preguntas-frecuentes">Preguntas frecuentes</a></p>
   </article>
 </section>

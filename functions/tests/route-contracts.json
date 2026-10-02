@@ -121,6 +121,12 @@
   },
   {
     "method": "get",
+    "path": "/atributos-definicion",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "get",
     "path": "/familias/:familyId/atributos-definicion",
     "auth": false,
     "middlewareCount": 1
@@ -225,79 +231,79 @@
     "method": "get",
     "path": "/ferreterias/by-owner/:ownerId",
     "auth": true,
-    "middlewareCount": 2
+    "middlewareCount": 3
   },
   {
     "method": "get",
     "path": "/ferreterias/:storeId/catalogo",
     "auth": true,
-    "middlewareCount": 2
+    "middlewareCount": 3
   },
   {
     "method": "post",
     "path": "/ferreterias/:storeId/catalogo",
     "auth": true,
-    "middlewareCount": 2
+    "middlewareCount": 3
   },
   {
     "method": "patch",
     "path": "/ferreterias/:storeId/catalogo/:offerId",
     "auth": true,
-    "middlewareCount": 2
+    "middlewareCount": 3
   },
   {
     "method": "delete",
     "path": "/ferreterias/:storeId/catalogo/:offerId",
     "auth": true,
-    "middlewareCount": 2
+    "middlewareCount": 3
   },
   {
     "method": "get",
     "path": "/maestros/:ownerId/proyectos",
     "auth": true,
-    "middlewareCount": 2
+    "middlewareCount": 3
   },
   {
     "method": "post",
     "path": "/maestros/:ownerId/proyectos",
     "auth": true,
-    "middlewareCount": 2
+    "middlewareCount": 3
   },
   {
     "method": "get",
     "path": "/maestros/:ownerId/proyectos/:projectId",
     "auth": true,
-    "middlewareCount": 2
+    "middlewareCount": 3
   },
   {
     "method": "put",
     "path": "/maestros/:ownerId/proyectos/:projectId",
     "auth": true,
-    "middlewareCount": 2
+    "middlewareCount": 3
   },
   {
     "method": "post",
     "path": "/maestros/:ownerId/proyectos/:projectId/items",
     "auth": true,
-    "middlewareCount": 2
+    "middlewareCount": 3
   },
   {
     "method": "delete",
     "path": "/maestros/:ownerId/proyectos/:projectId",
     "auth": true,
-    "middlewareCount": 2
+    "middlewareCount": 3
   },
   {
     "method": "post",
     "path": "/cotizaciones/optimizar",
     "auth": true,
-    "middlewareCount": 2
+    "middlewareCount": 3
   },
   {
     "method": "post",
     "path": "/ferreterias/:storeId/solicitudes-creacion-producto",
     "auth": true,
-    "middlewareCount": 2
+    "middlewareCount": 3
   },
   {
     "method": "get",

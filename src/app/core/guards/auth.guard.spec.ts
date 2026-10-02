@@ -1,17 +1,49 @@
 import { TestBed } from '@angular/core/testing';
-import { CanActivateFn } from '@angular/router';
-
+import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
+import { SessionUser } from '../models/app.models';
+import { AuthService } from '../services/auth.service';
 import { authGuard } from './auth.guard';
 
 describe('authGuard', () => {
-  const executeGuard: CanActivateFn = (...guardParameters) => 
-      TestBed.runInInjectionContext(() => authGuard(...guardParameters));
+  let authService: jasmine.SpyObj<AuthService>;
+  let router: jasmine.SpyObj<Router>;
+  const loginTree = {} as UrlTree;
+  const route = {} as ActivatedRouteSnapshot;
+  const state = { url: '/dashboard/maestro' } as RouterStateSnapshot;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    authService = jasmine.createSpyObj<AuthService>('AuthService', ['verifiedUser']);
+    router = jasmine.createSpyObj<Router>('Router', ['createUrlTree']);
+    router.createUrlTree.and.returnValue(loginTree);
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: AuthService, useValue: authService },
+        { provide: Router, useValue: router }
+      ]
+    });
   });
 
-  it('should be created', () => {
-    expect(executeGuard).toBeTruthy();
+  it('allows a Firebase-verified session', async () => {
+    authService.verifiedUser.and.resolveTo({ role: 'maestro' } as SessionUser);
+
+    const result = await TestBed.runInInjectionContext(
+      () => authGuard(route, state) as Promise<boolean | UrlTree>
+    );
+
+    expect(result).toBeTrue();
+  });
+
+  it('redirects an unverified visitor to login and preserves the requested URL', async () => {
+    authService.verifiedUser.and.resolveTo(null);
+
+    const result = await TestBed.runInInjectionContext(
+      () => authGuard(route, state) as Promise<boolean | UrlTree>
+    );
+
+    expect(result).toBe(loginTree);
+    expect(router.createUrlTree).toHaveBeenCalledWith(['/login'], {
+      queryParams: { returnUrl: '/dashboard/maestro' }
+    });
   });
 });

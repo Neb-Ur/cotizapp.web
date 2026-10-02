@@ -1,9 +1,4 @@
 <main class="detail-page">
-  <header class="detail-header">
-    <button type="button" (click)="backToSearch()">Volver al buscador</button>
-    <a routerLink="/">Ir al sitio publico</a>
-  </header>
-
   <article class="detail-card detail-loading" *ngIf="isLoading" aria-live="polite" aria-label="Cargando producto">
     <div class="loading-line loading-line-short"></div>
     <section class="hero-grid">
@@ -55,25 +50,25 @@
         <p class="best-price">Mejor precio en <strong>{{ bestPriceStoreName }}</strong></p>
 
         <section class="quick-stores">
-          <h3>Precios por ferreteria</h3>
-          <p class="quick-stores-hint" *ngIf="!nearbyEnabled">{{ displayStores.length }} ferreteria(s) con oferta activa.</p>
+          <h3>Precios por ferretería</h3>
+          <p class="quick-stores-hint" *ngIf="!nearbyEnabled">{{ displayStores.length }} ferretería(s) con oferta activa.</p>
           <p class="quick-stores-hint" *ngIf="nearbyEnabled">
-            {{ displayStores.length }} ferreteria(s) dentro de {{ nearbyRadiusKm }} km.
+            {{ displayStores.length }} ferretería(s) dentro de {{ nearbyRadiusKm }} km.
           </p>
           <p class="stock-warning" *ngIf="nearbyEnabled && displayStores.length === 0">
-            No hay ferreterias con ubicacion registrada y esta oferta dentro de {{ nearbyRadiusKm }} km.
+            No hay ferreterías con ubicación registrada y esta oferta dentro de {{ nearbyRadiusKm }} km.
           </p>
 
           <label class="quantity-field">
-            Cotizacion destino
+            Cotización de destino
             <select [ngModel]="selectedProjectId" (ngModelChange)="onProjectChange($event)">
-              <option value="">Selecciona una cotizacion</option>
-              <option [value]="createQuotationOptionValue">+ Crear nueva cotizacion</option>
+              <option value="">Selecciona una cotización</option>
+              <option [value]="createQuotationOptionValue">+ Crear nueva cotización</option>
               <option *ngFor="let project of projects" [value]="project.id">{{ project.name }}</option>
             </select>
           </label>
           <p class="stock-warning" *ngIf="!hasProjects">
-            No tienes cotizaciones guardadas. Crea una desde "Mis Cotizaciones".
+            Aún no tienes cotizaciones guardadas. Crea una para comenzar.
           </p>
 
           <label class="quantity-field">
@@ -115,7 +110,7 @@
           </p>
 
           <button type="button" class="add-quote-button" *ngIf="canShowAddToQuotation" (click)="addToQuotation()">
-            Agregar a cotizacion
+            Agregar a cotización
           </button>
           <p class="quote-feedback" *ngIf="quoteFeedback">{{ quoteFeedback }}</p>
         </section>
@@ -123,7 +118,7 @@
     </section>
 
     <section class="product-information">
-      <nav class="tab-header" role="tablist" aria-label="Informacion del producto">
+      <nav class="tab-header" role="tablist" aria-label="Información del producto">
         <button
           type="button"
           role="tab"
@@ -132,7 +127,7 @@
           [attr.aria-selected]="activeTab === 'descripcion'"
           [class.active]="activeTab === 'descripcion'"
           (click)="setTab('descripcion')"
-        >Descripcion</button>
+        >Descripción</button>
         <button
           type="button"
           role="tab"
@@ -141,7 +136,7 @@
           [attr.aria-selected]="activeTab === 'ficha'"
           [class.active]="activeTab === 'ficha'"
           (click)="setTab('ficha')"
-        >Ficha tecnica</button>
+        >Ficha técnica</button>
         <button
           type="button"
           role="tab"
@@ -150,7 +145,7 @@
           [attr.aria-selected]="activeTab === 'adicional'"
           [class.active]="activeTab === 'adicional'"
           (click)="setTab('adicional')"
-        >Informacion adicional</button>
+        >Información adicional</button>
       </nav>
 
       <div
@@ -160,14 +155,14 @@
         role="tabpanel"
         aria-labelledby="tab-description"
       >
-        <h2>Descripcion del producto</h2>
+        <h2>Descripción del producto</h2>
         <p class="intro">{{ product.shortDescription }}</p>
         <div class="description-block" *ngFor="let block of product.descriptionBlocks">
           <h3 *ngIf="block.title">{{ block.title }}</h3>
           <p>{{ block.text }}</p>
         </div>
         <ng-container *ngIf="product.featureBullets.length > 0">
-          <h3>Caracteristicas</h3>
+          <h3>Características</h3>
           <ul><li *ngFor="let feature of product.featureBullets">{{ feature }}</li></ul>
         </ng-container>
       </div>
@@ -179,7 +174,7 @@
         role="tabpanel"
         aria-labelledby="tab-specifications"
       >
-        <h2>Ficha tecnica</h2>
+        <h2>Ficha técnica</h2>
         <table class="sheet-table" *ngIf="product.technicalSheet.length > 0; else emptyTechnicalSheet">
           <tbody>
             <tr *ngFor="let row of product.technicalSheet">
@@ -189,7 +184,7 @@
           </tbody>
         </table>
         <ng-template #emptyTechnicalSheet>
-          <p class="tab-empty">La ficha tecnica de este producto se encuentra en preparacion.</p>
+          <p class="tab-empty">La ficha técnica de este producto se encuentra en preparación.</p>
         </ng-template>
       </div>
 
@@ -200,7 +195,7 @@
         role="tabpanel"
         aria-labelledby="tab-additional"
       >
-        <h2>Informacion adicional</h2>
+        <h2>Información adicional</h2>
         <dl class="additional-grid">
           <div><dt>Marca</dt><dd>{{ product.brand }}</dd></div>
           <div><dt>SKU referencial</dt><dd>{{ product.sku || 'No informado' }}</dd></div>
@@ -232,33 +227,16 @@
     </article>
   </ng-template>
 
-  <div
-    class="quotation-modal-backdrop"
-    *ngIf="isCreateQuotationModalOpen"
-    (click)="closeCreateQuotationModal()"
+  <app-ui-modal
+    [open]="isCreateQuotationModalOpen"
+    eyebrow="Nueva cotización"
+    title="¿Para qué proyecto cotizarás?"
+    size="sm"
+    [closeDisabled]="isCreatingQuotation"
+    [closeOnBackdrop]="!isCreatingQuotation"
+    (closed)="closeCreateQuotationModal()"
   >
-    <section
-      class="quotation-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="quotation-modal-title"
-      (click)="$event.stopPropagation()"
-    >
-      <header class="quotation-modal-header">
-        <div>
-          <span>Nueva cotizacion</span>
-          <h2 id="quotation-modal-title">¿Para que proyecto cotizaras?</h2>
-        </div>
-        <button
-          type="button"
-          class="quotation-modal-close"
-          aria-label="Cerrar"
-          [disabled]="isCreatingQuotation"
-          (click)="closeCreateQuotationModal()"
-        >×</button>
-      </header>
-
-      <form class="quotation-modal-form" (ngSubmit)="createQuotation()">
+      <form class="quotation-form" (ngSubmit)="createQuotation()">
         <label>
           Nombre <strong aria-hidden="true">*</strong>
           <input
@@ -266,7 +244,7 @@
             type="text"
             maxlength="80"
             autocomplete="off"
-            placeholder="Ej: Remodelacion cocina"
+            placeholder="Ej.: Remodelación de cocina"
             [(ngModel)]="newQuotationName"
             [disabled]="isCreatingQuotation"
             required
@@ -274,43 +252,35 @@
         </label>
 
         <label>
-          Direccion <span>(opcional)</span>
+          Dirección <span>(opcional)</span>
           <input
             name="quotationAddress"
             type="text"
             maxlength="160"
             autocomplete="street-address"
-            placeholder="Ej: Av. Principal 1234, Maipu"
+            placeholder="Ej.: Av. Principal 1234, Maipú"
             [(ngModel)]="newQuotationAddress"
             [disabled]="isCreatingQuotation"
           />
         </label>
 
-        <p class="quotation-modal-error" *ngIf="createQuotationError" role="alert">
+        <p class="quotation-error" *ngIf="createQuotationError" role="alert">
           {{ createQuotationError }}
         </p>
 
-        <footer class="quotation-modal-actions">
-          <button
-            *ngIf="user; else loginToCreate"
-            type="submit"
-            class="quotation-modal-primary"
-            [disabled]="isCreatingQuotation || !newQuotationName.trim()"
-          >{{ isCreatingQuotation ? 'Creando...' : 'Crear y seleccionar' }}</button>
+        <footer class="quotation-actions">
           <button
             type="button"
-            class="quotation-modal-secondary"
+            class="btn btn-outline"
             [disabled]="isCreatingQuotation"
             (click)="closeCreateQuotationModal()"
           >Cancelar</button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="isCreatingQuotation || !newQuotationName.trim()"
+          >{{ isCreatingQuotation ? 'Creando...' : 'Crear y seleccionar' }}</button>
         </footer>
-
-        <ng-template #loginToCreate>
-          <button type="button" class="quotation-modal-primary" (click)="goToLoginFromQuotationModal()">
-            Iniciar sesion para crear
-          </button>
-        </ng-template>
       </form>
-    </section>
-  </div>
+  </app-ui-modal>
 </main>

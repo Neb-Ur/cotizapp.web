@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ProductDetailView, ProductStoreOfferRow, ProjectSummary, SessionUser } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
 import { FirebaseDataService } from '../../core/services/firebase-data.service';
+import { UiModalComponent } from '../../shared/components/ui-modal/ui-modal.component';
 import {
   GeoCoordinates,
   distanceKm,
@@ -15,7 +16,7 @@ import {
 @Component({
   selector: 'app-producto-detalle',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, UiModalComponent],
   templateUrl: './producto-detalle.component.html',
   styleUrl: './producto-detalle.component.scss'
 })
@@ -40,6 +41,7 @@ export class ProductoDetalleComponent implements OnInit {
   protected nearbyRadiusKm = 10;
   protected nearbyLocation: GeoCoordinates | null = null;
   private openExtraSectionIds = new Set<string>();
+  private handledCreateQuotationIntent = false;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -77,6 +79,15 @@ export class ProductoDetalleComponent implements OnInit {
         this.openExtraSectionIds.clear();
         this.loadProjects();
         this.displayStores = this.buildDisplayStores(this.detail?.stores || []);
+
+        if (
+          currentUser
+          && params.get('crearCotizacion') === '1'
+          && !this.handledCreateQuotationIntent
+        ) {
+          this.handledCreateQuotationIntent = true;
+          this.openCreateQuotationModal();
+        }
       } finally {
         this.isLoading = false;
       }
@@ -151,6 +162,10 @@ export class ProductoDetalleComponent implements OnInit {
   protected onProjectChange(projectId: string): void {
     if (projectId === this.createQuotationOptionValue) {
       this.selectedProjectId = '';
+      if (!this.user) {
+        this.goToLoginFromQuotationModal();
+        return;
+      }
       this.openCreateQuotationModal();
       return;
     }
@@ -210,8 +225,9 @@ export class ProductoDetalleComponent implements OnInit {
   }
 
   protected goToLoginFromQuotationModal(): void {
+    const separator = this.router.url.includes('?') ? '&' : '?';
     void this.router.navigate(['/login'], {
-      queryParams: { returnUrl: this.router.url }
+      queryParams: { returnUrl: `${this.router.url}${separator}crearCotizacion=1` }
     });
   }
 

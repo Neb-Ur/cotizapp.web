@@ -36,6 +36,7 @@
   --surface-1: #f7f3eb;
   --surface-2: #efe6d9;
   --surface-3: #e4d8c6;
+  --surface-solid: #ffffff;
 
   --border: rgba(22, 33, 46, 0.10);
   --border-med: rgba(22, 33, 46, 0.16);
@@ -47,6 +48,8 @@
   --shadow-md: 0 18px 38px rgba(12, 18, 26, 0.08);
   --shadow-lg: 0 28px 56px rgba(12, 18, 26, 0.11);
   --shadow-xl: 0 42px 90px rgba(12, 18, 26, 0.14);
+  --shadow-dialog: 0 24px 70px rgba(15, 27, 45, 0.28);
+  --overlay-backdrop: rgba(15, 27, 45, 0.58);
 
   --r-xs: 4px;
   --r-sm: 6px;
@@ -84,6 +87,16 @@
   --slate-700: var(--ink-700);
   --slate-600: var(--ink-500);
   --accent-green: var(--emerald);
+  --danger-700: #9b1f1f;
+  --danger-50: #fff1f0;
+  --success-700: #177245;
+  --success-50: #e7f8ef;
+  --info-700: #244f7a;
+  --info-50: #e8f1ff;
+}
+
+body.modal-open {
+  overflow: hidden;
 }
 
 *, *::before, *::after {
@@ -380,6 +393,21 @@ button, a[role="button"], input[type="button"], input[type="submit"] {
   background: var(--ink-800);
 }
 
+.btn-danger {
+  background: var(--danger-700);
+  color: #fff;
+  box-shadow: 0 2px 5px rgba(155, 31, 31, 0.16);
+}
+
+.btn-danger:hover {
+  background: #7f1919;
+}
+
+.btn:disabled {
+  transform: none;
+  box-shadow: none;
+}
+
 .btn-lg {
   padding: 0.8rem 1.6rem;
   font-size: 1rem;
@@ -417,12 +445,44 @@ textarea::placeholder {
   color: var(--ink-400);
 }
 
+input[type='checkbox'],
+input[type='radio'] {
+  width: 1.1rem;
+  height: 1.1rem;
+  min-width: 1.1rem;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+  accent-color: var(--orange);
+}
+
+input[aria-invalid='true'],
+select[aria-invalid='true'],
+textarea[aria-invalid='true'] {
+  border-color: var(--danger-700);
+}
+
 input:focus,
 select:focus,
 textarea:focus {
   border-color: rgba(10, 148, 168, 0.46);
   box-shadow: 0 0 0 4px rgba(10, 148, 168, 0.10);
   background: #fff;
+}
+
+.form-error,
+.field-error {
+  margin: 0;
+  color: var(--danger-700);
+  font-size: var(--text-sm);
+  font-weight: 650;
+}
+
+.form-success {
+  margin: 0;
+  color: var(--success-700);
+  font-size: var(--text-sm);
+  font-weight: 700;
 }
 
 table {
@@ -505,4 +565,207 @@ textarea:disabled {
 .store-location-card p {
   margin-top: 0.25rem;
   color: var(--slate-700);
+}
+
+.store-location-editor {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.2fr);
+  align-items: end;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  background: #fbfcfe;
+}
+
+.store-location-editor h4,
+.store-location-editor p {
+  margin: 0;
+}
+
+.store-location-editor h4 {
+  margin-top: 0.15rem;
+}
+
+.store-location-editor p {
+  margin-top: 0.3rem;
+  color: var(--slate-600);
+  font-size: 0.88rem;
+}
+
+.store-coordinate-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: end;
+  gap: 0.55rem;
+}
+
+.store-coordinate-fields button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.45rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 1040px) {
+  .store-location-editor,
+  .store-coordinate-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Compact admin master-catalog navigation and filters. */
+.catalog-tabs-panel {
+  display: flex;
+  padding: 0.35rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.catalog-view-tabs.p-selectbutton {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  border-radius: 11px;
+  background: #f1f4f8;
+}
+
+.catalog-view-tabs.p-selectbutton .p-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.35rem;
+  padding: 0.45rem 0.8rem !important;
+  border: 0;
+  border-radius: 9px !important;
+  color: var(--slate-700) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.catalog-view-tabs.p-selectbutton .p-button.p-highlight {
+  color: #fff !important;
+  background: var(--navy-800) !important;
+}
+
+app-dashboard-admin-validaciones .p-card.taxonomy-card,
+app-dashboard-admin-validaciones .p-card.taxonomy-path {
+  box-shadow: none;
+}
+
+app-dashboard-admin-validaciones .p-card.taxonomy-card .p-card-body,
+app-dashboard-admin-validaciones .p-card.taxonomy-card .p-card-content,
+app-dashboard-admin-validaciones .p-card.taxonomy-path .p-card-body,
+app-dashboard-admin-validaciones .p-card.taxonomy-path .p-card-content {
+  padding: 0;
+}
+
+app-dashboard-admin-validaciones .p-card.taxonomy-card {
+  height: 100%;
+}
+
+app-dashboard-admin-validaciones .w-full {
+  width: 100%;
+}
+
+app-dashboard-admin-validaciones .admin-data-table .p-datatable-thead > tr > th {
+  padding: 0.7rem 0.8rem;
+  color: var(--navy-800);
+  background: #f5f7fa;
+  border-color: var(--border-soft);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+app-dashboard-admin-validaciones .admin-data-table .p-datatable-tbody > tr > td {
+  padding: 0.68rem 0.8rem;
+  border-color: var(--border-soft);
+}
+
+.master-catalog-panel {
+  min-height: 0 !important;
+}
+
+.master-catalog-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.master-catalog-heading h3,
+.master-catalog-heading p {
+  margin: 0;
+}
+
+.master-catalog-heading h3 {
+  margin-top: 0.15rem;
+}
+
+.master-catalog-heading p {
+  margin-top: 0.2rem;
+  color: var(--slate-600);
+}
+
+.master-filter-bar {
+  display: grid !important;
+  grid-template-columns: minmax(260px, 1.4fr) repeat(3, minmax(140px, 0.6fr)) auto;
+  align-items: end;
+  margin-top: 1rem;
+  padding: 0.7rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  background: #fbfcfe;
+}
+
+.search-input-action {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.35rem;
+}
+
+.search-input-action .master-search-button {
+  width: 2.45rem;
+  height: 2.45rem;
+  padding: 0;
+}
+
+@media (max-width: 1100px) {
+  .master-filter-bar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .master-search-field {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 680px) {
+  .catalog-view-tabs,
+  .master-catalog-heading,
+  .master-filter-bar {
+    width: 100%;
+  }
+
+  .catalog-view-tabs.p-selectbutton .p-button {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.82rem;
+  }
+
+  .master-catalog-heading {
+    flex-direction: column;
+  }
+
+  .master-filter-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .master-search-field {
+    grid-column: auto;
+  }
 }

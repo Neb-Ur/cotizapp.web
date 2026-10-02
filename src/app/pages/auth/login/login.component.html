@@ -7,7 +7,7 @@
         <span>CotizApp</span>
       </div>
       <blockquote class="panel-quote">
-        “Antes perdia horas comparando precios.
+        “Antes perdía horas comparando precios.
         Ahora cierro presupuestos en minutos.”
       </blockquote>
       <p class="panel-author">Rubén M. — Maestro independiente</p>
@@ -54,7 +54,7 @@
         <a routerLink="/recuperar-clave" class="forgot-link" [class.is-disabled]="isSubmitting">Olvidé mi contraseña</a>
       </div>
 
-      <button class="btn btn-dark btn-full" type="submit" [disabled]="isSubmitting">
+      <button class="btn btn-primary btn-full" type="submit" [disabled]="isSubmitting">
         {{ isSubmitting ? 'Ingresando...' : 'Iniciar sesión' }}
       </button>
       <p class="form-error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>

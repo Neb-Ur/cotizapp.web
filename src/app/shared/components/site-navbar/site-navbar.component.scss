@@ -18,13 +18,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  width: min(1280px, calc(100% - 1rem));
-  min-height: 72px;
-  margin: 0.5rem auto 0;
-  padding: 0 1.25rem;
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  background: rgba(255, 255, 255, 0.88);
+  width: 100%;
+  min-height: 74px;
+  margin: 0;
+  padding: 0 max(1.25rem, calc((100% - 1320px) / 2));
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(18px) saturate(180%);
   -webkit-backdrop-filter: blur(18px) saturate(180%);
   box-shadow: var(--shadow-sm);
@@ -338,7 +339,7 @@
   background: rgba(255, 255, 255, 0.72);
   cursor: pointer;
   padding: 0 8px;
-  border-radius: 12px;
+  border-radius: var(--r-md);
   flex-shrink: 0;
   box-shadow: var(--shadow-xs);
 }
@@ -362,7 +363,7 @@
 
 @media (max-width: 860px) {
   .navbar {
-    width: calc(100% - 1rem);
+    width: 100%;
     padding: 0 0.9rem;
     min-height: 68px;
   }

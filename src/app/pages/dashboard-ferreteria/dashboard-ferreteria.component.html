@@ -76,11 +76,11 @@
 
     <article class="panel panel--pending" *ngIf="user && user.accountStatus && user.accountStatus !== 'activo'">
       <h3 class="flush-heading">Cuenta pendiente de activacion</h3>
-      <p class="flush-copy">Puedes preparar tu catalogo, pero tus precios no participan en el comparador hasta que CotizApp active la cuenta.</p>
+      <p class="flush-copy">Puedes preparar tu catálogo, pero tus precios no participan en el comparador hasta que CotizApp active la cuenta.</p>
     </article>
 
     <article class="panel panel--loading" *ngIf="isInitialLoading || isSectionLoading">
-      <app-ui-loader [label]="isInitialLoading ? 'Cargando ferreteria...' : 'Cargando seccion...'" />
+      <app-ui-loader [label]="isInitialLoading ? 'Cargando ferretería...' : 'Cargando sección...'" />
     </article>
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'inicio'">
@@ -128,8 +128,8 @@
       </div>
 
       <label class="top-product-search">
-        Buscar en mi catalogo
-        <input [(ngModel)]="catalogSearch" (ngModelChange)="onCatalogSearchChange()" placeholder="Nombre, SKU o codigo de barras" />
+        Buscar en mi catálogo
+        <input [(ngModel)]="catalogSearch" (ngModelChange)="onCatalogSearchChange()" placeholder="Nombre, SKU o código de barras" />
       </label>
 
       <p class="saved" *ngIf="catalogNotice">{{ catalogNotice }}</p>
@@ -177,7 +177,7 @@
 
       <ng-template #emptyCatalog>
         <p *ngIf="catalog.length === 0">Aun no tienes productos. CotizApp puede cargarlos por ti o puedes agregarlos desde "Agregar productos".</p>
-        <p *ngIf="catalog.length > 0">No hay resultados para la busqueda.</p>
+        <p *ngIf="catalog.length > 0">No hay resultados para la búsqueda.</p>
       </ng-template>
 
       <p-paginator
@@ -211,7 +211,7 @@
 
       <section *ngIf="uploadMode === 'buscar'" class="upload-search-card">
         <div class="catalog-filters-grid">
-          <label>Categoria
+          <label>Categoría
             <select [ngModel]="uploadCategoryId" (ngModelChange)="onUploadCategoryChange($event)">
               <option value="">Todas</option>
               <option *ngFor="let option of categoryOptions" [value]="option.id">{{ option.name }}</option>
@@ -236,7 +236,7 @@
 
         <p *ngIf="relationError" class="error-text">{{ relationError }}</p>
         <p *ngIf="relationNotice" class="saved">{{ relationNotice }}</p>
-        <p *ngIf="masterLoading">Cargando catalogo maestro...</p>
+        <p *ngIf="masterLoading">Cargando catálogo maestro...</p>
 
         <div class="table-wrap" *ngIf="!masterLoading && masterRows.length > 0">
           <table>
@@ -269,9 +269,9 @@
 
       <section *ngIf="uploadMode === 'archivo'" class="upload-search-card">
         <h3>Actualizar masivamente por Excel</h3>
-        <p>Descarga tu catalogo actual, cambia precio y stock en la hoja Productos y vuelve a subir el mismo archivo. Mantén nombre, SKU y código de barras para que CotizApp identifique correctamente cada producto.</p>
+        <p>Descarga tu catálogo actual, cambia precio y stock en la hoja Productos y vuelve a subir el mismo archivo. Mantén nombre, SKU y código de barras para que CotizApp identifique correctamente cada producto.</p>
         <div class="form-actions">
-          <button type="button" class="secondary" (click)="downloadCatalogTemplate()">Descargar mi catalogo Excel</button>
+          <button type="button" class="secondary" (click)="downloadCatalogTemplate()">Descargar mi catálogo Excel</button>
         </div>
         <input type="file" accept=".xlsx,.xls,.csv,.txt" (change)="onCatalogFileSelected($event)" [disabled]="isReadingCatalogFile" />
         <p>{{ catalogFileName || 'Ningun archivo seleccionado' }}</p>
@@ -288,7 +288,7 @@
         <h3>Solicitar producto nuevo</h3>
         <div class="form-grid">
           <label>Nombre<input [(ngModel)]="requestDraft.name" /></label>
-          <label>Codigo de barras<input [(ngModel)]="requestDraft.barcode" /></label>
+          <label>Código de barras<input [(ngModel)]="requestDraft.barcode" /></label>
           <label>Precio<input [(ngModel)]="requestDraft.price" type="number" min="1" /></label>
           <label>Stock inicial<input [(ngModel)]="requestDraft.quantity" type="number" min="1" /></label>
         </div>
@@ -343,7 +343,15 @@
     </section>
   </div>
 
-  <app-ui-modal [open]="catalogEditModalOpen" title="Editar producto" (closed)="closeCatalogEdit()">
+  <app-ui-modal
+    [open]="catalogEditModalOpen"
+    eyebrow="Catálogo"
+    title="Editar producto"
+    size="sm"
+    [closeDisabled]="catalogEditSaving"
+    [closeOnBackdrop]="!catalogEditSaving"
+    (closed)="closeCatalogEdit()"
+  >
     <section *ngIf="catalogEditCandidate as product" class="catalog-edit-modal">
       <div class="catalog-edit-summary">
         <strong>{{ product.name }}</strong>
@@ -376,23 +384,23 @@
       <p *ngIf="catalogEditError" class="catalog-edit-error">{{ catalogEditError }}</p>
 
       <div class="confirm-delete-actions">
-        <button type="button" (click)="saveCatalogEdit()" [disabled]="catalogEditSaving">
+        <button type="button" class="btn btn-outline" (click)="closeCatalogEdit()" [disabled]="catalogEditSaving">Cancelar</button>
+        <button type="button" class="btn btn-primary" (click)="saveCatalogEdit()" [disabled]="catalogEditSaving">
           {{ catalogEditSaving ? 'Guardando...' : 'Guardar cambios' }}
         </button>
-        <button type="button" class="ghost" (click)="closeCatalogEdit()" [disabled]="catalogEditSaving">Cancelar</button>
       </div>
     </section>
   </app-ui-modal>
 
-  <app-ui-modal [open]="deleteCatalogModalOpen" title="Eliminar producto" (closed)="closeDeleteCatalogModal()">
-    <p>¿Eliminar <strong>{{ catalogDeleteCandidate?.name }}</strong> del catalogo?</p>
+  <app-ui-modal [open]="deleteCatalogModalOpen" eyebrow="Acción irreversible" title="Eliminar producto" size="sm" (closed)="closeDeleteCatalogModal()">
+    <p>¿Eliminar <strong>{{ catalogDeleteCandidate?.name }}</strong> del catálogo?</p>
     <div class="confirm-delete-actions">
-      <button type="button" class="danger" (click)="confirmDeleteCatalog()">Eliminar</button>
-      <button type="button" class="ghost" (click)="closeDeleteCatalogModal()">Cancelar</button>
+      <button type="button" class="btn btn-outline" (click)="closeDeleteCatalogModal()">Cancelar</button>
+      <button type="button" class="btn btn-danger" (click)="confirmDeleteCatalog()">Eliminar</button>
     </div>
   </app-ui-modal>
 
-  <app-ui-modal [open]="importSummaryModalOpen" title="Resultado de actualizacion masiva" (closed)="closeImportSummaryModal()">
+  <app-ui-modal [open]="importSummaryModalOpen" eyebrow="Importación de catálogo" title="Resultado de actualización masiva" size="lg" (closed)="closeImportSummaryModal()">
     <section *ngIf="importSummary as summary">
       <p>
         {{ summary.totalRows }} fila(s) procesadas:

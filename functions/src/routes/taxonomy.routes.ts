@@ -82,6 +82,15 @@ taxonomyRouter.delete('/familias/:id', requireAuth, requireRole('admin'), async 
   return ok(res, { deleted: true });
 });
 
+taxonomyRouter.get('/atributos-definicion', async (_req, res) => {
+  const data = (await rows(COLLECTIONS.familyDefinitions))
+    .sort((a, b) => {
+      const familyOrder = String(a.familiaId || '').localeCompare(String(b.familiaId || ''));
+      return familyOrder || numberValue(a.orden) - numberValue(b.orden);
+    });
+  return ok(res, data);
+});
+
 taxonomyRouter.get('/familias/:familyId/atributos-definicion', async (req, res) => {
   const data = (await rows(COLLECTIONS.familyDefinitions))
     .filter((item) => item.familiaId === req.params.familyId)

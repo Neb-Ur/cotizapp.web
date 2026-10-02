@@ -14,7 +14,7 @@ masterProductsRouter.get('/productos-maestro', async (req, res) => {
   const familyId = normalizeText(req.query['familiaId']);
   const data = (await rows(COLLECTIONS.masterProducts))
     .filter((item) => item.estado !== 'inactivo')
-    .filter((item) => !q || normalizeText(item.nombre).toLowerCase().includes(q) || normalizeText(item.marca).toLowerCase().includes(q))
+    .filter((item) => !q || normalizeText(item.nombre).toLowerCase().includes(q) || normalizeText(item.marca).toLowerCase().includes(q) || normalizeText(item.codigoBarras).toLowerCase().includes(q))
     .filter((item) => !categoryId || item.categoriaId === categoryId)
     .filter((item) => !subcategoryId || item.subcategoriaId === subcategoryId)
     .filter((item) => !familyId || item.familiaId === familyId)
@@ -33,7 +33,7 @@ masterProductsRouter.get('/productos-maestro/paginado', async (req, res) => {
   const all = (await rows(COLLECTIONS.masterProducts))
     .filter((item) => item.estado !== 'inactivo')
     .filter((item) => !excluded.has(item.id))
-    .filter((item) => !q || normalizeText(item.nombre).toLowerCase().includes(q) || normalizeText(item.marca).toLowerCase().includes(q))
+    .filter((item) => !q || normalizeText(item.nombre).toLowerCase().includes(q) || normalizeText(item.marca).toLowerCase().includes(q) || normalizeText(item.codigoBarras).toLowerCase().includes(q))
     .filter((item) => !categoryId || item.categoriaId === categoryId)
     .filter((item) => !subcategoryId || item.subcategoriaId === subcategoryId)
     .filter((item) => !familyId || item.familiaId === familyId)
@@ -61,6 +61,7 @@ masterProductsRouter.post('/productos-maestro', requireAuth, requireRole('admin'
     familiaId: normalizeText(req.body?.familiaId),
     nombre,
     marca: normalizeText(req.body?.marca) || 'Sin marca',
+    codigoBarras: normalizeText(req.body?.codigoBarras),
     descripcionCorta: normalizeText(req.body?.descripcionCorta),
     descripcionLarga: normalizeText(req.body?.descripcionLarga),
     imagenPrincipalUrl: normalizeText(req.body?.imagenPrincipalUrl),

@@ -2,11 +2,11 @@
   <header class="page-header">
     <button type="button" (click)="backToProjects()">{{ user ? 'Volver a mis cotizaciones' : 'Volver al buscador' }}</button>
     <div class="page-title">
-      <h1>{{ isNewProject ? 'Nueva cotizacion' : 'Detalle de cotizacion' }}</h1>
+      <h1>{{ isNewProject ? 'Nueva cotización' : 'Detalle de cotización' }}</h1>
       <p>
         {{ isNewProject
           ? 'Completa los datos base y luego agrega productos desde el buscador.'
-          : 'Revisa, ajusta y exporta tu cotizacion de materiales.' }}
+          : 'Revisa, ajusta y exporta tu cotización de materiales.' }}
       </p>
     </div>
   </header>
@@ -14,25 +14,25 @@
   <article class="detail-card">
     <section class="editor-grid" [class.single]="isNewProject">
       <article class="editor-panel">
-        <h2>Datos de la cotizacion</h2>
+        <h2>Datos de la cotización</h2>
         <label>
           Titulo
           <input [(ngModel)]="projectName" type="text" placeholder="Ej: Ampliacion quincho" />
         </label>
         <label>
-          Direccion de obra
+          Dirección de obra
           <input [(ngModel)]="projectAddress" type="text" placeholder="Ej: Av. Principal 1234, Maipu" />
         </label>
 
         <section class="quotation-nearby-card">
           <div class="quotation-nearby-copy">
-            <span class="quotation-nearby-label">Ferreterias consideradas</span>
+            <span class="quotation-nearby-label">Ferreterías consideradas</span>
             <strong>{{ proximityLabel }}</strong>
             <small *ngIf="proximityEnabled">
-              Los precios, la mejor tienda y la optimizacion usan solo ferreterias dentro de este radio.
+              Los precios, la mejor tienda y la optimización usan solo ferreterías dentro de este radio.
             </small>
             <small *ngIf="!proximityEnabled">
-              La cotizacion compara todas las ferreterias activas.
+              La cotización compara todas las ferreterías activas.
             </small>
           </div>
 
@@ -45,8 +45,8 @@
             </label>
             <button type="button" class="secondary" (click)="toggleProjectProximity()" [disabled]="isLocating">
               {{ isLocating
-                ? 'Obteniendo ubicacion...'
-                : (proximityEnabled ? 'Usar todas las ferreterias' : 'Buscar cerca de mi') }}
+                ? 'Obteniendo ubicación...'
+                : (proximityEnabled ? 'Usar todas las ferreterías' : 'Buscar cerca de mí') }}
             </button>
           </div>
 
@@ -56,15 +56,15 @@
 
         <p class="nearby-warning" *ngIf="proximityEnabled && unavailableItemCount > 0">
           {{ unavailableItemCount }} producto(s) no tienen una oferta con stock suficiente dentro de {{ projectProximity?.radiusKm }} km.
-          Puedes aumentar el radio o usar todas las ferreterias.
+          Puedes aumentar el radio o usar todas las ferreterías.
         </p>
 
         <div class="actions">
           <button type="button" (click)="saveProject()">
-            {{ !user ? 'Crear cuenta para guardar' : (isNewProject ? 'Guardar cotizacion' : 'Actualizar cotizacion') }}
+            {{ !user ? 'Crear cuenta para guardar' : (isNewProject ? 'Guardar cotización' : 'Actualizar cotización') }}
           </button>
           <button type="button" class="export" [disabled]="!hasQuotation" (click)="exportQuotation()">
-            Exportar cotizacion PDF
+            Exportar cotización PDF
           </button>
           <button *ngIf="!isNewProject" type="button" [disabled]="!hasQuotation" (click)="shareQuotation()">
             Enviar al cliente
@@ -116,7 +116,7 @@
     <section class="quotation-table-card">
       <div class="quote-table-header">
         <div>
-          <h2>Detalle de cotizacion</h2>
+          <h2>Detalle de cotización</h2>
           <p>Administra productos, cantidades y costo unitario.</p>
         </div>
         <button type="button" class="secondary" (click)="goToSearchForProduct()">Agregar item</button>
@@ -173,7 +173,7 @@
 
       <ng-template #emptyQuotation>
         <div class="empty-state">
-          <p class="empty-title">Aun no hay productos en esta cotizacion.</p>
+          <p class="empty-title">Aún no hay productos en esta cotización.</p>
           <p>Empieza a agregar productos desde el buscador para armar el presupuesto.</p>
         </div>
       </ng-template>
@@ -182,9 +182,9 @@
     <section class="same-store-card" *ngIf="hasItemsInTable">
       <div class="same-store-header">
         <div>
-          <h2>Si compras todo en una misma ferreteria</h2>
+          <h2>Si compras todo en una misma ferretería</h2>
           <p class="section-note">
-            Solo mostramos ferreterias que ya participan en tu cotizacion combinada y que tienen todos los productos con stock suficiente.
+            Solo mostramos ferreterías que ya participan en tu cotización combinada y que tienen todos los productos con stock suficiente.
           </p>
         </div>
         <button
@@ -198,13 +198,13 @@
       </div>
 
       <p class="nearby-warning" *ngIf="singleStoreSelectionInvalid">
-        La ferreteria que habias aplicado ya no tiene todos los productos disponibles. CotizApp volvio temporalmente a la compra combinada.
+        La ferretería que habías aplicado ya no tiene todos los productos disponibles. CotizApp volvió temporalmente a la compra combinada.
       </p>
 
       <div class="same-store-applied" *ngIf="quotation.appliedStoreName">
-        <span>Aplicada a la cotizacion</span>
+        <span>Aplicada a la cotización</span>
         <strong>{{ quotation.appliedStoreName }}</strong>
-        <p>Todos los precios y totales de arriba corresponden ahora a esta ferreteria.</p>
+        <p>Todos los precios y totales de arriba corresponden ahora a esta ferretería.</p>
       </div>
 
       <div class="same-store-grid" *ngIf="singleStoreOptions.length > 0; else noSingleStore">
@@ -238,8 +238,8 @@
 
       <ng-template #noSingleStore>
         <div class="empty-state compact">
-          <p class="empty-title">Ninguna de las ferreterias seleccionadas tiene toda la cotizacion disponible.</p>
-          <p>Puedes mantener la compra combinada o cambiar productos, cantidades o radio de busqueda.</p>
+          <p class="empty-title">Ninguna de las ferreterías seleccionadas tiene toda la cotización disponible.</p>
+          <p>Puedes mantener la compra combinada o cambiar productos, cantidades o radio de búsqueda.</p>
         </div>
       </ng-template>
 

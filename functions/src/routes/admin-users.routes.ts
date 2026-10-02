@@ -3,7 +3,7 @@ import { adminAuth, db } from '../lib/firebase.js';
 import { requireAuth, requireRole } from '../lib/auth.js';
 import { fail, ok } from '../lib/http.js';
 import { COLLECTIONS } from '../lib/collections.js';
-import { nowIso, normalizeText, validRole } from '../lib/values.js';
+import { coordinateValue, nowIso, normalizeText, validRole } from '../lib/values.js';
 import { rows, row, createRow, deleteRowsByIds } from '../repositories/firestore.repository.js';
 import { authUserResponse } from '../services/user.service.js';
 export const adminUsersRouter = Router();
@@ -15,6 +15,16 @@ adminUsersRouter.get('/admin/usuarios', requireAuth, requireRole('admin'), async
 adminUsersRouter.post('/admin/usuarios', requireAuth, requireRole('admin'), async (req, res) => {
   const role = req.body?.rol;
   if (!validRole(role)) return fail(res, 'ADMIN_INVALID_ROLE', 'Rol invalido.', 400);
+  const storeLatitude = coordinateValue(req.body?.latitud, -90, 90);
+  const storeLongitude = coordinateValue(req.body?.longitud, -180, 180);
+  if (role === 'ferreteria') {
+    if (!normalizeText(req.body?.ciudad) || !normalizeText(req.body?.comuna) || !normalizeText(req.body?.direccion)) {
+      return fail(res, 'FERRETERIA_ADDRESS_REQUIRED', 'Ciudad, comuna y dirección son obligatorias.', 400);
+    }
+    if (storeLatitude === null || storeLongitude === null) {
+      return fail(res, 'FERRETERIA_LOCATION_REQUIRED', 'La ubicación del local es obligatoria para las búsquedas por proximidad.', 400);
+    }
+  }
   const firebaseUser = await adminAuth.createUser({
     email: normalizeText(req.body?.correo).toLowerCase(),
     password: normalizeText(req.body?.password),
@@ -36,6 +46,8 @@ adminUsersRouter.post('/admin/usuarios', requireAuth, requireRole('admin'), asyn
       usuarioDuenoId: firebaseUser.uid,
       nombreComercial: normalizeText(req.body?.nombreComercial) || normalizeText(req.body?.nombre),
       rut: normalizeText(req.body?.rut),
+      latitud: storeLatitude,
+      longitud: storeLongitude,
       estado: 'activo',
       creadoEn: nowIso()
     });

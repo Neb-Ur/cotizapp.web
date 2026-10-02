@@ -12,7 +12,7 @@
 .hero,
 .faq-list,
 .help-card {
-  border-radius: 18px;
+  border-radius: var(--r-md);
   border: 1px solid var(--border-soft);
   background: rgba(255, 255, 255, 0.94);
   padding: 1.25rem;
@@ -52,7 +52,7 @@ h2 {
 
 details {
   border: 1px solid var(--border-soft);
-  border-radius: 12px;
+  border-radius: var(--r-md);
   padding: 0.65rem 0.75rem;
   background: #f8fbff;
 }
@@ -80,7 +80,7 @@ details p {
 
 .help-card a {
   display: inline-flex;
-  border-radius: 10px;
+  border-radius: var(--r-md);
   background: var(--navy-800);
   color: #fff;
   padding: 0.5rem 0.85rem;

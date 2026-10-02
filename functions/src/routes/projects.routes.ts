@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { db } from '../lib/firebase.js';
-import { requireAuth } from '../lib/auth.js';
+import { requireAuth, requireRole } from '../lib/auth.js';
 import { fail, ok } from '../lib/http.js';
 import { COLLECTIONS } from '../lib/collections.js';
 import { nowIso, normalizeText, normalizeProjectProximity } from '../lib/values.js';
@@ -9,7 +9,7 @@ import { canAccessOwner } from '../lib/ownership.js';
 import { normalizeItems, optimizeItems, projectView } from '../services/quotation.service.js';
 export const projectsRouter = Router();
 
-projectsRouter.get('/maestros/:ownerId/proyectos', requireAuth, async (req, res) => {
+projectsRouter.get('/maestros/:ownerId/proyectos', requireAuth, requireRole('maestro', 'admin'), async (req, res) => {
   if (!canAccessOwner(req, req.params.ownerId)) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para estas cotizaciones.', 403);
   const projects = (await rows(COLLECTIONS.projects))
     .filter((item) => item.ownerId === req.params.ownerId)
@@ -18,7 +18,7 @@ projectsRouter.get('/maestros/:ownerId/proyectos', requireAuth, async (req, res)
   return ok(res, data);
 });
 
-projectsRouter.post('/maestros/:ownerId/proyectos', requireAuth, async (req, res) => {
+projectsRouter.post('/maestros/:ownerId/proyectos', requireAuth, requireRole('maestro', 'admin'), async (req, res) => {
   if (!canAccessOwner(req, req.params.ownerId)) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para crear esta cotizacion.', 403);
 
   const ownerProjects = (await rows(COLLECTIONS.projects))
@@ -46,14 +46,14 @@ projectsRouter.post('/maestros/:ownerId/proyectos', requireAuth, async (req, res
   return ok(res, await projectView(created), 201);
 });
 
-projectsRouter.get('/maestros/:ownerId/proyectos/:projectId', requireAuth, async (req, res) => {
+projectsRouter.get('/maestros/:ownerId/proyectos/:projectId', requireAuth, requireRole('maestro', 'admin'), async (req, res) => {
   if (!canAccessOwner(req, req.params.ownerId)) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para esta cotizacion.', 403);
   const project = await row(COLLECTIONS.projects, req.params.projectId);
   if (!project || project.ownerId !== req.params.ownerId) return fail(res, 'PROYECTO_NOT_FOUND', 'No existe la cotizacion indicada.', 404);
   return ok(res, await projectView(project));
 });
 
-projectsRouter.put('/maestros/:ownerId/proyectos/:projectId', requireAuth, async (req, res) => {
+projectsRouter.put('/maestros/:ownerId/proyectos/:projectId', requireAuth, requireRole('maestro', 'admin'), async (req, res) => {
   if (!canAccessOwner(req, req.params.ownerId)) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para esta cotizacion.', 403);
   const project = await row(COLLECTIONS.projects, req.params.projectId);
   if (!project || project.ownerId !== req.params.ownerId) return fail(res, 'PROYECTO_NOT_FOUND', 'No existe la cotizacion indicada.', 404);
@@ -68,7 +68,7 @@ projectsRouter.put('/maestros/:ownerId/proyectos/:projectId', requireAuth, async
   return ok(res, await projectView(updated));
 });
 
-projectsRouter.post('/maestros/:ownerId/proyectos/:projectId/items', requireAuth, async (req, res) => {
+projectsRouter.post('/maestros/:ownerId/proyectos/:projectId/items', requireAuth, requireRole('maestro', 'admin'), async (req, res) => {
   if (!canAccessOwner(req, req.params.ownerId)) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para esta cotizacion.', 403);
   const project = await row(COLLECTIONS.projects, req.params.projectId);
   if (!project || project.ownerId !== req.params.ownerId) return fail(res, 'PROYECTO_NOT_FOUND', 'No existe la cotizacion indicada.', 404);
@@ -78,7 +78,7 @@ projectsRouter.post('/maestros/:ownerId/proyectos/:projectId/items', requireAuth
 });
 
 
-projectsRouter.delete('/maestros/:ownerId/proyectos/:projectId', requireAuth, async (req, res) => {
+projectsRouter.delete('/maestros/:ownerId/proyectos/:projectId', requireAuth, requireRole('maestro', 'admin'), async (req, res) => {
   if (!canAccessOwner(req, req.params.ownerId)) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para esta cotizacion.', 403);
   const project = await row(COLLECTIONS.projects, req.params.projectId);
   if (!project || project.ownerId !== req.params.ownerId) return fail(res, 'PROYECTO_NOT_FOUND', 'No existe la cotizacion indicada.', 404);
@@ -86,7 +86,7 @@ projectsRouter.delete('/maestros/:ownerId/proyectos/:projectId', requireAuth, as
   return ok(res, { deleted: true });
 });
 
-projectsRouter.post('/cotizaciones/optimizar', requireAuth, async (req, res) => {
+projectsRouter.post('/cotizaciones/optimizar', requireAuth, requireRole('maestro', 'admin'), async (req, res) => {
   return ok(
     res,
     await optimizeItems(

@@ -167,7 +167,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
   padding: 1.2rem;
-  border-radius: 24px;
+  border-radius: var(--r-lg);
   background: rgba(255, 255, 255, 0.58);
   border: 1px solid rgba(255, 255, 255, 0.55);
 }
@@ -281,7 +281,7 @@
 }
 
 :host ::ng-deep div.mat-mdc-autocomplete-panel {
-  border-radius: 16px;
+  border-radius: var(--r-md);
   border: 1px solid var(--border-med);
   box-shadow: var(--shadow-lg);
   background: rgba(255, 255, 255, 0.96);
@@ -343,23 +343,23 @@
 .location-field {
   padding: 0.85rem;
   border: 1px solid #dbe4ef;
-  border-radius: 14px;
-  background: #f8fbff;
+  border-radius: var(--r-md);
+  background: var(--ink-50);
 }
 
 .location-help {
   margin: 0 0 0.55rem;
-  color: #536174;
+  color: var(--ink-500);
   font-size: 0.9rem;
   line-height: 1.45;
 }
 
 .location-ok {
-  color: #177245;
+  color: var(--success-700);
   font-weight: 700;
 }
 
 .location-error {
-  color: #9b1f1f;
+  color: var(--danger-700);
   font-weight: 700;
 }

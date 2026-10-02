@@ -58,15 +58,21 @@ export class AuthService {
 
   private readonly currentUserState = signal<SessionUser | null>(null);
   private readonly tokenState = signal<string | null>(null);
+  private readonly sessionVerifiedState = signal(false);
+  private readonly sessionReadyPromise: Promise<void>;
+  private sessionVerifiedAt = 0;
+  private sessionVerificationPromise: Promise<SessionUser | null> | null = null;
   private firebaseAuth: Auth | null = null;
   private storageMode: StorageMode = 'local';
 
   readonly currentUser = computed(() => this.currentUserState());
-  readonly isLoggedIn = computed(() => this.currentUserState() !== null);
+  readonly isLoggedIn = computed(
+    () => this.sessionVerifiedState() && this.currentUserState() !== null,
+  );
 
   constructor(private readonly http: HttpClient) {
     this.restoreCachedSession();
-    void this.initializeFirebaseSession();
+    this.sessionReadyPromise = this.initializeFirebaseSession();
   }
 
   async login(payload: LoginPayload): Promise<SessionUser> {
@@ -177,6 +183,34 @@ export class AuthService {
     return this.currentUserState()?.role === role;
   }
 
+  async verifiedUser(): Promise<SessionUser | null> {
+    await this.sessionReadyPromise;
+    const token = this.tokenState();
+    const current = this.currentUserState();
+    if (!this.sessionVerifiedState() || !token || !current) return null;
+
+    if (Date.now() - this.sessionVerifiedAt < 5_000) return current;
+    if (this.sessionVerificationPromise) return this.sessionVerificationPromise;
+
+    this.sessionVerificationPromise = this.fetchCurrentUser(token)
+      .then((user) => {
+        this.currentUserState.set(user);
+        this.sessionVerifiedState.set(true);
+        this.sessionVerifiedAt = Date.now();
+        this.persistSession(user, token);
+        return user;
+      })
+      .catch(() => {
+        this.clearSession();
+        return null;
+      })
+      .finally(() => {
+        this.sessionVerificationPromise = null;
+      });
+
+    return this.sessionVerificationPromise;
+  }
+
 
   getToken(): string | null {
     return this.tokenState();
@@ -242,6 +276,8 @@ export class AuthService {
     accountStatus?: 'activo' | 'bloqueado' | 'pendiente';
     businessName?: string;
     rut?: string;
+    storeLatitude?: number | null;
+    storeLongitude?: number | null;
   }): Promise<SessionUser> {
     const token = this.requireToken();
     const response = await firstValueFrom(
@@ -256,7 +292,9 @@ export class AuthService {
         direccion: payload.address.trim(),
         estadoCuenta: payload.accountStatus,
         nombreComercial: payload.businessName?.trim() || undefined,
-        rut: payload.rut?.trim() || undefined
+        rut: payload.rut?.trim() || undefined,
+        latitud: payload.storeLatitude,
+        longitud: payload.storeLongitude
       }, { headers: this.authHeaders(token) })
     );
     return this.mapApiUser(response.data);
@@ -285,24 +323,34 @@ export class AuthService {
   private async initializeFirebaseSession(): Promise<void> {
     try {
       const auth = await this.getAuth();
-      onIdTokenChanged(auth, async (firebaseUser) => {
-        if (!firebaseUser) {
-          this.clearSession();
-          return;
-        }
+      await new Promise<void>((resolve) => {
+        let initialSessionResolved = false;
+        onIdTokenChanged(auth, async (firebaseUser) => {
+          try {
+            if (!firebaseUser) {
+              this.clearSession();
+              return;
+            }
 
-        try {
-          const token = await getIdToken(firebaseUser);
-          const user = await this.fetchCurrentUser(token);
-          this.tokenState.set(token);
-          this.currentUserState.set(user);
-          this.persistSession(user, token);
-        } catch {
-          this.clearSession();
-        }
+            const token = await getIdToken(firebaseUser);
+            const user = await this.fetchCurrentUser(token);
+            this.tokenState.set(token);
+            this.currentUserState.set(user);
+            this.sessionVerifiedState.set(true);
+            this.sessionVerifiedAt = Date.now();
+            this.persistSession(user, token);
+          } catch {
+            this.clearSession();
+          } finally {
+            if (!initialSessionResolved) {
+              initialSessionResolved = true;
+              resolve();
+            }
+          }
+        });
       });
     } catch {
-      // The cached session lets the UI render. Requests will fail clearly until Firebase is available.
+      this.clearSession();
     }
   }
 
@@ -329,6 +377,8 @@ export class AuthService {
     this.storageMode = mode;
     this.currentUserState.set(user);
     this.tokenState.set(token);
+    this.sessionVerifiedState.set(true);
+    this.sessionVerifiedAt = Date.now();
     this.persistSession(user, token);
   }
 
@@ -347,6 +397,9 @@ export class AuthService {
   private clearSession(): void {
     this.currentUserState.set(null);
     this.tokenState.set(null);
+    this.sessionVerifiedState.set(false);
+    this.sessionVerifiedAt = 0;
+    this.sessionVerificationPromise = null;
     this.clearCachedSession();
   }
 

@@ -43,347 +43,437 @@
     </article>
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'ferreterias'">
-      <h3>Ferreterias del piloto</h3>
-      <p>Activa la cuenta cuando corresponda, revisa su catalogo y realiza la carga inicial.</p>
+      <ng-container [ngSwitch]="ferreteriaView">
+        <ng-container *ngSwitchCase="'list'">
+          <div class="store-section-heading">
+            <div>
+              <h3>Ferreterías</h3>
+              <p>{{ filteredFerreteriaRows.length }} de {{ ferreteriaRows.length }} ferretería(s). El catálogo se carga solo al abrir el detalle.</p>
+            </div>
+            <button type="button" (click)="openStoreCreate()">Crear ferretería</button>
+          </div>
 
-      <p *ngIf="notice" class="saved">{{ notice }}</p>
-      <p *ngIf="error" class="error">{{ error }}</p>
+          <div class="store-filter-bar" *ngIf="ferreteriaRows.length > 0">
+            <label class="store-search-field">Buscar
+              <input type="search" [(ngModel)]="storeSearch" (ngModelChange)="onStoreFiltersChange()" placeholder="Nombre, correo, RUT o teléfono" />
+            </label>
+            <label>Ciudad
+              <select [(ngModel)]="storeCityFilter" (ngModelChange)="onStoreCityChange()">
+                <option value="">Todas</option>
+                <option *ngFor="let city of ferreteriaCityOptions" [value]="city">{{ city }}</option>
+              </select>
+            </label>
+            <label>Comuna
+              <select [(ngModel)]="storeCommuneFilter" (ngModelChange)="onStoreFiltersChange()">
+                <option value="">Todas</option>
+                <option *ngFor="let commune of ferreteriaCommuneOptions" [value]="commune">{{ commune }}</option>
+              </select>
+            </label>
+            <button pButton type="button" icon="pi pi-filter-slash" [rounded]="true" [text]="true" severity="secondary" class="store-action-button store-clear-filter" (click)="clearStoreFilters()" aria-label="Limpiar filtros" title="Limpiar filtros"></button>
+          </div>
 
-      <div class="table-wrap" *ngIf="ferreteriaRows.length > 0; else noStores">
-        <table>
-          <thead>
-            <tr>
-              <th>Ferreteria</th>
-              <th>Correo</th>
-              <th>Estado</th>
-              <th>Productos</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let store of ferreteriaRows">
-              <td>{{ store.businessName || store.displayName }}</td>
-              <td>{{ store.email }}</td>
-              <td>{{ statusLabel(userStatus(store)) }}</td>
-              <td>{{ storeCatalogCount(store) }}</td>
-              <td class="actions">
-                <button type="button" *ngIf="userStatus(store) !== 'activo'" (click)="activateStore(store)">Activar</button>
-                <button type="button" class="ghost" (click)="inspectStoreCatalog(store)">Ver catalogo</button>
-                <button type="button" class="ghost" (click)="openUserEdit(store)">Editar</button>
-                <button type="button" class="danger" *ngIf="userStatus(store) !== 'bloqueado'" (click)="quickBlock(store)">Bloquear</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <ng-template #noStores><p>No hay ferreterias registradas.</p></ng-template>
+          <div class="table-wrap" *ngIf="ferreteriaRows.length > 0; else noStores">
+            <table>
+              <thead><tr><th>Ferretería</th><th>Correo</th><th>Comuna</th><th>Estado</th><th>Acciones</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let store of paginatedFerreteriaRows">
+                  <td>{{ store.businessName || store.displayName }}</td>
+                  <td>{{ store.email }}</td>
+                  <td>{{ store.commune || '-' }}</td>
+                  <td>{{ statusLabel(userStatus(store)) }}</td>
+                  <td class="actions store-actions">
+                    <button pButton type="button" icon="pi pi-check" [rounded]="true" [text]="true" severity="success" class="store-action-button" *ngIf="userStatus(store) !== 'activo'" (click)="activateStore(store)" aria-label="Activar ferretería" title="Activar ferretería"></button>
+                    <button pButton type="button" icon="pi pi-eye" [rounded]="true" [text]="true" severity="info" class="store-action-button" (click)="inspectStoreCatalog(store)" aria-label="Ver detalle" title="Ver detalle"></button>
+                    <button pButton type="button" icon="pi pi-ban" [rounded]="true" [text]="true" severity="danger" class="store-action-button" *ngIf="userStatus(store) !== 'bloqueado'" (click)="quickBlock(store)" aria-label="Bloquear ferretería" title="Bloquear ferretería"></button>
+                  </td>
+                </tr>
+                <tr *ngIf="filteredFerreteriaRows.length === 0">
+                  <td colspan="5" class="catalog-empty-cell">No encontramos ferreterías para estos filtros.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p-paginator
+            *ngIf="filteredFerreteriaRows.length > 0"
+            styleClass="cotizapp-paginator"
+            [first]="(storePage - 1) * storePageSize"
+            [rows]="storePageSize"
+            [totalRecords]="filteredFerreteriaRows.length"
+            [rowsPerPageOptions]="storePageSizeOptions"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="{first}–{last} de {totalRecords}"
+            (onPageChange)="onStorePageChange($event)"
+          />
+          <ng-template #noStores>
+            <div class="empty-store-list">
+              <p>Aún no hay ferreterías registradas.</p>
+              <button type="button" (click)="openStoreCreate()">Crear la primera ferretería</button>
+            </div>
+          </ng-template>
+        </ng-container>
 
-      <section class="card section-spaced" *ngIf="selectedStoreCatalogLabel">
-        <h4>Catalogo de {{ selectedStoreCatalogLabel }}</h4>
-        <div class="table-wrap" *ngIf="selectedStoreCatalog.length > 0; else emptyStoreCatalog">
+        <section class="inline-editor" *ngSwitchCase="'create'">
+          <div class="inline-editor-head">
+            <div>
+              <span class="section-kicker">Nueva cuenta</span>
+              <h3>Crear ferretería</h3>
+              <p>Se creará su acceso en Firebase Authentication y su perfil comercial.</p>
+            </div>
+            <button type="button" class="ghost" (click)="closeStoreCatalog()">Cancelar</button>
+          </div>
+          <div class="request-detail-form store-create-form">
+            <label>Nombre comercial<input type="text" [(ngModel)]="storeCreateDraft.businessName" /></label>
+            <label>Nombre del contacto<input type="text" [(ngModel)]="storeCreateDraft.displayName" /></label>
+            <label>RUT<input type="text" [(ngModel)]="storeCreateDraft.rut" /></label>
+            <label>Correo de acceso<input type="email" [(ngModel)]="storeCreateDraft.email" /></label>
+            <label>Contraseña temporal<input type="password" [(ngModel)]="storeCreateDraft.password" /></label>
+            <label>Teléfono<input type="text" [(ngModel)]="storeCreateDraft.phone" /></label>
+            <label>Ciudad
+              <select [(ngModel)]="storeCreateDraft.city" (ngModelChange)="onStoreCreateCityChange()">
+                <option value="">Selecciona una ciudad</option>
+                <option *ngFor="let option of storeCityOptions" [value]="option.city">{{ option.city }}</option>
+              </select>
+            </label>
+            <label>Comuna
+              <select [(ngModel)]="storeCreateDraft.commune" [disabled]="!storeCreateDraft.city">
+                <option value="">Selecciona una comuna</option>
+                <option *ngFor="let commune of storeCreateCommuneOptions" [value]="commune">{{ commune }}</option>
+              </select>
+            </label>
+            <label>Dirección<input type="text" [(ngModel)]="storeCreateDraft.address" /></label>
+            <label>Estado
+              <select [(ngModel)]="storeCreateDraft.accountStatus">
+                <option value="activo">Activo</option><option value="pendiente">Pendiente</option>
+              </select>
+            </label>
+          </div>
+          <section class="store-location-editor">
+            <div>
+              <span class="section-kicker">Ubicación para proximidad</span>
+              <h4>Coordenadas del local</h4>
+              <p>Si estás físicamente en la ferretería, usa la ubicación actual. También puedes pegar coordenadas obtenidas desde un mapa.</p>
+            </div>
+            <div class="store-coordinate-fields">
+              <label>Latitud<input type="number" step="any" [(ngModel)]="storeCreateDraft.storeLatitude" placeholder="-33.4489" /></label>
+              <label>Longitud<input type="number" step="any" [(ngModel)]="storeCreateDraft.storeLongitude" placeholder="-70.6693" /></label>
+              <button type="button" class="ghost" (click)="useCurrentLocationForStore()" [disabled]="storeCreateLocating">
+                <i class="pi pi-map-marker" aria-hidden="true"></i>
+                {{ storeCreateLocating ? 'Obteniendo...' : 'Usar ubicación actual' }}
+              </button>
+            </div>
+          </section>
+          <p *ngIf="storeCreateLocationMessage" class="saved">{{ storeCreateLocationMessage }}</p>
+          <p *ngIf="storeCreateError" class="error">{{ storeCreateError }}</p>
+          <div class="actions create-store-actions">
+            <button type="button" (click)="createStore()" [disabled]="storeCreateSaving">
+              {{ storeCreateSaving ? 'Creando...' : 'Crear y abrir detalle' }}
+            </button>
+          </div>
+        </section>
+
+        <ng-container *ngSwitchCase="'detail'">
+        <div class="store-catalog-header">
+          <button pButton type="button" icon="pi pi-arrow-left" [rounded]="true" [text]="true" severity="secondary" class="store-action-button" (click)="closeStoreCatalog()" aria-label="Volver a ferreterías" title="Volver"></button>
+          <div>
+            <span>Detalle de ferretería</span>
+            <h3>{{ selectedStoreCatalogLabel }}</h3>
+            <p>Cuenta {{ selectedStore ? statusLabel(userStatus(selectedStore)) : '' }}</p>
+          </div>
+        </div>
+
+        <dl class="store-profile-grid" *ngIf="selectedStore">
+          <div><dt>Contacto</dt><dd>{{ selectedStore.displayName }}</dd></div>
+          <div><dt>Correo</dt><dd>{{ selectedStore.email }}</dd></div>
+          <div><dt>Teléfono</dt><dd>{{ selectedStore.phone || '-' }}</dd></div>
+          <div><dt>RUT</dt><dd>{{ selectedStore.rut || '-' }}</dd></div>
+          <div><dt>Ubicación</dt><dd>{{ selectedStore.commune || selectedStore.city || '-' }}</dd></div>
+          <div><dt>Dirección</dt><dd>{{ selectedStore.address || '-' }}</dd></div>
+          <div><dt>Coordenadas</dt><dd>{{ selectedStore.storeLatitude ?? '-' }}, {{ selectedStore.storeLongitude ?? '-' }}</dd></div>
+        </dl>
+
+        <app-ui-loader *ngIf="selectedStoreCatalogLoading" label="Cargando catálogo de la ferretería..." />
+        <p *ngIf="error" class="error">{{ error }}</p>
+
+        <section class="store-catalog-section" *ngIf="!selectedStoreCatalogLoading">
+          <div class="store-catalog-toolbar">
+            <div><span class="section-kicker">Catálogo</span><h4>{{ selectedStoreCatalog.length }} producto(s)</h4></div>
+            <label>Buscar en el catálogo
+              <input type="search" [(ngModel)]="selectedStoreCatalogSearch" (ngModelChange)="onSelectedStoreCatalogSearchChange()" placeholder="Nombre, SKU o código de barras" />
+            </label>
+          </div>
+
+          <div class="table-wrap">
           <table>
             <thead><tr><th>Producto</th><th>SKU</th><th>Precio</th><th>Stock</th><th>Publicado</th></tr></thead>
             <tbody>
-              <tr *ngFor="let product of selectedStoreCatalog">
+              <tr *ngFor="let product of paginatedSelectedStoreCatalog">
                 <td>{{ product.name }}</td>
                 <td>{{ product.sku || '-' }}</td>
                 <td>{{ formatCurrency(product.price) }}</td>
                 <td>{{ product.stock }}</td>
-                <td>{{ product.isPublished ? 'Si' : 'No' }}</td>
+                <td>{{ product.isPublished ? 'Sí' : 'No' }}</td>
+              </tr>
+              <tr *ngIf="selectedStoreCatalog.length === 0">
+                <td colspan="5" class="catalog-empty-cell">
+                  <div class="catalog-empty-state">
+                    <i class="pi pi-box" aria-hidden="true"></i>
+                    <h4>Esta ferretería todavía no tiene productos</h4>
+                    <p>Descarga la plantilla, complétala y sube el archivo para realizar la carga inicial.</p>
+                    <div class="actions">
+                      <button type="button" class="ghost" (click)="downloadOnboardingCatalogTemplate()">Descargar plantilla</button>
+                      <label class="file-action-button">
+                        <span>{{ onboardingFileName ? 'Cambiar archivo' : 'Seleccionar archivo' }}</span>
+                        <input type="file" accept=".xlsx,.xls,.csv,.txt" (change)="onOnboardingCatalogFileSelected($event)" />
+                      </label>
+                      <button type="button" *ngIf="onboardingFileName" (click)="importInitialCatalog()" [disabled]="onboardingLoading">
+                        {{ onboardingLoading ? 'Procesando...' : 'Subir catálogo' }}
+                      </button>
+                    </div>
+                    <small *ngIf="onboardingFileName">Archivo: {{ onboardingFileName }}</small>
+                    <p *ngIf="onboardingError" class="error">{{ onboardingError }}</p>
+                    <p *ngIf="onboardingNotice" class="saved">{{ onboardingNotice }}</p>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="selectedStoreCatalog.length > 0 && filteredSelectedStoreCatalog.length === 0">
+                <td colspan="5" class="catalog-empty-cell">No encontramos productos para esa búsqueda.</td>
               </tr>
             </tbody>
           </table>
-        </div>
-        <ng-template #emptyStoreCatalog><p>Esta ferreteria aun no tiene productos cargados.</p></ng-template>
-      </section>
+          </div>
 
-      <section class="card section-spaced">
-        <h4>Carga inicial de catalogo</h4>
-        <p>Selecciona una ferreteria, descarga el template CotizApp, pasa ahi los datos que te entregue y sube el archivo normalizado. Despues la tienda mantiene precio y stock desde su panel.</p>
-        <div class="actions actions-spaced">
-          <button type="button" class="ghost" (click)="downloadOnboardingCatalogTemplate()">Descargar template CotizApp</button>
-        </div>
-
-        <div class="form-grid">
-          <label>
-            Ferreteria
-            <select [(ngModel)]="onboardingStoreOwnerId">
-              <option value="">Selecciona</option>
-              <option *ngFor="let store of onboardingFerreterias" [value]="store.id">
-                {{ store.businessName || store.displayName }} - {{ statusLabel(userStatus(store)) }}
-              </option>
-            </select>
-          </label>
-          <label>
-            Excel / CSV
-            <input type="file" accept=".xlsx,.xls,.csv,.txt" (change)="onOnboardingCatalogFileSelected($event)" />
-          </label>
-          <label>
-            Archivo
-            <input type="text" [value]="onboardingFileName || 'Ningun archivo seleccionado'" disabled />
-          </label>
-        </div>
-
-        <textarea class="full-textarea" [(ngModel)]="onboardingCsvContent" rows="9"></textarea>
-        <p *ngIf="onboardingError" class="error">{{ onboardingError }}</p>
-        <p *ngIf="onboardingNotice" class="saved">{{ onboardingNotice }}</p>
-        <div class="actions">
-          <button type="button" (click)="importInitialCatalog()" [disabled]="onboardingLoading">
-            {{ onboardingLoading ? 'Procesando...' : 'Cargar catalogo' }}
-          </button>
-          <button type="button" class="ghost" (click)="resetOnboardingCatalogTemplate()">Ver ejemplo</button>
-        </div>
-      </section>
+          <p-paginator
+            *ngIf="filteredSelectedStoreCatalog.length > 0"
+            styleClass="cotizapp-paginator"
+            [first]="(selectedStoreCatalogPage - 1) * selectedStoreCatalogPageSize"
+            [rows]="selectedStoreCatalogPageSize"
+            [totalRecords]="filteredSelectedStoreCatalog.length"
+            [rowsPerPageOptions]="selectedStoreCatalogPageSizeOptions"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="{first}–{last} de {totalRecords}"
+            (onPageChange)="onSelectedStoreCatalogPageChange($event)"
+          />
+        </section>
+        </ng-container>
+      </ng-container>
     </article>
 
-    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'productos'">
-      <div class="upload-mode-toggle">
-        <button type="button" [class.active]="catalogAdminView === 'productos'" (click)="setCatalogAdminView('productos')">
-          Productos
-        </button>
-        <button type="button" [class.active]="catalogAdminView === 'taxonomia'" (click)="setCatalogAdminView('taxonomia')">
-          Categorias y taxonomia
-        </button>
-      </div>
-    </article>
+    <nav class="catalog-tabs-panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'productos'" aria-label="Vistas del catálogo maestro">
+      <p-selectButton
+        styleClass="catalog-view-tabs"
+        [options]="catalogViewOptions"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="catalogAdminView"
+        (ngModelChange)="setCatalogAdminView($event)"
+        [allowEmpty]="false"
+      >
+        <ng-template let-item pTemplate="item"><i [class]="item.icon" aria-hidden="true"></i><span>{{ item.label }}</span></ng-template>
+      </p-selectButton>
+    </nav>
 
-    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'productos' && catalogAdminView === 'taxonomia'">
+    <article class="panel taxonomy-panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'productos' && catalogAdminView === 'taxonomia'">
       <div class="taxonomy-shell">
-        <mat-card class="taxonomy-path">
-          <div>
-            <span class="taxonomy-kicker">Jerarquia activa</span>
-            <h4>Ruta de catalogo</h4>
+        <p-card styleClass="taxonomy-path">
+          <div class="taxonomy-path-title">
+            <i class="pi pi-sitemap" aria-hidden="true"></i>
+            <strong>Jerarquía activa</strong>
           </div>
           <div class="taxonomy-breadcrumbs">
-            <span>{{ categoryLabel(selectedTaxCategoryId) || 'Sin categoria' }}</span>
-            <fa-icon [icon]="faChevronRight"></fa-icon>
+            <span>{{ categoryLabel(selectedTaxCategoryId) || 'Sin categoría' }}</span>
+            <i class="pi pi-angle-right" aria-hidden="true"></i>
             <span>{{ subcategoryLabel(selectedTaxSubcategoryId) || 'Sin subcategoria' }}</span>
-            <fa-icon [icon]="faChevronRight"></fa-icon>
+            <i class="pi pi-angle-right" aria-hidden="true"></i>
             <span>{{ familyLabel(selectedTaxFamilyId) || 'Sin familia' }}</span>
           </div>
-        </mat-card>
+        </p-card>
 
         <div class="taxonomy-grid">
-          <mat-card class="taxonomy-card">
+          <p-card styleClass="taxonomy-card">
             <div class="taxonomy-card-head">
               <div>
-                <span class="taxonomy-section-icon"><fa-icon [icon]="faCategory"></fa-icon></span>
-                <h4>Categorias</h4>
-                <p>Primer nivel de organizacion del catalogo.</p>
+                <span class="taxonomy-section-icon"><i class="pi pi-folder" aria-hidden="true"></i></span>
+                <h4>Categorías</h4>
               </div>
               <span class="taxonomy-count">{{ categoryOptions.length }}</span>
             </div>
             <div class="taxonomy-create-row">
-              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="taxonomy-form-field">
-                <mat-label>Nueva categoria</mat-label>
-                <input matInput type="text" [(ngModel)]="categoryDraftName" />
-              </mat-form-field>
-              <button mat-flat-button type="button" (click)="saveCategory()">{{ categoryEditingId ? 'Guardar' : 'Crear' }}</button>
-              <button mat-stroked-button type="button" class="ghost" *ngIf="categoryEditingId" (click)="resetTaxonomyDrafts()">Cancelar</button>
+              <input pInputText type="text" [(ngModel)]="categoryDraftName" placeholder="Nueva categoría" aria-label="Nueva categoría" />
+              <button pButton type="button" [icon]="categoryEditingId ? 'pi pi-check' : 'pi pi-plus'" [label]="categoryEditingId ? 'Guardar' : 'Crear'" (click)="saveCategory()"></button>
+              <button pButton type="button" icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" *ngIf="categoryEditingId" (click)="resetTaxonomyDrafts()" aria-label="Cancelar"></button>
             </div>
             <div class="taxonomy-list">
               <article class="taxonomy-item" *ngFor="let category of categoryOptions" [class.active]="selectedTaxCategoryId === category.id">
                 <button type="button" class="taxonomy-item-main" (click)="selectTaxCategory(category.id)">
                   <span class="taxonomy-item-title">{{ category.name }}</span>
-                  <span class="taxonomy-item-meta">Seleccionar categoria</span>
                 </button>
                 <div class="actions compact">
-                  <button mat-icon-button type="button" class="ghost icon-button" (click)="editCategory(category)" aria-label="Editar categoria">
-                    <fa-icon [icon]="faEdit"></fa-icon>
-                  </button>
-                  <button mat-icon-button type="button" class="danger icon-button" (click)="deleteCategory(category)" aria-label="Eliminar categoria">
-                    <fa-icon [icon]="faDelete"></fa-icon>
-                  </button>
+                  <button pButton type="button" icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" class="store-action-button" (click)="editCategory(category)" aria-label="Editar categoría" title="Editar"></button>
+                  <button pButton type="button" icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" class="store-action-button" (click)="deleteCategory(category)" aria-label="Eliminar categoría" title="Eliminar"></button>
                 </div>
               </article>
               <div class="empty-taxonomy-state" *ngIf="!categoryOptions.length">
-                Aun no hay categorias creadas.
+                Aún no hay categorías creadas.
               </div>
             </div>
-          </mat-card>
+          </p-card>
 
-          <mat-card class="taxonomy-card">
+          <p-card styleClass="taxonomy-card">
             <div class="taxonomy-card-head">
               <div>
-                <span class="taxonomy-section-icon"><fa-icon [icon]="faSitemap"></fa-icon></span>
+                <span class="taxonomy-section-icon"><i class="pi pi-sitemap" aria-hidden="true"></i></span>
                 <h4>Subcategorias</h4>
-                <p>Dependen de la categoria activa.</p>
               </div>
-              <span class="taxonomy-badge">{{ categoryLabel(selectedTaxCategoryId) || 'Selecciona una categoria' }}</span>
+              <span class="taxonomy-count">{{ selectedTaxSubcategories.length }}</span>
             </div>
             <div class="taxonomy-create-row">
-              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="taxonomy-form-field">
-                <mat-label>Nueva subcategoria</mat-label>
-                <input matInput type="text" [(ngModel)]="subcategoryDraftName" [disabled]="!selectedTaxCategoryId" />
-              </mat-form-field>
-              <button mat-flat-button type="button" (click)="saveSubcategory()" [disabled]="!selectedTaxCategoryId">{{ subcategoryEditingId ? 'Guardar' : 'Crear' }}</button>
-              <button mat-stroked-button type="button" class="ghost" *ngIf="subcategoryEditingId" (click)="resetTaxonomyDrafts()">Cancelar</button>
+              <input pInputText type="text" [(ngModel)]="subcategoryDraftName" [disabled]="!selectedTaxCategoryId" placeholder="Nueva subcategoría" aria-label="Nueva subcategoría" />
+              <button pButton type="button" [icon]="subcategoryEditingId ? 'pi pi-check' : 'pi pi-plus'" [label]="subcategoryEditingId ? 'Guardar' : 'Crear'" (click)="saveSubcategory()" [disabled]="!selectedTaxCategoryId"></button>
+              <button pButton type="button" icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" *ngIf="subcategoryEditingId" (click)="resetTaxonomyDrafts()" aria-label="Cancelar"></button>
             </div>
             <div class="taxonomy-list">
               <article class="taxonomy-item" *ngFor="let subcategory of selectedTaxSubcategories" [class.active]="selectedTaxSubcategoryId === subcategory.id">
                 <button type="button" class="taxonomy-item-main" (click)="selectTaxSubcategory(subcategory.id)">
                   <span class="taxonomy-item-title">{{ subcategory.name }}</span>
-                  <span class="taxonomy-item-meta">Subcategoria de {{ categoryLabel(selectedTaxCategoryId) || 'categoria' }}</span>
                 </button>
                 <div class="actions compact">
-                  <button mat-icon-button type="button" class="ghost icon-button" (click)="editSubcategory(subcategory)" aria-label="Editar subcategoria">
-                    <fa-icon [icon]="faEdit"></fa-icon>
-                  </button>
-                  <button mat-icon-button type="button" class="danger icon-button" (click)="deleteSubcategory(subcategory)" aria-label="Eliminar subcategoria">
-                    <fa-icon [icon]="faDelete"></fa-icon>
-                  </button>
+                  <button pButton type="button" icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" class="store-action-button" (click)="editSubcategory(subcategory)" aria-label="Editar subcategoria" title="Editar"></button>
+                  <button pButton type="button" icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" class="store-action-button" (click)="deleteSubcategory(subcategory)" aria-label="Eliminar subcategoria" title="Eliminar"></button>
                 </div>
               </article>
               <div class="empty-taxonomy-state" *ngIf="!selectedTaxSubcategories.length">
-                Selecciona una categoria para ver o crear subcategorias.
+                Selecciona una categoría para ver o crear subcategorías.
               </div>
             </div>
-          </mat-card>
+          </p-card>
 
-          <mat-card class="taxonomy-card">
+          <p-card styleClass="taxonomy-card">
             <div class="taxonomy-card-head">
               <div>
-                <span class="taxonomy-section-icon"><fa-icon [icon]="faFamily"></fa-icon></span>
+                <span class="taxonomy-section-icon"><i class="pi pi-tags" aria-hidden="true"></i></span>
                 <h4>Familias</h4>
-                <p>Ultimo nivel antes de definir atributos tecnicos.</p>
               </div>
-              <span class="taxonomy-badge">{{ subcategoryLabel(selectedTaxSubcategoryId) || 'Selecciona una subcategoria' }}</span>
+              <span class="taxonomy-count">{{ selectedTaxFamilies.length }}</span>
             </div>
             <div class="taxonomy-create-row">
-              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="taxonomy-form-field">
-                <mat-label>Nueva familia</mat-label>
-                <input matInput type="text" [(ngModel)]="familyDraftName" [disabled]="!selectedTaxSubcategoryId" />
-              </mat-form-field>
-              <button mat-flat-button type="button" (click)="saveFamily()" [disabled]="!selectedTaxSubcategoryId">{{ familyEditingId ? 'Guardar' : 'Crear' }}</button>
-              <button mat-stroked-button type="button" class="ghost" *ngIf="familyEditingId" (click)="resetTaxonomyDrafts()">Cancelar</button>
+              <input pInputText type="text" [(ngModel)]="familyDraftName" [disabled]="!selectedTaxSubcategoryId" placeholder="Nueva familia" aria-label="Nueva familia" />
+              <button pButton type="button" [icon]="familyEditingId ? 'pi pi-check' : 'pi pi-plus'" [label]="familyEditingId ? 'Guardar' : 'Crear'" (click)="saveFamily()" [disabled]="!selectedTaxSubcategoryId"></button>
+              <button pButton type="button" icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" *ngIf="familyEditingId" (click)="resetTaxonomyDrafts()" aria-label="Cancelar"></button>
             </div>
             <div class="taxonomy-list">
               <article class="taxonomy-item" *ngFor="let family of selectedTaxFamilies" [class.active]="selectedTaxFamilyId === family.id">
                 <button type="button" class="taxonomy-item-main" (click)="selectTaxFamily(family.id)">
                   <span class="taxonomy-item-title">{{ family.name }}</span>
-                  <span class="taxonomy-item-meta">Familia dentro de {{ subcategoryLabel(selectedTaxSubcategoryId) || 'subcategoria' }}</span>
                 </button>
                 <div class="actions compact">
-                  <button mat-icon-button type="button" class="ghost icon-button" (click)="editFamily(family)" aria-label="Editar familia">
-                    <fa-icon [icon]="faEdit"></fa-icon>
-                  </button>
-                  <button mat-icon-button type="button" class="danger icon-button" (click)="deleteFamily(family)" aria-label="Eliminar familia">
-                    <fa-icon [icon]="faDelete"></fa-icon>
-                  </button>
+                  <button pButton type="button" icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" class="store-action-button" (click)="editFamily(family)" aria-label="Editar familia" title="Editar"></button>
+                  <button pButton type="button" icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" class="store-action-button" (click)="deleteFamily(family)" aria-label="Eliminar familia" title="Eliminar"></button>
                 </div>
               </article>
               <div class="empty-taxonomy-state" *ngIf="!selectedTaxFamilies.length">
                 Selecciona una subcategoria para ver o crear familias.
               </div>
             </div>
-          </mat-card>
+          </p-card>
 
-          <mat-card class="taxonomy-card taxonomy-card-wide">
+          <p-card styleClass="taxonomy-card taxonomy-card-wide">
             <div class="taxonomy-card-head">
               <div>
-                <span class="taxonomy-section-icon"><fa-icon [icon]="faAttribute"></fa-icon></span>
-                <h4>Atributos de familia</h4>
-                <p>Selecciona una familia, revisa sus atributos actuales y luego agrega o edita los que necesites.</p>
+                <span class="taxonomy-section-icon"><i class="pi pi-sliders-h" aria-hidden="true"></i></span>
+                <h4>Características técnicas</h4>
               </div>
               <span class="taxonomy-badge">{{ familyLabel(selectedTaxFamilyId) || 'Selecciona una familia' }}</span>
             </div>
             <div class="taxonomy-attribute-flow">
-              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="taxonomy-form-field field-span-2">
-                <mat-label>Familia seleccionada</mat-label>
-                <mat-select [ngModel]="selectedTaxFamilyId" (ngModelChange)="selectTaxFamily($event)" [disabled]="!selectedTaxFamilies.length">
-                  <mat-option value="">Selecciona una familia</mat-option>
-                  <mat-option *ngFor="let family of selectedTaxFamilies" [value]="family.id">{{ family.name }}</mat-option>
-                </mat-select>
-              </mat-form-field>
+              <label class="taxonomy-form-field field-span-2">Familia seleccionada
+                <p-dropdown
+                  [options]="selectedTaxFamilies"
+                  optionLabel="name"
+                  optionValue="id"
+                  [ngModel]="selectedTaxFamilyId"
+                  (ngModelChange)="selectTaxFamily($event)"
+                  [disabled]="!selectedTaxFamilies.length"
+                  placeholder="Selecciona una familia"
+                  styleClass="w-full"
+                />
+              </label>
 
               <ng-container *ngIf="hasSelectedTaxFamily; else taxonomyFamilyRequired">
                 <section class="taxonomy-subpanel field-span-2">
                   <div class="taxonomy-subpanel-head">
                     <div>
-                      <h5>Atributos actuales</h5>
-                      <p>Estos son los atributos ya configurados para {{ familyLabel(selectedTaxFamilyId) }}.</p>
+                      <h5>Características configuradas</h5>
+                      <p>Definen la ficha técnica de los productos de {{ familyLabel(selectedTaxFamilyId) }}.</p>
                     </div>
                     <span class="taxonomy-count">{{ selectedTaxDefinitions.length }}</span>
                   </div>
-                  <mat-divider></mat-divider>
+                  <p-divider />
                   <div class="table-wrap taxonomy-table-wrap">
-                    <table>
-                      <thead>
+                    <p-table [value]="selectedTaxDefinitions" styleClass="admin-data-table" [tableStyle]="{ 'min-width': '620px' }">
+                      <ng-template pTemplate="header">
                         <tr>
-                          <th>Codigo</th>
+                          <th>Código</th>
                           <th>Etiqueta</th>
                           <th>Tipo</th>
                           <th>Orden</th>
                           <th>Acciones</th>
                         </tr>
-                      </thead>
-                      <tbody>
-                        <tr *ngFor="let definition of selectedTaxDefinitions">
+                      </ng-template>
+                      <ng-template pTemplate="body" let-definition>
+                        <tr>
                           <td>{{ definition.codigo }}</td>
                           <td>{{ definition.etiqueta }}</td>
                           <td><span class="taxonomy-type-chip">{{ definition.tipoDato }}</span></td>
                           <td>{{ definition.orden || '-' }}</td>
                           <td class="actions compact">
-                            <button mat-icon-button type="button" class="ghost icon-button" (click)="editDefinition(definition)" aria-label="Editar atributo">
-                              <fa-icon [icon]="faEdit"></fa-icon>
-                            </button>
-                            <button mat-icon-button type="button" class="danger icon-button" (click)="deleteDefinition(definition)" aria-label="Eliminar atributo">
-                              <fa-icon [icon]="faDelete"></fa-icon>
-                            </button>
+                            <button pButton type="button" icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" class="store-action-button" (click)="editDefinition(definition)" aria-label="Editar característica" title="Editar"></button>
+                            <button pButton type="button" icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" class="store-action-button" (click)="deleteDefinition(definition)" aria-label="Eliminar característica" title="Eliminar"></button>
                           </td>
                         </tr>
-                        <tr *ngIf="!selectedTaxDefinitions.length">
-                          <td colspan="5" class="empty-taxonomy-table">Esta familia aun no tiene atributos configurados.</td>
+                      </ng-template>
+                      <ng-template pTemplate="emptymessage">
+                        <tr>
+                          <td colspan="5" class="empty-taxonomy-table">Esta familia aún no tiene características técnicas configuradas.</td>
                         </tr>
-                      </tbody>
-                    </table>
+                      </ng-template>
+                    </p-table>
                   </div>
                 </section>
 
                 <section class="taxonomy-subpanel field-span-2">
                   <div class="taxonomy-subpanel-head">
                     <div>
-                      <h5>{{ definitionDraft.id ? 'Editar atributo' : 'Agregar atributo' }}</h5>
-                      <p>Completa la definicion tecnica que usaran los productos de esta familia.</p>
+                      <h5>{{ definitionDraft.id ? 'Editar característica' : 'Agregar característica' }}</h5>
+                      <p>Configura el dato técnico que usarán los productos de esta familia.</p>
                     </div>
                   </div>
-                  <mat-divider></mat-divider>
+                  <p-divider />
                   <div class="taxonomy-definition-form">
-                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="taxonomy-form-field">
-                      <mat-label>Codigo interno</mat-label>
-                      <input matInput type="text" [(ngModel)]="definitionDraft.codigo" [disabled]="!selectedTaxFamilyId" placeholder="diametro_mm" />
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="taxonomy-form-field">
-                      <mat-label>Etiqueta visible</mat-label>
-                      <input matInput type="text" [(ngModel)]="definitionDraft.etiqueta" [disabled]="!selectedTaxFamilyId" placeholder="Diametro" />
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="taxonomy-form-field">
-                      <mat-label>Tipo de dato</mat-label>
-                      <mat-select [(ngModel)]="definitionDraft.tipoDato" [disabled]="!selectedTaxFamilyId">
-                        <mat-option value="texto">Texto</mat-option>
-                        <mat-option value="numero">Numero</mat-option>
-                        <mat-option value="seleccion">Seleccion</mat-option>
-                        <mat-option value="booleano">Booleano</mat-option>
-                      </mat-select>
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="taxonomy-form-field">
-                      <mat-label>Orden de despliegue</mat-label>
-                      <input matInput type="number" min="1" [(ngModel)]="definitionDraft.orden" [disabled]="!selectedTaxFamilyId" placeholder="1" />
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="taxonomy-form-field field-span-2">
-                      <mat-label>Opciones</mat-label>
-                      <textarea matInput rows="3" [(ngModel)]="definitionDraft.opcionesTexto" [disabled]="!selectedTaxFamilyId || definitionDraft.tipoDato !== 'seleccion'" placeholder="Una opcion por linea"></textarea>
-                    </mat-form-field>
+                    <label class="taxonomy-form-field">Código interno
+                      <input pInputText type="text" [(ngModel)]="definitionDraft.codigo" [disabled]="!selectedTaxFamilyId" placeholder="diametro_mm" />
+                    </label>
+                    <label class="taxonomy-form-field">Etiqueta visible
+                      <input pInputText type="text" [(ngModel)]="definitionDraft.etiqueta" [disabled]="!selectedTaxFamilyId" placeholder="Diámetro" />
+                    </label>
+                    <label class="taxonomy-form-field">Tipo de dato
+                      <p-dropdown [options]="definitionTypeOptions" optionLabel="label" optionValue="value" [(ngModel)]="definitionDraft.tipoDato" [disabled]="!selectedTaxFamilyId" styleClass="w-full" />
+                    </label>
+                    <label class="taxonomy-form-field">Orden de despliegue
+                      <p-inputNumber [(ngModel)]="definitionDraft.orden" [min]="1" [showButtons]="true" [disabled]="!selectedTaxFamilyId" styleClass="w-full" inputStyleClass="w-full" />
+                    </label>
+                    <label class="taxonomy-form-field field-span-2">Opciones
+                      <textarea pInputTextarea rows="3" [(ngModel)]="definitionDraft.opcionesTexto" [disabled]="!selectedTaxFamilyId || definitionDraft.tipoDato !== 'seleccion'" placeholder="Una opción por línea"></textarea>
+                    </label>
                     <div class="taxonomy-check-grid field-span-2">
                       <label class="taxonomy-check-card">
-                        <mat-checkbox [(ngModel)]="definitionDraft.esFiltrable" [disabled]="!selectedTaxFamilyId"></mat-checkbox>
+                        <p-checkbox [(ngModel)]="definitionDraft.esFiltrable" [binary]="true" [disabled]="!selectedTaxFamilyId" inputId="definition-filterable" />
                         <span>
                           <strong>Filtrable</strong>
-                          <small>Permite usar este atributo en filtros del catalogo.</small>
+                          <small>Permite usar este atributo en filtros del catálogo.</small>
                         </span>
                       </label>
                       <label class="taxonomy-check-card">
-                        <mat-checkbox [(ngModel)]="definitionDraft.esObligatorio" [disabled]="!selectedTaxFamilyId"></mat-checkbox>
+                        <p-checkbox [(ngModel)]="definitionDraft.esObligatorio" [binary]="true" [disabled]="!selectedTaxFamilyId" inputId="definition-required" />
                         <span>
                           <strong>Obligatorio</strong>
                           <small>Se exigira al crear o editar productos de esta familia.</small>
@@ -391,8 +481,8 @@
                       </label>
                     </div>
                     <div class="actions field-span-2">
-                      <button mat-flat-button type="button" (click)="saveDefinition()" [disabled]="!selectedTaxFamilyId">{{ definitionDraft.id ? 'Guardar atributo' : 'Crear atributo' }}</button>
-                      <button mat-stroked-button type="button" class="ghost" *ngIf="definitionDraft.id" (click)="resetDefinitionDraft()">Cancelar</button>
+                      <button pButton type="button" [icon]="definitionDraft.id ? 'pi pi-check' : 'pi pi-plus'" [label]="definitionDraft.id ? 'Guardar característica' : 'Crear característica'" (click)="saveDefinition()" [disabled]="!selectedTaxFamilyId"></button>
+                      <button pButton type="button" icon="pi pi-times" label="Cancelar" [outlined]="true" severity="secondary" *ngIf="definitionDraft.id" (click)="resetDefinitionDraft()"></button>
                     </div>
                   </div>
                 </section>
@@ -400,93 +490,104 @@
 
               <ng-template #taxonomyFamilyRequired>
                 <div class="empty-taxonomy-state field-span-2">
-                  Primero selecciona una familia para cargar sus atributos y luego agregar nuevos.
+                  Primero selecciona una familia para consultar o agregar sus características técnicas.
                 </div>
               </ng-template>
             </div>
-          </mat-card>
+          </p-card>
         </div>
       </div>
     </article>
 
-    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'productos' && catalogAdminView === 'productos'">
+    <article class="panel master-catalog-panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'productos' && catalogAdminView === 'productos'">
       <ng-container *ngIf="!masterDetailModalOpen; else masterProductEditor">
-        <div class="toolbar">
+        <div class="master-catalog-heading">
+          <div>
+            <span class="section-kicker">Productos maestros</span>
+            <h3>Catálogo central</h3>
+            <p>{{ masterTotal }} producto(s) encontrados</p>
+          </div>
+          <div class="actions">
+            <button pButton type="button" icon="pi pi-plus" label="Nuevo producto" (click)="openMasterProductCreate()"></button>
+            <button pButton type="button" icon="pi pi-inbox" [label]="'Solicitudes (' + pendingProductRequestsCount + ')'" severity="secondary" [outlined]="true" (click)="goToSection('solicitudes')"></button>
+          </div>
+        </div>
+
+        <div class="toolbar master-filter-bar">
+          <label class="master-search-field">
+            Buscar
+            <div class="search-input-action">
+              <input pInputText type="search" [(ngModel)]="masterSearch" (keyup.enter)="searchMasterCatalog()" placeholder="Nombre, código de barra o marca" />
+              <button pButton type="button" icon="pi pi-search" [rounded]="true" class="master-search-button" (click)="searchMasterCatalog()" aria-label="Buscar productos"></button>
+            </div>
+          </label>
+
           <label>
-            Categoria
-            <select [(ngModel)]="masterCategoryFilter" (ngModelChange)="onMasterCategoryFilterChange()">
-              <option value="">Todas</option>
-              <option *ngFor="let category of categoryOptions" [value]="category.id">{{ category.name }}</option>
-            </select>
+            Categoría
+            <p-dropdown [options]="categoryOptions" optionLabel="name" optionValue="id" [(ngModel)]="masterCategoryFilter" (ngModelChange)="onMasterCategoryFilterChange()" [showClear]="true" placeholder="Todas" styleClass="w-full" />
           </label>
 
           <label>
             Subcategoria
-            <select [(ngModel)]="masterSubcategoryFilter" (ngModelChange)="onMasterSubcategoryFilterChange()">
-              <option value="">Todas</option>
-              <option *ngFor="let subcategory of subcategoryOptions" [value]="subcategory.id">{{ subcategory.name }}</option>
-            </select>
+            <p-dropdown [options]="subcategoryOptions" optionLabel="name" optionValue="id" [(ngModel)]="masterSubcategoryFilter" (ngModelChange)="onMasterSubcategoryFilterChange()" [showClear]="true" placeholder="Todas" styleClass="w-full" />
           </label>
 
           <label>
             Familia
-            <select [(ngModel)]="masterFamilyFilter">
-              <option value="">Todas</option>
-              <option *ngFor="let family of familyOptions" [value]="family.id">{{ family.name }}</option>
-            </select>
+            <p-dropdown [options]="familyOptions" optionLabel="name" optionValue="id" [(ngModel)]="masterFamilyFilter" (ngModelChange)="onMasterFamilyFilterChange()" [showClear]="true" placeholder="Todas" styleClass="w-full" />
           </label>
-
-          <label>
-            Buscar
-            <input type="text" [(ngModel)]="masterSearch" placeholder="Nombre, codigo de barra, SKU o marca" />
-          </label>
-
-          <button type="button" class="ghost" (click)="clearMasterFilters()">Limpiar filtros</button>
+          <button pButton type="button" icon="pi pi-filter-slash" [rounded]="true" [text]="true" severity="secondary" class="store-action-button" (click)="clearMasterFilters()" aria-label="Limpiar filtros" title="Limpiar filtros"></button>
         </div>
 
-        <div class="products-toolbar">
-          <p class="helper">Productos maestros encontrados: {{ filteredMasterCatalog.length }}</p>
-          <button type="button" (click)="openMasterProductCreate()">Nuevo producto maestro</button>
-          <button type="button" class="alert-button" (click)="goToSection('solicitudes')">
-            <span class="alert-icon">!</span>
-            Solicitudes pendientes ({{ pendingProductRequestsCount }})
-          </button>
-        </div>
+        <app-ui-loader *ngIf="masterCatalogLoading" label="Cargando productos maestros..." />
 
-        <div class="table-wrap">
-          <table>
-            <thead>
+        <div class="table-wrap" *ngIf="!masterCatalogLoading">
+          <p-table [value]="masterCatalog" styleClass="admin-data-table" [tableStyle]="{ 'min-width': '720px' }">
+            <ng-template pTemplate="header">
               <tr>
                 <th>Producto</th>
-                <th>SKU</th>
-                <th>Codigo barra</th>
+                <th>Código de barras</th>
                 <th>Taxonomia</th>
                 <th>Acciones</th>
               </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let product of filteredMasterCatalog">
+            </ng-template>
+            <ng-template pTemplate="body" let-product>
+              <tr>
                 <td>
                   <strong>{{ product.name }}</strong>
                   <p>{{ product.brand }}</p>
                 </td>
-                <td>{{ product.sku }}</td>
                 <td>{{ product.barcode || '-' }}</td>
                 <td>
                   <p>{{ categoryLabel(product.categoryId) }}</p>
                   <p>{{ subcategoryLabel(product.subcategoryId) }} · {{ familyLabel(product.familyId) }}</p>
                 </td>
-                <td class="actions">
-                  <button type="button" class="ghost icon-button" (click)="openMasterProductView(product)" aria-label="Ver detalle">👁</button>
-                  <button type="button" class="ghost icon-button" (click)="openMasterProductEdit(product)" aria-label="Editar producto">✏</button>
-                  <button type="button" class="danger icon-button" (click)="deleteMasterProduct(product)" aria-label="Eliminar producto">🗑</button>
+                <td class="actions store-actions">
+                  <button pButton type="button" icon="pi pi-eye" [rounded]="true" [text]="true" severity="info" class="store-action-button" (click)="openMasterProductView(product)" aria-label="Ver detalle" title="Ver detalle"></button>
+                  <button pButton type="button" icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" class="store-action-button" (click)="openMasterProductEdit(product)" aria-label="Editar producto" title="Editar producto"></button>
+                  <button pButton type="button" icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" class="store-action-button" (click)="deleteMasterProduct(product)" aria-label="Eliminar producto" title="Eliminar producto"></button>
                 </td>
               </tr>
-            </tbody>
-          </table>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="4" class="catalog-empty-cell">No hay productos maestros para estos filtros.</td>
+              </tr>
+            </ng-template>
+          </p-table>
         </div>
 
-        <p class="empty" *ngIf="filteredMasterCatalog.length === 0">No hay productos maestros para este filtro.</p>
+        <p-paginator
+          *ngIf="!masterCatalogLoading && masterTotal > 0"
+          styleClass="cotizapp-paginator"
+          [first]="(masterPage - 1) * masterPageSize"
+          [rows]="masterPageSize"
+          [totalRecords]="masterTotal"
+          [rowsPerPageOptions]="masterPageSizeOptions"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="{first}–{last} de {totalRecords}"
+          (onPageChange)="onMasterPageChange($event)"
+        />
       </ng-container>
     </article>
 
@@ -517,7 +618,7 @@
             <input
               type="text"
               [(ngModel)]="validationSearch"
-              placeholder="Nombre, codigo, SKU o ferreteria"
+              placeholder="Nombre, código, SKU o ferretería"
             />
           </label>
         </div>
@@ -533,14 +634,14 @@
           </header>
 
           <p class="meta">
-            {{ request.row.name }} · Codigo de barra {{ request.row.barcode || 'Sin codigo' }} ·
+            {{ request.row.name }} · Código de barras {{ request.row.barcode || 'Sin código' }} ·
             Precio {{ formatCurrency(request.row.price) }} · Cantidad {{ request.row.stock }}
           </p>
 
           <div class="meta-grid">
             <span><strong>SKU interno:</strong> {{ request.row.sku }}</span>
             <span><strong>Marca:</strong> {{ request.row.brand }}</span>
-            <span><strong>Categoria:</strong> {{ categoryLabel(request.row.categoryId) }}</span>
+            <span><strong>Categoría:</strong> {{ categoryLabel(request.row.categoryId) }}</span>
             <span><strong>Subcategoria:</strong> {{ subcategoryLabel(request.row.subcategoryId) }}</span>
             <span><strong>Familia:</strong> {{ familyLabel(request.row.familyId) }}</span>
           </div>
@@ -623,7 +724,7 @@
         <article class="contact-request-card" *ngFor="let request of contactRequestRows">
           <header>
             <div>
-              <span class="request-kind">{{ request.type === 'ferreteria' ? 'Solicitud de ferreteria' : 'Contacto' }}</span>
+              <span class="request-kind">{{ request.type === 'ferreteria' ? 'Solicitud de ferretería' : 'Contacto' }}</span>
               <h2>{{ request.businessName || request.name }}</h2>
             </div>
             <span class="status-chip" [class.ok]="request.status === 'contactado'" [class.bad]="request.status === 'cerrado'">
@@ -634,7 +735,7 @@
           <dl>
             <div><dt>Contacto</dt><dd>{{ request.name }}</dd></div>
             <div><dt>Email</dt><dd><a [href]="'mailto:' + request.email">{{ request.email }}</a></dd></div>
-            <div *ngIf="request.phone"><dt>Telefono</dt><dd>{{ request.phone }}</dd></div>
+            <div *ngIf="request.phone"><dt>Teléfono</dt><dd>{{ request.phone }}</dd></div>
             <div *ngIf="request.commune"><dt>Comuna</dt><dd>{{ request.commune }}</dd></div>
             <div><dt>Recibida</dt><dd>{{ request.createdAt | date:'short' }}</dd></div>
           </dl>
@@ -665,7 +766,7 @@
             <select [(ngModel)]="userRoleFilter">
               <option value="all">Todos</option>
               <option value="maestro">Maestro</option>
-              <option value="ferreteria">Ferreteria</option>
+              <option value="ferreteria">Ferretería</option>
               <option value="admin">Admin</option>
             </select>
           </label>
@@ -699,7 +800,7 @@
                 <th>Contacto</th>
                 <th>Ciudad</th>
                 <th>Comuna</th>
-                <th>Direccion</th>
+                <th>Dirección</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -752,7 +853,7 @@
               <input type="text" [(ngModel)]="masterDetailDraft.brand" [disabled]="masterDetailReadonly" />
             </label>
             <label>
-              Codigo barra
+              Código de barras
               <input type="text" [(ngModel)]="masterDetailDraft.barcode" [disabled]="masterDetailReadonly" />
             </label>
             <label>
@@ -761,7 +862,7 @@
             </label>
 
             <label>
-              Categoria
+              Categoría
               <select [(ngModel)]="masterDetailDraft.categoryId" [disabled]="masterDetailReadonly" (ngModelChange)="onDraftCategoryChange()">
                 <option *ngFor="let category of categoryOptions" [value]="category.id">{{ category.name }}</option>
               </select>
@@ -804,11 +905,11 @@
           </div>
 
           <label>
-            Descripcion corta
+            Descripción corta
             <textarea rows="2" [(ngModel)]="masterDetailDraft.shortDescription" [disabled]="masterDetailReadonly"></textarea>
           </label>
           <label>
-            Descripcion completa
+            Descripción completa
             <textarea rows="3" [(ngModel)]="masterDetailDraft.descriptionText" [disabled]="masterDetailReadonly"></textarea>
           </label>
           <label>
@@ -869,7 +970,7 @@
         </div>
 
         <section class="request-modal inline-editor-body">
-          <p class="helper">Completa ficha con variables logisticas, descripcion e imagenes para crear en catalogo maestro.</p>
+          <p class="helper">Completa la ficha con variables logísticas, descripción e imágenes para crear el producto en el catálogo maestro.</p>
           <section class="request-detail-form">
             <label>
               Nombre
@@ -880,7 +981,7 @@
               <input type="text" [(ngModel)]="masterDetailDraft.brand" />
             </label>
             <label>
-              Codigo barra
+              Código de barras
               <input type="text" [(ngModel)]="masterDetailDraft.barcode" />
             </label>
             <label>
@@ -888,7 +989,7 @@
               <input type="text" [(ngModel)]="masterDetailDraft.productType" />
             </label>
             <label>
-              Categoria
+              Categoría
               <select [(ngModel)]="masterDetailDraft.categoryId" (ngModelChange)="onDraftCategoryChange()">
                 <option *ngFor="let category of categoryOptions" [value]="category.id">{{ category.name }}</option>
               </select>
@@ -927,11 +1028,11 @@
             </label>
           </section>
           <label>
-            Descripcion corta
+            Descripción corta
             <textarea rows="2" [(ngModel)]="masterDetailDraft.shortDescription"></textarea>
           </label>
           <label>
-            Descripcion completa
+            Descripción completa
             <textarea rows="3" [(ngModel)]="masterDetailDraft.descriptionText"></textarea>
           </label>
           <label>
@@ -1008,7 +1109,7 @@
               Rol
               <select [(ngModel)]="userModalDraft.role" [disabled]="userModalReadonly">
                 <option value="maestro">Maestro</option>
-                <option value="ferreteria">Ferreteria</option>
+                <option value="ferreteria">Ferretería</option>
                 <option value="admin">Admin</option>
               </select>
             </label>
@@ -1041,7 +1142,7 @@
               <input type="text" [(ngModel)]="userModalDraft.commune" [disabled]="userModalReadonly" />
             </label>
             <label>
-              Direccion
+              Dirección
               <input type="text" [(ngModel)]="userModalDraft.address" [disabled]="userModalReadonly" />
             </label>
           </div>

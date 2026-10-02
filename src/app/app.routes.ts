@@ -51,7 +51,9 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard/maestro/cotizaciones/nuevo',
-    loadComponent: () => import('./pages/proyecto-detalle/proyecto-detalle.component').then((module) => module.ProyectoDetalleComponent)
+    loadComponent: () => import('./pages/proyecto-detalle/proyecto-detalle.component').then((module) => module.ProyectoDetalleComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'maestro' }
   },
   {
     path: 'dashboard/maestro/cotizaciones/:projectId',

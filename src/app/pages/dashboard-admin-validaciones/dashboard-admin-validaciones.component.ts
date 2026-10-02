@@ -1,24 +1,18 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { Router } from '@angular/router';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import {
-  faChevronRight,
-  faFolderTree,
-  faSitemap,
-  faPenToSquare,
-  faShapes,
-  faSliders,
-  faTrashCan
-} from '@fortawesome/free-solid-svg-icons';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { CheckboxModule } from 'primeng/checkbox';
+import { DividerModule } from 'primeng/divider';
+import { DropdownModule } from 'primeng/dropdown';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { InputTextModule } from 'primeng/inputtext';
+import { InputTextareaModule } from 'primeng/inputtextarea';
+import { PaginatorModule, PaginatorState } from 'primeng/paginator';
+import { SelectButtonModule } from 'primeng/selectbutton';
+import { TableModule } from 'primeng/table';
 import {
   AccountStatus,
   CatalogProduct,
@@ -34,6 +28,8 @@ import {
 import { AuthService } from '../../core/services/auth.service';
 import { FirebaseDataService, TaxonomyDefinitionApi } from '../../core/services/firebase-data.service';
 import { CATALOG_IMPORT_TEMPLATE, catalogFileToCsv, catalogImportTemplateFileName, downloadCatalogImportTemplate } from '../../core/utils/catalog-import.util';
+import { CHILE_CITY_OPTIONS, communesForCity } from '../../core/utils/chile-locations.util';
+import { getCurrentBrowserLocation, hasValidCoordinates } from '../../core/utils/location.util';
 import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 
@@ -74,6 +70,8 @@ interface AdminUserModalDraft {
   address: string;
   businessName: string;
   rut: string;
+  storeLatitude: number | null;
+  storeLongitude: number | null;
 }
 
 interface AdminDefinitionDraft {
@@ -112,28 +110,34 @@ interface AdminSectionMeta {
     CommonModule,
     FormsModule,
     DashboardMenuComponent,
-    MatButtonModule,
-    MatCardModule,
-    MatCheckboxModule,
-    MatDividerModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    FontAwesomeModule,
+    ButtonModule,
+    CardModule,
+    CheckboxModule,
+    DividerModule,
+    DropdownModule,
+    InputNumberModule,
+    InputTextModule,
+    InputTextareaModule,
+    PaginatorModule,
+    SelectButtonModule,
+    TableModule,
     UiLoaderComponent
   ],
   templateUrl: './dashboard-admin-validaciones.component.html',
   styleUrl: './dashboard-admin-validaciones.component.scss'
 })
 export class DashboardAdminValidacionesComponent implements OnInit {
-  protected readonly faTaxonomy = faSitemap;
-  protected readonly faSitemap = faSitemap;
-  protected readonly faCategory = faFolderTree;
-  protected readonly faFamily = faShapes;
-  protected readonly faAttribute = faSliders;
-  protected readonly faChevronRight = faChevronRight;
-  protected readonly faEdit = faPenToSquare;
-  protected readonly faDelete = faTrashCan;
+  protected readonly storeCityOptions = CHILE_CITY_OPTIONS;
+  protected readonly catalogViewOptions = [
+    { label: 'Productos', value: 'productos', icon: 'pi pi-box' },
+    { label: 'Taxonomía', value: 'taxonomia', icon: 'pi pi-sitemap' }
+  ];
+  protected readonly definitionTypeOptions = [
+    { label: 'Texto', value: 'texto' },
+    { label: 'Número', value: 'numero' },
+    { label: 'Selección', value: 'seleccion' },
+    { label: 'Sí / No', value: 'booleano' }
+  ];
 
   protected readonly sections: AdminSectionMeta[] = [
     {
@@ -178,6 +182,11 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   protected masterCategoryFilter = '';
   protected masterSubcategoryFilter = '';
   protected masterFamilyFilter = '';
+  protected masterPage = 1;
+  protected masterPageSize = 20;
+  protected masterTotal = 0;
+  protected readonly masterPageSizeOptions = [10, 20, 50];
+  protected masterCatalogLoading = false;
   protected selectedMasterProduct: CatalogProduct | null = null;
   protected masterDetailDraft: MasterProductDraft = this.createEmptyMasterProductDraft();
   protected masterAttributeDrafts: MasterAttributeDraft[] = [];
@@ -208,6 +217,24 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   protected onboardingNotice = '';
   protected selectedStoreCatalogLabel = '';
   protected selectedStoreCatalog: CatalogProduct[] = [];
+  protected selectedStore: SessionUser | null = null;
+  protected ferreteriaView: 'list' | 'create' | 'detail' = 'list';
+  protected selectedStoreCatalogLoading = false;
+  protected selectedStoreCatalogSearch = '';
+  protected selectedStoreCatalogPage = 1;
+  protected selectedStoreCatalogPageSize = 20;
+  protected readonly selectedStoreCatalogPageSizeOptions = [10, 20, 50];
+  protected storeSearch = '';
+  protected storeCityFilter = '';
+  protected storeCommuneFilter = '';
+  protected storePage = 1;
+  protected storePageSize = 20;
+  protected readonly storePageSizeOptions = [10, 20, 50];
+  protected storeCreateDraft: AdminUserModalDraft = this.createEmptyUserModalDraft();
+  protected storeCreateSaving = false;
+  protected storeCreateError = '';
+  protected storeCreateLocationMessage = '';
+  protected storeCreateLocating = false;
 
   protected requestCreationModalOpen = false;
 
@@ -225,6 +252,8 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   protected isMobileViewport = false;
   protected isMobileMenuVisible = false;
   private usersLoaded = false;
+  private catalogProductsLoaded = false;
+  private catalogTaxonomyLoaded = false;
   private readonly loadedSections = new Set<AdminSection>();
 
   constructor(
@@ -343,31 +372,6 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       : this.apiService.getFamilyOptions();
   }
 
-  protected get filteredMasterCatalog(): CatalogProduct[] {
-    const query = this.masterSearch.trim().toLowerCase();
-    const normalizedBarcode = this.masterSearch.replace(/\D/g, '');
-
-    return this.masterCatalog
-      .filter((product) => !this.masterCategoryFilter || product.categoryId === this.masterCategoryFilter)
-      .filter((product) => !this.masterSubcategoryFilter || product.subcategoryId === this.masterSubcategoryFilter)
-      .filter((product) => !this.masterFamilyFilter || product.familyId === this.masterFamilyFilter)
-      .filter((product) => {
-        if (!query && !normalizedBarcode) {
-          return true;
-        }
-        const matchesText = query
-          ? product.name.toLowerCase().includes(query)
-            || product.brand.toLowerCase().includes(query)
-            || product.sku.toLowerCase().includes(query)
-          : false;
-        const matchesBarcode = normalizedBarcode
-          ? (product.barcode || '').replace(/\D/g, '').includes(normalizedBarcode)
-          : false;
-        return matchesText || matchesBarcode;
-      })
-      .sort((left, right) => left.name.localeCompare(right.name));
-  }
-
   protected get pendingProductRequestsCount(): number {
     return this.validationRequests.filter((request) => request.status === 'pendiente').length;
   }
@@ -398,6 +402,9 @@ export class DashboardAdminValidacionesComponent implements OnInit {
 
   protected setSection(section: AdminSection): void {
     this.currentSection = section;
+    if (section === 'ferreterias') {
+      this.closeStoreCatalog();
+    }
     if (section === 'productos') {
       this.catalogAdminView = 'productos';
     }
@@ -415,12 +422,22 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       this.masterSubcategoryFilter = '';
       this.masterFamilyFilter = '';
     }
+    void this.loadAdminMasterCatalog(1);
   }
 
   protected onMasterSubcategoryFilterChange(): void {
     if (this.masterSubcategoryFilter && !this.familyOptions.some((option) => option.id === this.masterFamilyFilter)) {
       this.masterFamilyFilter = '';
     }
+    void this.loadAdminMasterCatalog(1);
+  }
+
+  protected onMasterFamilyFilterChange(): void {
+    void this.loadAdminMasterCatalog(1);
+  }
+
+  protected searchMasterCatalog(): void {
+    void this.loadAdminMasterCatalog(1);
   }
 
   protected clearMasterFilters(): void {
@@ -428,6 +445,12 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     this.masterCategoryFilter = '';
     this.masterSubcategoryFilter = '';
     this.masterFamilyFilter = '';
+    void this.loadAdminMasterCatalog(1);
+  }
+
+  protected onMasterPageChange(event: PaginatorState): void {
+    this.masterPageSize = event.rows ?? this.masterPageSize;
+    void this.loadAdminMasterCatalog((event.page ?? 0) + 1);
   }
 
   protected selectTaxCategory(categoryId: string): void {
@@ -651,6 +674,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   }
 
   protected async openMasterProductView(product: CatalogProduct): Promise<void> {
+    await this.ensureMasterDefinitionsLoaded();
     this.selectedMasterProduct = product;
     this.masterDetailReadonly = true;
     this.masterDetailModalOpen = true;
@@ -658,13 +682,15 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   }
 
   protected async openMasterProductEdit(product: CatalogProduct): Promise<void> {
+    await this.ensureMasterDefinitionsLoaded();
     this.selectedMasterProduct = product;
     this.masterDetailReadonly = false;
     this.masterDetailModalOpen = true;
     await this.loadMasterProductDetail(product);
   }
 
-  protected openMasterProductCreate(): void {
+  protected async openMasterProductCreate(): Promise<void> {
+    await this.ensureMasterDefinitionsLoaded();
     const firstCategoryId = this.masterCategoryFilter || this.selectedTaxCategoryId || this.categoryOptions[0]?.id || '';
     const subcategories = firstCategoryId ? this.apiService.getSubcategoryOptions(firstCategoryId) : this.apiService.getSubcategoryOptions();
     const firstSubcategoryId = this.masterSubcategoryFilter || this.selectedTaxSubcategoryId || subcategories[0]?.id || '';
@@ -752,8 +778,8 @@ export class DashboardAdminValidacionesComponent implements OnInit {
 
       const targetMasterId = this.selectedMasterProduct?.masterProductId || this.selectedMasterProduct?.id;
       const updated = targetMasterId
-        ? await this.apiService.updateMasterCatalogProduct(targetMasterId, payload)
-        : await this.apiService.createMasterCatalogProduct(payload);
+        ? await this.apiService.updateMasterCatalogProduct(targetMasterId, payload, false)
+        : await this.apiService.createMasterCatalogProduct(payload, false);
 
       if (!updated) {
         this.error = 'No fue posible guardar el producto maestro.';
@@ -769,8 +795,8 @@ export class DashboardAdminValidacionesComponent implements OnInit {
         ? `Producto maestro ${updated.name} actualizado.`
         : `Producto maestro ${updated.name} creado.`;
       this.error = '';
-      this.masterCatalog = this.apiService.getMasterCatalogProducts();
       this.closeMasterProductModal();
+      await this.loadAdminMasterCatalog(targetMasterId ? this.masterPage : 1);
     } catch (error) {
       this.error = error instanceof Error ? error.message : 'No fue posible guardar el producto maestro.';
     }
@@ -845,8 +871,8 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     this.error = '';
 
     try {
-      await this.apiService.deleteMasterCatalogProduct(product.masterProductId || product.id);
-      this.masterCatalog = this.apiService.getMasterCatalogProducts();
+      await this.apiService.deleteMasterCatalogProduct(product.masterProductId || product.id, false);
+      await this.loadAdminMasterCatalog(this.masterPage);
       this.notice = `Producto maestro ${product.name} eliminado.`;
     } catch (error) {
       this.error = error instanceof Error ? error.message : 'No fue posible eliminar el producto maestro.';
@@ -917,6 +943,10 @@ export class DashboardAdminValidacionesComponent implements OnInit {
 
     try {
       if (this.userModalDraft.isNew) {
+        if (this.userModalDraft.role === 'ferreteria') {
+          this.error = 'Crea las ferreterías desde su sección para registrar también la ubicación del local.';
+          return;
+        }
         const created = await this.authService.adminCreateUser({
           role: this.userModalDraft.role,
           name: this.userModalDraft.displayName.trim(),
@@ -1003,14 +1033,197 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     return this.onboardingFerreterias;
   }
 
-  protected storeCatalogCount(store: SessionUser): number {
-    return this.apiService.getCatalog(store.id).length;
+  protected get ferreteriaCityOptions(): string[] {
+    return [...new Set(this.ferreteriaRows.map((store) => store.city?.trim()).filter((city): city is string => !!city))]
+      .sort((left, right) => left.localeCompare(right));
+  }
+
+  protected get ferreteriaCommuneOptions(): string[] {
+    const stores = this.storeCityFilter
+      ? this.ferreteriaRows.filter((store) => store.city === this.storeCityFilter)
+      : this.ferreteriaRows;
+    return [...new Set(stores.map((store) => store.commune?.trim()).filter((commune): commune is string => !!commune))]
+      .sort((left, right) => left.localeCompare(right));
+  }
+
+  protected get filteredFerreteriaRows(): SessionUser[] {
+    const query = this.storeSearch.trim().toLowerCase();
+    return this.ferreteriaRows.filter((store) => {
+      const matchesSearch = !query || [
+        store.businessName,
+        store.displayName,
+        store.email,
+        store.rut,
+        store.phone
+      ].some((value) => value?.toLowerCase().includes(query));
+      const matchesCity = !this.storeCityFilter || store.city === this.storeCityFilter;
+      const matchesCommune = !this.storeCommuneFilter || store.commune === this.storeCommuneFilter;
+      return matchesSearch && matchesCity && matchesCommune;
+    });
+  }
+
+  protected get paginatedFerreteriaRows(): SessionUser[] {
+    const start = (this.storePage - 1) * this.storePageSize;
+    return this.filteredFerreteriaRows.slice(start, start + this.storePageSize);
+  }
+
+  protected onStoreFiltersChange(): void {
+    this.storePage = 1;
+  }
+
+  protected onStoreCityChange(): void {
+    if (this.storeCommuneFilter && !this.ferreteriaCommuneOptions.includes(this.storeCommuneFilter)) {
+      this.storeCommuneFilter = '';
+    }
+    this.onStoreFiltersChange();
+  }
+
+  protected clearStoreFilters(): void {
+    this.storeSearch = '';
+    this.storeCityFilter = '';
+    this.storeCommuneFilter = '';
+    this.storePage = 1;
+  }
+
+  protected onStorePageChange(event: PaginatorState): void {
+    this.storePageSize = event.rows ?? this.storePageSize;
+    this.storePage = (event.page ?? 0) + 1;
+  }
+
+  protected get filteredSelectedStoreCatalog(): CatalogProduct[] {
+    const query = this.selectedStoreCatalogSearch.trim().toLowerCase();
+    if (!query) return this.selectedStoreCatalog;
+    return this.selectedStoreCatalog.filter((product) =>
+      product.name.toLowerCase().includes(query)
+      || (product.sku || '').toLowerCase().includes(query)
+      || (product.barcode || '').toLowerCase().includes(query)
+    );
+  }
+
+  protected get paginatedSelectedStoreCatalog(): CatalogProduct[] {
+    const start = (this.selectedStoreCatalogPage - 1) * this.selectedStoreCatalogPageSize;
+    return this.filteredSelectedStoreCatalog.slice(start, start + this.selectedStoreCatalogPageSize);
+  }
+
+  protected openStoreCreate(): void {
+    this.storeCreateDraft = this.createEmptyUserModalDraft();
+    this.storeCreateDraft.role = 'ferreteria';
+    this.storeCreateDraft.accountStatus = 'activo';
+    this.storeCreateError = '';
+    this.storeCreateLocationMessage = '';
+    this.ferreteriaView = 'create';
+  }
+
+  protected get storeCreateCommuneOptions(): string[] {
+    return communesForCity(this.storeCreateDraft.city);
+  }
+
+  protected onStoreCreateCityChange(): void {
+    if (!this.storeCreateCommuneOptions.includes(this.storeCreateDraft.commune)) {
+      this.storeCreateDraft.commune = '';
+    }
+  }
+
+  protected async useCurrentLocationForStore(): Promise<void> {
+    this.storeCreateError = '';
+    this.storeCreateLocationMessage = '';
+    this.storeCreateLocating = true;
+    try {
+      const location = await getCurrentBrowserLocation();
+      this.storeCreateDraft.storeLatitude = location.latitude;
+      this.storeCreateDraft.storeLongitude = location.longitude;
+      this.storeCreateLocationMessage = 'Ubicación capturada. Verifica que corresponda al local antes de crear la cuenta.';
+    } catch (error) {
+      this.storeCreateError = error instanceof Error ? error.message : 'No fue posible obtener la ubicación.';
+    } finally {
+      this.storeCreateLocating = false;
+    }
+  }
+
+  protected async createStore(): Promise<void> {
+    const draft = this.storeCreateDraft;
+    if (!draft.businessName.trim() || !draft.displayName.trim() || !draft.email.trim() || draft.password.length < 6
+      || !draft.city || !draft.commune || !draft.address.trim()) {
+      this.storeCreateError = 'Completa los datos de acceso, ciudad, comuna y dirección del local.';
+      return;
+    }
+    if (!hasValidCoordinates(draft.storeLatitude, draft.storeLongitude)) {
+      this.storeCreateError = 'Captura o ingresa una ubicación válida para habilitar las búsquedas por proximidad.';
+      return;
+    }
+
+    this.storeCreateSaving = true;
+    this.storeCreateError = '';
+    this.notice = '';
+    try {
+      const created = await this.authService.adminCreateUser({
+        role: 'ferreteria',
+        name: draft.displayName.trim(),
+        email: draft.email.trim(),
+        password: draft.password,
+        phone: draft.phone.trim(),
+        city: draft.city.trim(),
+        commune: draft.commune.trim(),
+        address: draft.address.trim(),
+        accountStatus: draft.accountStatus,
+        businessName: draft.businessName.trim(),
+        rut: draft.rut.trim() || undefined,
+        storeLatitude: draft.storeLatitude,
+        storeLongitude: draft.storeLongitude as number
+      });
+
+      this.notice = `${created.businessName || created.displayName} fue creada correctamente.`;
+      this.markUserDataStale();
+      await this.ensureUsersLoaded(true);
+      await this.inspectStoreCatalog(created);
+    } catch (error) {
+      this.storeCreateError = error instanceof Error ? error.message : 'No fue posible crear la ferretería.';
+    } finally {
+      this.storeCreateSaving = false;
+    }
   }
 
   protected async inspectStoreCatalog(store: SessionUser): Promise<void> {
-    await this.apiService.refreshFerreteriaCatalogSection(store.id, true);
+    this.selectedStore = store;
     this.selectedStoreCatalogLabel = store.businessName || store.displayName;
-    this.selectedStoreCatalog = [...this.apiService.getCatalog(store.id)];
+    this.selectedStoreCatalog = [];
+    this.selectedStoreCatalogSearch = '';
+    this.selectedStoreCatalogPage = 1;
+    this.onboardingStoreOwnerId = store.id;
+    this.resetOnboardingCatalogTemplate();
+    this.ferreteriaView = 'detail';
+    this.selectedStoreCatalogLoading = true;
+    this.error = '';
+    try {
+      await this.apiService.refreshFerreteriaCatalogSection(store.id, true);
+      this.selectedStoreCatalog = [...this.apiService.getCatalog(store.id)];
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : 'No se pudo cargar el catálogo de la ferretería.';
+    } finally {
+      this.selectedStoreCatalogLoading = false;
+    }
+  }
+
+  protected closeStoreCatalog(): void {
+    this.ferreteriaView = 'list';
+    this.selectedStore = null;
+    this.selectedStoreCatalogLabel = '';
+    this.selectedStoreCatalog = [];
+    this.selectedStoreCatalogSearch = '';
+    this.selectedStoreCatalogPage = 1;
+    this.selectedStoreCatalogLoading = false;
+    this.onboardingStoreOwnerId = '';
+    this.storeCreateError = '';
+    this.resetOnboardingCatalogTemplate();
+  }
+
+  protected onSelectedStoreCatalogSearchChange(): void {
+    this.selectedStoreCatalogPage = 1;
+  }
+
+  protected onSelectedStoreCatalogPageChange(event: PaginatorState): void {
+    this.selectedStoreCatalogPageSize = event.rows ?? this.selectedStoreCatalogPageSize;
+    this.selectedStoreCatalogPage = (event.page ?? 0) + 1;
   }
 
   protected async activateStore(store: SessionUser): Promise<void> {
@@ -1078,7 +1291,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
 
     try {
       this.onboardingCsvContent = await catalogFileToCsv(file);
-      this.onboardingNotice = `${file.name} cargado. Selecciona la ferreteria y procesa la carga inicial.`;
+      this.onboardingNotice = `${file.name} está listo para procesar.`;
     } catch (error) {
       this.onboardingFileName = '';
       this.onboardingError = error instanceof Error ? error.message : 'No se pudo leer el archivo.';
@@ -1138,6 +1351,8 @@ export class DashboardAdminValidacionesComponent implements OnInit {
 
       this.onboardingNotice = `Carga inicial procesada para ${store.businessName || store.displayName}: ${response.report.uploadedCount} producto(s) cargados, ${response.report.pendingNewCount + response.report.possibleMatchCount} pendiente(s) de revision y ${response.report.failedCount} fila(s) con error.`;
       await this.apiService.refreshFerreteriaCatalogSection(store.id, true);
+      this.selectedStoreCatalog = [...this.apiService.getCatalog(store.id)];
+      this.selectedStoreCatalogPage = 1;
     } catch (error) {
       this.onboardingError = error instanceof Error ? error.message : 'No fue posible cargar el catalogo inicial.';
     } finally {
@@ -1150,7 +1365,9 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   }
 
   protected setCatalogAdminView(view: 'productos' | 'taxonomia'): void {
+    if (this.catalogAdminView === view) return;
     this.catalogAdminView = view;
+    void this.loadCatalogAdminView(view);
   }
 
   protected formatCurrency(value: number): string {
@@ -1240,19 +1457,10 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     try {
       if (section === 'ferreterias') {
         await this.ensureUsersLoaded(force);
-        await Promise.all(
-          this.onboardingFerreterias.map((store) => this.apiService.refreshFerreteriaCatalogSection(store.id, force))
-        );
       }
 
       if (section === 'productos') {
-        await Promise.all([
-          this.apiService.refreshAdminProductsSection(force),
-          this.apiService.refreshAdminTaxonomySection(force)
-        ]);
-        this.syncMasterCatalogState();
-        this.syncTaxonomySelection();
-        this.syncMasterAttributeDrafts();
+        await this.ensureCatalogAdminViewData(this.catalogAdminView, force);
       }
 
       if (section === 'solicitudes') {
@@ -1295,8 +1503,56 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     this.syncDrafts();
   }
 
-  private syncMasterCatalogState(): void {
-    this.masterCatalog = this.apiService.getMasterCatalogProducts();
+  private async loadCatalogAdminView(view: 'productos' | 'taxonomia', force = false): Promise<void> {
+    this.isSectionLoading = true;
+    try {
+      await this.ensureCatalogAdminViewData(view, force);
+    } finally {
+      this.isSectionLoading = false;
+    }
+  }
+
+  private async ensureCatalogAdminViewData(view: 'productos' | 'taxonomia', force = false): Promise<void> {
+    if (view === 'productos') {
+      if (!force && this.catalogProductsLoaded) return;
+      await this.apiService.refreshAdminProductsTaxonomySection(force);
+      await this.loadAdminMasterCatalog(1);
+      this.catalogProductsLoaded = true;
+      return;
+    }
+
+    if (!force && this.catalogTaxonomyLoaded) return;
+    await this.apiService.refreshAdminTaxonomySection(force);
+    this.syncTaxonomySelection();
+    this.catalogTaxonomyLoaded = true;
+  }
+
+  private async ensureMasterDefinitionsLoaded(): Promise<void> {
+    if (this.catalogTaxonomyLoaded) return;
+    await this.apiService.refreshAdminTaxonomySection();
+    this.catalogTaxonomyLoaded = true;
+  }
+
+  private async loadAdminMasterCatalog(page = this.masterPage): Promise<void> {
+    this.masterCatalogLoading = true;
+    try {
+      const result = await this.apiService.getAdminMasterCatalogPage({
+        query: this.masterSearch,
+        categoryId: this.masterCategoryFilter,
+        subcategoryId: this.masterSubcategoryFilter,
+        familyId: this.masterFamilyFilter,
+        page,
+        size: this.masterPageSize
+      });
+      this.masterCatalog = result.items;
+      this.masterPage = result.page;
+      this.masterPageSize = result.size;
+      this.masterTotal = result.total;
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : 'No fue posible cargar el catálogo maestro.';
+    } finally {
+      this.masterCatalogLoading = false;
+    }
   }
 
   private markUserDataStale(): void {
@@ -1365,14 +1621,16 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       email: '',
       password: '',
       displayName: '',
-      role: 'ferreteria',
+      role: 'maestro',
       accountStatus: 'pendiente',
       phone: '',
       city: '',
       commune: '',
       address: '',
       businessName: '',
-      rut: ''
+      rut: '',
+      storeLatitude: null,
+      storeLongitude: null
     };
   }
 
@@ -1390,7 +1648,9 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       commune: user.commune || '',
       address: user.address || '',
       businessName: user.businessName || '',
-      rut: user.rut || ''
+      rut: user.rut || '',
+      storeLatitude: user.storeLatitude ?? null,
+      storeLongitude: user.storeLongitude ?? null
     };
   }
 

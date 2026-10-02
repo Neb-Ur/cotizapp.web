@@ -204,7 +204,7 @@
 .cta {
   margin-top: 1rem;
   display: inline-flex;
-  border-radius: 12px;
+  border-radius: var(--r-md);
   padding: 0.6rem 1rem;
   color: #fff;
   background: var(--accent-orange);
@@ -220,7 +220,7 @@
 .card-grid section {
   border: 1px solid var(--border-soft);
   background: #f8fbff;
-  border-radius: 14px;
+  border-radius: var(--r-md);
   padding: 0.9rem;
 }
 

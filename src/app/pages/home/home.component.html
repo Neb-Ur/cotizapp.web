@@ -1,143 +1,152 @@
-<!-- ── HERO ─────────────────────────────────────── -->
-<section class="hero">
-  <div class="hero-inner">
-    <div class="hero-badge">
-      <span class="badge-dot"></span>
-      Piloto MVP · Construcción Chile
-    </div>
+<main class="home-page">
+  <section class="discovery-section" aria-labelledby="home-title">
+    <div class="discovery-grid">
+      <div class="discovery-copy">
+        <span class="section-kicker"><i class="pi pi-sparkles" aria-hidden="true"></i> Compara antes de comprar</span>
+        <h1 id="home-title">Encuentra materiales.<br><em>Compara mejor.</em></h1>
+        <p>Busca productos de construcción, compara precios en ferreterías de Chile y arma tu cotización en minutos.</p>
+      </div>
 
-    <h1 class="hero-headline">
-      Compara precios.<br>
-      <span class="headline-accent">Gana cada proyecto.</span>
-    </h1>
-
-    <p class="hero-sub">
-      La plataforma que conecta maestros con ferreterías locales.
-      Cotiza, optimiza y ejecuta obras con datos reales en minutos.
-    </p>
-
-    <div class="hero-actions">
-      <a class="btn btn-primary btn-lg" routerLink="/buscar">Buscar productos</a>
-      <a class="btn btn-ghost-white btn-lg" routerLink="/maestros">Ver cómo funciona</a>
-    </div>
-
-  </div>
-</section>
-
-<!-- ── HOW IT WORKS ────────────────────────────── -->
-<section class="section how-section">
-  <div class="section-inner">
-    <div class="section-label">Proceso</div>
-    <h2 class="section-title">Tres pasos para optimizar tus compras</h2>
-
-    <div class="steps-grid">
-      <article class="step-card">
-        <div class="step-num">01</div>
-        <h3>Busca materiales</h3>
-        <p>Encuentra productos y compara sus precios entre las ferreterías activas del piloto.</p>
-      </article>
-      <div class="step-arrow">→</div>
-      <article class="step-card">
-        <div class="step-num">02</div>
-        <h3>Crea tu proyecto</h3>
-        <p>Arma listas de compra con cantidades exactas y seguimiento en tiempo real por obra.</p>
-      </article>
-      <div class="step-arrow">→</div>
-      <article class="step-card">
-        <div class="step-num">03</div>
-        <h3>Optimiza la compra</h3>
-        <p>Obtén combinaciones inteligentes de tiendas para reducir el costo total al mínimo.</p>
-      </article>
-    </div>
-  </div>
-</section>
-
-<!-- ── AUDIENCE SPLIT ──────────────────────────── -->
-<section class="section audience-section">
-  <div class="section-inner">
-    <div class="audience-grid">
-      <article class="audience-card audience-maestro">
-        <div class="audience-tag">Para Maestros</div>
-        <h2>Cada peso cuenta en obra</h2>
-        <p>Deja de perder horas cotizando por teléfono. Compara al instante, cierra presupuestos con confianza y lleva un control preciso de cada proyecto.</p>
-        <ul class="feature-list">
-          <li>Comparador inteligente de precios</li>
-          <li>Proyectos con listas detalladas</li>
-          <li>Optimizador de compra por costo</li>
-          <li>Exportación de presupuesto</li>
-        </ul>
-        <a class="btn btn-dark" routerLink="/maestros">Conocer CotizApp para Maestros</a>
-      </article>
-
-      <article class="audience-card audience-ferreteria">
-        <div class="audience-tag audience-tag--green">Para Ferreterías</div>
-        <h2>Más clientes, sin esfuerzo</h2>
-        <p>CotizApp puede cargar tu catálogo inicial y tú mantienes precio y stock para participar en las comparaciones.</p>
-        <ul class="feature-list">
-          <li>Catálogo digital actualizable</li>
-          <li>Actualización masiva por Excel o CSV</li>
-          <li>Participación en el comparador al activar la cuenta</li>
-          <li>Precio y stock editables desde el catálogo</li>
-        </ul>
-        <a class="btn btn-secondary" routerLink="/ferreterias">Conocer CotizApp para Ferreterías</a>
-      </article>
-    </div>
-  </div>
-</section>
-
-<!-- ── MVP ACCESS ─────────────────────────────── -->
-<section class="section pricing-section" id="acceso-mvp">
-  <div class="section-inner">
-    <div class="section-label">MVP</div>
-    <h2 class="section-title">Primero validamos el ahorro real</h2>
-    <p class="section-sub">
-      Durante el MVP no hay planes ni pagos dentro de la plataforma.
-      Los maestros usan el comparador y las ferreterías se habilitan manualmente para participar.
-    </p>
-
-    <div class="pricing-grid">
-      <article class="price-card">
-        <div class="price-header">
-          <h3>Maestros y contratistas</h3>
-          <p class="price-desc">Acceso al comparador y optimizador de materiales durante el piloto.</p>
+      <form class="home-search" (submit)="$event.preventDefault(); submitSearch()" role="search">
+        <label for="home-product-search">¿Qué material necesitas?</label>
+        <div class="home-search-control">
+          <p-autoComplete
+            inputId="home-product-search"
+            name="homeProductSearch"
+            [(ngModel)]="searchValue"
+            [suggestions]="searchSuggestions"
+            (completeMethod)="searchProducts($event)"
+            (onSelect)="selectSuggestion($event)"
+            field="productName"
+            [minLength]="2"
+            [delay]="250"
+            [forceSelection]="false"
+            [completeOnFocus]="false"
+            placeholder="Busca cemento, OSB, yeso, herramientas..."
+            styleClass="home-autocomplete"
+            inputStyleClass="home-search-input"
+          >
+            <ng-template let-product pTemplate="item">
+              <div class="search-suggestion">
+                <div class="suggestion-image">
+                  <img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.productName" />
+                  <img *ngIf="!product.imageUrl" src="assets/cotizapp-mark.svg" alt="" />
+                </div>
+                <div class="suggestion-copy">
+                  <strong>{{ product.productName }}</strong>
+                  <span>{{ product.productType }}</span>
+                </div>
+                <div class="suggestion-price">
+                  <span>Desde</span>
+                  <strong>{{ formatCurrency(product.minPrice) }}</strong>
+                </div>
+                <i class="pi pi-angle-right" aria-hidden="true"></i>
+              </div>
+            </ng-template>
+            <ng-template pTemplate="empty">
+              <div class="search-empty">No encontramos coincidencias. Presiona Enter para ver el catálogo.</div>
+            </ng-template>
+          </p-autoComplete>
+          <button pButton type="submit" icon="pi pi-search" label="Buscar" class="home-search-button"></button>
         </div>
-        <ul class="price-features">
-          <li><span class="check-icon">✓</span> Comparación de precios entre ferreterías activas</li>
-          <li><span class="check-icon">✓</span> Cotizaciones sin límites por plan</li>
-          <li><span class="check-icon">✓</span> Optimización por menor costo</li>
-          <li><span class="check-icon">✓</span> Historial de cotizaciones</li>
-        </ul>
-        <a class="btn btn-dark" routerLink="/registro">Crear cuenta de maestro</a>
-      </article>
+      </form>
 
-      <article class="price-card price-card--featured">
-        <div class="featured-badge">Piloto</div>
-        <div class="price-header">
-          <h3>Ferreterías</h3>
-          <p class="price-desc">
-            El alta comercial se coordina directamente con CotizApp. No existe cobro automático en el MVP.
-          </p>
-        </div>
-        <ul class="price-features">
-          <li><span class="check-icon">✓</span> Catálogo digital editable</li>
-          <li><span class="check-icon">✓</span> Precio y stock actualizables</li>
-          <li><span class="check-icon">✓</span> Activación manual por administración</li>
-          <li><span class="check-icon">✓</span> Sin planes Básico, Pro o Premium</li>
-        </ul>
-        <a class="btn btn-primary" routerLink="/contacto" [queryParams]="{ type: 'Ferreteria' }">Solicitar acceso</a>
-      </article>
+      <div class="quick-categories" aria-label="Categorías destacadas">
+        <button type="button" *ngFor="let category of featuredCategories | slice:0:6" (click)="openCategory(category)">
+          <i [class]="category.icon" aria-hidden="true"></i>
+          <span>{{ category.name }}</span>
+        </button>
+        <a routerLink="/buscar">Ver catálogo <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ── FINAL CTA ───────────────────────────────── -->
-<section class="cta-section">
-  <div class="cta-inner">
-    <h2>¿Listo para optimizar tus obras?</h2>
-    <p>Busca y cotiza sin cuenta. Regístrate como maestro cuando quieras guardar tu cotización.</p>
-    <div class="cta-actions">
-      <a class="btn btn-primary btn-lg" routerLink="/registro">Crear cuenta de maestro</a>
-      <a class="btn btn-ghost-white btn-lg" routerLink="/contacto">Contactar a CotizApp</a>
+  <section class="catalog-section" aria-labelledby="featured-products-title">
+    <div class="section-heading">
+      <div>
+        <span>Lo más buscado en CotizApp</span>
+        <h2 id="featured-products-title">Productos con más opciones</h2>
+        <p>Compara precios en múltiples ferreterías y elige la mejor opción para tu proyecto.</p>
+      </div>
+      <a routerLink="/buscar">Ver más productos <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
     </div>
-  </div>
-</section>
+
+    <div class="product-skeletons" *ngIf="catalogLoading && featuredProducts.length === 0" aria-label="Cargando productos">
+      <div *ngFor="let item of [1,2,3,4,5,6]">
+        <p-skeleton height="11rem" styleClass="product-skeleton-image" />
+        <p-skeleton width="82%" height="1rem" />
+        <p-skeleton width="48%" height="1.35rem" />
+      </div>
+    </div>
+
+    <p class="catalog-message" *ngIf="catalogError && featuredProducts.length === 0">{{ catalogError }}</p>
+
+    <div class="home-product-grid" *ngIf="featuredProducts.length > 0">
+      <button type="button" class="home-product-card" *ngFor="let product of featuredProducts | slice:0:4" (click)="openProduct(product)">
+        <span class="home-product-image">
+          <img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.productName" loading="lazy" />
+          <img *ngIf="!product.imageUrl" class="fallback" src="assets/cotizapp-mark.svg" alt="" />
+        </span>
+        <span class="home-product-meta">{{ product.brand }} · {{ product.productType }}</span>
+        <span class="home-product-name">{{ product.productName }}</span>
+        <span class="home-product-pricing">
+          <span><small>Desde</small><strong>{{ formatCurrency(product.minPrice) }}</strong></span>
+          <span class="compare-link" aria-hidden="true"><i class="pi pi-arrow-right"></i></span>
+        </span>
+        <span class="home-product-stores"><i class="pi pi-shop" aria-hidden="true"></i> {{ product.storeCount }} {{ product.storeCount === 1 ? 'ferretería' : 'ferreterías' }}</span>
+      </button>
+    </div>
+  </section>
+
+  <section class="category-section" aria-labelledby="featured-categories-title" *ngIf="featuredCategories.length > 0">
+    <div class="section-heading compact">
+      <div>
+        <span>Explora por área</span>
+        <h2 id="featured-categories-title">Encuentra lo que necesitas</h2>
+      </div>
+      <a routerLink="/buscar">Ver todas <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
+    </div>
+    <div class="category-grid">
+      <button type="button" *ngFor="let category of featuredCategories" (click)="openCategory(category)">
+        <i [class]="category.icon" aria-hidden="true"></i>
+        <span>{{ category.name }}</span>
+        <i class="pi pi-angle-right" aria-hidden="true"></i>
+      </button>
+    </div>
+  </section>
+
+  <section class="benefit-strip" aria-label="Beneficios de CotizApp">
+    <article>
+      <i class="pi pi-search" aria-hidden="true"></i>
+      <div><strong>Busca en un solo lugar</strong><span>Encuentra materiales sin recorrer múltiples sitios.</span></div>
+    </article>
+    <article>
+      <i class="pi pi-chart-bar" aria-hidden="true"></i>
+      <div><strong>Compara con contexto</strong><span>Revisa precio y disponibilidad entre ferreterías.</span></div>
+    </article>
+    <article>
+      <i class="pi pi-file-edit" aria-hidden="true"></i>
+      <div><strong>Cotiza tu proyecto</strong><span>Agrupa los materiales que necesita cada obra.</span></div>
+    </article>
+  </section>
+
+  <section class="how-compact" aria-labelledby="how-title">
+    <div>
+      <span class="section-kicker">Simple y directo</span>
+      <h2 id="how-title">De la búsqueda a tu cotización</h2>
+    </div>
+    <ol>
+      <li><span>1</span><div><strong>Busca</strong><small>Encuentra el material.</small></div></li>
+      <li><span>2</span><div><strong>Compara</strong><small>Revisa precios disponibles.</small></div></li>
+      <li><span>3</span><div><strong>Cotiza</strong><small>Guárdalo en tu proyecto.</small></div></li>
+    </ol>
+  </section>
+
+  <section class="store-invitation">
+    <div>
+      <i class="pi pi-shop" aria-hidden="true"></i>
+      <div><strong>¿Tienes una ferretería?</strong><span>Publica tu catálogo y conecta con técnicos y maestros.</span></div>
+    </div>
+    <a class="btn btn-secondary" routerLink="/contacto" [queryParams]="{ type: 'Ferreteria' }">Solicitar acceso</a>
+  </section>
+</main>

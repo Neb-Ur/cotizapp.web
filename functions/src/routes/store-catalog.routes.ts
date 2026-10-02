@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { db } from '../lib/firebase.js';
-import { requireAuth } from '../lib/auth.js';
+import { requireAuth, requireRole } from '../lib/auth.js';
 import { fail, ok } from '../lib/http.js';
 import { COLLECTIONS } from '../lib/collections.js';
 import { nowIso, normalizeText, numberValue } from '../lib/values.js';
@@ -8,13 +8,13 @@ import { rows, row, createRow, patchRow } from '../repositories/firestore.reposi
 import { canAccessOwner, requireStoreWriteAccess } from '../lib/ownership.js';
 export const storeCatalogRouter = Router();
 
-storeCatalogRouter.get('/ferreterias/by-owner/:ownerId', requireAuth, async (req, res) => {
+storeCatalogRouter.get('/ferreterias/by-owner/:ownerId', requireAuth, requireRole('ferreteria', 'admin'), async (req, res) => {
   if (!canAccessOwner(req, req.params.ownerId)) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para consultar esta ferreteria.', 403);
   const store = (await rows(COLLECTIONS.stores)).find((item) => item.usuarioDuenoId === req.params.ownerId);
   return store ? ok(res, store) : fail(res, 'FERRETERIA_NOT_FOUND', 'No existe ferreteria para el usuario indicado.', 404);
 });
 
-storeCatalogRouter.get('/ferreterias/:storeId/catalogo', requireAuth, async (req, res) => {
+storeCatalogRouter.get('/ferreterias/:storeId/catalogo', requireAuth, requireRole('ferreteria', 'admin'), async (req, res) => {
   const store = await row(COLLECTIONS.stores, req.params.storeId);
   if (!store) return fail(res, 'FERRETERIA_NOT_FOUND', 'No existe la ferreteria indicada.', 404);
   if (req.authRole !== 'admin' && req.authUserId !== store.usuarioDuenoId) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para consultar este catalogo.', 403);
@@ -27,7 +27,7 @@ storeCatalogRouter.get('/ferreterias/:storeId/catalogo', requireAuth, async (req
   return ok(res, data);
 });
 
-storeCatalogRouter.post('/ferreterias/:storeId/catalogo', requireAuth, async (req, res) => {
+storeCatalogRouter.post('/ferreterias/:storeId/catalogo', requireAuth, requireRole('ferreteria', 'admin'), async (req, res) => {
   if (!(await requireStoreWriteAccess(req, res, req.params.storeId))) return;
   const masterId = normalizeText(req.body?.productoMaestroId);
   const product = await row(COLLECTIONS.masterProducts, masterId);
@@ -49,7 +49,7 @@ storeCatalogRouter.post('/ferreterias/:storeId/catalogo', requireAuth, async (re
   return ok(res, { ...created, productoMaestro: product }, 201);
 });
 
-storeCatalogRouter.patch('/ferreterias/:storeId/catalogo/:offerId', requireAuth, async (req, res) => {
+storeCatalogRouter.patch('/ferreterias/:storeId/catalogo/:offerId', requireAuth, requireRole('ferreteria', 'admin'), async (req, res) => {
   if (!(await requireStoreWriteAccess(req, res, req.params.storeId))) return;
   const existing = await row(COLLECTIONS.storeProducts, req.params.offerId);
   if (!existing || existing.ferreteriaId !== req.params.storeId) return fail(res, 'CATALOGO_NOT_FOUND', 'Producto de ferreteria no encontrado.', 404);
@@ -62,7 +62,7 @@ storeCatalogRouter.patch('/ferreterias/:storeId/catalogo/:offerId', requireAuth,
   return ok(res, { ...updated, productoMaestro: product });
 });
 
-storeCatalogRouter.delete('/ferreterias/:storeId/catalogo/:offerId', requireAuth, async (req, res) => {
+storeCatalogRouter.delete('/ferreterias/:storeId/catalogo/:offerId', requireAuth, requireRole('ferreteria', 'admin'), async (req, res) => {
   if (!(await requireStoreWriteAccess(req, res, req.params.storeId))) return;
 
   const existing = await row(COLLECTIONS.storeProducts, req.params.offerId);
