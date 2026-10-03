@@ -1,0 +1,55 @@
+:host { display: block; min-height: 100vh; color: var(--ink-900); background: #f4f6f8; }
+* { box-sizing: border-box; }
+.topbar { height: 72px; padding: 0 max(1.25rem, calc((100vw - 1320px) / 2)); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-med); background: #fff; }
+.topbar a { color: var(--ink-700); text-decoration: none; font-weight: 750; }
+.brand { display: inline-flex; align-items: center; gap: .65rem; font-size: 1.15rem; }
+.brand-mark { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; background: var(--ink-900); color: #fff; box-shadow: inset -5px 0 var(--orange); }
+.hero { max-width: 1320px; margin: 0 auto; padding: 2.5rem 1.25rem 1.5rem; display: flex; justify-content: space-between; gap: 2rem; align-items: end; }
+.eyebrow { color: var(--orange-hover); font-size: .72rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+h1 { margin: .35rem 0 .6rem; font-size: clamp(2rem, 4vw, 3.2rem); letter-spacing: -.05em; line-height: 1; }
+.hero p { max-width: 720px; margin: 0; color: var(--ink-500); line-height: 1.55; }
+.status { min-width: 190px; padding: 1rem; border: 1px solid #fed7aa; border-radius: var(--r-md); background: #fff7ed; display: grid; gap: .2rem; }
+.status span { color: #b45309; font-size: .7rem; font-weight: 850; text-transform: uppercase; }
+.status small { color: var(--ink-500); }
+.status--active { border-color: #a7f3d0; background: #ecfdf3; }
+.status--active span { color: #047857; }
+.agreement-layout { max-width: 1320px; margin: 0 auto; padding: 0 1.25rem 4rem; display: grid; grid-template-columns: minmax(0, 1fr) 390px; gap: 1.25rem; align-items: start; }
+.document, .acceptance-card { border: 1px solid var(--border-med); border-radius: var(--r-lg); background: #fff; box-shadow: var(--shadow-sm); }
+.document { padding: 1.75rem; }
+.document-actions { display: flex; justify-content: space-between; gap: 1rem; align-items: start; }
+.document-actions h2, .acceptance-card h2 { margin: .3rem 0 1rem; }
+.document-actions > div:last-child { display: flex; gap: .5rem; }
+.party-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.party-grid section { padding: 1rem; border: 1px solid var(--border-med); border-radius: var(--r-md); background: var(--ink-50); }
+.party-grid span { display: block; color: var(--ink-500); font-size: .72rem; font-weight: 800; text-transform: uppercase; }
+.party-grid strong { display: block; margin: .3rem 0; }
+.party-grid p { margin: 0; color: var(--ink-600); font-size: .82rem; line-height: 1.55; }
+.clauses { margin: 1.7rem 0; padding-left: 1.4rem; }
+.clauses li { padding: 0 0 1.1rem .4rem; }
+.clauses li::marker { color: var(--orange-hover); font-weight: 850; }
+.clauses h3 { margin: 0 0 .35rem; font-size: 1rem; }
+.clauses p { margin: 0; color: var(--ink-600); font-size: .9rem; line-height: 1.65; }
+.evidence-note { padding: 1rem; border-left: 4px solid var(--orange); border-radius: var(--r-sm); background: var(--orange-muted); }
+.evidence-note p { margin: .35rem 0 0; color: var(--ink-600); font-size: .78rem; line-height: 1.5; overflow-wrap: anywhere; }
+.acceptance-card { position: sticky; top: 1rem; padding: 1.5rem; }
+.acceptance-card > ng-container > p, .acceptance-card > p { color: var(--ink-500); font-size: .85rem; line-height: 1.5; }
+.acceptance-card label:not(.check) { display: grid; gap: .35rem; margin: .8rem 0; color: var(--ink-700); font-size: .78rem; font-weight: 750; }
+input { width: 100%; padding: .72rem .8rem; border: 1px solid var(--border-med); border-radius: var(--r-sm); color: var(--ink-900); font: inherit; }
+input:focus { outline: none; border-color: var(--ink-700); box-shadow: 0 0 0 3px rgba(20, 33, 50, .08); }
+.check { display: grid; grid-template-columns: 1.1rem 1fr; gap: .6rem; margin: .8rem 0; color: var(--ink-700); font-size: .8rem; line-height: 1.45; }
+.check input { width: 1rem; height: 1rem; margin-top: .15rem; accent-color: var(--orange); }
+button { padding: .7rem .9rem; border-radius: var(--r-sm); font: inherit; font-weight: 800; cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .5; }
+.primary { width: 100%; border: 1px solid var(--orange); background: var(--orange); color: #fff; }
+.secondary { border: 1px solid var(--border-med); background: #fff; color: var(--ink-800); }
+.full { width: 100%; margin-top: .6rem; }
+.acceptance-card small { display: block; margin-top: .7rem; color: var(--ink-400); line-height: 1.45; }
+.acceptance-card dl div { padding: .65rem 0; border-bottom: 1px solid var(--border-med); }
+.acceptance-card dt { color: var(--ink-400); font-size: .7rem; text-transform: uppercase; }
+.acceptance-card dd { margin: .2rem 0 0; overflow-wrap: anywhere; color: var(--ink-700); font-size: .84rem; }
+.success { padding: .75rem; border-radius: var(--r-sm); background: #ecfdf3; color: #047857; }
+.error, .loading { max-width: 1320px; margin: 1rem auto; padding: 1rem 1.25rem; }
+.error, .error-inline { color: #b42318; }
+@media (max-width: 900px) { .agreement-layout { grid-template-columns: 1fr; } .acceptance-card { position: static; } }
+@media (max-width: 620px) { .hero, .document-actions { align-items: stretch; flex-direction: column; } .status { min-width: 0; } .party-grid { grid-template-columns: 1fr; } .document { padding: 1rem; } .document-actions > div:last-child { flex-wrap: wrap; } }
+@media print { .topbar, .acceptance-card, .document-actions button { display: none !important; } .agreement-layout { display: block; padding: 0; } .document { box-shadow: none; border: 0; } .hero { padding: 0 0 1rem; } }

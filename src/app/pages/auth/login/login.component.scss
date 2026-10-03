@@ -260,21 +260,6 @@ app-brand-mark {
   text-decoration: underline;
 }
 
-.demo-hints {
-  margin-top: 2rem;
-  padding: 1rem 1.1rem;
-  border-radius: var(--r-md);
-  background: rgba(230, 220, 199, 0.48);
-  max-width: 420px;
-}
-
-.demo-hints p {
-  margin: 0;
-  font-size: 0.78rem;
-  color: var(--ink-500);
-  line-height: 1.8;
-}
-
 /* ─── Responsive ──────────────────────────────── */
 @media (max-width: 760px) {
   .auth-page {

@@ -7,6 +7,48 @@ import { nowIso, normalizeText, numberValue } from '../lib/values.js';
 import { rows, row, createRow, patchRow, deleteRowsByIds } from '../repositories/firestore.repository.js';
 export const masterProductsRouter = Router();
 
+const validImageSources = ['ai_generated', 'manufacturer_authorized', 'store_authorized', 'licensed_stock', 'original', 'other'];
+const validContentSources = ['manufacturer_authorized', 'store_authorized', 'licensed', 'original', 'ai_assisted_original', 'public_domain', 'other'];
+
+function imageRightsPayload(body: Record<string, any>, reviewerId: string | undefined): Record<string, unknown> | null {
+  const imageUrl = normalizeText(body?.['imagenPrincipalUrl']);
+  const gallery = Array.isArray(body?.['galeriaJson']) ? body['galeriaJson'].filter((item: unknown) => normalizeText(item)) : [];
+  if (!imageUrl && gallery.length === 0) return {};
+  const sourceType = normalizeText(body?.['origenImagen']);
+  const provider = normalizeText(body?.['proveedorImagen']).slice(0, 200);
+  const sourceTermsUrl = normalizeText(body?.['terminosFuenteUrl']).slice(0, 1000);
+  const authorizationReference = normalizeText(body?.['referenciaAutorizacion']).slice(0, 500);
+  const containsThirdPartyMarks = body?.['contieneMarcasTerceros'] === true;
+  const trademarkAuthorizationReference = normalizeText(body?.['referenciaAutorizacionMarca']).slice(0, 500);
+  if (!validImageSources.includes(sourceType) || provider.length < 2 || authorizationReference.length < 3) return null;
+  if ((sourceType === 'ai_generated' || sourceType === 'licensed_stock') && !/^https?:\/\//i.test(sourceTermsUrl)) return null;
+  if (containsThirdPartyMarks && trademarkAuthorizationReference.length < 3) return null;
+  return {
+    origenImagen: sourceType,
+    proveedorImagen: provider,
+    terminosFuenteUrl: sourceTermsUrl || null,
+    referenciaAutorizacion: authorizationReference,
+    contieneMarcasTerceros: containsThirdPartyMarks,
+    referenciaAutorizacionMarca: containsThirdPartyMarks ? trademarkAuthorizationReference : null,
+    derechosRevisadosEn: nowIso(),
+    derechosRevisadosPor: reviewerId || null
+  };
+}
+
+function contentRightsPayload(body: Record<string, any>, reviewerId: string | undefined): Record<string, unknown> | null {
+  const sourceType = normalizeText(body?.['origenContenido']);
+  const sourceUrl = normalizeText(body?.['fuenteContenidoUrl']).slice(0, 1000);
+  const authorizationReference = normalizeText(body?.['referenciaDerechosContenido']).slice(0, 500);
+  if (!validContentSources.includes(sourceType) || authorizationReference.length < 3) return null;
+  return {
+    origenContenido: sourceType,
+    fuenteContenidoUrl: sourceUrl || null,
+    referenciaDerechosContenido: authorizationReference,
+    derechosContenidoRevisadosEn: nowIso(),
+    derechosContenidoRevisadosPor: reviewerId || null
+  };
+}
+
 masterProductsRouter.get('/productos-maestro', async (req, res) => {
   const q = normalizeText(req.query['query']).toLowerCase();
   const categoryId = normalizeText(req.query['categoriaId']);
@@ -55,6 +97,10 @@ masterProductsRouter.get('/productos-maestro/:id', async (req, res) => {
 masterProductsRouter.post('/productos-maestro', requireAuth, requireRole('admin'), async (req, res) => {
   const nombre = normalizeText(req.body?.nombre);
   if (!nombre) return fail(res, 'PRODUCTO_MAESTRO_INVALID_PAYLOAD', 'Nombre requerido.', 400);
+  const imageRights = imageRightsPayload(req.body || {}, req.authUserId);
+  if (imageRights === null) return fail(res, 'PRODUCT_IMAGE_RIGHTS_REQUIRED', 'Registra el origen, proveedor y respaldo de derechos de la imagen. Las marcas de terceros requieren autorización específica.', 400);
+  const contentRights = contentRightsPayload(req.body || {}, req.authUserId);
+  if (contentRights === null) return fail(res, 'PRODUCT_CONTENT_RIGHTS_REQUIRED', 'Registra la fuente o autorización de las descripciones y fichas del producto.', 400);
   const created = await createRow(COLLECTIONS.masterProducts, {
     categoriaId: normalizeText(req.body?.categoriaId),
     subcategoriaId: normalizeText(req.body?.subcategoriaId),
@@ -66,6 +112,8 @@ masterProductsRouter.post('/productos-maestro', requireAuth, requireRole('admin'
     descripcionLarga: normalizeText(req.body?.descripcionLarga),
     imagenPrincipalUrl: normalizeText(req.body?.imagenPrincipalUrl),
     galeriaJson: Array.isArray(req.body?.galeriaJson) ? req.body.galeriaJson : [],
+    ...imageRights,
+    ...contentRights,
     estado: req.body?.estado === 'inactivo' ? 'inactivo' : 'activo',
     creadoEn: nowIso()
   });
@@ -73,7 +121,21 @@ masterProductsRouter.post('/productos-maestro', requireAuth, requireRole('admin'
 });
 
 masterProductsRouter.patch('/productos-maestro/:id', requireAuth, requireRole('admin'), async (req, res) => {
-  const updated = await patchRow(COLLECTIONS.masterProducts, req.params.id, req.body || {});
+  const current = await row(COLLECTIONS.masterProducts, req.params.id);
+  if (!current) return fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro.', 404);
+  const nextImageUrl = req.body?.imagenPrincipalUrl !== undefined ? req.body.imagenPrincipalUrl : current.imagenPrincipalUrl;
+  const rightsInput = { ...current, ...(req.body || {}), imagenPrincipalUrl: nextImageUrl };
+  const imageRights = imageRightsPayload(rightsInput, req.authUserId);
+  if (imageRights === null) return fail(res, 'PRODUCT_IMAGE_RIGHTS_REQUIRED', 'Registra el origen, proveedor y respaldo de derechos de la imagen. Las marcas de terceros requieren autorización específica.', 400);
+  const contentRights = contentRightsPayload(rightsInput, req.authUserId);
+  if (contentRights === null) return fail(res, 'PRODUCT_CONTENT_RIGHTS_REQUIRED', 'Registra la fuente o autorización de las descripciones y fichas del producto.', 400);
+  const allowed = [
+    'categoriaId', 'subcategoriaId', 'familiaId', 'nombre', 'marca', 'codigoBarras',
+    'descripcionCorta', 'descripcionLarga', 'imagenPrincipalUrl', 'galeriaJson', 'estado'
+  ];
+  const patch: Record<string, unknown> = { ...imageRights, ...contentRights, actualizadoEn: nowIso() };
+  allowed.forEach((key) => { if (req.body?.[key] !== undefined) patch[key] = req.body[key]; });
+  const updated = await patchRow(COLLECTIONS.masterProducts, req.params.id, patch);
   return updated ? ok(res, updated) : fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro.', 404);
 });
 

@@ -68,9 +68,16 @@
 
   <article class="card info">
     <h2>Canales directos</h2>
-    <p><strong>Email soporte:</strong> soporte&#64;construcomparador.cl</p>
-    <p><strong>WhatsApp:</strong> +56 9 5555 8888</p>
-    <p><strong>Horario:</strong> Lunes a Viernes de 09:00 a 18:00</p>
+    @if (legalIdentity.isProvisional) {
+      <p class="provisional-copy"><strong>Datos provisorios:</strong> reemplázalos antes de publicar.</p>
+    }
+    <p><strong>Operador:</strong> {{ legalIdentity.legalName }}</p>
+    <p><strong>RUT:</strong> {{ legalIdentity.taxId }}</p>
+    <p><strong>Email soporte:</strong> <a [href]="'mailto:' + legalIdentity.supportEmail">{{ legalIdentity.supportEmail }}</a></p>
+    <p><strong>Email legal:</strong> <a [href]="'mailto:' + legalIdentity.legalEmail">{{ legalIdentity.legalEmail }}</a></p>
+    <p><strong>Email privacidad:</strong> <a [href]="'mailto:' + legalIdentity.privacyEmail">{{ legalIdentity.privacyEmail }}</a></p>
+    <p><strong>WhatsApp:</strong> {{ legalIdentity.whatsappLabel }}</p>
+    <p><strong>Horario:</strong> {{ legalIdentity.supportHours }}</p>
     <p><strong>Base legal:</strong></p>
     <p><a routerLink="/terminos-condiciones">Términos y condiciones</a></p>
     <p><a routerLink="/privacidad">Política de privacidad</a></p>

@@ -21,19 +21,34 @@ import {
   CatalogValidationType,
   ContactRequest,
   ContactRequestStatus,
+  AdminAuditEntry,
+  GovernanceEvidence,
+  GovernanceEvidenceOutcome,
+  GovernanceEvidenceType,
+  GovernanceSummary,
+  IpReport,
+  IpReportStatus,
+  PrivacyRequest,
+  PrivacyRequestStatus,
   SessionUser,
+  SecurityIncident,
+  SecurityIncidentSeverity,
+  SecurityIncidentStatus,
   TaxonomyOption,
   UserRole
 } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
 import { FirebaseDataService, TaxonomyDefinitionApi } from '../../core/services/firebase-data.service';
+import { PrivacyDataService } from '../../core/services/privacy-data.service';
+import { GovernanceDataService } from '../../core/services/governance-data.service';
+import { IntellectualPropertyService } from '../../core/services/intellectual-property.service';
 import { CATALOG_IMPORT_TEMPLATE, catalogFileToCsv, catalogImportTemplateFileName, downloadCatalogImportTemplate } from '../../core/utils/catalog-import.util';
 import { CHILE_CITY_OPTIONS, communesForCity } from '../../core/utils/chile-locations.util';
 import { getCurrentBrowserLocation, hasValidCoordinates } from '../../core/utils/location.util';
 import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 
-type AdminSection = 'ferreterias' | 'productos' | 'solicitudes' | 'contacto' | 'usuarios';
+type AdminSection = 'ferreterias' | 'productos' | 'solicitudes' | 'contacto' | 'propiedad' | 'privacidad' | 'gobierno' | 'usuarios';
 
 interface MasterProductDraft {
   masterProductId: string;
@@ -49,6 +64,15 @@ interface MasterProductDraft {
   shortDescription: string;
   descriptionText: string;
   imageUrl: string;
+  imageSourceType: NonNullable<CatalogProduct['imageRights']>['sourceType'];
+  imageProvider: string;
+  imageSourceTermsUrl: string;
+  imageAuthorizationReference: string;
+  imageContainsThirdPartyMarks: boolean;
+  trademarkAuthorizationReference: string;
+  contentSourceType: NonNullable<CatalogProduct['contentRights']>['sourceType'];
+  contentSourceUrl: string;
+  contentAuthorizationReference: string;
   galleryText: string;
   featureBulletsText: string;
   logisticsWeightKg: number | null;
@@ -73,6 +97,8 @@ interface AdminUserModalDraft {
   storeLatitude: number | null;
   storeLongitude: number | null;
 }
+
+const STRONG_PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{12,128}$/;
 
 interface AdminDefinitionDraft {
   id: string | null;
@@ -161,6 +187,21 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       description: 'Gestiona solicitudes comerciales de ferreterias y mensajes de contacto.'
     },
     {
+      id: 'privacidad',
+      label: 'Derechos de datos',
+      description: 'Atiende solicitudes de acceso, rectificación, supresión, oposición, bloqueo y portabilidad.'
+    },
+    {
+      id: 'propiedad',
+      label: 'Propiedad intelectual',
+      description: 'Revisa denuncias y aplica retiro preventivo, reposición o retiro definitivo del contenido.'
+    },
+    {
+      id: 'gobierno',
+      label: 'Gobierno de datos',
+      description: 'Registra incidentes, pruebas, evaluaciones y trazabilidad administrativa.'
+    },
+    {
       id: 'usuarios',
       label: 'Usuarios',
       description: 'Gestiona las cuentas y sus estados de acceso.'
@@ -172,6 +213,27 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   protected validationRequests: CatalogValidationRequest[] = [];
   protected contactRequests: ContactRequest[] = [];
   protected contactStatusFilter: ContactRequestStatus | 'all' = 'pendiente';
+  protected privacyRequests: PrivacyRequest[] = [];
+  protected privacyStatusFilter: PrivacyRequestStatus | 'all' = 'recibida';
+  protected privacyResolutionDrafts: Record<string, string> = {};
+  protected ipReports: IpReport[] = [];
+  protected ipStatusFilter: IpReportStatus | 'all' = 'recibida';
+  protected ipResolutionDrafts: Record<string, string> = {};
+  protected ipPublicMessageDrafts: Record<string, string> = {};
+  protected governanceSummary: GovernanceSummary | null = null;
+  protected securityIncidents: SecurityIncident[] = [];
+  protected governanceEvidence: GovernanceEvidence[] = [];
+  protected adminAuditEntries: AdminAuditEntry[] = [];
+  protected incidentDraft = {
+    title: '', description: '', severity: 'media' as SecurityIncidentSeverity,
+    detectedAt: '', systemsText: '', dataCategoriesText: '', affectedPeopleEstimate: 0,
+    containmentActions: ''
+  };
+  protected evidenceDraft = {
+    type: 'revision_controles' as GovernanceEvidenceType,
+    outcome: 'conforme' as GovernanceEvidenceOutcome,
+    title: '', owner: '', performedAt: '', nextReviewAt: '', notes: '', evidenceUrl: ''
+  };
 
   protected validationStatusFilter: CatalogValidationStatus | 'all' = 'pendiente';
   protected validationTypeFilter: CatalogValidationType | 'all' = 'all';
@@ -259,6 +321,9 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   constructor(
     private readonly apiService: FirebaseDataService,
     private readonly authService: AuthService,
+    private readonly privacyDataService: PrivacyDataService,
+    private readonly governanceDataService: GovernanceDataService,
+    private readonly intellectualPropertyService: IntellectualPropertyService,
     private readonly router: Router
   ) {}
 
@@ -302,6 +367,69 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     ));
   }
 
+  protected get privacyRequestRows(): PrivacyRequest[] {
+    return this.privacyRequests.filter((request) => (
+      this.privacyStatusFilter === 'all' || request.status === this.privacyStatusFilter
+    ));
+  }
+
+  protected get ipReportRows(): IpReport[] {
+    return this.ipReports.filter((report) => this.ipStatusFilter === 'all' || report.status === this.ipStatusFilter);
+  }
+
+  protected ipRightLabel(value: IpReport['rightsType']): string {
+    return value === 'copyright' ? 'Derecho de autor' : value === 'trademark' ? 'Marca comercial' : 'Derecho de autor y marca';
+  }
+
+  protected async setIpReportStatus(report: IpReport, status: IpReportStatus): Promise<void> {
+    this.notice = '';
+    this.error = '';
+    const resolution = (this.ipResolutionDrafts[report.id] || '').trim();
+    const publicMessage = (this.ipPublicMessageDrafts[report.id] || '').trim();
+    if (resolution.length < 10 || publicMessage.length < 10) {
+      this.error = 'Registra el fundamento interno y un mensaje para el denunciante antes de cambiar el estado.';
+      return;
+    }
+    try {
+      const updated = await this.intellectualPropertyService.updateForAdmin(report.id, status, resolution, publicMessage);
+      this.ipReports = this.ipReports.map((item) => item.id === updated.id ? updated : item);
+      this.notice = status === 'retiro_preventivo' || status === 'retiro_definitivo'
+        ? 'Contenido retirado y denuncia actualizada.'
+        : 'Denuncia de propiedad intelectual actualizada.';
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : 'No fue posible actualizar la denuncia.';
+    }
+  }
+
+  protected privacyRequestLabel(type: string): string {
+    const labels: Record<string, string> = {
+      access: 'Acceso',
+      rectification: 'Rectificación',
+      deletion: 'Supresión',
+      objection: 'Oposición',
+      blocking: 'Bloqueo temporal',
+      portability: 'Portabilidad'
+    };
+    return labels[type] || type;
+  }
+
+  protected async setPrivacyRequestStatus(request: PrivacyRequest, status: PrivacyRequestStatus): Promise<void> {
+    this.notice = '';
+    this.error = '';
+    const resolution = (this.privacyResolutionDrafts[request.id] || '').trim();
+    if ((status === 'completada' || status === 'rechazada') && resolution.length < 10) {
+      this.error = 'Registra una respuesta fundada antes de cerrar la solicitud.';
+      return;
+    }
+    try {
+      const updated = await this.privacyDataService.updateRequestForAdmin(request.id, status, resolution);
+      this.privacyRequests = this.privacyRequests.map((item) => item.id === updated.id ? updated : item);
+      this.notice = 'Solicitud de derechos actualizada.';
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : 'No se pudo actualizar la solicitud.';
+    }
+  }
+
   protected async setContactRequestStatus(request: ContactRequest, status: ContactRequestStatus): Promise<void> {
     this.notice = '';
     this.error = '';
@@ -311,6 +439,71 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       this.notice = 'Solicitud actualizada correctamente.';
     } catch (error) {
       this.error = error instanceof Error ? error.message : 'No se pudo actualizar la solicitud.';
+    }
+  }
+
+  protected governanceEvidenceLabel(type: GovernanceEvidenceType): string {
+    const labels: Record<GovernanceEvidenceType, string> = {
+      revision_controles: 'Revisión de controles',
+      prueba_recuperacion: 'Prueba de recuperación',
+      evaluacion_impacto: 'Evaluación de impacto',
+      revision_encargados: 'Revisión de encargados',
+      revision_accesos: 'Revisión de accesos',
+      confidencialidad_personal: 'Confidencialidad del personal'
+    };
+    return labels[type];
+  }
+
+  protected async recordSecurityIncident(): Promise<void> {
+    this.notice = '';
+    this.error = '';
+    try {
+      await this.governanceDataService.createIncident({
+        title: this.incidentDraft.title,
+        description: this.incidentDraft.description,
+        severity: this.incidentDraft.severity,
+        detectedAt: this.incidentDraft.detectedAt,
+        systems: this.commaSeparatedValues(this.incidentDraft.systemsText),
+        dataCategories: this.commaSeparatedValues(this.incidentDraft.dataCategoriesText),
+        affectedPeopleEstimate: this.incidentDraft.affectedPeopleEstimate,
+        containmentActions: this.incidentDraft.containmentActions
+      });
+      this.incidentDraft = {
+        title: '', description: '', severity: 'media', detectedAt: '', systemsText: '',
+        dataCategoriesText: '', affectedPeopleEstimate: 0, containmentActions: ''
+      };
+      await this.loadGovernanceDashboard();
+      this.notice = 'Incidente registrado. Evalúa de inmediato si corresponde notificar a la Agencia y a los titulares.';
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : 'No fue posible registrar el incidente.';
+    }
+  }
+
+  protected async setIncidentStatus(incident: SecurityIncident, status: SecurityIncidentStatus): Promise<void> {
+    this.notice = '';
+    this.error = '';
+    try {
+      await this.governanceDataService.updateIncident(incident.id, status, incident.containmentActions || '');
+      await this.loadGovernanceDashboard();
+      this.notice = 'Estado del incidente actualizado y trazado.';
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : 'No fue posible actualizar el incidente.';
+    }
+  }
+
+  protected async recordGovernanceEvidence(): Promise<void> {
+    this.notice = '';
+    this.error = '';
+    try {
+      await this.governanceDataService.createEvidence({ ...this.evidenceDraft });
+      this.evidenceDraft = {
+        type: 'revision_controles', outcome: 'conforme', title: '', owner: '',
+        performedAt: '', nextReviewAt: '', notes: '', evidenceUrl: ''
+      };
+      await this.loadGovernanceDashboard();
+      this.notice = 'Evidencia de cumplimiento registrada.';
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : 'No fue posible registrar la evidencia.';
     }
   }
 
@@ -749,10 +942,17 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       this.error = 'Debes seleccionar categoria, subcategoria y familia.';
       return;
     }
-
     const featureBullets = this.parseMultiline(this.masterDetailDraft.featureBulletsText);
     const gallery = this.parseGallery(this.masterDetailDraft.galleryText);
     const descriptionText = this.masterDetailDraft.descriptionText.trim();
+    if ((this.masterDetailDraft.imageUrl.trim() || gallery.length > 0) && !this.validImageRightsDraft()) {
+      this.error = 'Completa la procedencia y respaldo de derechos de la imagen. Si contiene marcas de terceros, registra también su autorización.';
+      return;
+    }
+    if (!this.validContentRightsDraft()) {
+      this.error = 'Registra la fuente o autorización de la descripción y ficha técnica.';
+      return;
+    }
 
     try {
       const payload = {
@@ -768,6 +968,8 @@ export class DashboardAdminValidacionesComponent implements OnInit {
         shortDescription: this.masterDetailDraft.shortDescription.trim() || descriptionText,
         descriptionBlocks: descriptionText ? [{ text: descriptionText }] : undefined,
         imageUrl: this.masterDetailDraft.imageUrl.trim(),
+        imageRights: this.serializeImageRightsDraft(),
+        contentRights: this.serializeContentRightsDraft(),
         gallery,
         featureBullets,
         logisticsWeightKg: this.masterDetailDraft.logisticsWeightKg ?? undefined,
@@ -833,6 +1035,14 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       this.error = 'Debes seleccionar categoria, subcategoria y familia.';
       return;
     }
+    if ((this.masterDetailDraft.imageUrl.trim() || this.parseGallery(this.masterDetailDraft.galleryText).length > 0) && !this.validImageRightsDraft()) {
+      this.error = 'Completa la procedencia y respaldo de derechos de la imagen antes de crear la ficha.';
+      return;
+    }
+    if (!this.validContentRightsDraft()) {
+      this.error = 'Registra la fuente o autorización de la descripción y ficha técnica.';
+      return;
+    }
 
     const request = this.selectedRequestForCreation;
     await this.resolveValidation(
@@ -852,6 +1062,8 @@ export class DashboardAdminValidacionesComponent implements OnInit {
         shortDescription: this.masterDetailDraft.shortDescription.trim(),
         descriptionText: this.masterDetailDraft.descriptionText.trim(),
         imageUrl: this.masterDetailDraft.imageUrl.trim(),
+        imageRights: this.serializeImageRightsDraft(),
+        contentRights: this.serializeContentRightsDraft(),
         gallery: this.parseGallery(this.masterDetailDraft.galleryText),
         featureBullets: this.parseMultiline(this.masterDetailDraft.featureBulletsText),
         attributes: this.serializeMasterAttributeDrafts(),
@@ -945,6 +1157,10 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       if (this.userModalDraft.isNew) {
         if (this.userModalDraft.role === 'ferreteria') {
           this.error = 'Crea las ferreterías desde su sección para registrar también la ubicación del local.';
+          return;
+        }
+        if (!STRONG_PASSWORD_PATTERN.test(this.userModalDraft.password)) {
+          this.error = 'La contraseña debe tener 12 o más caracteres e incluir mayúscula, minúscula, número y símbolo.';
           return;
         }
         const created = await this.authService.adminCreateUser({
@@ -1142,9 +1358,13 @@ export class DashboardAdminValidacionesComponent implements OnInit {
 
   protected async createStore(): Promise<void> {
     const draft = this.storeCreateDraft;
-    if (!draft.businessName.trim() || !draft.displayName.trim() || !draft.email.trim() || draft.password.length < 6
+    if (!draft.businessName.trim() || !draft.displayName.trim() || !draft.email.trim()
       || !draft.city || !draft.commune || !draft.address.trim()) {
       this.storeCreateError = 'Completa los datos de acceso, ciudad, comuna y dirección del local.';
+      return;
+    }
+    if (!STRONG_PASSWORD_PATTERN.test(draft.password)) {
+      this.storeCreateError = 'La contraseña debe tener 12 o más caracteres e incluir mayúscula, minúscula, número y símbolo.';
       return;
     }
     if (!hasValidCoordinates(draft.storeLatitude, draft.storeLongitude)) {
@@ -1402,6 +1622,8 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       shortDescription?: string;
       descriptionText?: string;
       imageUrl?: string;
+      imageRights?: CatalogProduct['imageRights'];
+      contentRights?: CatalogProduct['contentRights'];
       gallery?: string[];
       featureBullets?: string[];
       attributes?: Array<{
@@ -1472,6 +1694,25 @@ export class DashboardAdminValidacionesComponent implements OnInit {
         this.contactRequests = await this.apiService.getContactRequestsForAdmin();
       }
 
+      if (section === 'privacidad') {
+        this.privacyRequests = await this.privacyDataService.listRequestsForAdmin();
+        this.privacyRequests.forEach((request) => {
+          this.privacyResolutionDrafts[request.id] = request.resolution || '';
+        });
+      }
+
+      if (section === 'propiedad') {
+        this.ipReports = await this.intellectualPropertyService.listForAdmin();
+        this.ipReports.forEach((report) => {
+          this.ipResolutionDrafts[report.id] = report.resolution || '';
+          this.ipPublicMessageDrafts[report.id] = report.publicStatusMessage || '';
+        });
+      }
+
+      if (section === 'gobierno') {
+        await this.loadGovernanceDashboard();
+      }
+
       if (section === 'usuarios') {
         await this.ensureUsersLoaded(force);
       }
@@ -1495,6 +1736,18 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       this.usersLoaded = false;
       this.error = error instanceof Error ? error.message : 'No fue posible cargar usuarios.';
     }
+  }
+
+  private async loadGovernanceDashboard(): Promise<void> {
+    const dashboard = await this.governanceDataService.dashboard();
+    this.governanceSummary = dashboard.summary;
+    this.securityIncidents = dashboard.incidents;
+    this.governanceEvidence = dashboard.evidence;
+    this.adminAuditEntries = dashboard.audit;
+  }
+
+  private commaSeparatedValues(value: string): string[] {
+    return value.split(',').map((item) => item.trim()).filter(Boolean);
   }
 
   private syncValidationRequestsState(): void {
@@ -1593,6 +1846,15 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       shortDescription: '',
       descriptionText: '',
       imageUrl: '',
+      imageSourceType: '',
+      imageProvider: '',
+      imageSourceTermsUrl: '',
+      imageAuthorizationReference: '',
+      imageContainsThirdPartyMarks: false,
+      trademarkAuthorizationReference: '',
+      contentSourceType: '',
+      contentSourceUrl: '',
+      contentAuthorizationReference: '',
       galleryText: '',
       featureBulletsText: '',
       logisticsWeightKg: null,
@@ -1673,6 +1935,15 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       shortDescription: product.shortDescription || '',
       descriptionText: product.descriptionBlocks[0]?.text || product.shortDescription || '',
       imageUrl: product.imageUrl || '',
+      imageSourceType: product.imageRights?.sourceType || '',
+      imageProvider: product.imageRights?.provider || '',
+      imageSourceTermsUrl: product.imageRights?.sourceTermsUrl || '',
+      imageAuthorizationReference: product.imageRights?.authorizationReference || '',
+      imageContainsThirdPartyMarks: product.imageRights?.containsThirdPartyMarks === true,
+      trademarkAuthorizationReference: product.imageRights?.trademarkAuthorizationReference || '',
+      contentSourceType: product.contentRights?.sourceType || '',
+      contentSourceUrl: product.contentRights?.sourceUrl || '',
+      contentAuthorizationReference: product.contentRights?.authorizationReference || '',
       galleryText: product.gallery.join(', '),
       featureBulletsText: product.featureBullets.join('\n'),
       logisticsWeightKg: logisticWeight,
@@ -1775,6 +2046,39 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       valorBooleano: item.type === 'boolean' ? item.valueBoolean : null,
       valorOpcion: item.type === 'select' ? (item.valueOption || null) : null
     }));
+  }
+
+  private validImageRightsDraft(): boolean {
+    const draft = this.masterDetailDraft;
+    if (!draft.imageUrl.trim()) return true;
+    if (!draft.imageSourceType || draft.imageProvider.trim().length < 2 || draft.imageAuthorizationReference.trim().length < 3) return false;
+    if ((draft.imageSourceType === 'ai_generated' || draft.imageSourceType === 'licensed_stock')
+      && !/^https?:\/\//i.test(draft.imageSourceTermsUrl.trim())) return false;
+    return !draft.imageContainsThirdPartyMarks || draft.trademarkAuthorizationReference.trim().length >= 3;
+  }
+
+  private serializeImageRightsDraft(): NonNullable<CatalogProduct['imageRights']> {
+    return {
+      sourceType: this.masterDetailDraft.imageSourceType,
+      provider: this.masterDetailDraft.imageProvider.trim(),
+      sourceTermsUrl: this.masterDetailDraft.imageSourceTermsUrl.trim(),
+      authorizationReference: this.masterDetailDraft.imageAuthorizationReference.trim(),
+      containsThirdPartyMarks: this.masterDetailDraft.imageContainsThirdPartyMarks,
+      trademarkAuthorizationReference: this.masterDetailDraft.trademarkAuthorizationReference.trim()
+    };
+  }
+
+  private validContentRightsDraft(): boolean {
+    return !!this.masterDetailDraft.contentSourceType
+      && this.masterDetailDraft.contentAuthorizationReference.trim().length >= 3;
+  }
+
+  private serializeContentRightsDraft(): NonNullable<CatalogProduct['contentRights']> {
+    return {
+      sourceType: this.masterDetailDraft.contentSourceType,
+      sourceUrl: this.masterDetailDraft.contentSourceUrl.trim(),
+      authorizationReference: this.masterDetailDraft.contentAuthorizationReference.trim()
+    };
   }
 
   private syncTaxonomySelection(): void {

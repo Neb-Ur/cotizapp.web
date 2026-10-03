@@ -63,7 +63,16 @@ export class DashboardFerreteriaComponent implements OnInit {
 
   protected catalogEditCandidate: CatalogProduct | null = null;
   protected catalogEditModalOpen = false;
-  protected catalogEditDraft = { price: 0, stock: 0, isPublished: true };
+  protected catalogEditDraft = {
+    price: 0,
+    stock: 0,
+    isPublished: true,
+    includesVat: true,
+    validUntil: '',
+    offerConditions: '',
+    measurementUnit: '' as CatalogProduct['measurementUnit'],
+    measurementQuantity: null as number | null
+  };
   protected catalogEditError = '';
   protected catalogEditSaving = false;
   protected catalogNotice = '';
@@ -252,7 +261,12 @@ export class DashboardFerreteriaComponent implements OnInit {
     this.catalogEditDraft = {
       price: product.price,
       stock: product.stock,
-      isPublished: product.isPublished
+      isPublished: product.isPublished,
+      includesVat: product.includesVat !== false,
+      validUntil: product.validUntil || '',
+      offerConditions: product.offerConditions || '',
+      measurementUnit: product.measurementUnit || '',
+      measurementQuantity: product.measurementQuantity || null
     };
     this.catalogEditError = '';
     this.catalogEditModalOpen = true;
@@ -282,12 +296,22 @@ export class DashboardFerreteriaComponent implements OnInit {
       this.catalogEditError = 'El stock debe ser un numero igual o mayor a 0.';
       return;
     }
+    if ((this.catalogEditDraft.measurementUnit && !this.catalogEditDraft.measurementQuantity)
+      || (!this.catalogEditDraft.measurementUnit && this.catalogEditDraft.measurementQuantity)) {
+      this.catalogEditError = 'Para calcular el precio por unidad, indica tanto la unidad de medida como la cantidad del envase.';
+      return;
+    }
 
     const priceChanged = product.price !== price;
     const stockChanged = product.stock !== stock;
     const publishedChanged = product.isPublished !== this.catalogEditDraft.isPublished;
+    const metadataChanged = product.includesVat !== this.catalogEditDraft.includesVat
+      || (product.validUntil || '') !== this.catalogEditDraft.validUntil
+      || (product.offerConditions || '') !== this.catalogEditDraft.offerConditions.trim()
+      || (product.measurementUnit || '') !== this.catalogEditDraft.measurementUnit
+      || (product.measurementQuantity || null) !== (this.catalogEditDraft.measurementQuantity || null);
 
-    if (!priceChanged && !stockChanged && !publishedChanged) {
+    if (!priceChanged && !stockChanged && !publishedChanged && !metadataChanged) {
       this.catalogNotice = `${product.name}: sin cambios.`;
       this.catalogError = '';
       this.closeCatalogEdit();
@@ -298,6 +322,7 @@ export class DashboardFerreteriaComponent implements OnInit {
     if (priceChanged) changes.push(`precio ${this.formatCurrency(product.price)} → ${this.formatCurrency(price)}`);
     if (stockChanged) changes.push(`stock ${product.stock} → ${stock}`);
     if (publishedChanged) changes.push(this.catalogEditDraft.isPublished ? 'publicado' : 'oculto del comparador');
+    if (metadataChanged) changes.push('condiciones de oferta actualizadas');
 
     this.catalogEditSaving = true;
     this.catalogEditError = '';
@@ -307,7 +332,12 @@ export class DashboardFerreteriaComponent implements OnInit {
         ...product,
         price,
         stock,
-        isPublished: this.catalogEditDraft.isPublished
+        isPublished: this.catalogEditDraft.isPublished,
+        includesVat: this.catalogEditDraft.includesVat,
+        validUntil: this.catalogEditDraft.validUntil,
+        offerConditions: this.catalogEditDraft.offerConditions.trim(),
+        measurementUnit: this.catalogEditDraft.measurementUnit,
+        measurementQuantity: this.catalogEditDraft.measurementQuantity
       });
       this.refreshSummary();
       this.catalogNotice = `${product.name}: ${changes.join(' · ')}.`;
@@ -625,6 +655,14 @@ export class DashboardFerreteriaComponent implements OnInit {
     this.closeMobileMenu();
     void this.authService.logout();
     this.router.navigateByUrl('/');
+  }
+
+  protected goToPrivacyCenter(): void {
+    void this.router.navigate(['/cuenta/privacidad-datos']);
+  }
+
+  protected goToStoreAgreement(): void {
+    void this.router.navigate(['/cuenta/contrato-ferreteria']);
   }
 
   private async initializeDashboard(): Promise<void> {

@@ -21,7 +21,22 @@ export type SearchRow = {
   storeLongitude: number | null;
   storeAddress: string;
   storeCommune: string;
+  storeRut: string;
+  storeEmail: string;
+  storePhone: string;
   price: number;
+  priceUpdatedAt: string;
+  includesVat: boolean;
+  comparisonEligible: boolean;
+  includesShipping: boolean;
+  validFrom: string;
+  validUntil: string | null;
+  offerConditions: string;
+  sponsored: boolean;
+  measurementUnit: 'kg' | 'l' | 'm' | 'm2' | 'unidad' | null;
+  measurementQuantity: number | null;
+  pricePerMeasurement: number | null;
+  measurementSource: 'store_reported' | 'catalog_presentation' | null;
   categoryId: string;
   categoryName: string;
   subcategoryId: string;
@@ -31,4 +46,3 @@ export type SearchRow = {
   stock: number;
   sku: string;
 };
-

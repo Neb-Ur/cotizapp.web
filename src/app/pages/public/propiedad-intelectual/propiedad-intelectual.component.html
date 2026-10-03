@@ -1,0 +1,103 @@
+<main class="ip-page">
+  <header class="hero">
+    <span>Política y procedimiento</span>
+    <h1>Propiedad intelectual y marcas</h1>
+    <p>CotizApp exige una procedencia verificable para fotografías, imágenes generadas por IA, logotipos, fichas técnicas y descripciones comerciales.</p>
+    <small>Versión 1.0 · 3 de octubre de 2026</small>
+  </header>
+
+  <section class="content-grid">
+    <div class="policy-column">
+      <article class="panel">
+        <h2>Material que aceptamos</h2>
+        <p>Las ferreterías y administradores solo pueden aportar contenido propio, autorizado, licenciado o generado mediante una herramienta cuyas condiciones permitan el uso comercial previsto.</p>
+        <ul>
+          <li>Las fotografías oficiales requieren autorización del fabricante, distribuidor o titular.</li>
+          <li>Los logotipos y envases con marcas requieren una base de uso verificable.</li>
+          <li>Las fichas técnicas deben provenir de una fuente autorizada y conservar su referencia.</li>
+          <li>Las descripciones no deben copiarse desde otros sitios sin permiso.</li>
+          <li>Las imágenes IA deben registrar herramienta, fecha, condiciones aplicables y revisión humana.</li>
+        </ul>
+      </article>
+
+      <article class="panel warning">
+        <h2>La IA no autoriza marcas de terceros</h2>
+        <p>Una imagen generada por IA no se considera automáticamente libre de derechos. Si reproduce una marca, envase, diseño, fotografía o personaje reconocible, debe existir autorización adicional. Tampoco puede inventar características de un producto real ni inducir a error.</p>
+      </article>
+
+      <article class="panel">
+        <h2>Cómo tramitamos una denuncia</h2>
+        <ol class="steps">
+          <li><strong>Recepción:</strong> entregamos inmediatamente una referencia y un código privado.</li>
+          <li><strong>Revisión inicial:</strong> verificamos integridad, identificación y ubicación del contenido. El objetivo interno es realizarla dentro de 2 días corridos.</li>
+          <li><strong>Medida preventiva:</strong> podemos ocultar el contenido cuando existan antecedentes suficientes o riesgo relevante.</li>
+          <li><strong>Contraste:</strong> podemos solicitar autorización, licencia o antecedentes a quien publicó el material.</li>
+          <li><strong>Decisión:</strong> el contenido se repone, retira definitivamente o la denuncia se rechaza fundadamente. El objetivo interno de resolución es de 10 días corridos, salvo complejidad o diligencias pendientes.</li>
+        </ol>
+        <p>Podemos conservar evidencia estrictamente necesaria para gestionar la denuncia, acreditar decisiones y defender derechos. La denuncia no reemplaza acciones ante tribunales o autoridades competentes.</p>
+      </article>
+
+      <article class="panel contact-card">
+        <h2>Responsable del procedimiento</h2>
+        <p>{{ legalIdentity.legalName }} · RUT {{ legalIdentity.taxId }}</p>
+        <p>{{ legalIdentity.registeredAddress }}</p>
+        <p><a [href]="'mailto:' + legalIdentity.legalEmail">{{ legalIdentity.legalEmail }}</a></p>
+        <p *ngIf="legalIdentity.isProvisional"><strong>Advertencia:</strong> estos datos son mock y deben reemplazarse antes del lanzamiento.</p>
+      </article>
+
+      <article class="panel">
+        <h2>Consultar una denuncia</h2>
+        <p>Ingresa la referencia y el código privado incluidos en tu comprobante.</p>
+        <form [formGroup]="statusForm" (ngSubmit)="checkStatus()">
+          <label>Referencia<input formControlName="reference" placeholder="PI-2026-…" /></label>
+          <label>Código privado<input formControlName="receiptToken" autocomplete="off" /></label>
+          <button type="submit">Consultar estado</button>
+        </form>
+        <p class="form-error" *ngIf="statusError">{{ statusError }}</p>
+        <section class="status-result" *ngIf="statusResult as status">
+          <strong>{{ status.reference }} · {{ status.status.replace('_', ' ') }}</strong>
+          <p>{{ status.publicStatusMessage }}</p>
+          <small>Actualizado {{ status.updatedAt | date:'dd/MM/yyyy, HH:mm' }}</small>
+        </section>
+      </article>
+    </div>
+
+    <article class="panel report-panel" id="denunciar">
+      <span class="eyebrow">Canal formal</span>
+      <h2>Denunciar contenido</h2>
+      <p>Usa este formulario solamente si eres titular del derecho o representante autorizado. No adjuntes documentos de identidad; podremos pedir antecedentes por un canal seguro si son necesarios.</p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="submitting">
+        <label>Nombre completo<input formControlName="claimantName" autocomplete="name" /></label>
+        <label>Correo<input formControlName="claimantEmail" type="email" autocomplete="email" /></label>
+        <label>Organización (opcional)<input formControlName="organization" autocomplete="organization" /></label>
+        <label>Calidad en que actúas<select formControlName="capacity"><option value="">Selecciona</option><option value="owner">Titular del derecho</option><option value="authorized_agent">Representante autorizado</option></select></label>
+        <label>Derecho afectado<select formControlName="rightsType"><option value="">Selecciona</option><option value="copyright">Derecho de autor</option><option value="trademark">Marca comercial</option><option value="both">Ambos</option></select></label>
+        <label>Tipo de contenido<select formControlName="contentType"><option value="">Selecciona</option><option value="product_image">Fotografía o imagen de producto</option><option value="logo">Logotipo o marca</option><option value="technical_sheet">Ficha técnica</option><option value="commercial_description">Descripción comercial</option><option value="other">Otro</option></select></label>
+        <label>Elemento denunciado<select formControlName="targetType"><option value="store_offer">Oferta de una ferretería</option><option value="master_product">Ficha maestra de producto</option><option value="store">Ferretería</option><option value="other">Otro</option></select></label>
+        <label>ID del elemento (si aparece en la URL)<input formControlName="targetId" /></label>
+        <label>URL exacta del contenido<input formControlName="contentUrl" type="url" placeholder="https://…" /></label>
+        <label>URL de la obra o registro original (opcional)<input formControlName="originalWorkUrl" type="url" placeholder="https://…" /></label>
+        <label>Describe la obra, marca o derecho<textarea formControlName="workDescription" rows="4"></textarea></label>
+        <label>Explica la infracción<textarea formControlName="infringementDescription" rows="5"></textarea></label>
+
+        <label class="check"><input type="checkbox" formControlName="goodFaithConfirmed" /><span>Declaro de buena fe que el uso denunciado no está autorizado.</span></label>
+        <label class="check"><input type="checkbox" formControlName="accuracyConfirmed" /><span>Declaro que la información entregada es exacta según mi conocimiento.</span></label>
+        <label class="check"><input type="checkbox" formControlName="contactAuthorized" /><span>Autorizo a CotizApp a contactarme y compartir lo estrictamente necesario con quien publicó el contenido para gestionar el reclamo.</span></label>
+        <label class="form-trap" aria-hidden="true">Sitio web<input formControlName="website" tabindex="-1" autocomplete="off" /></label>
+
+        <p class="form-error" *ngIf="form.invalid && form.touched">Completa todos los campos y declaraciones obligatorias.</p>
+        <p class="form-error" *ngIf="error">{{ error }}</p>
+        <button type="submit" [disabled]="submitting">{{ submitting ? 'Registrando…' : 'Enviar denuncia' }}</button>
+      </form>
+
+      <section class="receipt" *ngIf="receipt as result" role="status">
+        <h3>Denuncia recibida</h3>
+        <p>Referencia: <strong>{{ result.reference }}</strong></p>
+        <p>Código privado: <code>{{ result.receiptToken }}</code></p>
+        <p>Guarda ambos datos. El código permite consultar el estado y no volverá a mostrarse.</p>
+        <button type="button" (click)="downloadReceipt()">Descargar comprobante</button>
+      </section>
+    </article>
+  </section>
+</main>

@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faArrowDownWideShort, faChevronDown, faLocationDot, faSliders, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
@@ -16,6 +16,7 @@ import {
   saveNearbySearchPreference
 } from '../../core/utils/location.util';
 import { shareQuotationPdf } from '../../core/utils/quotation-pdf.util';
+import { productPath } from '../../core/utils/product-url.util';
 import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 
@@ -36,7 +37,7 @@ interface MaestroProfileDraft {
 @Component({
   selector: 'app-dashboard-maestro',
   standalone: true,
-  imports: [CommonModule, FormsModule, FontAwesomeModule, PaginatorModule, DashboardMenuComponent, UiLoaderComponent],
+  imports: [CommonModule, FormsModule, RouterLink, FontAwesomeModule, PaginatorModule, DashboardMenuComponent, UiLoaderComponent],
   templateUrl: './dashboard-maestro.component.html',
   styleUrl: './dashboard-maestro.component.scss'
 })
@@ -420,19 +421,15 @@ export class DashboardMaestroComponent implements OnInit {
     this.currentPage = (event.page ?? 0) + 1;
   }
 
-  protected selectProductCard(productName: string): void {
+  protected selectProductCard(event: Event, productName: string): void {
     if (this.isPickingProductForProject) {
+      event.preventDefault();
       this.addProductToProject(productName);
-      return;
     }
-
-    this.viewProductDetails(productName);
   }
 
-  protected viewProductDetails(productName: string): void {
-    this.router.navigate(['/producto'], {
-      queryParams: { product: productName }
-    });
+  protected productUrl(productName: string): string {
+    return productPath(productName);
   }
 
   protected addProductToProject(productName: string): void {

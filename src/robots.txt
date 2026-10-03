@@ -1,8 +1,5 @@
 User-agent: *
 Allow: /
 Disallow: /dashboard/
-Disallow: /login
-Disallow: /registro
-Disallow: /recuperar-clave
 
 Sitemap: https://cotizapp-d71c8.web.app/sitemap.xml

@@ -7,6 +7,7 @@ import { ButtonModule } from 'primeng/button';
 import { SkeletonModule } from 'primeng/skeleton';
 import { FamilyProductRow, TaxonomyOption } from '../../core/models/app.models';
 import { FirebaseDataService } from '../../core/services/firebase-data.service';
+import { productPath } from '../../core/utils/product-url.util';
 
 interface HomeCategory extends TaxonomyOption {
   icon: string;
@@ -63,11 +64,15 @@ export class HomeComponent implements OnInit {
   }
 
   protected openProduct(product: FamilyProductRow): void {
-    void this.router.navigate(['/producto'], { queryParams: { product: product.productName } });
+    void this.router.navigateByUrl(productPath(product.productName));
   }
 
   protected openCategory(category: HomeCategory): void {
     void this.router.navigate(['/buscar'], { queryParams: { categoria: category.id } });
+  }
+
+  protected productUrl(productName: string): string {
+    return productPath(productName);
   }
 
   protected formatCurrency(value: number): string {

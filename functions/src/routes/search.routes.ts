@@ -89,17 +89,34 @@ searchRouter.get('/productos/detalle', async (req, res) => {
     longitude: item.storeLongitude,
     address: item.storeAddress,
     commune: item.storeCommune,
+    rut: item.storeRut,
+    email: item.storeEmail,
+    phone: item.storePhone,
     price: item.price,
+    priceUpdatedAt: item.priceUpdatedAt,
+    includesVat: item.includesVat,
+    comparisonEligible: item.comparisonEligible,
+    includesShipping: item.includesShipping,
+    validFrom: item.validFrom,
+    validUntil: item.validUntil,
+    offerConditions: item.offerConditions,
+    sponsored: item.sponsored,
+    measurementUnit: item.measurementUnit,
+    measurementQuantity: item.measurementQuantity,
+    pricePerMeasurement: item.pricePerMeasurement,
+    measurementSource: item.measurementSource,
+    source: 'Informado por la ferretería',
     stock: item.stock,
     sku: item.sku,
     productoFerreteriaId: item.productoFerreteriaId
-  })).sort((a, b) => a.price - b.price);
+  })).sort((a, b) => Number(b.comparisonEligible) - Number(a.comparisonEligible) || a.price - b.price);
   return ok(res, {
     productoMaestro: product,
     atributosProducto: attributes,
     stores,
     minPrice: stores[0]?.price || 0,
-    maxPrice: stores[stores.length - 1]?.price || 0
+    maxPrice: stores[stores.length - 1]?.price || 0,
+    comparisonCriteria: 'Menor precio final unitario con IVA incluido, informado para la misma ficha de producto, con oferta activa y vigente. Ofertas sin IVA incluido se muestran, pero no califican como mejor precio. El patrocinio no altera el orden. El despacho no está incluido.'
   });
 });
 
@@ -107,6 +124,7 @@ searchRouter.get('/ofertas/mejor', async (req, res) => {
   const name = normalizeText(req.query['producto']).toLowerCase();
   const offers = (await buildSearchRows())
     .filter((item) => item.productName.toLowerCase() === name)
+    .filter((item) => item.comparisonEligible)
     .sort((a, b) => a.price - b.price);
   const best = offers[0];
   return ok(res, best ? {

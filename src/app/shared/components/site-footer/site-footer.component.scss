@@ -57,14 +57,22 @@ app-brand-mark { margin-top: 2px; }
   gap: 0;
 }
 
-.footer-links a {
+.footer-links a,
+.footer-links button {
   padding: 0.3rem 0;
+  min-height: auto;
+  border: 0;
+  background: transparent;
   font-size: 0.9rem;
+  font-family: inherit;
   color: var(--ink-700);
+  text-align: left;
+  cursor: pointer;
   transition: color var(--t-fast), transform var(--t-fast);
 }
 
-.footer-links a:hover {
+.footer-links a:hover,
+.footer-links button:hover {
   color: var(--ink-900);
   transform: translateX(2px);
 }
@@ -80,6 +88,17 @@ app-brand-mark { margin-top: 2px; }
   font-size: 0.82rem;
   color: var(--ink-400);
   text-align: center;
+}
+
+.footer-bottom .legal-identity {
+  margin-top: 0.35rem;
+  line-height: 1.45;
+}
+
+.footer-bottom .provisional-label {
+  margin-top: 0.35rem;
+  color: #9a4a15;
+  font-weight: 700;
 }
 
 @media (max-width: 700px) {

@@ -63,6 +63,18 @@
   font-size: var(--text-sm);
 }
 
+.public-search-main {
+  min-width: 0;
+}
+
+.public-search-main h1 {
+  margin: 0 0 0.8rem;
+  color: var(--ink-900);
+  font-size: clamp(1.6rem, 3vw, 2.35rem);
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+
 .search-primary .top-product-search {
   max-width: none;
   margin: 0;
@@ -481,6 +493,7 @@ input:disabled {
   color: inherit;
   font: inherit;
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
   transition: transform var(--t-fast), box-shadow var(--t-fast), border-color var(--t-fast);
 }

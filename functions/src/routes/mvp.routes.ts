@@ -8,11 +8,23 @@ import { storeCatalogRouter } from './store-catalog.routes.js';
 import { projectsRouter } from './projects.routes.js';
 import { productRequestsRouter } from './product-requests.routes.js';
 import { adminUsersRouter } from './admin-users.routes.js';
+import { privacyRouter } from './privacy.routes.js';
+import { governanceRouter } from './governance.routes.js';
+import { storeAgreementRouter } from './store-agreement.routes.js';
+import { intellectualPropertyRouter } from './intellectual-property.routes.js';
+import { marketingRouter } from './marketing.routes.js';
+import { priceReportsRouter } from './price-reports.routes.js';
 
 // Preserve route registration order and the existing /api and direct URL contracts.
 export const mvpRouter = Router();
 mvpRouter.use(contactRouter);
+mvpRouter.use(marketingRouter);
+mvpRouter.use(priceReportsRouter);
 mvpRouter.use(authRouter);
+mvpRouter.use(privacyRouter);
+mvpRouter.use(governanceRouter);
+mvpRouter.use(storeAgreementRouter);
+mvpRouter.use(intellectualPropertyRouter);
 mvpRouter.use(taxonomyRouter);
 mvpRouter.use(masterProductsRouter);
 mvpRouter.use(searchRouter);

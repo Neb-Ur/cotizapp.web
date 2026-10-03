@@ -1,3 +1,5 @@
+import { hasPreferenceStorageConsent } from '../services/cookie-consent.service';
+
 export interface GeoCoordinates {
   latitude: number;
   longitude: number;
@@ -6,7 +8,7 @@ export interface GeoCoordinates {
 export function getCurrentBrowserLocation(): Promise<GeoCoordinates> {
   return new Promise((resolve, reject) => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      reject(new Error('Este dispositivo no permite obtener la ubicacion.'));
+      reject(new Error('Este dispositivo no permite obtener la ubicación.'));
       return;
     }
 
@@ -19,14 +21,14 @@ export function getCurrentBrowserLocation(): Promise<GeoCoordinates> {
       },
       (error) => {
         if (error.code === error.PERMISSION_DENIED) {
-          reject(new Error('Debes permitir el acceso a la ubicacion para usar esta funcion.'));
+          reject(new Error('Debes permitir el acceso a la ubicación para usar esta función.'));
           return;
         }
         if (error.code === error.POSITION_UNAVAILABLE) {
-          reject(new Error('No fue posible determinar tu ubicacion actual.'));
+          reject(new Error('No fue posible determinar tu ubicación actual.'));
           return;
         }
-        reject(new Error('La ubicacion demoro demasiado. Intenta nuevamente.'));
+        reject(new Error('La ubicación demoró demasiado. Intenta nuevamente.'));
       },
       {
         enableHighAccuracy: true,
@@ -78,12 +80,12 @@ export interface NearbySearchPreference extends GeoCoordinates {
 const NEARBY_SEARCH_SESSION_KEY = 'cotizapp-nearby-search';
 
 export function saveNearbySearchPreference(preference: NearbySearchPreference): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || !hasPreferenceStorageConsent()) return;
   window.sessionStorage.setItem(NEARBY_SEARCH_SESSION_KEY, JSON.stringify(preference));
 }
 
 export function readNearbySearchPreference(): NearbySearchPreference | null {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === 'undefined' || !hasPreferenceStorageConsent()) return null;
   const raw = window.sessionStorage.getItem(NEARBY_SEARCH_SESSION_KEY);
   if (!raw) return null;
 

@@ -1,0 +1,97 @@
+<main class="agreement-page">
+  <header class="topbar">
+    <a class="brand" routerLink="/"><span class="brand-mark">C</span><strong>CotizApp</strong></a>
+    <a routerLink="/cuenta/privacidad-datos">Privacidad y datos</a>
+  </header>
+
+  <div class="loading" *ngIf="loading">Cargando contrato comercial…</div>
+  <div class="error" *ngIf="error">{{ error }}</div>
+
+  <ng-container *ngIf="overview as contract">
+    <section class="hero">
+      <div>
+        <span class="eyebrow">Acuerdo entre empresas</span>
+        <h1>Contrato comercial para ferreterías</h1>
+        <p>Regula la publicación y comparación de precios, stock y contenido comercial dentro de CotizApp.</p>
+      </div>
+      <div class="status" [class.status--active]="contract.status === 'vigente'">
+        <span>{{ contract.status === 'vigente' ? 'Contrato vigente' : 'Aceptación requerida' }}</span>
+        <strong>Versión {{ contract.version }}</strong>
+        <small>Desde {{ contract.effectiveDate | date:'dd/MM/yyyy':'UTC' }}</small>
+      </div>
+    </section>
+
+    <section class="agreement-layout">
+      <article class="document">
+        <div class="document-actions">
+          <div>
+            <span class="eyebrow">Partes del contrato</span>
+            <h2>Identificación</h2>
+          </div>
+          <div><button type="button" class="secondary" (click)="downloadCopy()">Descargar copia</button><button type="button" class="secondary" (click)="printCopy()">Imprimir</button></div>
+        </div>
+
+        <div class="party-grid">
+          <section>
+            <span>CotizApp</span>
+            <strong>{{ contract.provider.legalName }}</strong>
+            <p>RUT {{ contract.provider.taxId }}<br>{{ contract.provider.address }}<br>Representante: {{ contract.provider.legalRepresentative }}<br>{{ contract.provider.legalEmail }}</p>
+          </section>
+          <section>
+            <span>Ferretería</span>
+            <strong>{{ contract.store.legalName }}</strong>
+            <p>RUT {{ contract.store.taxId }}<br>{{ contract.store.branchName }}<br>{{ contract.store.address }}, {{ contract.store.commune }}, {{ contract.store.city }}</p>
+          </section>
+        </div>
+
+        <ol class="clauses">
+          <li *ngFor="let clause of contract.clauses">
+            <h3>{{ clause.title }}</h3>
+            <p>{{ clause.text }}</p>
+          </li>
+        </ol>
+
+        <aside class="evidence-note">
+          <strong>Integridad del documento</strong>
+          <p>La versión, fecha, cuenta firmante y huella SHA-256 quedan registradas. Huella: <code>{{ contract.documentHash }}</code></p>
+        </aside>
+      </article>
+
+      <aside class="acceptance-card">
+        <ng-container *ngIf="contract.status !== 'vigente'; else acceptedReceipt">
+          <span class="eyebrow">Firma electrónica</span>
+          <h2>Aceptar el contrato</h2>
+          <p>Debe aceptar una persona con facultades suficientes para representar a la ferretería.</p>
+
+          <label>Razón social<input [(ngModel)]="draft.legalName" autocomplete="organization" /></label>
+          <label>RUT de la empresa<input [(ngModel)]="draft.storeTaxId" autocomplete="off" /></label>
+          <label>Nombre del representante<input [(ngModel)]="draft.signerName" autocomplete="name" /></label>
+          <label>RUT del representante<input [(ngModel)]="draft.signerTaxId" autocomplete="off" /></label>
+          <label>Cargo o calidad<input [(ngModel)]="draft.signerTitle" placeholder="Ej: representante legal" /></label>
+
+          <label class="check"><input type="checkbox" [(ngModel)]="draft.accepted" /><span>He leído y acepto íntegramente el contrato versión {{ contract.version }}.</span></label>
+          <label class="check"><input type="checkbox" [(ngModel)]="draft.authorityConfirmed" /><span>Declaro que tengo facultades para obligar a la empresa identificada.</span></label>
+          <label class="check"><input type="checkbox" [(ngModel)]="draft.catalogCommitmentConfirmed" /><span>Me obligo a mantener precio, IVA, stock y condiciones exactos y actualizados.</span></label>
+
+          <p class="error-inline" *ngIf="error">{{ error }}</p>
+          <button type="button" class="primary" [disabled]="!acceptanceReady || saving" (click)="accept()">{{ saving ? 'Registrando…' : 'Aceptar y firmar electrónicamente' }}</button>
+          <small>La aceptación se registra como firma electrónica simple. Para contratos que requieran solemnidades especiales debe usarse el mecanismo legal correspondiente.</small>
+        </ng-container>
+
+        <ng-template #acceptedReceipt>
+          <span class="eyebrow">Comprobante</span>
+          <h2>Contrato vigente</h2>
+          <dl>
+            <div><dt>Versión</dt><dd>{{ contract.version }}</dd></div>
+            <div><dt>Aceptado</dt><dd>{{ contract.agreement?.aceptadoEn | date:'dd/MM/yyyy, HH:mm' }}</dd></div>
+            <div><dt>Firmante</dt><dd>{{ contract.agreement?.firmante?.nombre }}</dd></div>
+            <div><dt>Registro</dt><dd>{{ contract.agreement?.id }}</dd></div>
+          </dl>
+          <p class="success" *ngIf="notice">{{ notice }}</p>
+          <button type="button" class="primary" (click)="goToDashboard()">Continuar al panel</button>
+          <button type="button" class="secondary full" (click)="downloadCopy()">Descargar comprobante</button>
+        </ng-template>
+      </aside>
+    </section>
+  </ng-container>
+</main>

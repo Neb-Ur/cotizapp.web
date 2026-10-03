@@ -9,8 +9,19 @@ export const COLLECTIONS = {
   masterProducts: 'productosMaestro',
   masterAttributes: 'atributosProductoMaestro',
   storeProducts: 'productosFerreteria',
+  priceHistory: 'historialPrecios',
+  storeAgreements: 'contratosFerreteria',
   projects: 'proyectos',
   productRequests: 'solicitudesCreacionProducto',
-  contactRequests: 'solicitudesContacto'
+  contactRequests: 'solicitudesContacto',
+  consentRecords: 'registrosConsentimiento',
+  marketingSuppressions: 'supresionesMarketing',
+  priceReports: 'reclamosPrecios',
+  privacyRequests: 'solicitudesDerechos',
+  deletionReceipts: 'comprobantesEliminacion',
+  adminAuditLogs: 'bitacoraAdministrativa',
+  securityIncidents: 'registroIncidentesSeguridad',
+  intellectualPropertyReports: 'denunciasPropiedadIntelectual',
+  governanceEvidence: 'evidenciasGobiernoDatos',
+  publicCache: 'cachePublico'
 } as const;
-

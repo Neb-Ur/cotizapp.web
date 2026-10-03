@@ -1,0 +1,20 @@
+<main class="unsubscribe-page">
+  <article>
+    <span>Preferencias de comunicaciones</span>
+    <h1>Dejar de recibir publicidad</h1>
+    <p>Ingresa el correo que deseas excluir. Esta acción no desactiva mensajes necesarios para seguridad, recuperación de cuenta, cotizaciones o respuestas de soporte.</p>
+
+    <form *ngIf="!sent" [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="submitting">
+      <label>Correo electrónico<input type="email" formControlName="email" autocomplete="email" /></label>
+      <label class="trap" aria-hidden="true">Sitio web<input formControlName="website" tabindex="-1" autocomplete="off" /></label>
+      <p class="privacy-note">Usaremos el correo únicamente para incorporarlo a la lista de exclusión publicitaria. Conservaremos una huella irreversible mientras sea necesario para respetar tu solicitud. Consulta la <a routerLink="/privacidad">Política de privacidad</a>.</p>
+      <button type="submit" [disabled]="submitting">{{ submitting ? 'Procesando…' : 'Dejar de recibir publicidad' }}</button>
+      <p class="error" *ngIf="error" role="alert">{{ error }}</p>
+    </form>
+
+    <section class="success" *ngIf="sent" role="status">
+      <h2>Solicitud registrada</h2>
+      <p>Si el correo estaba registrado, quedó excluido de futuras comunicaciones publicitarias.</p>
+    </section>
+  </article>
+</main>

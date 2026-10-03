@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { CookieConsentService } from '../../../core/services/cookie-consent.service';
+import { LEGAL_IDENTITY } from '../../../core/config/legal-identity.config';
 import { BrandMarkComponent } from '../brand-mark/brand-mark.component';
 
 @Component({
@@ -9,4 +11,12 @@ import { BrandMarkComponent } from '../brand-mark/brand-mark.component';
   templateUrl: './site-footer.component.html',
   styleUrl: './site-footer.component.scss'
 })
-export class SiteFooterComponent {}
+export class SiteFooterComponent {
+  protected readonly legalIdentity = LEGAL_IDENTITY;
+
+  constructor(private readonly cookieConsent: CookieConsentService) {}
+
+  protected openCookieSettings(): void {
+    this.cookieConsent.openSettings();
+  }
+}

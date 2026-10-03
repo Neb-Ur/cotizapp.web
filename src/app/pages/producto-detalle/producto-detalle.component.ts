@@ -1,14 +1,17 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { combineLatest } from 'rxjs';
 import { ProductDetailView, ProductStoreOfferRow, ProjectSummary, SessionUser } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
 import { FirebaseDataService } from '../../core/services/firebase-data.service';
+import { SeoService } from '../../core/services/seo.service';
 import { UiModalComponent } from '../../shared/components/ui-modal/ui-modal.component';
 import {
   GeoCoordinates,
   distanceKm,
+  getCurrentBrowserLocation,
   hasValidCoordinates,
   readNearbySearchPreference
 } from '../../core/utils/location.util';
@@ -16,7 +19,7 @@ import {
 @Component({
   selector: 'app-producto-detalle',
   standalone: true,
-  imports: [CommonModule, FormsModule, UiModalComponent],
+  imports: [CommonModule, FormsModule, RouterLink, UiModalComponent],
   templateUrl: './producto-detalle.component.html',
   styleUrl: './producto-detalle.component.scss'
 })
@@ -40,6 +43,9 @@ export class ProductoDetalleComponent implements OnInit {
   protected nearbyEnabled = false;
   protected nearbyRadiusKm = 10;
   protected nearbyLocation: GeoCoordinates | null = null;
+  protected locationLoading = false;
+  protected locationError = '';
+  protected storeSort: 'price' | 'distance' = 'price';
   private openExtraSectionIds = new Set<string>();
   private handledCreateQuotationIntent = false;
 
@@ -47,14 +53,18 @@ export class ProductoDetalleComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly authService: AuthService,
-    private readonly apiService: FirebaseDataService
+    private readonly apiService: FirebaseDataService,
+    private readonly location: Location,
+    private readonly seoService: SeoService
   ) {}
 
   ngOnInit(): void {
-    this.route.queryParamMap.subscribe(async (params) => {
+    combineLatest([this.route.paramMap, this.route.queryParamMap]).subscribe(async ([routeParams, params]) => {
       this.isLoading = true;
       this.detail = null;
-      const productName = params.get('product') || '';
+      const legacyProductName = params.get('product') || '';
+      const productName = legacyProductName
+        || await this.apiService.resolveProductNameBySlug(routeParams.get('slug') || '');
       const nearbyPreference = readNearbySearchPreference();
       this.nearbyEnabled = !!nearbyPreference;
       this.nearbyLocation = nearbyPreference
@@ -71,14 +81,31 @@ export class ProductoDetalleComponent implements OnInit {
         this.detail = await this.apiService.loadProductDetail(productName)
           || this.apiService.getProductDetail(productName);
 
+        if (this.detail) {
+          this.seoService.updateProduct(this.detail);
+        } else {
+          this.seoService.markProductNotFound();
+        }
+
         this.selectedImageIndex = 0;
         this.selectedStoreName = '';
         this.selectedQuantity = 1;
         this.selectedProjectId = '';
         this.quoteFeedback = '';
+        this.storeSort = 'price';
         this.openExtraSectionIds.clear();
         this.loadProjects();
         this.displayStores = this.buildDisplayStores(this.detail?.stores || []);
+
+        const requestedQuantity = Math.floor(Number(params.get('cantidad')));
+        if (Number.isFinite(requestedQuantity) && requestedQuantity > 0) {
+          this.selectedQuantity = requestedQuantity;
+        }
+
+        const requestedStore = params.get('ferreteria') || '';
+        if (this.displayStores.some((store) => store.storeName === requestedStore)) {
+          this.selectedStoreName = requestedStore;
+        }
 
         if (
           currentUser
@@ -87,6 +114,7 @@ export class ProductoDetalleComponent implements OnInit {
         ) {
           this.handledCreateQuotationIntent = true;
           this.openCreateQuotationModal();
+          this.clearCreateQuotationIntent();
         }
       } finally {
         this.isLoading = false;
@@ -100,7 +128,9 @@ export class ProductoDetalleComponent implements OnInit {
   }
 
   protected get bestPriceStoreName(): string {
-    return this.displayStores[0]?.storeName || 'Sin datos';
+    return this.displayStores
+      .filter((store) => store.comparisonEligible)
+      .sort((left, right) => left.price - right.price)[0]?.storeName || 'Sin oferta comparable';
   }
 
   protected get visibleMinPrice(): number {
@@ -159,6 +189,32 @@ export class ProductoDetalleComponent implements OnInit {
     this.quoteFeedback = '';
   }
 
+  protected storeTotal(store: ProductStoreOfferRow): number {
+    return store.price * this.selectedQuantity;
+  }
+
+  protected async enableLocationDistances(): Promise<void> {
+    this.locationLoading = true;
+    this.locationError = '';
+
+    try {
+      this.nearbyLocation = await getCurrentBrowserLocation();
+      this.displayStores = this.buildDisplayStores(this.detail?.stores || []);
+    } catch (error) {
+      this.locationError = error instanceof Error
+        ? error.message
+        : 'No fue posible obtener tu ubicación.';
+    } finally {
+      this.locationLoading = false;
+    }
+  }
+
+  protected onStoreSortChange(sort: 'price' | 'distance'): void {
+    if (sort === 'distance' && !this.nearbyLocation) return;
+    this.storeSort = sort;
+    this.displayStores = this.buildDisplayStores(this.detail?.stores || []);
+  }
+
   protected onProjectChange(projectId: string): void {
     if (projectId === this.createQuotationOptionValue) {
       this.selectedProjectId = '';
@@ -214,7 +270,21 @@ export class ProductoDetalleComponent implements OnInit {
       this.projects = [...this.apiService.getProjects(currentUser.id)];
       this.selectedProjectId = created.id;
       this.isCreateQuotationModalOpen = false;
-      this.quoteFeedback = `Cotizacion "${created.name}" creada y seleccionada.`;
+
+      if (this.selectedStore && this.detail && !this.exceedsSelectedStock) {
+        const updated = await this.apiService.addItemToProject(currentUser.id, created.id, {
+          productName: this.detail.productName,
+          quantity: this.selectedQuantity
+        });
+
+        if (updated) {
+          this.quoteFeedback = `Cotización "${created.name}" creada con ${this.selectedQuantity} ${this.quantityLabel.toLowerCase()} agregada(s).`;
+        } else {
+          this.quoteFeedback = `Cotización "${created.name}" creada, pero no fue posible agregar el producto. Presiona "Agregar a cotización" para intentarlo nuevamente.`;
+        }
+      } else {
+        this.quoteFeedback = `Cotización "${created.name}" creada. Selecciona una ferretería y presiona "Agregar a cotización" para incluir el producto.`;
+      }
     } catch (error) {
       this.createQuotationError = error instanceof Error
         ? error.message
@@ -225,9 +295,18 @@ export class ProductoDetalleComponent implements OnInit {
   }
 
   protected goToLoginFromQuotationModal(): void {
-    const separator = this.router.url.includes('?') ? '&' : '?';
+    const returnUrl = this.router.serializeUrl(this.router.createUrlTree([], {
+      relativeTo: this.route,
+      queryParams: {
+        crearCotizacion: '1',
+        ferreteria: this.selectedStoreName || null,
+        cantidad: this.selectedQuantity
+      },
+      queryParamsHandling: 'merge'
+    }));
+
     void this.router.navigate(['/login'], {
-      queryParams: { returnUrl: `${this.router.url}${separator}crearCotizacion=1` }
+      queryParams: { returnUrl }
     });
   }
 
@@ -274,6 +353,17 @@ export class ProductoDetalleComponent implements OnInit {
     return this.apiService.formatCurrency(value);
   }
 
+  protected measurementLabel(unit: ProductStoreOfferRow['measurementUnit']): string {
+    const labels: Record<string, string> = {
+      kg: 'kg',
+      l: 'litro',
+      m: 'metro',
+      m2: 'm²',
+      unidad: 'unidad'
+    };
+    return unit ? labels[unit] || unit : '';
+  }
+
   private buildDisplayStores(stores: ProductStoreOfferRow[]): ProductStoreOfferRow[] {
     return stores
       .map((store) => {
@@ -291,11 +381,26 @@ export class ProductoDetalleComponent implements OnInit {
       })
       .filter((store) => !this.nearbyEnabled
         || (store.distanceKm !== undefined && store.distanceKm <= this.nearbyRadiusKm))
-      .sort((left, right) => left.price - right.price);
+      .sort((left, right) => {
+        if (this.storeSort === 'distance') {
+          const leftDistance = left.distanceKm ?? Number.POSITIVE_INFINITY;
+          const rightDistance = right.distanceKm ?? Number.POSITIVE_INFINITY;
+          return leftDistance - rightDistance || left.price - right.price || left.storeName.localeCompare(right.storeName, 'es');
+        }
+        return left.price - right.price || left.storeName.localeCompare(right.storeName, 'es');
+      });
   }
 
   private loadProjects(): void {
     const currentUser = this.user;
     this.projects = currentUser ? this.apiService.getProjects(currentUser.id) : [];
+  }
+
+  private clearCreateQuotationIntent(): void {
+    const url = this.router.parseUrl(this.router.url);
+    delete url.queryParams['crearCotizacion'];
+    delete url.queryParams['ferreteria'];
+    delete url.queryParams['cantidad'];
+    this.location.replaceState(this.router.serializeUrl(url));
   }
 }

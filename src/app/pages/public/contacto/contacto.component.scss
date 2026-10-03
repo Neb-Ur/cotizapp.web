@@ -92,6 +92,14 @@ button:disabled {
   font-weight: 700;
 }
 
+.info .provisional-copy {
+  margin-bottom: 0.8rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--r-sm);
+  background: #fff7ed;
+  color: #8a3f12;
+}
+
 @media (max-width: 880px) {
   .wrapper {
     grid-template-columns: 1fr;

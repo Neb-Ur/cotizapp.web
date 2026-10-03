@@ -9,10 +9,31 @@
   </article>
 
   <article class="content-card">
-    <p class="updated">Última actualización: 25 de febrero de 2026</p>
+    @if (legalIdentity.isProvisional) {
+      <aside class="provisional-notice" role="note">
+        <strong>Información legal provisoria.</strong>
+        Estos datos son de demostración y deben reemplazarse antes de la operación pública de CotizApp.
+      </aside>
+    }
+
+    <p class="updated">Versión {{ legalIdentity.termsVersion }} · Última actualización: {{ legalIdentity.termsLastUpdated }}</p>
 
     <section>
-      <h2>1. Objeto del servicio</h2>
+      <h2>1. Identificación del responsable</h2>
+      <p>
+        CotizApp es una plataforma operada por <strong>{{ legalIdentity.legalName }}</strong>,
+        RUT <strong>{{ legalIdentity.taxId }}</strong>, con domicilio en
+        <strong>{{ legalIdentity.registeredAddress }}</strong>, representada legalmente por
+        <strong>{{ legalIdentity.legalRepresentative }}</strong>.
+      </p>
+      <p>
+        El medio formal para comunicaciones y notificaciones legales es
+        <a [href]="'mailto:' + legalIdentity.legalEmail">{{ legalIdentity.legalEmail }}</a>.
+      </p>
+    </section>
+
+    <section>
+      <h2>2. Objeto del servicio</h2>
       <p>
         CotizApp permite consultar productos, comparar precios, crear cotizaciones y administrar catálogos
         para facilitar decisiones de compra de materiales.
@@ -20,15 +41,20 @@
     </section>
 
     <section>
-      <h2>2. Registro y cuentas</h2>
+      <h2>3. Registro y cuentas</h2>
       <p>
         Cada usuario debe entregar información válida. La cuenta es personal e intransferible. El titular es
         responsable del uso de sus credenciales y de la información que publica.
       </p>
+      <p>
+        La aceptación se solicita mediante una casilla obligatoria no premarcada y se registra con la versión, fecha,
+        hora y cuenta asociada. Los consentimientos opcionales se solicitan por separado. Si existe un cambio material,
+        CotizApp requerirá una nueva aceptación antes de continuar usando las funciones autenticadas.
+      </p>
     </section>
 
     <section>
-      <h2>3. Publicación de catálogo</h2>
+      <h2>4. Publicación de catálogo</h2>
       <p>
         Las ferreterías son responsables de mantener precios, stock y SKU actualizados. La plataforma puede suspender
         publicaciones con datos falsos, duplicados o que incumplan normativa aplicable.
@@ -36,7 +62,7 @@
     </section>
 
     <section>
-      <h2>4. Cotizaciones y disponibilidad</h2>
+      <h2>5. Cotizaciones y disponibilidad</h2>
       <p>
         Las cotizaciones generadas son referenciales y pueden cambiar por variación de stock, logística, despacho o
         condiciones comerciales del proveedor.
@@ -44,7 +70,22 @@
     </section>
 
     <section>
-      <h2>5. Uso permitido</h2>
+      <h2>6. Propiedad intelectual y marcas</h2>
+      <p>
+        Quien publique fotografías, imágenes, logotipos, fichas técnicas o descripciones declara que es titular
+        o que cuenta con una autorización o licencia suficiente para el uso realizado en CotizApp. Debe conservar
+        evidencia verificable y entregarla cuando sea requerida. El hecho de que una imagen haya sido generada con
+        inteligencia artificial no autoriza el uso de marcas ni de otros elementos protegidos de terceros.
+      </p>
+      <p>
+        CotizApp puede ocultar o retirar contenido mientras revisa una denuncia y suspender cuentas ante infracciones
+        reiteradas. Titulares y representantes autorizados pueden consultar el procedimiento y
+        <a routerLink="/propiedad-intelectual" fragment="denunciar">denunciar contenido</a>.
+      </p>
+    </section>
+
+    <section>
+      <h2>7. Uso permitido</h2>
       <p>
         No esta permitido usar la plataforma para fraude, scraping no autorizado, suplantacion de identidad,
         publicacion de contenido ilegal o interrupcion del servicio.
@@ -52,16 +93,17 @@
     </section>
 
     <section>
-      <h2>6. Suspension o termino</h2>
+      <h2>8. Suspensión o término</h2>
       <p>
         Podemos suspender o cerrar cuentas ante incumplimientos graves, usos abusivos o requerimientos legales.
       </p>
     </section>
 
     <section>
-      <h2>7. Contacto legal</h2>
+      <h2>9. Contacto legal</h2>
       <p>
-        Para consultas sobre estos terminos puedes escribir a <strong>legal&#64;construcomparador.cl</strong>
+        Para consultas sobre estos términos puedes escribir a
+        <a [href]="'mailto:' + legalIdentity.legalEmail"><strong>{{ legalIdentity.legalEmail }}</strong></a>
         o usar la página de <a routerLink="/contacto">contacto</a>.
       </p>
     </section>

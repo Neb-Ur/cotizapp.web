@@ -1,5 +1,14 @@
 <main class="home-page">
   <section class="discovery-section" aria-labelledby="home-title">
+    <img
+      class="discovery-background"
+      src="assets/home-hero-construction.webp"
+      alt=""
+      width="1600"
+      height="703"
+      fetchpriority="high"
+      decoding="async"
+    />
     <div class="discovery-grid">
       <div class="discovery-copy">
         <span class="section-kicker"><i class="pi pi-sparkles" aria-hidden="true"></i> Compara antes de comprar</span>
@@ -29,8 +38,8 @@
             <ng-template let-product pTemplate="item">
               <div class="search-suggestion">
                 <div class="suggestion-image">
-                  <img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.productName" />
-                  <img *ngIf="!product.imageUrl" src="assets/cotizapp-mark.svg" alt="" />
+                  <img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.productName" width="64" height="64" loading="lazy" decoding="async" />
+                  <img *ngIf="!product.imageUrl" src="assets/cotizapp-mark.svg" alt="" width="64" height="64" />
                 </div>
                 <div class="suggestion-copy">
                   <strong>{{ product.productName }}</strong>
@@ -52,11 +61,11 @@
       </form>
 
       <div class="quick-categories" aria-label="Categorías destacadas">
-        <button type="button" *ngFor="let category of featuredCategories | slice:0:6" (click)="openCategory(category)">
+        <a *ngFor="let category of featuredCategories | slice:0:6" routerLink="/buscar" [queryParams]="{ categoria: category.id }">
           <i [class]="category.icon" aria-hidden="true"></i>
           <span>{{ category.name }}</span>
-        </button>
-        <a routerLink="/buscar">Ver catálogo <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
+        </a>
+        <a class="quick-catalog-link" routerLink="/buscar">Ver catálogo <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
       </div>
     </div>
   </section>
@@ -82,10 +91,10 @@
     <p class="catalog-message" *ngIf="catalogError && featuredProducts.length === 0">{{ catalogError }}</p>
 
     <div class="home-product-grid" *ngIf="featuredProducts.length > 0">
-      <button type="button" class="home-product-card" *ngFor="let product of featuredProducts | slice:0:4" (click)="openProduct(product)">
+      <a class="home-product-card" *ngFor="let product of featuredProducts | slice:0:4" [routerLink]="productUrl(product.productName)">
         <span class="home-product-image">
-          <img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.productName" loading="lazy" />
-          <img *ngIf="!product.imageUrl" class="fallback" src="assets/cotizapp-mark.svg" alt="" />
+          <img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.productName" width="360" height="240" loading="lazy" decoding="async" />
+          <img *ngIf="!product.imageUrl" class="fallback" src="assets/cotizapp-mark.svg" alt="" width="180" height="180" loading="lazy" />
         </span>
         <span class="home-product-meta">{{ product.brand }} · {{ product.productType }}</span>
         <span class="home-product-name">{{ product.productName }}</span>
@@ -94,7 +103,7 @@
           <span class="compare-link" aria-hidden="true"><i class="pi pi-arrow-right"></i></span>
         </span>
         <span class="home-product-stores"><i class="pi pi-shop" aria-hidden="true"></i> {{ product.storeCount }} {{ product.storeCount === 1 ? 'ferretería' : 'ferreterías' }}</span>
-      </button>
+      </a>
     </div>
   </section>
 
@@ -107,11 +116,11 @@
       <a routerLink="/buscar">Ver todas <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
     </div>
     <div class="category-grid">
-      <button type="button" *ngFor="let category of featuredCategories" (click)="openCategory(category)">
+      <a *ngFor="let category of featuredCategories" routerLink="/buscar" [queryParams]="{ categoria: category.id }">
         <i [class]="category.icon" aria-hidden="true"></i>
         <span>{{ category.name }}</span>
         <i class="pi pi-angle-right" aria-hidden="true"></i>
-      </button>
+      </a>
     </div>
   </section>
 

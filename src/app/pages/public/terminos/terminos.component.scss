@@ -55,3 +55,13 @@ h2 {
   color: var(--slate-600);
   font-size: 0.9rem;
 }
+
+.provisional-notice {
+  margin-bottom: 1rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid #f0b36a;
+  border-radius: var(--r-sm);
+  background: #fff7ed;
+  color: #8a3f12;
+  line-height: 1.5;
+}

@@ -1,0 +1,211 @@
+<main class="privacy-center">
+  <header class="topbar">
+    <a class="brand" routerLink="/" aria-label="CotizApp, ir al inicio">
+      <span class="brand-mark">C</span>
+      <span>CotizApp</span>
+    </a>
+    <a class="back-link" [routerLink]="auth.dashboardRouteForUser(user)">Volver a mi panel</a>
+  </header>
+
+  <section class="hero" *ngIf="!deletionReceipt">
+    <div>
+      <span class="eyebrow">Tu cuenta · Tus decisiones</span>
+      <h1>Privacidad y datos</h1>
+      <p>Consulta, corrige, descarga o elimina tu información. También puedes revisar consentimientos y seguir tus solicitudes.</p>
+    </div>
+    <div class="identity-card" *ngIf="user">
+      <span>Cuenta autenticada</span>
+      <strong>{{ user.displayName }}</strong>
+      <small>{{ user.email }}</small>
+    </div>
+  </section>
+
+  <section class="completion-card" *ngIf="deletionReceipt">
+    <span class="completion-icon" aria-hidden="true">✓</span>
+    <h1>Tu cuenta fue eliminada</h1>
+    <p>Los datos activos asociados fueron retirados y tu sesión se cerró. Los respaldos protegidos expirarán por rotación, a más tardar el {{ deletionReceipt.backupErasureExpectedBy | date:'longDate' }}.</p>
+    <small>Completado: {{ deletionReceipt.deletedAt | date:'medium' }}</small>
+    <button type="button" class="primary" (click)="leaveAfterDeletion()">Ir al inicio</button>
+  </section>
+
+  <ng-container *ngIf="!deletionReceipt">
+    <div class="status-message status-message--error" *ngIf="error" role="alert">{{ error }}</div>
+    <div class="status-message status-message--ok" *ngIf="notice" role="status">{{ notice }}</div>
+
+    <section class="loading-card" *ngIf="loading">Cargando tu información…</section>
+
+    <div class="content-grid" *ngIf="!loading && overview">
+      <div class="main-column">
+        <section class="panel legal-update" *ngIf="overview.legalAcceptanceRequired">
+          <span class="panel-kicker">Acción requerida</span>
+          <h2>Revisa los documentos legales vigentes</h2>
+          <p>Hubo una actualización material o tu cuenta es anterior al registro de versiones. Debes confirmar cada punto antes de volver al panel.</p>
+          <label class="check-row">
+            <input type="checkbox" [(ngModel)]="legalTermsAccepted" />
+            <span>Acepto los <a routerLink="/terminos-condiciones" target="_blank">Términos y condiciones</a>, versión {{ overview.currentVersions.terms }}.</span>
+          </label>
+          <label class="check-row">
+            <input type="checkbox" [(ngModel)]="legalPrivacyAcknowledged" />
+            <span>Declaro haber leído la <a routerLink="/privacidad" target="_blank">Política de privacidad</a>, versión {{ overview.currentVersions.privacy }}. Esto no constituye un consentimiento general.</span>
+          </label>
+          <label class="check-row">
+            <input type="checkbox" [(ngModel)]="legalAgeConfirmed" />
+            <span>Declaro que tengo 18 años o más.</span>
+          </label>
+          <button type="button" class="primary" [disabled]="legalAcceptanceIncomplete || busyAction === 'legal'" (click)="acceptLegalDocuments()">
+            {{ busyAction === 'legal' ? 'Registrando…' : 'Confirmar y continuar' }}
+          </button>
+        </section>
+
+        <section class="panel block-alert" *ngIf="overview.processingBlocked">
+          <span class="panel-kicker">Tratamiento bloqueado</span>
+          <h2>Tu solicitud de bloqueo está activa</h2>
+          <p>Mientras se resuelve, limitamos las operaciones de tu cuenta a este centro, la corrección de perfil y el cierre de sesión. Tus datos permanecen almacenados, pero no se utilizan en las funciones ordinarias.</p>
+        </section>
+
+        <section class="panel" id="actions">
+          <div class="panel-heading">
+            <div><span class="panel-kicker">Acciones directas</span><h2>Gestiona tu información</h2></div>
+          </div>
+          <div class="action-grid">
+            <article>
+              <span class="action-number">01</span>
+              <h3>Descargar mis datos</h3>
+              <p>Obtén perfil, cotizaciones, solicitudes y registros de consentimiento en JSON.</p>
+              <button type="button" class="secondary" [disabled]="!!busyAction" (click)="downloadData()">{{ busyAction === 'export' ? 'Preparando…' : 'Descargar exportación' }}</button>
+            </article>
+            <article>
+              <span class="action-number">02</span>
+              <h3>Corregir mi perfil</h3>
+              <p>Edita los datos básicos inmediatamente. Para otros antecedentes puedes presentar una solicitud.</p>
+              <a class="text-link" href="#profile">Revisar datos</a>
+            </article>
+            <article>
+              <span class="action-number">03</span>
+              <h3>Ejercer otro derecho</h3>
+              <p>Solicita acceso, rectificación, supresión, oposición, bloqueo o portabilidad.</p>
+              <a class="text-link" href="#request">Crear solicitud</a>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel" id="profile">
+          <div class="panel-heading">
+            <div><span class="panel-kicker">Rectificación inmediata</span><h2>Datos de perfil</h2></div>
+            <span class="verified-chip">Cuenta verificada</span>
+          </div>
+          <form class="profile-grid" (ngSubmit)="saveProfile()">
+            <label>Nombre<input name="displayName" [(ngModel)]="profileDraft.displayName" required autocomplete="name" /></label>
+            <label>Teléfono<input name="phone" [(ngModel)]="profileDraft.phone" autocomplete="tel" /></label>
+            <label>Región<input name="region" [(ngModel)]="profileDraft.region" autocomplete="address-level1" /></label>
+            <label>Ciudad<input name="city" [(ngModel)]="profileDraft.city" autocomplete="address-level2" /></label>
+            <label>Comuna<input name="commune" [(ngModel)]="profileDraft.commune" /></label>
+            <label>Dirección<input name="address" [(ngModel)]="profileDraft.address" autocomplete="street-address" /></label>
+            <p class="email-note">El correo {{ user?.email }} identifica tu cuenta y no se modifica desde este formulario.</p>
+            <button class="primary" type="submit" [disabled]="!!busyAction">{{ busyAction === 'profile' ? 'Guardando…' : 'Guardar correcciones' }}</button>
+          </form>
+        </section>
+
+        <section class="panel" id="request">
+          <div class="panel-heading">
+            <div><span class="panel-kicker">Solicitud formal</span><h2>Ejercer un derecho</h2></div>
+            <span class="deadline-chip">Respuesta general: 30 días</span>
+          </div>
+          <label class="field-label">Derecho
+            <select [(ngModel)]="selectedRequestType">
+              <option value="">Selecciona una opción</option>
+              <option *ngFor="let option of requestOptions" [value]="option.value">{{ option.label }}</option>
+            </select>
+          </label>
+          <p class="selection-help" *ngIf="selectedRequestType">
+            {{ selectedRequestHelp }}
+          </p>
+          <div class="blocking-warning" *ngIf="selectedRequestType === 'blocking'">
+            El bloqueo se aplicará al enviar la solicitud. Solo podrás usar este centro hasta que se resuelva. La solicitud debe explicar su fundamento y tiene respuesta especial dentro de 2 días hábiles.
+          </div>
+          <label class="field-label">Detalle
+            <textarea [(ngModel)]="requestDetails" rows="5" maxlength="2000" placeholder="Identifica los datos, el tratamiento y la razón de tu solicitud."></textarea>
+          </label>
+          <div class="submit-row">
+            <small>Recibirás acuse inmediato y podrás revisar aquí el estado.</small>
+            <button type="button" class="primary" [disabled]="!!busyAction" (click)="submitRequest()">{{ busyAction === 'request' ? 'Enviando…' : 'Enviar solicitud' }}</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div><span class="panel-kicker">Seguimiento</span><h2>Mis solicitudes</h2></div>
+          </div>
+          <div class="empty-state" *ngIf="overview.requests.length === 0">Aún no tienes solicitudes de derechos.</div>
+          <div class="request-list" *ngIf="overview.requests.length > 0">
+            <article *ngFor="let request of overview.requests">
+              <div>
+                <strong>{{ requestLabel(request.type) }}</strong>
+                <span class="status-chip" [attr.data-status]="request.status">{{ request.status.replace('_', ' ') }}</span>
+              </div>
+              <dl>
+                <div><dt>Recibida</dt><dd>{{ request.acknowledgedAt | date:'medium' }}</dd></div>
+                <div><dt>Fecha límite</dt><dd>{{ (request.blockingDueAt || request.responseDueAt) | date:'mediumDate' }}</dd></div>
+                <div *ngIf="request.resolution"><dt>Respuesta</dt><dd>{{ request.resolution }}</dd></div>
+              </dl>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <aside class="side-column">
+        <section class="panel compact-panel">
+          <span class="panel-kicker">Preferencias</span>
+          <h2>Consentimientos</h2>
+          <div class="preference-row">
+            <div><strong>Comunicaciones comerciales</strong><small>Opcional e independiente del servicio.</small></div>
+            <button type="button" class="toggle-button" [class.on]="marketingConsent" [disabled]="!!busyAction" (click)="updateMarketing(!marketingConsent)" [attr.aria-pressed]="marketingConsent">
+              {{ marketingConsent ? 'Autorizadas' : 'No autorizadas' }}
+            </button>
+          </div>
+          <div class="preference-row preference-row--stacked">
+            <div><strong>Cookies</strong><small>{{ cookieSummary }}</small></div>
+            <div class="button-pair">
+              <button type="button" class="secondary small" (click)="openCookieSettings()">Configurar</button>
+              <button type="button" class="ghost small" (click)="rejectOptionalCookies()">Retirar opcionales</button>
+            </div>
+          </div>
+          <p class="consent-note">Los términos contractuales, la entrega del aviso de privacidad y los consentimientos opcionales se registran por separado.</p>
+        </section>
+
+        <section class="panel compact-panel">
+          <span class="panel-kicker">Trazabilidad</span>
+          <h2>Historial de consentimientos</h2>
+          <div class="empty-state" *ngIf="overview.consents.length === 0">No hay registros históricos para esta cuenta.</div>
+          <ol class="consent-history">
+            <li *ngFor="let consent of overview.consents">
+              <span class="timeline-dot" [class.revoked]="!consent.granted"></span>
+              <div><strong>{{ consentLabel(consent.type) }}</strong><small>Versión {{ consent.version }} · {{ consent.granted ? 'Aceptado' : 'Retirado/no autorizado' }}</small><time>{{ consent.occurredAt | date:'medium' }}</time></div>
+            </li>
+          </ol>
+        </section>
+
+        <section class="panel compact-panel help-panel">
+          <h2>¿Necesitas ayuda?</h2>
+          <p>También puedes ejercer tus derechos por el canal formal indicado en la política.</p>
+          <a routerLink="/privacidad" fragment="derechos">Ver procedimiento completo</a>
+        </section>
+
+        <section class="panel compact-panel danger-panel">
+          <span class="panel-kicker">Zona crítica</span>
+          <h2>Eliminar cuenta</h2>
+          <p>Esta acción elimina la cuenta activa, cotizaciones, contactos, solicitudes y, si eres ferretería, catálogo y ofertas. No se puede deshacer.</p>
+          <button type="button" class="danger-outline" *ngIf="!deletePanelOpen" (click)="deletePanelOpen = true">Iniciar eliminación</button>
+          <div class="delete-confirm" *ngIf="deletePanelOpen">
+            <label>Confirma tu correo<input type="email" [(ngModel)]="deleteEmail" [placeholder]="user?.email || ''" autocomplete="off" /></label>
+            <label class="check-row"><input type="checkbox" [(ngModel)]="deleteConfirmed" /><span>Entiendo que perderé el acceso y que esta acción no se puede deshacer.</span></label>
+            <div class="button-pair">
+              <button type="button" class="ghost small" (click)="deletePanelOpen = false">Cancelar</button>
+              <button type="button" class="danger" [disabled]="!deleteReady || !!busyAction" (click)="deleteAccount()">{{ busyAction === 'delete' ? 'Eliminando…' : 'Eliminar definitivamente' }}</button>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </ng-container>
+</main>

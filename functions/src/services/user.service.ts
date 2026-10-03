@@ -12,7 +12,10 @@ export async function authUserResponse(userId: string): Promise<any | null> {
     nombreComercial: store?.nombreComercial,
     rut: store?.rut ?? user.rut,
     latitud: coordinateValue(store?.latitud, -90, 90),
-    longitud: coordinateValue(store?.longitud, -180, 180)
+    longitud: coordinateValue(store?.longitud, -180, 180),
+    contratoFerreteriaEstado: store?.contratoEstado || 'pendiente',
+    contratoFerreteriaVersion: store?.contratoVersion || null,
+    contratoFerreteriaAceptadoEn: store?.contratoAceptadoEn || null,
+    tratamientoBloqueado: user.tratamientoBloqueado === true
   };
 }
-

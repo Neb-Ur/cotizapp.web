@@ -1,0 +1,159 @@
+<div class="help-widget" (click)="$event.stopPropagation()">
+  <section
+    *ngIf="menuOpen"
+    id="help-options"
+    class="help-menu"
+    aria-label="Opciones de ayuda"
+  >
+    <div class="help-menu__heading">
+      <div>
+        <span>Soporte CotizApp</span>
+        <strong>¿Cómo te ayudamos?</strong>
+      </div>
+      <button type="button" class="help-menu__close" aria-label="Cerrar opciones de ayuda" (click)="closeMenu()">
+        <i class="pi pi-times" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <button type="button" class="help-option help-option--primary" (click)="openReport()">
+      <span class="help-option__icon"><i class="pi pi-exclamation-circle" aria-hidden="true"></i></span>
+      <span>
+        <strong>Reportar un problema</strong>
+        <small>Envíanos el detalle y la página donde ocurrió.</small>
+      </span>
+      <i class="pi pi-chevron-right help-option__arrow" aria-hidden="true"></i>
+    </button>
+
+    <a
+      *ngIf="legalIdentity.whatsappEnabled; else supportEmailOption"
+      class="help-option"
+      [href]="whatsappUrl"
+      target="_blank"
+      rel="noopener noreferrer"
+      (click)="closeMenu()"
+    >
+      <span class="help-option__icon help-option__icon--whatsapp"><i class="pi pi-whatsapp" aria-hidden="true"></i></span>
+      <span>
+        <strong>Hablar por WhatsApp</strong>
+        <small>Atención de lunes a viernes, de 09:00 a 18:00.</small>
+      </span>
+      <i class="pi pi-external-link help-option__arrow" aria-hidden="true"></i>
+    </a>
+
+    <ng-template #supportEmailOption>
+      <a class="help-option" [href]="supportEmailUrl" (click)="closeMenu()">
+        <span class="help-option__icon"><i class="pi pi-envelope" aria-hidden="true"></i></span>
+        <span>
+          <strong>Escribir a soporte</strong>
+          <small>{{ legalIdentity.supportEmail }}</small>
+        </span>
+        <i class="pi pi-external-link help-option__arrow" aria-hidden="true"></i>
+      </a>
+    </ng-template>
+  </section>
+
+  <button
+    type="button"
+    class="help-trigger"
+    [class.help-trigger--open]="menuOpen"
+    [attr.aria-expanded]="menuOpen"
+    aria-controls="help-options"
+    aria-label="Abrir ayuda y soporte"
+    (click)="toggleMenu()"
+  >
+    <i class="pi" [class.pi-question-circle]="!menuOpen" [class.pi-times]="menuOpen" aria-hidden="true"></i>
+    <span>Ayuda</span>
+  </button>
+</div>
+
+<app-ui-modal
+  [open]="reportOpen"
+  [title]="reportSent ? 'Reporte recibido' : 'Reportar un problema'"
+  eyebrow="Soporte CotizApp"
+  size="sm"
+  [closeDisabled]="isSubmitting"
+  (closed)="closeReport()"
+>
+  <div *ngIf="reportSent" class="report-success" role="status">
+    <span class="report-success__icon"><i class="pi pi-check" aria-hidden="true"></i></span>
+    <p><strong>Gracias por avisarnos.</strong></p>
+    <p>Recibimos el reporte junto con la página donde ocurrió. Te contactaremos si necesitamos más información.</p>
+    <button type="button" class="btn btn-primary" (click)="closeReport()">Cerrar</button>
+  </div>
+
+  <form
+    *ngIf="!reportSent"
+    class="report-form"
+    [formGroup]="reportForm"
+    (ngSubmit)="submitReport()"
+    [attr.aria-busy]="isSubmitting"
+  >
+    <p class="report-form__intro">Describe qué ocurrió. Adjuntaremos automáticamente la sección actual, nunca contraseñas ni datos privados.</p>
+
+    <label>
+      <span>Tipo de problema</span>
+      <select formControlName="category" [attr.aria-invalid]="hasError('category')">
+        <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+      </select>
+    </label>
+
+    <label>
+      <span>¿Qué ocurrió?</span>
+      <textarea
+        formControlName="description"
+        rows="5"
+        maxlength="1500"
+        placeholder="Ej.: intenté agregar un producto a mi cotización y el botón no respondió."
+        [attr.aria-invalid]="hasError('description')"
+        aria-describedby="help-description-error help-description-count"
+      ></textarea>
+      <span class="field-meta">
+        <small id="help-description-error" class="field-error" *ngIf="hasError('description')">Cuéntanos el problema en al menos 10 caracteres.</small>
+        <small id="help-description-count" class="field-count">{{ reportForm.controls.description.value.length }}/1500</small>
+      </span>
+    </label>
+
+    <div class="report-form__identity">
+      <label>
+        <span>Nombre</span>
+        <input
+          formControlName="name"
+          type="text"
+          autocomplete="name"
+          placeholder="Tu nombre"
+          [attr.aria-invalid]="hasError('name')"
+          aria-describedby="help-name-error"
+        />
+        <small id="help-name-error" class="field-error" *ngIf="hasError('name')">Ingresa al menos 2 caracteres.</small>
+      </label>
+
+      <label>
+        <span>Correo</span>
+        <input
+          formControlName="email"
+          type="email"
+          autocomplete="email"
+          placeholder="correo@dominio.com"
+          [attr.aria-invalid]="hasError('email')"
+          aria-describedby="help-email-error"
+        />
+        <small id="help-email-error" class="field-error" *ngIf="hasError('email')">Ingresa un correo válido.</small>
+      </label>
+    </div>
+
+    <label class="form-trap" aria-hidden="true">
+      Sitio web
+      <input formControlName="website" type="text" tabindex="-1" autocomplete="off" />
+    </label>
+
+    <p class="report-form__error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
+
+    <div class="report-form__actions">
+      <button type="button" class="btn btn-outline" [disabled]="isSubmitting" (click)="closeReport()">Cancelar</button>
+      <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
+        <i class="pi" [class.pi-send]="!isSubmitting" [class.pi-spin]="isSubmitting" [class.pi-spinner]="isSubmitting" aria-hidden="true"></i>
+        {{ isSubmitting ? 'Enviando…' : 'Enviar reporte' }}
+      </button>
+    </div>
+  </form>
+</app-ui-modal>

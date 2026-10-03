@@ -25,6 +25,30 @@
   },
   {
     "method": "post",
+    "path": "/marketing/unsubscribe",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "post",
+    "path": "/price-reports",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "get",
+    "path": "/admin/price-reports",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "patch",
+    "path": "/admin/price-reports/:id",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "post",
     "path": "/auth/register",
     "auth": true,
     "middlewareCount": 2
@@ -32,6 +56,12 @@
   {
     "method": "get",
     "path": "/auth/me",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "get",
+    "path": "/auth/session",
     "auth": true,
     "middlewareCount": 2
   },
@@ -46,6 +76,144 @@
     "path": "/auth/logout",
     "auth": true,
     "middlewareCount": 2
+  },
+  {
+    "method": "get",
+    "path": "/privacy/overview",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "post",
+    "path": "/privacy/consents/current",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "patch",
+    "path": "/privacy/consents/marketing",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "post",
+    "path": "/privacy/requests",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "post",
+    "path": "/privacy/export",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "delete",
+    "path": "/privacy/account",
+    "auth": true,
+    "middlewareCount": 2
+  },
+  {
+    "method": "get",
+    "path": "/admin/privacy-requests",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "patch",
+    "path": "/admin/privacy-requests/:id",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "get",
+    "path": "/admin/governance/summary",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "get",
+    "path": "/admin/governance/audit-logs",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "get",
+    "path": "/admin/governance/incidents",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "post",
+    "path": "/admin/governance/incidents",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "patch",
+    "path": "/admin/governance/incidents/:id",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "get",
+    "path": "/admin/governance/evidence",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "post",
+    "path": "/admin/governance/evidence",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "get",
+    "path": "/store-agreement/current",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "post",
+    "path": "/store-agreement/accept",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "get",
+    "path": "/admin/store-agreements",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "patch",
+    "path": "/admin/store-agreements/:id",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "post",
+    "path": "/ip-reports",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "post",
+    "path": "/ip-reports/status",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "get",
+    "path": "/admin/ip-reports",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "patch",
+    "path": "/admin/ip-reports/:id",
+    "auth": true,
+    "middlewareCount": 3
   },
   {
     "method": "get",

@@ -62,10 +62,13 @@
 
     <article class="panel" *ngIf="currentSection === 'buscar' && (!user || (!isInitialLoading && !isSectionLoading))">
       <section class="search-primary" aria-labelledby="product-search-label">
-        <label class="top-product-search" id="product-search-label">
-          <span>¿Que material necesitas?</span>
-          <input [(ngModel)]="tableProductSearch" (ngModelChange)="onProductSearchChange()" type="search" placeholder="Busca cemento, OSB, yeso..." />
-        </label>
+        <div class="public-search-main">
+          <h1 *ngIf="!user">Busca y compara materiales de construcción</h1>
+          <label class="top-product-search" id="product-search-label">
+            <span>¿Qué material necesitas?</span>
+            <input [(ngModel)]="tableProductSearch" (ngModelChange)="onProductSearchChange()" type="search" placeholder="Busca cemento, OSB, yeso..." />
+          </label>
+        </div>
         <p>Busca por nombre o acota los resultados por categoría, subcategoría y familia.</p>
       </section>
 
@@ -190,17 +193,17 @@
       </div>
 
       <div class="product-cards" *ngIf="productRows.length > 0; else emptyProducts">
-        <button
-          type="button"
+        <a
           class="product-card"
           *ngFor="let row of paginatedProductRows"
-          (click)="selectProductCard(row.productName)"
+          [routerLink]="productUrl(row.productName)"
+          (click)="selectProductCard($event, row.productName)"
           [attr.aria-label]="(isPickingProductForProject ? 'Agregar ' : 'Ver precios de ') + row.productName"
         >
           <div class="product-main">
             <div class="product-image-slot">
-              <img *ngIf="row.imageUrl" [src]="row.imageUrl" [alt]="row.productName" />
-              <img *ngIf="!row.imageUrl" class="product-image-fallback" src="assets/cotizapp-mark.svg" alt="" />
+              <img *ngIf="row.imageUrl" [src]="row.imageUrl" [alt]="row.productName" width="280" height="180" loading="lazy" decoding="async" />
+              <img *ngIf="!row.imageUrl" class="product-image-fallback" src="assets/cotizapp-mark.svg" alt="" width="120" height="120" loading="lazy" />
             </div>
             <div class="product-text">
               <h4>{{ row.productName }}</h4>
@@ -210,7 +213,7 @@
             <span class="price-label">Desde</span>
             <p class="price-range">{{ formatCurrency(row.minPrice) }}</p>
           </div>
-        </button>
+        </a>
       </div>
 
       <ng-template #emptyProducts>

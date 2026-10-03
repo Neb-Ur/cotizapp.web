@@ -7,8 +7,7 @@ const DEFAULT_FIREBASE_CONFIG: FirebaseOptions = {
   projectId: 'cotizapp-d71c8',
   storageBucket: 'cotizapp-d71c8-catalog-assets',
   messagingSenderId: '246026823431',
-  appId: '1:246026823431:web:2f62b8ed20a8af1f94c7a2',
-  measurementId: 'G-RDD4LMBKCS'
+  appId: '1:246026823431:web:2f62b8ed20a8af1f94c7a2'
 };
 
 declare global {
@@ -36,8 +35,9 @@ async function resolveFirebaseConfig(): Promise<FirebaseOptions> {
     const response = await fetch('/__/firebase/init.json', { cache: 'no-store' });
     if (response.ok) {
       const hostingConfig = await response.json() as FirebaseOptions;
+      const { measurementId: _unusedMeasurementId, ...configWithoutAnalytics } = hostingConfig;
       return {
-        ...hostingConfig,
+        ...configWithoutAnalytics,
         storageBucket: DEFAULT_FIREBASE_CONFIG.storageBucket
       };
     }

@@ -71,10 +71,11 @@ export class ApiClientService {
     return response.data;
   }
 
-  async delete<T>(path: string, requireAuth = false): Promise<T> {
+  async delete<T>(path: string, requireAuth = false, body?: unknown): Promise<T> {
     const response = await firstValueFrom(
       this.http.delete<ApiEnvelope<T>>(`${this.apiBaseUrl}${path}`, {
-        headers: this.headers(requireAuth)
+        headers: this.headers(requireAuth),
+        body
       })
     );
     return response.data;

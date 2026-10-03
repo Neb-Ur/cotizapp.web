@@ -1,0 +1,29 @@
+<main class="report-page">
+  <article>
+    <span>Corrección de información comercial</span>
+    <h1>Reportar un precio incorrecto</h1>
+    <p>Revisaremos el precio publicado y su evidencia con la ferretería. CotizApp conserva el precio anterior, la actualización y la decisión para mantener verificable la comparación.</p>
+
+    <section class="success" *ngIf="reference" role="status">
+      <h2>Reclamo recibido</h2>
+      <p>Tu referencia es <strong>{{ reference }}</strong>. Conserva este número si necesitas contactarnos.</p>
+      <a routerLink="/">Volver al inicio</a>
+    </section>
+
+    <form *ngIf="!reference" [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="submitting">
+      <label>Correo de contacto<input formControlName="email" type="email" autocomplete="email" /></label>
+      <label>Producto<input formControlName="productName" readonly /></label>
+      <label>Ferretería<input formControlName="storeName" readonly /></label>
+      <input formControlName="storeId" type="hidden" /><input formControlName="offerId" type="hidden" />
+      <div class="price-grid">
+        <label>Precio publicado<input formControlName="displayedPrice" type="number" min="0" readonly /></label>
+        <label>Precio observado<input formControlName="observedPrice" type="number" min="0" /></label>
+      </div>
+      <label>¿Dónde y cuándo viste el precio distinto?<textarea formControlName="details" rows="5" maxlength="2000" placeholder="Incluye fecha, sucursal o canal y cualquier condición relevante."></textarea></label>
+      <label class="trap" aria-hidden="true">Sitio web<input formControlName="website" tabindex="-1" autocomplete="off" /></label>
+      <p class="privacy-note">Usaremos estos datos para verificar y corregir la oferta, contactar a las partes y conservar evidencia del reclamo. Se mantendrán por el plazo definido en nuestra <a routerLink="/privacidad">Política de privacidad</a>.</p>
+      <button type="submit" [disabled]="submitting">{{ submitting ? 'Enviando…' : 'Enviar reclamo' }}</button>
+      <p class="error" *ngIf="error" role="alert">{{ error }}</p>
+    </form>
+  </article>
+</main>

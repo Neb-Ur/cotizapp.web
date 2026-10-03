@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import type { DocumentReference } from 'firebase-admin/firestore';
 import { db } from './firebase.js';
+import { CURRENT_STORE_AGREEMENT_VERSION } from './legal.js';
+import { storeAgreementDocumentHash } from '../services/store-agreement.service.js';
 
 export type PublicSearchRow = {
   productoMaestroId: string;
@@ -111,6 +113,9 @@ async function buildSearchRows(): Promise<PublicSearchRow[]> {
         || !owner
         || product.estado === 'inactivo'
         || store.estado === 'inactivo'
+        || store.contratoEstado !== 'vigente'
+        || store.contratoVersion !== CURRENT_STORE_AGREEMENT_VERSION
+        || store.contratoDocumentHash !== storeAgreementDocumentHash()
         || owner.estadoCuenta !== 'activo'
       ) {
         return null;

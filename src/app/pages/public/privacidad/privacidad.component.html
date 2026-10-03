@@ -1,68 +1,439 @@
 <section class="legal-page">
   <article class="hero">
-    <p class="eyebrow">Transparencia de datos</p>
-    <h1>Politica de privacidad</h1>
+    <p class="eyebrow">Transparencia y protección de datos</p>
+    <h1>Política de privacidad y tratamiento de datos personales</h1>
     <p>
-      Esta politica explica que datos tratamos, para que los usamos y como puedes ejercer tus derechos.
+      Aquí explicamos, en lenguaje claro, qué información trata CotizApp, por qué la utiliza,
+      con quién puede compartirla, durante cuánto tiempo la conserva y cómo puedes ejercer tus derechos.
     </p>
+    <div class="policy-meta" aria-label="Versión de la política">
+      <span>Versión {{ legalIdentity.privacyPolicyVersion }}</span>
+      <span>Actualizada el {{ legalIdentity.privacyLastUpdated }}</span>
+    </div>
   </article>
 
   <article class="content-card">
-    <p class="updated">Última actualización: 25 de febrero de 2026</p>
+    @if (legalIdentity.isProvisional) {
+      <aside class="provisional-notice" role="note">
+        <strong>Documento provisorio.</strong>
+        La identidad societaria y los canales indicados son datos de demostración. Deben sustituirse y verificarse
+        antes de la operación pública de CotizApp.
+      </aside>
+    }
 
-    <section>
-      <h2>1. Datos que recopilamos</h2>
+    <aside class="legal-transition" role="note">
+      Esta política anticipa las exigencias de la Ley N.º 21.719, cuya entrada en vigencia está prevista para
+      el 1 de diciembre de 2026. Hasta esa fecha también se aplica la normativa actualmente vigente.
+    </aside>
+
+    <nav class="policy-index" aria-label="Contenido de la política">
+      <strong>Contenido</strong>
+      <ol>
+        <li><a routerLink="/privacidad" fragment="responsable">Responsable y alcance</a></li>
+        <li><a routerLink="/privacidad" fragment="titulares">Personas y datos tratados</a></li>
+        <li><a routerLink="/privacidad" fragment="finalidades">Finalidades y bases jurídicas</a></li>
+        <li><a routerLink="/privacidad" fragment="destinatarios">Destinatarios y proveedores</a></li>
+        <li><a routerLink="/privacidad" fragment="transferencias">Transferencias internacionales</a></li>
+        <li><a routerLink="/privacidad" fragment="conservacion">Conservación, copias y eliminación</a></li>
+        <li><a routerLink="/privacidad" fragment="derechos">Derechos y solicitudes</a></li>
+      </ol>
+    </nav>
+
+    <section id="responsable">
+      <h2>1. Responsable del tratamiento y alcance</h2>
+      <dl class="identity-grid">
+        <div><dt>Responsable</dt><dd>{{ legalIdentity.dataController }}</dd></div>
+        <div><dt>RUT</dt><dd>{{ legalIdentity.taxId }}</dd></div>
+        <div><dt>Representante legal</dt><dd>{{ legalIdentity.legalRepresentative }}</dd></div>
+        <div><dt>Domicilio</dt><dd>{{ legalIdentity.registeredAddress }}</dd></div>
+        <div><dt>Contacto de privacidad</dt><dd>{{ legalIdentity.privacyOfficer }}</dd></div>
+        <div>
+          <dt>Canal para ejercer derechos</dt>
+          <dd><a [href]="'mailto:' + legalIdentity.privacyEmail">{{ legalIdentity.privacyEmail }}</a></dd>
+        </div>
+      </dl>
       <p>
-        Recopilamos datos de cuenta (nombre, correo, teléfono), datos comerciales (catálogo, precios, stock),
-        y datos operativos de uso de la plataforma.
+        Esta política se aplica al sitio web, las cuentas, los paneles de maestros, ferreterías y administración,
+        las cotizaciones, el catálogo, los formularios de contacto, el soporte y las funciones de proximidad de CotizApp.
       </p>
     </section>
 
-    <section>
-      <h2>2. Finalidades del tratamiento</h2>
+    <section id="titulares">
+      <h2>2. Personas, categorías de datos y origen</h2>
+      <p>Las bases de CotizApp pueden comprender información de los siguientes grupos de titulares:</p>
+      <ul>
+        <li>Visitantes y personas que buscan o comparan productos.</li>
+        <li>Maestros, técnicos y demás usuarios registrados.</li>
+        <li>Dueños, representantes, trabajadores y comerciantes individuales de ferreterías.</li>
+        <li>Personas que envían consultas o reportes de problemas.</li>
+        <li>Clientes o contactos cuyos datos sean incorporados por un maestro en una cotización.</li>
+        <li>Usuarios administrativos y personal autorizado de CotizApp.</li>
+      </ul>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Categoría</th><th>Datos tratados</th><th>Origen</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Cuenta e identidad</td>
+              <td>Identificador Firebase, nombre, correo, teléfono, rol, estado de cuenta, ciudad, comuna, región y dirección. Firebase administra la credencial; CotizApp no almacena la contraseña legible.</td>
+              <td>El titular, un administrador autorizado y Firebase Authentication.</td>
+            </tr>
+            <tr>
+              <td>Ferreterías y comerciantes</td>
+              <td>Nombre comercial, RUT, contacto, dirección, comuna, coordenadas del local, catálogo, SKU, precios, stock, fotografías y estado de publicación.</td>
+              <td>La ferretería, su representante, personal autorizado o fuentes públicas/comerciales utilizadas lícitamente.</td>
+            </tr>
+            <tr>
+              <td>Cotizaciones y obras</td>
+              <td>Nombre del proyecto, dirección de obra, productos, cantidades, estrategia de comparación, ferretería elegida, totales y radio de búsqueda.</td>
+              <td>El maestro o usuario que crea y modifica la cotización; resultados calculados por CotizApp.</td>
+            </tr>
+            <tr>
+              <td>Datos de clientes aportados por un maestro</td>
+              <td>Nombres, referencias de obra, direcciones u otros antecedentes que el maestro escriba en campos de proyecto o documentos.</td>
+              <td>El maestro. Debe contar con autorización o una base jurídica válida y evitar datos innecesarios o sensibles.</td>
+            </tr>
+            <tr>
+              <td>Ubicación</td>
+              <td>Latitud, longitud y radio seleccionado. Puede revelar una ubicación precisa.</td>
+              <td>El navegador o dispositivo, únicamente después de que la persona autoriza el permiso de geolocalización.</td>
+            </tr>
+            <tr>
+              <td>Contacto y soporte</td>
+              <td>Nombre, correo, teléfono, empresa, comuna, categoría del problema, mensaje, página desde la que se reporta y rol de cuenta.</td>
+              <td>La persona que completa el formulario y contexto técnico generado por la plataforma.</td>
+            </tr>
+            <tr>
+              <td>Uso, seguridad y dispositivo</td>
+              <td>Fechas, rutas consultadas, acciones administrativas, errores, identificadores de sesión, dirección IP, agente de usuario y eventos de seguridad que puedan constar en registros de infraestructura.</td>
+              <td>Navegador, Firebase, Google Cloud y registros generados al utilizar el servicio.</td>
+            </tr>
+            <tr>
+              <td>Preferencias del navegador</td>
+              <td>Elección de cookies, sesión, caché del catálogo y, si se autoriza, preferencia temporal de búsqueda cercana.</td>
+              <td>Navegador y decisiones del visitante.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <p>
-        Usamos la información para autenticar usuarios, operar cotizaciones, mostrar catálogos, mejorar funciones
-        y entregar soporte tecnico.
+        CotizApp no solicita intencionalmente datos sensibles. No deben incluirse antecedentes de salud, biométricos,
+        ideológicos, sindicales, religiosos, sexuales ni otros datos sensibles en nombres de proyectos, mensajes o cotizaciones.
       </p>
     </section>
 
-    <section>
-      <h2>3. Base de legitimacion</h2>
+    <section id="finalidades">
+      <h2>3. Finalidades, fundamentos jurídicos e intereses legítimos</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tratamiento</th><th>Finalidad</th><th>Fundamento</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Cuentas y perfiles</td>
+              <td>Crear la cuenta, autenticar, recuperar acceso, aplicar roles y entregar las funciones contratadas o solicitadas.</td>
+              <td>Medidas precontractuales y ejecución del servicio.</td>
+            </tr>
+            <tr>
+              <td>Catálogos de ferreterías</td>
+              <td>Publicar ofertas, mantener precios y stock, vincular productos y permitir comparaciones.</td>
+              <td>Ejecución de la relación con la ferretería e interés legítimo en mantener un catálogo verificable y actualizado.</td>
+            </tr>
+            <tr>
+              <td>Cotizaciones</td>
+              <td>Guardar proyectos, calcular subtotales y totales, comparar alternativas y generar documentos.</td>
+              <td>Ejecución del servicio solicitado por el maestro.</td>
+            </tr>
+            <tr>
+              <td>Ubicación precisa</td>
+              <td>Calcular distancias y ordenar ferreterías cercanas. Si se guarda en una cotización, mantener el criterio de proximidad elegido.</td>
+              <td>Consentimiento manifestado mediante el permiso del dispositivo y ejecución de la función solicitada.</td>
+            </tr>
+            <tr>
+              <td>Contacto y reportes</td>
+              <td>Responder solicitudes, diagnosticar errores y dar seguimiento al soporte.</td>
+              <td>Medidas precontractuales, ejecución del servicio e interés legítimo en atender y mejorar el soporte.</td>
+            </tr>
+            <tr>
+              <td>Denuncias de propiedad intelectual</td>
+              <td>Verificar titularidad, contactar a las partes, retirar o reponer contenido y conservar evidencia de la decisión.</td>
+              <td>Interés legítimo en prevenir infracciones y formular, ejercer o defender reclamaciones; obligación legal cuando corresponda.</td>
+            </tr>
+            <tr>
+              <td>Seguridad y prevención de abuso</td>
+              <td>Prevenir accesos indebidos, fraude, automatizaciones abusivas, investigar incidentes y proteger usuarios y sistemas.</td>
+              <td>Interés legítimo en la seguridad de la plataforma, cumplimiento de obligaciones legales y defensa de derechos.</td>
+            </tr>
+            <tr>
+              <td>Cookies y almacenamiento necesario</td>
+              <td>Mantener la sesión, recordar la elección de privacidad y operar el catálogo y las cotizaciones.</td>
+              <td>Ejecución del servicio e interés legítimo en su operación segura.</td>
+            </tr>
+            <tr>
+              <td>Preferencias opcionales</td>
+              <td>Recordar decisiones no esenciales, como mantener temporalmente la búsqueda cercana entre páginas.</td>
+              <td>Consentimiento revocable.</td>
+            </tr>
+            <tr>
+              <td>Analítica</td>
+              <td>No se realiza actualmente. CotizApp no carga un proveedor ni solicita consentimiento anticipado para una herramienta futura.</td>
+              <td>No aplica mientras el tratamiento permanezca desactivado.</td>
+            </tr>
+            <tr>
+              <td>Cumplimiento y reclamaciones</td>
+              <td>Atender derechos, requerimientos de autoridad, auditorías y formular, ejercer o defender reclamaciones.</td>
+              <td>Obligación legal y defensa de derechos ante autoridades o tribunales.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <p>
-        Tratamos datos por ejecucion del contrato de servicio, cumplimiento normativo y, cuando corresponda,
-        consentimiento del usuario.
+        Los intereses legítimos invocados son mantener la seguridad, continuidad e integridad del servicio, prevenir abusos,
+        responder soporte, conservar evidencia mínima de operaciones y asegurar información comercial exacta. CotizApp debe
+        ponderarlos frente a los derechos y libertades de cada titular y permite formular oposición cuando corresponda.
       </p>
     </section>
 
-    <section>
-      <h2>4. Conservacion y seguridad</h2>
+    <section id="ubicacion">
+      <h2>4. Tratamientos específicos</h2>
+      <h3>4.1 Ubicación precisa</h3>
       <p>
-        Conservamos datos solo por el tiempo necesario para operar el servicio y cumplir obligaciones legales.
-        Aplicamos controles de acceso, trazabilidad y medidas de seguridad razonables.
+        La ubicación se solicita solo cuando activas una búsqueda cercana o decides capturar las coordenadas de una ferretería.
+        Para búsquedas de visitantes se usa para calcular distancia y puede mantenerse únicamente durante la sesión si autorizaste
+        preferencias. Cuando agregas proximidad a una cotización o registras un local, las coordenadas se guardan junto con ese registro.
+        CotizApp no realiza seguimiento continuo ni comunica la ubicación del visitante a las ferreterías.
+      </p>
+
+      <h3>4.2 Datos de clientes incorporados por maestros</h3>
+      <p>
+        CotizApp utiliza esos antecedentes únicamente para guardar, calcular, mostrar o exportar la cotización y para seguridad del
+        servicio. El maestro debe informar al cliente, limitarse a datos necesarios y contar con autorización o fundamento jurídico.
+        CotizApp no usa esos datos para publicidad ni para crear perfiles comerciales del cliente.
+      </p>
+
+      <h3>4.3 Catálogos y comerciantes individuales</h3>
+      <p>
+        Parte del catálogo y de la identificación comercial puede ser pública para permitir búsquedas y comparaciones. Los teléfonos,
+        correos personales o RUT de personas naturales no deben publicarse como parte del catálogo salvo que exista fundamento jurídico
+        y se informe expresamente al titular.
+      </p>
+
+      <h3>4.4 WhatsApp y analítica</h3>
+      <p>
+        WhatsApp y la analítica están desactivados actualmente. Si se habilita WhatsApp, el usuario decidirá iniciar la conversación y
+        Meta tratará los datos conforme a sus propias condiciones.
+      </p>
+      <p>
+        Antes de incorporar analítica se informará mediante un nuevo aviso el proveedor concreto, los datos y cookies utilizados,
+        finalidad, plazo de conservación, países o mecanismos de transferencia y forma de revocación. La elección actual de
+        “Preferencias” no se reutilizará para esa finalidad: será necesario un consentimiento nuevo, específico e inequívoco.
+        El script solo podrá cargarse después de esa autorización. Al retirarla deberán detenerse los nuevos eventos y eliminarse
+        las cookies o identificadores que el proveedor permita borrar desde el dispositivo.
+      </p>
+      <p>
+        Cuando exista este tratamiento, CotizApp conservará en sus sistemas un comprobante de consentimiento con la cuenta o
+        identificador de elección, proveedor, versión del aviso, decisión y fecha y hora del servidor. El registro local del navegador
+        será únicamente un control técnico y no la única evidencia de la autorización.
       </p>
     </section>
 
-    <section>
-      <h2>5. Comparticion de datos</h2>
+    <section id="destinatarios">
+      <h2>5. Destinatarios, encargados y comunicaciones</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Destinatario o encargado</th><th>Función y datos</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Google LLC y entidades/subencargados de Firebase y Google Cloud</td>
+              <td>Autenticación, base de datos Firestore, Functions, Hosting, Storage, seguridad, registros e infraestructura técnica.</td>
+            </tr>
+            <tr>
+              <td>Personal y proveedores autorizados de CotizApp</td>
+              <td>Acceso limitado según funciones para soporte, seguridad, mantenimiento y administración, sujeto a confidencialidad.</td>
+            </tr>
+            <tr>
+              <td>Ferreterías</td>
+              <td>Sus datos comerciales, catálogo y ofertas pueden mostrarse públicamente. Actualmente no reciben automáticamente datos privados de maestros, clientes ni cotizaciones.</td>
+            </tr>
+            <tr>
+              <td>Asesores profesionales, tribunales y autoridades</td>
+              <td>Solo cuando sea necesario para cumplimiento legal, auditoría o formulación, ejercicio o defensa de derechos.</td>
+            </tr>
+            <tr>
+              <td>Meta/WhatsApp</td>
+              <td>No activo. Solo intervendrá si se habilita el canal y el usuario inicia voluntariamente una conversación.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>CotizApp no vende datos personales ni entrega bases de usuarios a ferreterías o anunciantes.</p>
+    </section>
+
+    <section id="transferencias">
+      <h2>6. Transferencias internacionales</h2>
       <p>
-        No vendemos datos personales. Compartimos información con proveedores de infraestructura y herramientas
-        necesarias para operar, bajo obligaciones de confidencialidad.
+        CotizApp utiliza Firebase y Google Cloud. Aunque determinados recursos pueden configurarse en regiones específicas,
+        Google y sus subencargados pueden procesar datos en países donde mantienen instalaciones, incluyendo fuera de Chile.
+        Por ello pueden existir transferencias internacionales.
+      </p>
+      <p>
+        Estas operaciones deben ampararse en los términos de tratamiento y seguridad de Firebase/Google Cloud, compromisos
+        contractuales, medidas de seguridad y, cuando corresponda, cláusulas o garantías adecuadas. La lista de subencargados y
+        ubicaciones puede cambiar y debe revisarse periódicamente. La Agencia determinará los países adecuados y modelos aplicables
+        conforme entre en vigencia el nuevo régimen chileno.
+      </p>
+      <p class="reference-links">
+        Consulta los
+        <a href="https://firebase.google.com/terms/data-processing-terms" target="_blank" rel="noopener noreferrer">términos de tratamiento de Firebase</a>,
+        la <a href="https://firebase.google.com/support/privacy/" target="_blank" rel="noopener noreferrer">información de privacidad y seguridad</a>
+        y la <a href="https://firebase.google.com/terms/subprocessors" target="_blank" rel="noopener noreferrer">lista de subencargados</a>.
       </p>
     </section>
 
-    <section>
-      <h2>6. Derechos del titular</h2>
+    <section id="conservacion">
+      <h2>7. Conservación, copias de seguridad y eliminación</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Información</th><th>Plazo o criterio</th></tr></thead>
+          <tbody>
+            <tr><td>Cuenta y perfil</td><td>Mientras la cuenta permanezca activa. La eliminación autoservicio retira el perfil de la base activa; solo podrá separarse y conservarse información mínima cuando exista una obligación legal o controversia concreta.</td></tr>
+            <tr><td>Cotizaciones, direcciones y datos de clientes</td><td>Hasta que el usuario los elimine, cierre la cuenta o transcurran 3 años sin actividad, salvo conservación necesaria por una obligación o reclamación.</td></tr>
+            <tr><td>Catálogo y datos de ferretería</td><td>Mientras exista la relación. Al eliminar la cuenta se retiran la ferretería, catálogo, ofertas y caché pública; datos mínimos podrán conservarse únicamente por una obligación o reclamación concreta.</td></tr>
+            <tr><td>Contacto, reportes y solicitudes de productos</td><td>Hasta 24 meses desde su cierre o hasta que el titular elimine su cuenta, salvo evidencia mínima necesaria por una controversia o deber legal.</td></tr>
+            <tr><td>Registros técnicos, administrativos y de seguridad</td><td>Hasta 12 meses, salvo incidente, investigación o reclamación que justifique conservarlos por más tiempo.</td></tr>
+            <tr><td>Ubicación de búsqueda no guardada</td><td>Durante la pantalla actual o la sesión del navegador. La ubicación guardada en una cotización sigue el plazo de esa cotización.</td></tr>
+            <tr><td>Elección de cookies</td><td>12 meses o hasta que cambie la versión de la política, lo que ocurra primero.</td></tr>
+            <tr><td>Solicitudes de derechos y consentimientos</td><td>Mientras la cuenta esté activa. Al eliminarla se suprimen los registros vinculados; se conserva únicamente un comprobante no identificable de la operación. Cuando exista una controversia o deber legal, podrá conservarse la evidencia estrictamente necesaria mientras subsista esa finalidad.</td></tr>
+            <tr><td>Respaldos</td><td>Si se habilitan respaldos programados, se conservarán por el período configurado, que no deberá exceder 14 semanas. Copias residuales eliminadas por Google pueden tardar hasta 180 días en desaparecer conforme a sus términos.</td></tr>
+          </tbody>
+        </table>
+      </div>
       <p>
-        Puedes solicitar acceso, rectificación o eliminación de tus datos, cuando aplique legalmente,
-        escribiendo a <strong>privacidad&#64;construcomparador.cl</strong>.
+        Al eliminar información de la base activa, ésta deja de estar disponible para el uso ordinario. Puede subsistir temporalmente
+        en respaldos protegidos hasta su rotación o eliminación. Durante ese período no se utilizará para fines comerciales y solo se
+        recuperará por continuidad, seguridad o cumplimiento legal.
+      </p>
+      @if (legalIdentity.isProvisional) {
+        <p class="implementation-warning">
+          <strong>Pendiente antes de producción:</strong> estos plazos deben respaldarse con tareas automáticas de vencimiento,
+          revisión de respaldos y evidencia de eliminación. Publicar la política no sustituye esos controles.
+        </p>
+      }
+    </section>
+
+    <section id="seguridad">
+      <h2>8. Medidas generales de seguridad</h2>
+      <p>El programa de seguridad de CotizApp contempla medidas proporcionales al riesgo, entre ellas:</p>
+      <ul>
+        <li>Autenticación mediante Firebase, validación de tokens y revocación de sesiones.</li>
+        <li>Separación de roles y comprobaciones de propiedad para maestros, ferreterías y administradores.</li>
+        <li>Bloqueo del acceso directo del navegador a Firestore; las operaciones protegidas pasan por la API.</li>
+        <li>Cifrado en tránsito y controles de infraestructura proporcionados por Google/Firebase.</li>
+        <li>Registro de accesos administrativos y eventos técnicos relevantes.</li>
+        <li>Principio de mínimo acceso, revisión de permisos, confidencialidad y actualización de componentes.</li>
+        <li>Procedimientos de respuesta, registro y notificación de incidentes y recuperación cuando existan respaldos.</li>
+      </ul>
+      @if (legalIdentity.isProvisional) {
+        <p class="implementation-warning">
+          <strong>Pendiente antes de producción:</strong> deben aprobarse formalmente el procedimiento de incidentes,
+          la revisión periódica de accesos, la configuración de respaldos y la exigencia de MFA administrativo.
+        </p>
+      }
+      <p>
+        Ningún sistema es absolutamente invulnerable. Si detectas un acceso indebido o vulnerabilidad, informa inmediatamente a
+        <a [href]="'mailto:' + legalIdentity.legalEmail">{{ legalIdentity.legalEmail }}</a> sin incluir contraseñas.
       </p>
     </section>
 
-    <section>
-      <h2>7. Consultas</h2>
+    <section id="automatizacion">
+      <h2>9. Comparaciones y decisiones automatizadas</h2>
       <p>
-        Si necesitas apoyo, visita <a routerLink="/contacto">contacto</a> o revisa
-        <a routerLink="/preguntas-frecuentes">preguntas frecuentes</a>.
+        CotizApp calcula recomendaciones usando productos y cantidades seleccionadas, precios, stock, distancia, radio y preferencia
+        de comprar en una o varias ferreterías. La lógica busca minimizar el costo estimado o respetar la estrategia elegida y muestra
+        sus resultados para que el usuario decida.
+      </p>
+      <p>
+        Estas recomendaciones no producen efectos jurídicos ni decisiones significativas sobre crédito, empleo, seguros o acceso a
+        servicios. CotizApp no realiza actualmente elaboración de perfiles personales con fines publicitarios. Puedes solicitar una
+        explicación o revisión humana escribiendo al canal de privacidad.
+      </p>
+    </section>
+
+    <section id="consentimiento">
+      <h2>10. Consentimiento y cómo retirarlo</h2>
+      <ul>
+        <li><strong>Cookies opcionales:</strong> usa <a routerLink="/cuenta/privacidad-datos">Privacidad y datos</a> o “Configurar cookies” en el pie de página.</li>
+        <li><strong>Ubicación:</strong> revoca el permiso desde la configuración del navegador o dispositivo y elimina la proximidad guardada en tus cotizaciones.</li>
+        <li><strong>Comunicaciones comerciales:</strong> retira la autorización desde <a routerLink="/cuenta/privacidad-datos">Privacidad y datos</a>; no afecta el uso ordinario del servicio.</li>
+      </ul>
+      <p>
+        Retirar el consentimiento no afecta la licitud del tratamiento realizado previamente. Si el dato es indispensable para una
+        función solicitada, esa función puede dejar de estar disponible. La retirada no elimina tratamientos fundados en contrato,
+        obligación legal, interés legítimo prevalente o defensa de derechos.
+      </p>
+    </section>
+
+    <section id="derechos">
+      <h2>11. Derechos de las personas</h2>
+      <p>Puedes solicitar gratuitamente, según corresponda:</p>
+      <ul>
+        <li><strong>Acceso:</strong> confirmar si tratamos tus datos, conocerlos y obtener información sobre su uso y origen.</li>
+        <li><strong>Rectificación:</strong> corregir datos inexactos, desactualizados o incompletos.</li>
+        <li><strong>Supresión:</strong> eliminar datos cuando concurra una causal legal.</li>
+        <li><strong>Oposición:</strong> detener un tratamiento específico, especialmente el fundado en interés legítimo o marketing directo.</li>
+        <li><strong>Bloqueo:</strong> suspender temporalmente el tratamiento mientras se resuelve una solicitud.</li>
+        <li><strong>Portabilidad:</strong> recibir los datos aplicables en formato electrónico estructurado y, cuando sea técnicamente posible, transferirlos.</li>
+        <li><strong>Explicación y revisión humana:</strong> respecto de una decisión automatizada que pudiera afectarte significativamente.</li>
+      </ul>
+
+      <h3>Cómo presentar una solicitud</h3>
+      <p>
+        Si tienes una cuenta, utiliza el centro autenticado <a routerLink="/cuenta/privacidad-datos">Privacidad y datos</a>, donde
+        recibirás un acuse inmediato, podrás descargar información y consultar el estado. Alternativamente, envía un correo a
+        <a [href]="'mailto:' + legalIdentity.privacyEmail">{{ legalIdentity.privacyEmail }}</a> con el asunto “Solicitud de derechos
+        de datos”. Indica tu nombre, medio de respuesta, derecho que deseas ejercer y los datos o tratamiento involucrado.
+        CotizApp podrá pedir información razonable para autenticar tu identidad, sin solicitar datos excesivos.
+      </p>
+      <p>
+        Se acusará recibo y se responderá dentro de 30 días corridos, prorrogables una vez por otros 30 días cuando corresponda.
+        Una solicitud fundada de bloqueo temporal se responderá dentro de 2 días hábiles. Se conservará evidencia de la solicitud,
+        la respuesta y su envío.
+      </p>
+    </section>
+
+    <section id="agencia">
+      <h2>12. Reclamación ante la Agencia</h2>
+      <p>
+        Desde la entrada en vigencia de la Ley N.º 21.719, si CotizApp rechaza una solicitud o no responde dentro del plazo legal,
+        podrás reclamar ante la Agencia de Protección de Datos Personales dentro de los 30 días hábiles siguientes a la respuesta
+        negativa o al vencimiento del plazo. La reclamación podrá presentarse física o electrónicamente conforme al procedimiento
+        que publique la Agencia.
+      </p>
+      <p>
+        Consulta el texto oficial de la
+        <a href="https://www.bcn.cl/leychile/navegar?idNorma=1209272" target="_blank" rel="noopener noreferrer">Ley N.º 21.719</a>.
+      </p>
+    </section>
+
+    <section id="menores">
+      <h2>13. Menores de edad</h2>
+      <p>
+        CotizApp está dirigido a personas mayores de 18 años y no busca recopilar deliberadamente datos de menores. Si un adulto
+        incorpora datos de un menor sin fundamento válido, debe informar de inmediato al canal de privacidad para su revisión y,
+        cuando corresponda, eliminación.
+      </p>
+    </section>
+
+    <section id="cambios">
+      <h2>14. Cambios, vigencia y contacto</h2>
+      <p>
+        Los cambios materiales se informarán por un medio visible y, cuando afecten tratamientos basados en consentimiento, se
+        solicitará una nueva autorización. La versión y fecha siempre estarán disponibles al inicio de esta política.
+      </p>
+      <p>
+        Para privacidad: <a [href]="'mailto:' + legalIdentity.privacyEmail">{{ legalIdentity.privacyEmail }}</a>.
+        Para notificaciones legales: <a [href]="'mailto:' + legalIdentity.legalEmail">{{ legalIdentity.legalEmail }}</a>.
+        También puedes usar la página de <a routerLink="/contacto">contacto</a>.
       </p>
     </section>
   </article>

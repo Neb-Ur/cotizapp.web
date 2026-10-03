@@ -3,9 +3,10 @@ import { adminAuth, db } from '../lib/firebase.js';
 import { requireAuth, requireRole } from '../lib/auth.js';
 import { fail, ok } from '../lib/http.js';
 import { COLLECTIONS } from '../lib/collections.js';
-import { coordinateValue, nowIso, normalizeText, validRole } from '../lib/values.js';
-import { rows, row, createRow, deleteRowsByIds } from '../repositories/firestore.repository.js';
+import { coordinateValue, nowIso, normalizeText, validRole, validStrongPassword } from '../lib/values.js';
+import { rows, row, createRow } from '../repositories/firestore.repository.js';
 import { authUserResponse } from '../services/user.service.js';
+import { deleteAccountData } from '../services/account-data.service.js';
 export const adminUsersRouter = Router();
 
 adminUsersRouter.get('/admin/usuarios', requireAuth, requireRole('admin'), async (_req, res) => {
@@ -15,6 +16,14 @@ adminUsersRouter.get('/admin/usuarios', requireAuth, requireRole('admin'), async
 adminUsersRouter.post('/admin/usuarios', requireAuth, requireRole('admin'), async (req, res) => {
   const role = req.body?.rol;
   if (!validRole(role)) return fail(res, 'ADMIN_INVALID_ROLE', 'Rol invalido.', 400);
+  if (!validStrongPassword(req.body?.password)) {
+    return fail(
+      res,
+      'AUTH_WEAK_PASSWORD',
+      'La contraseña debe tener entre 12 y 128 caracteres e incluir mayúscula, minúscula, número y símbolo.',
+      400
+    );
+  }
   const storeLatitude = coordinateValue(req.body?.latitud, -90, 90);
   const storeLongitude = coordinateValue(req.body?.longitud, -180, 180);
   if (role === 'ferreteria') {
@@ -66,13 +75,8 @@ adminUsersRouter.patch('/admin/usuarios/:id', requireAuth, requireRole('admin'),
 });
 
 adminUsersRouter.delete('/admin/usuarios/:id', requireAuth, requireRole('admin'), async (req, res) => {
-  const stores = (await rows(COLLECTIONS.stores)).filter((item) => item.usuarioDuenoId === req.params.id);
-  for (const store of stores) {
-    const offers = (await rows(COLLECTIONS.storeProducts)).filter((item) => item.ferreteriaId === store.id);
-    await deleteRowsByIds(COLLECTIONS.storeProducts, offers.map((item) => item.id));
-    await db.collection(COLLECTIONS.stores).doc(store.id).delete();
-  }
-  await db.collection(COLLECTIONS.users).doc(req.params.id).delete();
-  try { await adminAuth.deleteUser(req.params.id); } catch { /* profile may predate Firebase Auth */ }
-  return ok(res, { deleted: true });
+  const current = await row(COLLECTIONS.users, req.params.id);
+  if (!current) return fail(res, 'AUTH_USER_NOT_FOUND', 'Usuario no encontrado.', 404);
+  const counts = await deleteAccountData(req.params.id, normalizeText(current.correo).toLowerCase(), true);
+  return ok(res, { deleted: true, counts });
 });

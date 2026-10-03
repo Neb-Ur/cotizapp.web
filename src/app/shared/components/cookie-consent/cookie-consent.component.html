@@ -1,0 +1,78 @@
+<aside
+  *ngIf="!cookieConsent.hasDecision()"
+  class="cookie-banner"
+  aria-labelledby="cookie-banner-title"
+  aria-describedby="cookie-banner-description"
+>
+  <div class="cookie-banner__content">
+    <span class="cookie-banner__icon" aria-hidden="true"><i class="pi pi-shield"></i></span>
+    <div class="cookie-banner__copy">
+      <h2 id="cookie-banner-title">Tu privacidad en CotizApp</h2>
+      <p id="cookie-banner-description">
+        Usamos almacenamiento necesario para iniciar sesión, mantener cotizaciones y operar el sitio. Con tu permiso podemos recordar preferencias, como la búsqueda cercana. No utilizamos cookies de analítica ni publicidad. Puedes cambiar tu decisión cuando quieras.
+        <a routerLink="/privacidad">Ver política de privacidad</a>.
+      </p>
+    </div>
+    <div class="cookie-banner__actions">
+      <button type="button" class="btn btn-outline" (click)="openSettings()">Configurar</button>
+      <button type="button" class="btn cookie-choice" (click)="rejectOptional()">Solo necesarias</button>
+      <button type="button" class="btn cookie-choice" (click)="acceptPreferences()">Permitir preferencias</button>
+    </div>
+  </div>
+</aside>
+
+<app-ui-modal
+  [open]="cookieConsent.settingsOpen()"
+  title="Configurar privacidad"
+  eyebrow="Cookies y almacenamiento"
+  size="sm"
+  (closed)="closeSettings()"
+>
+  <div class="cookie-settings">
+    <p class="cookie-settings__intro">
+      Elige qué categorías permites. Las necesarias no se pueden desactivar porque sostienen funciones solicitadas por ti.
+    </p>
+
+    <div class="cookie-category">
+      <div>
+        <strong>Necesarias</strong>
+        <p>Sesión, seguridad, catálogo, cotizaciones y registro de esta elección.</p>
+      </div>
+      <label class="switch switch--locked">
+        <span class="visually-hidden">Cookies necesarias activadas</span>
+        <input type="checkbox" checked disabled />
+        <span class="switch__control" aria-hidden="true"></span>
+      </label>
+    </div>
+
+    <div class="cookie-category">
+      <div>
+        <strong>Preferencias</strong>
+        <p>Permiten recordar opciones no esenciales, como la búsqueda por ubicación, entre páginas.</p>
+      </div>
+      <label class="switch">
+        <span class="visually-hidden">Permitir almacenamiento de preferencias</span>
+        <input type="checkbox" [(ngModel)]="preferences" />
+        <span class="switch__control" aria-hidden="true"></span>
+      </label>
+    </div>
+
+    <div class="cookie-category cookie-category--inactive">
+      <div>
+        <strong>Analítica</strong>
+        <p>No utilizamos analítica y no solicitamos una autorización anticipada. Si esto cambia, mostraremos un nuevo aviso con proveedor, datos, finalidad, conservación y transferencias.</p>
+      </div>
+      <span class="inactive-badge">No utilizada</span>
+    </div>
+
+    <p class="cookie-settings__note">
+      La elección de preferencias no se reutilizará para activar analítica. No utilizamos cookies publicitarias ni vendemos tus datos. Revisa más detalles en la
+      <a routerLink="/privacidad" (click)="closeSettings()">política de privacidad</a>.
+    </p>
+
+    <div class="cookie-settings__actions">
+      <button type="button" class="btn btn-outline" (click)="rejectOptional()">Solo necesarias</button>
+      <button type="button" class="btn btn-primary" (click)="saveSelection()">Guardar preferencias</button>
+    </div>
+  </div>
+</app-ui-modal>

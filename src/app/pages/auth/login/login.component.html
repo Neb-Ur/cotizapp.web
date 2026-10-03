@@ -16,8 +16,8 @@
 
   <!-- Right: form -->
   <section class="auth-card">
-    <a routerLink="/" class="back-link">
-      <span>&larr;</span> Volver al inicio
+    <a [routerLink]="returnUrl || '/'" class="back-link">
+      <span>&larr;</span> {{ returnUrl ? 'Volver al producto' : 'Volver al inicio' }}
     </a>
 
     <div class="auth-header">
@@ -42,8 +42,8 @@
 
       <div class="field">
         <label for="login-password">Contraseña</label>
-        <input id="login-password" type="password" formControlName="password" placeholder="Mínimo 6 caracteres" autocomplete="current-password" [disabled]="isSubmitting" [attr.aria-invalid]="hasError('password')" aria-describedby="login-password-error" />
-        <small id="login-password-error" *ngIf="hasError('password')">Mínimo 6 caracteres.</small>
+        <input id="login-password" type="password" formControlName="password" placeholder="Tu contraseña" autocomplete="current-password" [disabled]="isSubmitting" [attr.aria-invalid]="hasError('password')" aria-describedby="login-password-error" />
+        <small id="login-password-error" *ngIf="hasError('password')">Ingresa tu contraseña.</small>
       </div>
 
       <div class="field-row">
@@ -60,13 +60,7 @@
       <p class="form-error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
     </form>
 
-    <p class="auth-switch">¿Eres maestro y no tienes cuenta? <a routerLink="/registro">Crear cuenta</a></p>
-
-    <div class="demo-hints">
-      <p>Demo maestro: maestro&#64;demo.cl / 123456</p>
-      <p>Demo ferretería: ferreteria01&#64;demo.cl / 123456</p>
-      <p>Demo admin: admin&#64;demo.cl / 123456</p>
-    </div>
+    <p class="auth-switch">¿Eres maestro y no tienes cuenta? <a routerLink="/registro" [queryParams]="authQueryParams">Crear cuenta</a></p>
 
   </section>
 </main>

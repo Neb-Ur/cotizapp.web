@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { LEGAL_IDENTITY } from '../../../core/config/legal-identity.config';
 
 @Component({
   selector: 'app-preguntas-frecuentes',
@@ -33,7 +34,7 @@ export class PreguntasFrecuentesComponent {
     },
     {
       question: 'Donde pido soporte?',
-      answer: 'Puedes escribir desde la pagina de contacto o enviar correo a soporte@construcomparador.cl.'
+      answer: `Puedes escribir desde la página de contacto o enviar correo a ${LEGAL_IDENTITY.supportEmail}.`
     }
   ];
 }

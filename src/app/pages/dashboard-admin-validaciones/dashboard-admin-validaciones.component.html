@@ -74,13 +74,14 @@
 
           <div class="table-wrap" *ngIf="ferreteriaRows.length > 0; else noStores">
             <table>
-              <thead><tr><th>Ferretería</th><th>Correo</th><th>Comuna</th><th>Estado</th><th>Acciones</th></tr></thead>
+              <thead><tr><th>Ferretería</th><th>Correo</th><th>Comuna</th><th>Estado</th><th>Contrato</th><th>Acciones</th></tr></thead>
               <tbody>
                 <tr *ngFor="let store of paginatedFerreteriaRows">
                   <td>{{ store.businessName || store.displayName }}</td>
                   <td>{{ store.email }}</td>
                   <td>{{ store.commune || '-' }}</td>
                   <td>{{ statusLabel(userStatus(store)) }}</td>
+                  <td>{{ store.storeAgreementStatus === 'vigente' ? 'Vigente' : (store.storeAgreementStatus || 'Pendiente') }}</td>
                   <td class="actions store-actions">
                     <button pButton type="button" icon="pi pi-check" [rounded]="true" [text]="true" severity="success" class="store-action-button" *ngIf="userStatus(store) !== 'activo'" (click)="activateStore(store)" aria-label="Activar ferretería" title="Activar ferretería"></button>
                     <button pButton type="button" icon="pi pi-eye" [rounded]="true" [text]="true" severity="info" class="store-action-button" (click)="inspectStoreCatalog(store)" aria-label="Ver detalle" title="Ver detalle"></button>
@@ -88,7 +89,7 @@
                   </td>
                 </tr>
                 <tr *ngIf="filteredFerreteriaRows.length === 0">
-                  <td colspan="5" class="catalog-empty-cell">No encontramos ferreterías para estos filtros.</td>
+                  <td colspan="6" class="catalog-empty-cell">No encontramos ferreterías para estos filtros.</td>
                 </tr>
               </tbody>
             </table>
@@ -126,7 +127,10 @@
             <label>Nombre del contacto<input type="text" [(ngModel)]="storeCreateDraft.displayName" /></label>
             <label>RUT<input type="text" [(ngModel)]="storeCreateDraft.rut" /></label>
             <label>Correo de acceso<input type="email" [(ngModel)]="storeCreateDraft.email" /></label>
-            <label>Contraseña temporal<input type="password" [(ngModel)]="storeCreateDraft.password" /></label>
+            <label>Contraseña temporal
+              <input type="password" [(ngModel)]="storeCreateDraft.password" minlength="12" maxlength="128" autocomplete="new-password" />
+              <small>12 o más caracteres, con mayúscula, minúscula, número y símbolo.</small>
+            </label>
             <label>Teléfono<input type="text" [(ngModel)]="storeCreateDraft.phone" /></label>
             <label>Ciudad
               <select [(ngModel)]="storeCreateDraft.city" (ngModelChange)="onStoreCreateCityChange()">
@@ -758,6 +762,228 @@
       <ng-template #emptyContactRequests><p class="empty">No hay solicitudes para este estado.</p></ng-template>
     </article>
 
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'propiedad'">
+      <div class="toolbar">
+        <label>
+          Estado
+          <select [(ngModel)]="ipStatusFilter">
+            <option value="recibida">Recibidas</option>
+            <option value="en_revision">En revisión</option>
+            <option value="retiro_preventivo">Retiro preventivo</option>
+            <option value="esperando_respuesta">Esperando respuesta</option>
+            <option value="repuesto">Repuestos</option>
+            <option value="retiro_definitivo">Retiro definitivo</option>
+            <option value="rechazada">Rechazadas</option>
+            <option value="all">Todas</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="contact-request-grid" *ngIf="ipReportRows.length > 0; else emptyIpReports">
+        <article class="contact-request-card" *ngFor="let report of ipReportRows">
+          <header>
+            <div>
+              <span class="request-kind">{{ report.reference }} · {{ ipRightLabel(report.rightsType) }}</span>
+              <h2>{{ report.contentType.replace('_', ' ') }}</h2>
+            </div>
+            <span class="status-chip" [class.ok]="report.status === 'repuesto'" [class.bad]="report.status === 'retiro_definitivo' || report.status === 'rechazada'">
+              {{ report.status.replace('_', ' ') }}
+            </span>
+          </header>
+
+          <dl>
+            <div><dt>Denunciante</dt><dd>{{ report.claimant.name }}<span *ngIf="report.claimant.organization"> · {{ report.claimant.organization }}</span></dd></div>
+            <div><dt>Correo</dt><dd><a [href]="'mailto:' + report.claimant.email">{{ report.claimant.email }}</a></dd></div>
+            <div><dt>Objetivo</dt><dd>{{ report.targetType }}<span *ngIf="report.targetId"> · {{ report.targetId }}</span></dd></div>
+            <div><dt>Revisión inicial</dt><dd>{{ report.initialReviewDueAt | date:'short' }}</dd></div>
+            <div><dt>Resolución objetivo</dt><dd>{{ report.targetResolutionAt | date:'short' }}</dd></div>
+          </dl>
+
+          <p><a [href]="report.contentUrl" target="_blank" rel="noopener noreferrer">Abrir contenido denunciado</a></p>
+          <p *ngIf="report.originalWorkUrl"><a [href]="report.originalWorkUrl" target="_blank" rel="noopener noreferrer">Ver obra o registro original</a></p>
+          <p class="request-message"><strong>Derecho:</strong> {{ report.workDescription }}</p>
+          <p class="request-message"><strong>Infracción:</strong> {{ report.infringementDescription }}</p>
+
+          <label>Fundamento y evidencia interna
+            <textarea rows="3" [(ngModel)]="ipResolutionDrafts[report.id]" placeholder="Antecedentes revisados y fundamento de la decisión"></textarea>
+          </label>
+          <label>Mensaje para el denunciante
+            <textarea rows="2" [(ngModel)]="ipPublicMessageDrafts[report.id]" placeholder="Estado o decisión sin información confidencial"></textarea>
+          </label>
+
+          <div class="actions">
+            <button type="button" (click)="setIpReportStatus(report, 'en_revision')">Iniciar revisión</button>
+            <button type="button" class="danger" (click)="setIpReportStatus(report, 'retiro_preventivo')">Retiro preventivo</button>
+            <button type="button" class="ghost" (click)="setIpReportStatus(report, 'esperando_respuesta')">Esperar antecedentes</button>
+            <button type="button" class="ghost" (click)="setIpReportStatus(report, 'repuesto')">Reponer</button>
+            <button type="button" class="danger" (click)="setIpReportStatus(report, 'retiro_definitivo')">Retiro definitivo</button>
+            <button type="button" class="ghost" (click)="setIpReportStatus(report, 'rechazada')">Rechazar denuncia</button>
+          </div>
+        </article>
+      </div>
+      <ng-template #emptyIpReports><p class="empty">No hay denuncias para este estado.</p></ng-template>
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'privacidad'">
+      <div class="toolbar">
+        <label>
+          Estado
+          <select [(ngModel)]="privacyStatusFilter">
+            <option value="recibida">Recibidas</option>
+            <option value="en_revision">En revisión</option>
+            <option value="completada">Completadas</option>
+            <option value="rechazada">Rechazadas</option>
+            <option value="all">Todas</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="contact-request-grid" *ngIf="privacyRequestRows.length > 0; else emptyPrivacyRequests">
+        <article class="contact-request-card" *ngFor="let request of privacyRequestRows">
+          <header>
+            <div>
+              <span class="request-kind">{{ privacyRequestLabel(request.type) }}</span>
+              <h2>{{ request.email || request.usuarioId }}</h2>
+            </div>
+            <span class="status-chip" [class.ok]="request.status === 'completada'" [class.bad]="request.status === 'rechazada'">
+              {{ request.status.replace('_', ' ') }}
+            </span>
+          </header>
+          <dl>
+            <div><dt>Acuse</dt><dd>{{ request.acknowledgedAt | date:'short' }}</dd></div>
+            <div><dt>Fecha límite</dt><dd>{{ (request.blockingDueAt || request.responseDueAt) | date:'short' }}</dd></div>
+            <div *ngIf="request.resolvedAt"><dt>Resuelta</dt><dd>{{ request.resolvedAt | date:'short' }}</dd></div>
+          </dl>
+          <p class="request-message">{{ request.details || 'Solicitud de acceso sin detalle adicional.' }}</p>
+          <label>
+            Respuesta y fundamento
+            <textarea [(ngModel)]="privacyResolutionDrafts[request.id]" rows="3" maxlength="2000" placeholder="Respuesta íntegra que quedará registrada para el titular"></textarea>
+          </label>
+          <div class="actions">
+            <button type="button" class="ghost" *ngIf="request.status === 'recibida'" (click)="setPrivacyRequestStatus(request, 'en_revision')">Tomar solicitud</button>
+            <button type="button" *ngIf="request.status !== 'completada'" (click)="setPrivacyRequestStatus(request, 'completada')">Marcar completada</button>
+            <button type="button" class="danger" *ngIf="request.status !== 'rechazada'" (click)="setPrivacyRequestStatus(request, 'rechazada')">Rechazar con fundamento</button>
+          </div>
+        </article>
+      </div>
+      <ng-template #emptyPrivacyRequests><p class="empty">No hay solicitudes de derechos para este estado.</p></ng-template>
+    </article>
+
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'gobierno'">
+      <div class="stats-grid" *ngIf="governanceSummary as summary">
+        <section><span>Incidentes abiertos</span><p>{{ summary.openIncidents }}</p></section>
+        <section><span>Críticos abiertos</span><p>{{ summary.criticalOpenIncidents }}</p></section>
+        <section><span>Evidencias registradas</span><p>{{ summary.evidenceCount }}</p></section>
+      </div>
+
+      <p-divider />
+      <section>
+        <span class="section-kicker">Respuesta a incidentes</span>
+        <h3>Registrar una vulneración</h3>
+        <p>Registra incluso los eventos descartados. La evaluación jurídica de notificación debe quedar documentada.</p>
+        <div class="request-detail-form">
+          <label>Título<input type="text" [(ngModel)]="incidentDraft.title" maxlength="160" placeholder="Ej: acceso no autorizado a cotizaciones" /></label>
+          <label>Severidad
+            <select [(ngModel)]="incidentDraft.severity">
+              <option value="baja">Baja</option><option value="media">Media</option>
+              <option value="alta">Alta</option><option value="critica">Crítica</option>
+            </select>
+          </label>
+          <label>Fecha de detección<input type="datetime-local" [(ngModel)]="incidentDraft.detectedAt" /></label>
+          <label>Personas posiblemente afectadas<input type="number" min="0" [(ngModel)]="incidentDraft.affectedPeopleEstimate" /></label>
+          <label>Sistemas, separados por coma<input type="text" [(ngModel)]="incidentDraft.systemsText" placeholder="Firestore, Authentication" /></label>
+          <label>Categorías de datos, separadas por coma<input type="text" [(ngModel)]="incidentDraft.dataCategoriesText" placeholder="contacto, cotizaciones, ubicación" /></label>
+          <label>Descripción<textarea rows="3" [(ngModel)]="incidentDraft.description" maxlength="5000"></textarea></label>
+          <label>Contención inicial<textarea rows="3" [(ngModel)]="incidentDraft.containmentActions" maxlength="5000"></textarea></label>
+        </div>
+        <div class="actions"><button type="button" (click)="recordSecurityIncident()">Registrar incidente</button></div>
+      </section>
+
+      <div class="contact-request-grid" *ngIf="securityIncidents.length > 0; else noSecurityIncidents">
+        <article class="contact-request-card" *ngFor="let incident of securityIncidents">
+          <header>
+            <div><span class="request-kind">{{ incident.severity }}</span><h2>{{ incident.title }}</h2></div>
+            <span class="status-chip" [class.ok]="incident.status === 'cerrado'" [class.bad]="incident.severity === 'critica' && incident.status !== 'cerrado'">{{ incident.status }}</span>
+          </header>
+          <dl>
+            <div><dt>Detectado</dt><dd>{{ incident.detectedAt | date:'short' }}</dd></div>
+            <div><dt>Personas estimadas</dt><dd>{{ incident.affectedPeopleEstimate }}</dd></div>
+            <div><dt>Sistemas</dt><dd>{{ incident.systems.join(', ') || '-' }}</dd></div>
+            <div><dt>Datos</dt><dd>{{ incident.dataCategories.join(', ') || '-' }}</dd></div>
+          </dl>
+          <p class="request-message">{{ incident.description }}</p>
+          <label>Medidas de contención<textarea rows="2" [(ngModel)]="incident.containmentActions" maxlength="5000"></textarea></label>
+          <div class="actions">
+            <button type="button" class="ghost" *ngIf="incident.status === 'abierto'" (click)="setIncidentStatus(incident, 'contenido')">Marcar contenido</button>
+            <button type="button" class="ghost" *ngIf="incident.status === 'contenido'" (click)="setIncidentStatus(incident, 'recuperado')">Marcar recuperado</button>
+            <button type="button" *ngIf="incident.status !== 'cerrado'" (click)="setIncidentStatus(incident, 'cerrado')">Cerrar incidente</button>
+          </div>
+        </article>
+      </div>
+      <ng-template #noSecurityIncidents><p class="empty">No existen incidentes registrados.</p></ng-template>
+
+      <p-divider />
+      <section>
+        <span class="section-kicker">Control demostrable</span>
+        <h3>Registrar evidencia</h3>
+        <div class="request-detail-form">
+          <label>Tipo
+            <select [(ngModel)]="evidenceDraft.type">
+              <option value="revision_controles">Revisión de controles</option>
+              <option value="prueba_recuperacion">Prueba de recuperación</option>
+              <option value="evaluacion_impacto">Evaluación de impacto</option>
+              <option value="revision_encargados">Revisión de encargados</option>
+              <option value="revision_accesos">Revisión de accesos</option>
+              <option value="confidencialidad_personal">Confidencialidad del personal</option>
+            </select>
+          </label>
+          <label>Resultado
+            <select [(ngModel)]="evidenceDraft.outcome">
+              <option value="conforme">Conforme</option><option value="con_observaciones">Con observaciones</option>
+              <option value="no_conforme">No conforme</option><option value="no_aplica">No aplica</option>
+            </select>
+          </label>
+          <label>Título<input type="text" [(ngModel)]="evidenceDraft.title" maxlength="180" /></label>
+          <label>Responsable<input type="text" [(ngModel)]="evidenceDraft.owner" maxlength="160" /></label>
+          <label>Fecha realizada<input type="date" [(ngModel)]="evidenceDraft.performedAt" /></label>
+          <label>Próxima revisión<input type="date" [(ngModel)]="evidenceDraft.nextReviewAt" /></label>
+          <label>Notas<textarea rows="3" [(ngModel)]="evidenceDraft.notes" maxlength="5000"></textarea></label>
+          <label>URL de evidencia<input type="url" [(ngModel)]="evidenceDraft.evidenceUrl" placeholder="https://..." /></label>
+        </div>
+        <div class="actions"><button type="button" (click)="recordGovernanceEvidence()">Guardar evidencia</button></div>
+      </section>
+
+      <div class="table-wrap" *ngIf="governanceEvidence.length > 0">
+        <table>
+          <thead><tr><th>Control</th><th>Resultado</th><th>Responsable</th><th>Realizado</th><th>Próxima revisión</th></tr></thead>
+          <tbody><tr *ngFor="let item of governanceEvidence">
+            <td>{{ governanceEvidenceLabel(item.type) }}<br /><small>{{ item.title }}</small></td>
+            <td>{{ item.outcome.replace('_', ' ') }}</td><td>{{ item.owner }}</td>
+            <td>{{ item.performedAt | date:'shortDate' }}</td><td>{{ item.nextReviewAt ? (item.nextReviewAt | date:'shortDate') : '-' }}</td>
+          </tr></tbody>
+        </table>
+      </div>
+
+      <p-divider />
+      <section>
+        <span class="section-kicker">Trazabilidad</span>
+        <h3>Últimas acciones administrativas</h3>
+        <p>La bitácora excluye cuerpos, credenciales y parámetros de consulta.</p>
+      </section>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fecha</th><th>Administrador</th><th>Acción</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let entry of adminAuditEntries">
+              <td>{{ entry.occurredAt | date:'short' }}</td><td>{{ entry.actorId }}</td><td>{{ entry.action }}</td>
+              <td>{{ entry.statusCode }} · {{ entry.outcome === 'success' ? 'correcto' : 'fallido' }}</td>
+            </tr>
+            <tr *ngIf="adminAuditEntries.length === 0"><td colspan="4">Todavía no hay acciones registradas.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'usuarios'">
       <ng-container *ngIf="!userModalOpen; else userEditorInline">
         <div class="toolbar">
@@ -912,6 +1138,18 @@
             Descripción completa
             <textarea rows="3" [(ngModel)]="masterDetailDraft.descriptionText" [disabled]="masterDetailReadonly"></textarea>
           </label>
+          <section class="rights-evidence">
+            <h4>Fuente de descripciones y ficha técnica</h4>
+            <div class="request-detail-form">
+              <label>Origen
+                <select [(ngModel)]="masterDetailDraft.contentSourceType" [disabled]="masterDetailReadonly">
+                  <option value="">Selecciona</option><option value="manufacturer_authorized">Fabricante autorizado</option><option value="store_authorized">Ferretería autorizada</option><option value="licensed">Contenido licenciado</option><option value="original">Redacción propia</option><option value="ai_assisted_original">Redacción propia asistida por IA</option><option value="public_domain">Dominio público</option><option value="other">Otro respaldo</option>
+                </select>
+              </label>
+              <label>URL de la fuente (opcional)<input type="url" [(ngModel)]="masterDetailDraft.contentSourceUrl" [disabled]="masterDetailReadonly" /></label>
+              <label>Referencia del permiso o revisión<input type="text" [(ngModel)]="masterDetailDraft.contentAuthorizationReference" [disabled]="masterDetailReadonly" placeholder="Contrato, correo, documento o revisión interna" /></label>
+            </div>
+          </section>
           <label>
             Imagen principal (URL)
             <input type="text" [(ngModel)]="masterDetailDraft.imageUrl" [disabled]="masterDetailReadonly" />
@@ -920,6 +1158,22 @@
             Galeria (URLs separadas por coma o salto de linea)
             <textarea rows="2" [(ngModel)]="masterDetailDraft.galleryText" [disabled]="masterDetailReadonly"></textarea>
           </label>
+          <section class="rights-evidence">
+            <h4>Procedencia y derechos de la imagen</h4>
+            <div class="request-detail-form">
+              <label>Origen
+                <select [(ngModel)]="masterDetailDraft.imageSourceType" [disabled]="masterDetailReadonly">
+                  <option value="">Selecciona</option><option value="ai_generated">Generada por IA</option><option value="manufacturer_authorized">Fabricante autorizado</option><option value="store_authorized">Ferretería autorizada</option><option value="licensed_stock">Banco de imágenes con licencia</option><option value="original">Creación propia</option><option value="other">Otro respaldo</option>
+                </select>
+              </label>
+              <label>Proveedor o titular<input type="text" [(ngModel)]="masterDetailDraft.imageProvider" [disabled]="masterDetailReadonly" placeholder="OpenAI, fabricante o fotógrafo" /></label>
+              <label>URL de términos o licencia<input type="url" [(ngModel)]="masterDetailDraft.imageSourceTermsUrl" [disabled]="masterDetailReadonly" placeholder="Obligatoria para IA o banco de imágenes" /></label>
+              <label>Referencia de respaldo<input type="text" [(ngModel)]="masterDetailDraft.imageAuthorizationReference" [disabled]="masterDetailReadonly" placeholder="ID de generación, contrato, correo o licencia" /></label>
+            </div>
+            <label class="rights-check"><input type="checkbox" [(ngModel)]="masterDetailDraft.imageContainsThirdPartyMarks" [disabled]="masterDetailReadonly" />La imagen contiene logotipos, envases o marcas de terceros</label>
+            <label *ngIf="masterDetailDraft.imageContainsThirdPartyMarks">Autorización de marca<input type="text" [(ngModel)]="masterDetailDraft.trademarkAuthorizationReference" [disabled]="masterDetailReadonly" placeholder="Contrato, correo o licencia del titular" /></label>
+            <p>“Generada por IA” registra procedencia, pero no autoriza marcas de terceros.</p>
+          </section>
           <label>
             Bullets (1 por linea)
             <textarea rows="3" [(ngModel)]="masterDetailDraft.featureBulletsText" [disabled]="masterDetailReadonly"></textarea>
@@ -1035,6 +1289,18 @@
             Descripción completa
             <textarea rows="3" [(ngModel)]="masterDetailDraft.descriptionText"></textarea>
           </label>
+          <section class="rights-evidence">
+            <h4>Fuente de descripciones y ficha técnica</h4>
+            <div class="request-detail-form">
+              <label>Origen
+                <select [(ngModel)]="masterDetailDraft.contentSourceType">
+                  <option value="">Selecciona</option><option value="manufacturer_authorized">Fabricante autorizado</option><option value="store_authorized">Ferretería autorizada</option><option value="licensed">Contenido licenciado</option><option value="original">Redacción propia</option><option value="ai_assisted_original">Redacción propia asistida por IA</option><option value="public_domain">Dominio público</option><option value="other">Otro respaldo</option>
+                </select>
+              </label>
+              <label>URL de la fuente (opcional)<input type="url" [(ngModel)]="masterDetailDraft.contentSourceUrl" /></label>
+              <label>Referencia del permiso o revisión<input type="text" [(ngModel)]="masterDetailDraft.contentAuthorizationReference" placeholder="Contrato, correo, documento o revisión interna" /></label>
+            </div>
+          </section>
           <label>
             Imagen principal (URL)
             <input type="text" [(ngModel)]="masterDetailDraft.imageUrl" />
@@ -1043,6 +1309,22 @@
             Galeria (URLs separadas por coma o salto de linea)
             <textarea rows="2" [(ngModel)]="masterDetailDraft.galleryText"></textarea>
           </label>
+          <section class="rights-evidence">
+            <h4>Procedencia y derechos de la imagen</h4>
+            <div class="request-detail-form">
+              <label>Origen
+                <select [(ngModel)]="masterDetailDraft.imageSourceType">
+                  <option value="">Selecciona</option><option value="ai_generated">Generada por IA</option><option value="manufacturer_authorized">Fabricante autorizado</option><option value="store_authorized">Ferretería autorizada</option><option value="licensed_stock">Banco de imágenes con licencia</option><option value="original">Creación propia</option><option value="other">Otro respaldo</option>
+                </select>
+              </label>
+              <label>Proveedor o titular<input type="text" [(ngModel)]="masterDetailDraft.imageProvider" placeholder="OpenAI, fabricante o fotógrafo" /></label>
+              <label>URL de términos o licencia<input type="url" [(ngModel)]="masterDetailDraft.imageSourceTermsUrl" placeholder="Obligatoria para IA o banco de imágenes" /></label>
+              <label>Referencia de respaldo<input type="text" [(ngModel)]="masterDetailDraft.imageAuthorizationReference" placeholder="ID de generación, contrato, correo o licencia" /></label>
+            </div>
+            <label class="rights-check"><input type="checkbox" [(ngModel)]="masterDetailDraft.imageContainsThirdPartyMarks" />La imagen contiene logotipos, envases o marcas de terceros</label>
+            <label *ngIf="masterDetailDraft.imageContainsThirdPartyMarks">Autorización de marca<input type="text" [(ngModel)]="masterDetailDraft.trademarkAuthorizationReference" placeholder="Contrato, correo o licencia del titular" /></label>
+            <p>“Generada por IA” registra procedencia, pero no autoriza marcas de terceros.</p>
+          </section>
           <label>
             Bullets (1 por linea)
             <textarea rows="3" [(ngModel)]="masterDetailDraft.featureBulletsText"></textarea>
@@ -1098,8 +1380,9 @@
               <input type="email" [(ngModel)]="userModalDraft.email" [disabled]="!userModalDraft.isNew" />
             </label>
             <label *ngIf="userModalDraft.isNew">
-              Password
-              <input type="password" [(ngModel)]="userModalDraft.password" />
+              Contraseña temporal
+              <input type="password" [(ngModel)]="userModalDraft.password" minlength="12" maxlength="128" autocomplete="new-password" />
+              <small>12 o más caracteres, con mayúscula, minúscula, número y símbolo.</small>
             </label>
             <label>
               Nombre

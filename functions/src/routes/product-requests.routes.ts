@@ -5,10 +5,12 @@ import { COLLECTIONS } from '../lib/collections.js';
 import { nowIso, normalizeText, numberValue } from '../lib/values.js';
 import { rows, row, createRow, patchRow } from '../repositories/firestore.repository.js';
 import { requireStoreWriteAccess } from '../lib/ownership.js';
+import { requireCurrentStoreAgreement } from '../services/store-agreement.service.js';
 export const productRequestsRouter = Router();
 
 productRequestsRouter.post('/ferreterias/:storeId/solicitudes-creacion-producto', requireAuth, requireRole('ferreteria', 'admin'), async (req, res) => {
   if (!(await requireStoreWriteAccess(req, res, req.params.storeId))) return;
+  if (!(await requireCurrentStoreAgreement(req, res, req.params.storeId))) return;
   const created = await createRow(COLLECTIONS.productRequests, {
     ferreteriaId: req.params.storeId,
     usuarioSolicitanteId: req.authUserId,

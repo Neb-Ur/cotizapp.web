@@ -4,6 +4,8 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { RegisterPayload } from '../../../core/models/app.models';
 import { AuthService } from '../../../core/services/auth.service';
+import { resolvePostAuthUrl, sanitizeReturnUrl } from '../../../core/utils/auth-navigation.util';
+import { LEGAL_IDENTITY } from '../../../core/config/legal-identity.config';
 
 @Component({
   selector: 'app-register',
@@ -13,15 +15,29 @@ import { AuthService } from '../../../core/services/auth.service';
   styleUrl: './register.component.scss'
 })
 export class RegisterComponent {
+  private static readonly STRONG_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{12,128}$/;
+
   protected errorMessage = '';
   protected isSubmitting = false;
+  protected readonly returnUrl: string | null;
+  protected readonly isCompletingProfile: boolean;
+  protected readonly legalIdentity = LEGAL_IDENTITY;
 
   protected readonly form = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    password: ['', [
+      Validators.required,
+      Validators.minLength(12),
+      Validators.maxLength(128),
+      Validators.pattern(RegisterComponent.STRONG_PASSWORD)
+    ]],
     phone: ['', [Validators.required, Validators.minLength(8)]],
-    commune: ['', [Validators.required, Validators.minLength(2)]]
+    commune: ['', [Validators.required, Validators.minLength(2)]],
+    termsAccepted: [false, Validators.requiredTrue],
+    privacyAcknowledged: [false, Validators.requiredTrue],
+    ageConfirmed: [false, Validators.requiredTrue],
+    marketingConsent: [false]
   });
 
   constructor(
@@ -29,7 +45,20 @@ export class RegisterComponent {
     private readonly authService: AuthService,
     private readonly route: ActivatedRoute,
     private readonly router: Router
-  ) {}
+  ) {
+    this.returnUrl = sanitizeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl'));
+    this.isCompletingProfile = this.route.snapshot.queryParamMap.get('completarPerfil') === '1';
+
+    if (this.isCompletingProfile) {
+      this.form.controls.email.setValue(this.route.snapshot.queryParamMap.get('email') || '');
+      this.form.controls.password.clearValidators();
+      this.form.controls.password.updateValueAndValidity();
+    }
+  }
+
+  protected get authQueryParams(): Record<string, string> | null {
+    return this.returnUrl ? { returnUrl: this.returnUrl } : null;
+  }
 
   protected async submit(): Promise<void> {
     this.errorMessage = '';
@@ -48,19 +77,28 @@ export class RegisterComponent {
       commune: values.commune.trim(),
       region: '',
       city: '',
-      address: ''
+      address: '',
+      termsAccepted: values.termsAccepted,
+      privacyAcknowledged: values.privacyAcknowledged,
+      ageConfirmed: values.ageConfirmed,
+      marketingConsent: values.marketingConsent
     };
 
     this.isSubmitting = true;
     try {
-      const user = await this.authService.register(payload);
-      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-      const destination = returnUrl?.startsWith('/')
-        ? returnUrl
-        : this.authService.dashboardRouteForUser(user);
+      const user = this.isCompletingProfile
+        ? await this.authService.completeProfile(payload)
+        : await this.authService.register(payload);
+      const destination = resolvePostAuthUrl(
+        user,
+        this.returnUrl,
+        this.authService.dashboardRouteForUser(user)
+      );
       await this.router.navigateByUrl(destination);
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : 'No se pudo crear la cuenta.';
+      this.errorMessage = error instanceof Error
+        ? error.message
+        : (this.isCompletingProfile ? 'No se pudo completar la cuenta.' : 'No se pudo crear la cuenta.');
     } finally {
       this.isSubmitting = false;
     }

@@ -1,10 +1,12 @@
 <main class="register-page">
   <section class="auth-card auth-card--wide">
-    <a routerLink="/" class="back-link">&larr; Volver al inicio</a>
+    <a [routerLink]="isCompletingProfile ? '/login' : (returnUrl || '/')" [queryParams]="isCompletingProfile ? authQueryParams : null" class="back-link">
+      &larr; {{ isCompletingProfile ? 'Volver al inicio de sesión' : (returnUrl ? 'Volver al producto' : 'Volver al inicio') }}
+    </a>
     <div class="auth-header">
-      <div class="role-pill">Cuenta de maestro</div>
-      <h1>Crea tu cuenta</h1>
-      <p>Guarda tus cotizaciones y consulta tu historial de proyectos.</p>
+      <div class="role-pill">{{ isCompletingProfile ? 'Perfil de maestro' : 'Cuenta de maestro' }}</div>
+      <h1>{{ isCompletingProfile ? 'Completa tu cuenta' : 'Crea tu cuenta' }}</h1>
+      <p>{{ isCompletingProfile ? 'Necesitamos estos datos para recuperar tu cuenta y tus cotizaciones.' : 'Guarda tus cotizaciones y consulta tu historial de proyectos.' }}</p>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form auth-form--grid" [attr.aria-busy]="isSubmitting">
@@ -16,14 +18,15 @@
 
       <div class="field">
         <label for="register-email">Email</label>
-        <input id="register-email" formControlName="email" type="email" placeholder="correo@dominio.com" autocomplete="email" [attr.aria-invalid]="hasError('email')" aria-describedby="register-email-error" />
+        <input id="register-email" formControlName="email" type="email" placeholder="correo@dominio.com" autocomplete="email" [readonly]="isCompletingProfile" [attr.aria-invalid]="hasError('email')" aria-describedby="register-email-error" />
         <small id="register-email-error" *ngIf="hasError('email')">Ingresa un correo válido.</small>
       </div>
 
-      <div class="field">
+      <div class="field" *ngIf="!isCompletingProfile">
         <label for="register-password">Contraseña</label>
-        <input id="register-password" formControlName="password" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password" [attr.aria-invalid]="hasError('password')" aria-describedby="register-password-error" />
-        <small id="register-password-error" *ngIf="hasError('password')">Mínimo 6 caracteres.</small>
+        <input id="register-password" formControlName="password" type="password" placeholder="Crea una contraseña segura" autocomplete="new-password" minlength="12" maxlength="128" [attr.aria-invalid]="hasError('password')" aria-describedby="register-password-help register-password-error" />
+        <small id="register-password-help">Usa 12 o más caracteres, con mayúscula, minúscula, número y símbolo.</small>
+        <small id="register-password-error" *ngIf="hasError('password')">La contraseña no cumple los requisitos de seguridad.</small>
       </div>
 
       <div class="field">
@@ -38,13 +41,37 @@
         <small id="register-commune-error" *ngIf="hasError('commune')">Ingresa tu comuna.</small>
       </div>
 
+      <fieldset class="field--full legal-choices">
+        <legend>Condiciones de la cuenta</legend>
+        <label class="check-row" for="register-terms">
+          <input id="register-terms" type="checkbox" formControlName="termsAccepted" />
+          <span>Acepto los <a routerLink="/terminos-condiciones" target="_blank">Términos y condiciones</a> (versión {{ legalIdentity.termsVersion }}). <strong>Obligatorio</strong></span>
+        </label>
+        <label class="check-row" for="register-privacy">
+          <input id="register-privacy" type="checkbox" formControlName="privacyAcknowledged" />
+          <span>Declaro haber leído la <a routerLink="/privacidad" target="_blank">Política de privacidad</a> (versión {{ legalIdentity.privacyPolicyVersion }}). Esta confirmación acredita que recibí el aviso; no autoriza finalidades distintas. <strong>Obligatorio</strong></span>
+        </label>
+        <label class="check-row" for="register-age">
+          <input id="register-age" type="checkbox" formControlName="ageConfirmed" />
+          <span>Declaro que tengo 18 años o más. <strong>Obligatorio</strong></span>
+        </label>
+        <div class="optional-divider"><span>Preferencia opcional</span></div>
+        <label class="check-row check-row--optional" for="register-marketing">
+          <input id="register-marketing" type="checkbox" formControlName="marketingConsent" />
+          <span>Quiero recibir novedades y comunicaciones comerciales de CotizApp. Puedo retirar este consentimiento en cualquier momento.</span>
+        </label>
+        <small class="legal-error" *ngIf="form.touched && (form.controls.termsAccepted.invalid || form.controls.privacyAcknowledged.invalid || form.controls.ageConfirmed.invalid)">
+          Debes completar las tres confirmaciones obligatorias para crear la cuenta.
+        </small>
+      </fieldset>
+
       <div class="field--full form-actions">
         <button class="btn btn-primary btn-full" type="submit" [disabled]="isSubmitting">
-          {{ isSubmitting ? 'Creando cuenta...' : 'Crear cuenta' }}
+          {{ isSubmitting ? (isCompletingProfile ? 'Guardando perfil...' : 'Creando cuenta...') : (isCompletingProfile ? 'Completar cuenta' : 'Crear cuenta') }}
         </button>
         <p class="form-error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
       </div>
     </form>
-    <p class="auth-switch">¿Ya tienes cuenta? <a routerLink="/login">Iniciar sesión</a></p>
+    <p class="auth-switch" *ngIf="!isCompletingProfile">¿Ya tienes cuenta? <a routerLink="/login" [queryParams]="authQueryParams">Iniciar sesión</a></p>
   </section>
 </main>

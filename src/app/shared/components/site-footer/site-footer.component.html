@@ -25,10 +25,20 @@
       <p class="footer-heading">Legal</p>
       <a routerLink="/terminos-condiciones">Términos</a>
       <a routerLink="/privacidad">Privacidad</a>
+      <a routerLink="/propiedad-intelectual">Propiedad intelectual</a>
+      <a routerLink="/propiedad-intelectual#denunciar">Denunciar contenido</a>
+      <a routerLink="/desuscribir">Dejar de recibir publicidad</a>
+      <button type="button" (click)="openCookieSettings()">Configurar cookies</button>
     </nav>
   </div>
 
   <div class="footer-bottom">
     <p>© 2026 CotizApp. Todos los derechos reservados.</p>
+    <p class="legal-identity">
+      Operado por {{ legalIdentity.legalName }} · RUT {{ legalIdentity.taxId }} · {{ legalIdentity.registeredAddress }}
+    </p>
+    @if (legalIdentity.isProvisional) {
+      <p class="provisional-label">Información legal provisoria — no usar en producción.</p>
+    }
   </div>
 </footer>

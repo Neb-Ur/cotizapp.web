@@ -4,8 +4,9 @@ import test from 'node:test';
 import { mvpRouter } from '../lib/routes/mvp.routes.js';
 import { requireAuth, requireRole } from '../lib/lib/auth.js';
 import { canAccessOwner } from '../lib/lib/ownership.js';
-import { normalizeProjectProximity, coordinateValue, geographicDistanceKm } from '../lib/lib/values.js';
+import { normalizeProjectProximity, coordinateValue, geographicDistanceKm, inferMeasurementFromLabel, pricePerMeasurement, validChileanTaxId, validStrongPassword } from '../lib/lib/values.js';
 import { normalizeItems } from '../lib/services/quotation.service.js';
+import { calendarDeadline, conservativeBlockingDeadline, isPrivacyRequestType } from '../lib/lib/legal.js';
 
 const baseline = JSON.parse(readFileSync(new URL('./route-contracts.json', import.meta.url), 'utf8'));
 function contracts(router) {
@@ -35,6 +36,38 @@ test('proximity supports both payload formats and rejects invalid coordinates an
 test('quotation item normalization preserves quantity rules and discards blank products', () => {
   assert.deepEqual(normalizeItems([{ productName: ' Cemento ', quantity: 2.9 }, { productName: '', quantity: 4 }, { productName: 'Clavos', quantity: -1 }]), [{ productName: 'Cemento', quantity: 2 }, { productName: 'Clavos', quantity: 1 }]);
   assert.deepEqual(normalizeItems(null), []);
+});
+
+test('new account passwords must meet the application security policy', () => {
+  assert.equal(validStrongPassword('123456'), false);
+  assert.equal(validStrongPassword('onlylowercase123!'), false);
+  assert.equal(validStrongPassword('SinSimbolo1234'), false);
+  assert.equal(validStrongPassword('CotizApp!2026-segura'), true);
+});
+
+test('Chilean tax identifiers are validated before signing a store agreement', () => {
+  assert.equal(validChileanTaxId('76.000.000-0'), true);
+  assert.equal(validChileanTaxId('12.345.678-5'), true);
+  assert.equal(validChileanTaxId('12.345.678-9'), false);
+  assert.equal(validChileanTaxId('sin-rut'), false);
+});
+
+test('unit pricing is calculated only from a positive declared measure', () => {
+  assert.equal(pricePerMeasurement(4990, 25), 199.6);
+  assert.equal(pricePerMeasurement(15990, 2.9768), 5371.54);
+  assert.equal(pricePerMeasurement(4990, 0), null);
+  assert.equal(pricePerMeasurement(0, 25), null);
+  assert.deepEqual(inferMeasurementFromLabel('Cemento gris 25 kg'), { unit: 'kg', quantity: 25 });
+  assert.deepEqual(inferMeasurementFromLabel('Plancha OSB 1,22 x 2,44 m'), { unit: 'm2', quantity: 2.9768 });
+  assert.deepEqual(inferMeasurementFromLabel('Silicona 300 ml'), { unit: 'l', quantity: 0.3 });
+  assert.equal(inferMeasurementFromLabel('Taladro percutor'), null);
+});
+
+test('privacy requests accept only supported rights and calculate statutory deadlines', () => {
+  assert.equal(isPrivacyRequestType('blocking'), true);
+  assert.equal(isPrivacyRequestType('marketing_everything'), false);
+  assert.equal(calendarDeadline(new Date('2026-10-02T12:00:00.000Z'), 30), '2026-11-01T12:00:00.000Z');
+  assert.equal(conservativeBlockingDeadline(new Date('2026-10-02T12:00:00.000Z')), '2026-10-04T12:00:00.000Z');
 });
 
 test('role middleware rejects cross-role access with 403', async () => {

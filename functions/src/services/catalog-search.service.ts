@@ -1,7 +1,9 @@
 import { rows } from '../repositories/firestore.repository.js';
 import { COLLECTIONS } from '../lib/collections.js';
-import { coordinateValue, normalizeText, numberValue } from '../lib/values.js';
+import { coordinateValue, inferMeasurementFromLabel, normalizeText, numberValue, pricePerMeasurement } from '../lib/values.js';
 import type { SearchRow } from '../models/domain.models.js';
+import { CURRENT_STORE_AGREEMENT_VERSION } from '../lib/legal.js';
+import { storeAgreementDocumentHash } from './store-agreement.service.js';
 export async function buildSearchRows(): Promise<SearchRow[]> {
   const [offers, products, stores, users, categories, subcategories, families] = await Promise.all([
     rows(COLLECTIONS.storeProducts),
@@ -22,6 +24,7 @@ export async function buildSearchRows(): Promise<SearchRow[]> {
 
   return offers
     .filter((offer) => offer.activo !== false && offer.publicado !== false)
+    .filter((offer) => !offer.vigenteHasta || new Date(offer.vigenteHasta).getTime() >= Date.now())
     .map((offer) => {
       const product = productById.get(offer.productoMaestroId);
       const store = storeById.get(offer.ferreteriaId);
@@ -32,10 +35,24 @@ export async function buildSearchRows(): Promise<SearchRow[]> {
         || !owner
         || product.estado === 'inactivo'
         || store.estado === 'inactivo'
+        || store.contratoEstado !== 'vigente'
+        || store.contratoVersion !== CURRENT_STORE_AGREEMENT_VERSION
+        || store.contratoDocumentHash !== storeAgreementDocumentHash()
         || owner.estadoCuenta !== 'activo'
       ) return null;
 
       const price = numberValue(offer.precio);
+      const declaredMeasurementUnit = ['kg', 'l', 'm', 'm2', 'unidad'].includes(offer.unidadMedidaPrecio)
+        ? offer.unidadMedidaPrecio as 'kg' | 'l' | 'm' | 'm2' | 'unidad'
+        : null;
+      const declaredMeasurementQuantity = numberValue(offer.cantidadMedida, 0) > 0
+        ? numberValue(offer.cantidadMedida)
+        : null;
+      const inferredMeasurement = !declaredMeasurementUnit || !declaredMeasurementQuantity
+        ? inferMeasurementFromLabel(product.nombre)
+        : null;
+      const measurementUnit = declaredMeasurementUnit || inferredMeasurement?.unit || null;
+      const measurementQuantity = declaredMeasurementQuantity || inferredMeasurement?.quantity || null;
       return {
         productoMaestroId: product.id,
         productoFerreteriaId: offer.id,
@@ -46,7 +63,25 @@ export async function buildSearchRows(): Promise<SearchRow[]> {
         storeLongitude: coordinateValue(store.longitud, -180, 180),
         storeAddress: normalizeText(owner.direccion),
         storeCommune: normalizeText(owner.comuna),
+        storeRut: normalizeText(store.rut),
+        storeEmail: normalizeText(store.correoContactoPublico || owner.correo).toLowerCase(),
+        storePhone: normalizeText(store.telefonoContactoPublico || owner.telefono),
         price,
+        priceUpdatedAt: normalizeText(offer.actualizadoEn || offer.creadoEn),
+        includesVat: offer.incluyeIva !== false,
+        comparisonEligible: offer.incluyeIva !== false && price > 0,
+        includesShipping: false as boolean,
+        validFrom: normalizeText(offer.vigenteDesde || offer.actualizadoEn || offer.creadoEn),
+        validUntil: normalizeText(offer.vigenteHasta) || null,
+        offerConditions: normalizeText(offer.condicionesOferta)
+          || 'Precio sujeto a stock y confirmación directa con la ferretería.',
+        sponsored: offer.patrocinado === true,
+        measurementUnit,
+        measurementQuantity,
+        pricePerMeasurement: measurementUnit ? pricePerMeasurement(price, measurementQuantity) : null,
+        measurementSource: declaredMeasurementUnit && declaredMeasurementQuantity
+          ? 'store_reported'
+          : inferredMeasurement ? 'catalog_presentation' : null,
         categoryId: product.categoriaId,
         categoryName: categoryById.get(product.categoriaId)?.nombre || 'Sin categoria',
         subcategoryId: product.subcategoriaId,
@@ -59,4 +94,3 @@ export async function buildSearchRows(): Promise<SearchRow[]> {
     })
     .filter((item): item is SearchRow => item !== null);
 }
-

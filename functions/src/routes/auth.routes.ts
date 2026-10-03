@@ -6,12 +6,22 @@ import { COLLECTIONS } from '../lib/collections.js';
 import { nowIso, normalizeText, coordinateValue, validRole } from '../lib/values.js';
 import { rows, createRow } from '../repositories/firestore.repository.js';
 import { authUserResponse } from '../services/user.service.js';
+import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION } from '../lib/legal.js';
+import { hasCurrentLegalAcceptance, recordLegalAcceptance } from '../services/consent.service.js';
 export const authRouter = Router();
 
 authRouter.post('/auth/register', requireAuth, async (req, res) => {
   const role = req.body?.rol;
   if (!req.authUserId || !validRole(role) || role === 'admin') {
     return fail(res, 'AUTH_INVALID_PAYLOAD', 'Datos invalidos para crear el perfil.', 400);
+  }
+  if (req.body?.termsAccepted !== true || req.body?.privacyAcknowledged !== true || req.body?.ageConfirmed !== true) {
+    return fail(
+      res,
+      'LEGAL_ACCEPTANCE_REQUIRED',
+      'Debes aceptar los términos, confirmar la lectura de la política de privacidad y declarar que eres mayor de edad.',
+      400
+    );
   }
 
   const firebaseUser = await adminAuth.getUser(req.authUserId);
@@ -55,6 +65,13 @@ authRouter.post('/auth/register', requireAuth, async (req, res) => {
     }
   }
 
+  await recordLegalAcceptance(req.authUserId, {
+    termsAccepted: true,
+    privacyAcknowledged: true,
+    ageConfirmed: true,
+    marketingConsent: req.body?.marketingConsent === true
+  }, 'registration');
+
   const profile = await authUserResponse(req.authUserId);
   return ok(res, { usuario: profile }, 201);
 });
@@ -64,6 +81,21 @@ authRouter.get('/auth/me', requireAuth, async (req, res) => {
   const profile = await authUserResponse(req.authUserId);
   if (!profile) return fail(res, 'AUTH_USER_NOT_FOUND', 'No se encontro el perfil del usuario.', 404);
   return ok(res, profile);
+});
+
+authRouter.get('/auth/session', requireAuth, async (req, res) => {
+  if (!req.authUserId) return fail(res, 'AUTH_REQUIRED', 'Debes iniciar sesion.', 401);
+  const profile = await authUserResponse(req.authUserId);
+  const rawProfile = await db.collection(COLLECTIONS.users).doc(req.authUserId).get();
+  return ok(res, {
+    usuario: profile,
+    requiereCompletarPerfil: !profile,
+    requiereAceptacionLegal: profile ? !hasCurrentLegalAcceptance(rawProfile.data()) : false,
+    versionesLegales: {
+      terminos: CURRENT_TERMS_VERSION,
+      privacidad: CURRENT_PRIVACY_VERSION
+    }
+  });
 });
 
 authRouter.patch('/auth/me', requireAuth, async (req, res) => {

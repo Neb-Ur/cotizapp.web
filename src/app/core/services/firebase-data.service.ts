@@ -30,6 +30,7 @@ import { ApiClientService } from './api-client.service';
 import { parseCatalogImportContent } from '../utils/catalog-import.util';
 import { buildQuotationOptimization } from '../utils/quotation-optimizer.util';
 import { distanceKm, hasValidCoordinates } from '../utils/location.util';
+import { productSlug } from '../utils/product-url.util';
 
 interface CatalogMeta {
   ferreteriaId: string;
@@ -56,6 +57,17 @@ interface ProductoMaestroApi {
   descripcionLarga?: string;
   imagenPrincipalUrl?: string;
   galeriaJson?: string[];
+  origenImagen?: NonNullable<CatalogProduct['imageRights']>['sourceType'];
+  proveedorImagen?: string;
+  terminosFuenteUrl?: string;
+  referenciaAutorizacion?: string;
+  contieneMarcasTerceros?: boolean;
+  referenciaAutorizacionMarca?: string;
+  derechosRevisadosEn?: string;
+  origenContenido?: NonNullable<CatalogProduct['contentRights']>['sourceType'];
+  fuenteContenidoUrl?: string;
+  referenciaDerechosContenido?: string;
+  derechosContenidoRevisadosEn?: string;
 }
 
 interface PaginatedMasterCatalogApi {
@@ -178,6 +190,19 @@ export class FirebaseDataService {
         this.ensureMasterCatalogLoaded(force)
       ]);
     }
+  }
+
+  async resolveProductNameBySlug(slug: string): Promise<string> {
+    const normalizedSlug = productSlug(slug);
+    if (!normalizedSlug) return '';
+
+    await this.refreshPublicCatalogSection();
+    const productNames = new Set([
+      ...this.masterCatalog.map((product) => product.name),
+      ...this.searchRows.map((row) => row.productName)
+    ]);
+
+    return Array.from(productNames).find((name) => productSlug(name) === normalizedSlug) || '';
   }
 
   async refreshMaestroProjectsSection(ownerId: string, force = false): Promise<void> {
@@ -447,7 +472,18 @@ export class FirebaseDataService {
       descripcionCorta: raw.descripcionCorta,
       descripcionLarga: raw.descripcionLarga,
       imagenPrincipalUrl: raw.imagenPrincipalUrl,
-      galeriaJson: raw.galeriaJson
+      galeriaJson: raw.galeriaJson,
+      origenImagen: raw.origenImagen,
+      proveedorImagen: raw.proveedorImagen,
+      terminosFuenteUrl: raw.terminosFuenteUrl,
+      referenciaAutorizacion: raw.referenciaAutorizacion,
+      contieneMarcasTerceros: raw.contieneMarcasTerceros,
+      referenciaAutorizacionMarca: raw.referenciaAutorizacionMarca,
+      derechosRevisadosEn: raw.derechosRevisadosEn,
+      origenContenido: raw.origenContenido,
+      fuenteContenidoUrl: raw.fuenteContenidoUrl,
+      referenciaDerechosContenido: raw.referenciaDerechosContenido,
+      derechosContenidoRevisadosEn: raw.derechosContenidoRevisadosEn
     }, 0);
 
     return {
@@ -474,7 +510,16 @@ export class FirebaseDataService {
       descripcionCorta: payload.shortDescription || payload.descriptionText,
       descripcionLarga: payload.descriptionBlocks?.[0]?.text || payload.descriptionText,
       imagenPrincipalUrl: payload.imageUrl,
-      galeriaJson: payload.gallery || []
+      galeriaJson: payload.gallery || [],
+      origenImagen: payload.imageRights?.sourceType,
+      proveedorImagen: payload.imageRights?.provider,
+      terminosFuenteUrl: payload.imageRights?.sourceTermsUrl,
+      referenciaAutorizacion: payload.imageRights?.authorizationReference,
+      contieneMarcasTerceros: payload.imageRights?.containsThirdPartyMarks,
+      referenciaAutorizacionMarca: payload.imageRights?.trademarkAuthorizationReference,
+      origenContenido: payload.contentRights?.sourceType,
+      fuenteContenidoUrl: payload.contentRights?.sourceUrl,
+      referenciaDerechosContenido: payload.contentRights?.authorizationReference
     }, true);
 
     if (refreshCache) await this.ensureMasterCatalogLoaded(true);
@@ -497,7 +542,16 @@ export class FirebaseDataService {
       descripcionCorta: patch.shortDescription || patch.descriptionText,
       descripcionLarga: patch.descriptionBlocks?.[0]?.text || patch.descriptionText,
       imagenPrincipalUrl: patch.imageUrl,
-      galeriaJson: patch.gallery
+      galeriaJson: patch.gallery,
+      origenImagen: patch.imageRights?.sourceType,
+      proveedorImagen: patch.imageRights?.provider,
+      terminosFuenteUrl: patch.imageRights?.sourceTermsUrl,
+      referenciaAutorizacion: patch.imageRights?.authorizationReference,
+      contieneMarcasTerceros: patch.imageRights?.containsThirdPartyMarks,
+      referenciaAutorizacionMarca: patch.imageRights?.trademarkAuthorizationReference,
+      origenContenido: patch.contentRights?.sourceType,
+      fuenteContenidoUrl: patch.contentRights?.sourceUrl,
+      referenciaDerechosContenido: patch.contentRights?.authorizationReference
     };
 
     const cleaned = this.removeUndefined(payload);
@@ -542,6 +596,11 @@ export class FirebaseDataService {
         codigoBarras: payload.barcode || null,
         precio: payload.price,
         stock: payload.stock,
+        incluyeIva: payload.includesVat !== false,
+        unidadMedidaPrecio: payload.measurementUnit || null,
+        cantidadMedida: payload.measurementQuantity || null,
+        vigenteHasta: payload.validUntil || null,
+        condicionesOferta: payload.offerConditions || '',
         activo: payload.isPublished,
         publicado: payload.isPublished
       }, true);
@@ -561,6 +620,11 @@ export class FirebaseDataService {
       codigoBarras: payload.barcode || null,
       precio: payload.price,
       stock: payload.stock,
+      incluyeIva: payload.includesVat !== false,
+      unidadMedidaPrecio: payload.measurementUnit || null,
+      cantidadMedida: payload.measurementQuantity || null,
+      vigenteHasta: payload.validUntil || null,
+      condicionesOferta: payload.offerConditions || '',
       activo: payload.isPublished,
       publicado: payload.isPublished
     }, true);
@@ -989,6 +1053,8 @@ export class FirebaseDataService {
         shortDescription?: string;
         descriptionText?: string;
         imageUrl?: string;
+        imageRights?: CatalogProduct['imageRights'];
+        contentRights?: CatalogProduct['contentRights'];
         gallery?: string[];
         featureBullets?: string[];
         attributes?: Array<{
@@ -1013,7 +1079,16 @@ export class FirebaseDataService {
         descripcionCorta: options.masterDraft.shortDescription || options.masterDraft.descriptionText || '',
         descripcionLarga: options.masterDraft.descriptionText || '',
         imagenPrincipalUrl: options.masterDraft.imageUrl || '',
-        galeriaJson: options.masterDraft.gallery || []
+        galeriaJson: options.masterDraft.gallery || [],
+        origenImagen: options.masterDraft.imageRights?.sourceType,
+        proveedorImagen: options.masterDraft.imageRights?.provider,
+        terminosFuenteUrl: options.masterDraft.imageRights?.sourceTermsUrl,
+        referenciaAutorizacion: options.masterDraft.imageRights?.authorizationReference,
+        contieneMarcasTerceros: options.masterDraft.imageRights?.containsThirdPartyMarks,
+        referenciaAutorizacionMarca: options.masterDraft.imageRights?.trademarkAuthorizationReference,
+        origenContenido: options.masterDraft.contentRights?.sourceType,
+        fuenteContenidoUrl: options.masterDraft.contentRights?.sourceUrl,
+        referenciaDerechosContenido: options.masterDraft.contentRights?.authorizationReference
       }, true);
 
       suggestedMasterProductId = created.id;
@@ -1256,6 +1331,7 @@ export class FirebaseDataService {
 
       const master = raw.productoMaestro;
       const stores: ProductStoreOfferRow[] = (raw.stores || []).map((store: any) => ({
+        offerId: store.productoFerreteriaId || '',
         storeName: store.storeName,
         storeId: store.storeId,
         latitude: typeof store.latitude === 'number' ? store.latitude : null,
@@ -1263,7 +1339,23 @@ export class FirebaseDataService {
         address: store.address || '',
         commune: store.commune || '',
         price: Number(store.price) || 0,
-        stock: Number(store.stock) || 0
+        stock: Number(store.stock) || 0,
+        rut: store.rut || '',
+        email: store.email || '',
+        phone: store.phone || '',
+        priceUpdatedAt: store.priceUpdatedAt || '',
+        includesVat: store.includesVat !== false,
+        comparisonEligible: store.comparisonEligible !== false,
+        includesShipping: store.includesShipping === true,
+        validFrom: store.validFrom || store.priceUpdatedAt || '',
+        validUntil: store.validUntil || null,
+        offerConditions: store.offerConditions || 'Precio sujeto a stock y confirmación con la ferretería.',
+        sponsored: store.sponsored === true,
+        measurementUnit: store.measurementUnit || null,
+        measurementQuantity: Number(store.measurementQuantity) > 0 ? Number(store.measurementQuantity) : null,
+        pricePerMeasurement: Number(store.pricePerMeasurement) > 0 ? Number(store.pricePerMeasurement) : null,
+        measurementSource: store.measurementSource || null,
+        source: store.source || 'Informado por la ferretería'
       }));
 
       const detail: ProductDetailView = {
@@ -1272,6 +1364,9 @@ export class FirebaseDataService {
         gallery: Array.isArray(master.galeriaJson) && master.galeriaJson.length > 0
           ? master.galeriaJson
           : [master.imagenPrincipalUrl || 'https://via.placeholder.com/600x420?text=Producto'],
+        imageDisclosure: master.origenImagen === 'ai_generated'
+          ? 'Imagen referencial generada con inteligencia artificial. Verifica presentación y características con la ferretería.'
+          : '',
         sku: raw.stores?.[0]?.sku || '',
         unitLabel: 'Unidad',
         packagingLabel: 'Unidad',
@@ -1292,7 +1387,9 @@ export class FirebaseDataService {
         extraSections: [],
         minPrice: Number(raw.minPrice) || 0,
         maxPrice: Number(raw.maxPrice) || 0,
-        stores
+        stores,
+        comparisonCriteria: raw.comparisonCriteria
+          || 'Menor precio final unitario con IVA incluido, informado para la misma ficha de producto, con oferta activa y vigente. El patrocinio no altera el orden. El despacho no está incluido.'
       };
 
       this.productDetailByName.set(key, detail);
@@ -1758,7 +1855,22 @@ export class FirebaseDataService {
         ? product.galeriaJson
         : [product.imagenPrincipalUrl || 'https://via.placeholder.com/600x420?text=Producto'],
       specValues: {},
-      templateVersion: 1
+      templateVersion: 1,
+      imageRights: {
+        sourceType: product.origenImagen || '',
+        provider: product.proveedorImagen || '',
+        sourceTermsUrl: product.terminosFuenteUrl || '',
+        authorizationReference: product.referenciaAutorizacion || '',
+        containsThirdPartyMarks: product.contieneMarcasTerceros === true,
+        trademarkAuthorizationReference: product.referenciaAutorizacionMarca || '',
+        reviewedAt: product.derechosRevisadosEn
+      },
+      contentRights: {
+        sourceType: product.origenContenido || '',
+        sourceUrl: product.fuenteContenidoUrl || '',
+        authorizationReference: product.referenciaDerechosContenido || '',
+        reviewedAt: product.derechosContenidoRevisadosEn
+      }
     };
   }
 
@@ -1792,7 +1904,12 @@ export class FirebaseDataService {
         : [master.imagenPrincipalUrl || 'https://via.placeholder.com/600x420?text=Producto'],
       specValues: {},
       templateVersion: 1,
-      updatedAt: row.actualizadoEn || row.creadoEn || undefined
+      updatedAt: row.actualizadoEn || row.creadoEn || undefined,
+      includesVat: row.incluyeIva !== false,
+      validUntil: row.vigenteHasta ? String(row.vigenteHasta).slice(0, 10) : '',
+      offerConditions: row.condicionesOferta || '',
+      measurementUnit: row.unidadMedidaPrecio || '',
+      measurementQuantity: Number(row.cantidadMedida) > 0 ? Number(row.cantidadMedida) : null
     };
 
     const metaByProduct = this.getOrCreateCatalogMeta(ownerId);

@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { API_BASE_URL } from '../../../core/config/api.config';
+import { LEGAL_IDENTITY } from '../../../core/config/legal-identity.config';
 
 @Component({
   selector: 'app-contacto',
@@ -12,6 +13,7 @@ import { API_BASE_URL } from '../../../core/config/api.config';
   styleUrl: './contacto.component.scss'
 })
 export class ContactoComponent implements OnInit {
+  protected readonly legalIdentity = LEGAL_IDENTITY;
   protected sent = false;
   protected isSubmitting = false;
   protected errorMessage = '';

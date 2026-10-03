@@ -6,7 +6,11 @@ import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 
-const projectId = process.env.FIREBASE_PROJECT_ID || 'cotizapp-d71c8';
+const projectId = process.env.FIREBASE_PROJECT_ID;
+if (!projectId) throw new Error('FIREBASE_PROJECT_ID es obligatorio para ejecutar el seed.');
+if (process.env.ENABLE_DEMO_SEED !== 'true' || process.env.DEMO_SEED_PROJECT_ID !== projectId) {
+  throw new Error('Seed bloqueado. Usa un proyecto exclusivo de demostración y confirma ENABLE_DEMO_SEED=true y DEMO_SEED_PROJECT_ID.');
+}
 const storageBucket = process.env.FIREBASE_STORAGE_BUCKET || `${projectId}-catalog-assets`;
 const app = initializeApp({ credential: applicationDefault(), projectId, storageBucket });
 const auth = getAuth(app);
@@ -16,7 +20,10 @@ const bucket = getStorage(app).bucket();
 const seedTag = 'pilot-catalog-auth-v3-2026-09-30';
 const createdAt = '2026-09-30T10:40:00.000Z';
 const updatedAt = new Date().toISOString();
-const demoPassword = process.env.DEMO_PASSWORD || '123456';
+const demoPassword = process.env.DEMO_PASSWORD;
+if (!demoPassword || demoPassword.length < 12) {
+  throw new Error('DEMO_PASSWORD es obligatorio y debe tener al menos 12 caracteres.');
+}
 
 const categories = [
   { id: 'cat-obra-gruesa', nombre: 'Obra gruesa' },
@@ -286,10 +293,31 @@ for (const product of products) {
     descripcionLarga: `Ficha demostrativa de ${product.nombre}. Datos de precio, disponibilidad y stock generados para pruebas funcionales de CotizApp.`,
     imagenPrincipalUrl: imageUrl,
     galeriaJson: imageUrl ? [imageUrl] : [],
+    origenImagen: imageUrl ? 'ai_generated' : null,
+    proveedorImagen: imageUrl ? 'OpenAI ImageGen' : null,
+    terminosFuenteUrl: imageUrl ? 'https://openai.com/policies/terms-of-use/' : null,
+    referenciaAutorizacion: imageUrl ? `SEED-AI-ASSET:${imageAsset}` : null,
+    contieneMarcasTerceros: false,
+    referenciaAutorizacionMarca: null,
+    derechosRevisadosEn: createdAt,
+    derechosRevisadosPor: 'seed-script',
+    origenContenido: 'ai_assisted_original',
+    fuenteContenidoUrl: null,
+    referenciaDerechosContenido: 'SEED-DEMO-COPY:generated-for-cotizapp',
+    derechosContenidoRevisadosEn: createdAt,
+    derechosContenidoRevisadosPor: 'seed-script',
     estado: 'activo',
     creadoEn: createdAt,
     seedTag
   }, { merge });
+}
+
+function priceMeasureForName(name) {
+  const kilograms = name.match(/([0-9]+(?:[.,][0-9]+)?)\s*kg\b/i);
+  if (kilograms) return { unidadMedidaPrecio: 'kg', cantidadMedida: Number(kilograms[1].replace(',', '.')) };
+  const millilitres = name.match(/([0-9]+(?:[.,][0-9]+)?)\s*(?:ml|cc)\b/i);
+  if (millilitres) return { unidadMedidaPrecio: 'l', cantidadMedida: Number(millilitres[1].replace(',', '.')) / 1000 };
+  return { unidadMedidaPrecio: null, cantidadMedida: null };
 }
 
 for (const store of storeAuth) {
@@ -324,6 +352,7 @@ for (const store of storeAuth) {
     const price = Math.max(100, Math.round((product.basePrice * store.priceFactor * priceWave) / 10) * 10);
     const stock = Math.max(1, Math.round(product.stock * store.stockFactor) - (i % 7));
     const offerId = 'offer-' + store.id + '-' + product.id;
+    const priceMeasure = priceMeasureForName(product.nombre);
 
     await setDoc(db.collection('productosFerreteria').doc(offerId), {
       ferreteriaId: store.id,
@@ -332,6 +361,13 @@ for (const store of storeAuth) {
       codigoBarras: null,
       precio: price,
       stock,
+      incluyeIva: true,
+      unidadMedidaPrecio: priceMeasure.unidadMedidaPrecio,
+      cantidadMedida: priceMeasure.cantidadMedida,
+      vigenteDesde: updatedAt,
+      vigenteHasta: null,
+      condicionesOferta: 'Precio final informado por la ferretería, sujeto a stock y confirmación directa. Retiro en local; despacho no incluido.',
+      patrocinado: false,
       activo: true,
       publicado: true,
       creadoEn: createdAt,

@@ -19,6 +19,11 @@ export interface SessionUser {
   address?: string;
   storeLatitude?: number;
   storeLongitude?: number;
+  legalAcceptanceRequired?: boolean;
+  privacyProcessingBlocked?: boolean;
+  storeAgreementStatus?: 'pendiente' | 'vigente' | 'suspendido' | 'terminado';
+  storeAgreementVersion?: string;
+  storeAgreementAcceptedAt?: string;
 }
 
 export interface LoginPayload {
@@ -41,6 +46,144 @@ export interface RegisterPayload {
   address: string;
   storeLatitude?: number;
   storeLongitude?: number;
+  termsAccepted: boolean;
+  privacyAcknowledged: boolean;
+  ageConfirmed: boolean;
+  marketingConsent: boolean;
+}
+
+export type PrivacyRequestType = 'access' | 'rectification' | 'deletion' | 'objection' | 'blocking' | 'portability';
+export type PrivacyRequestStatus = 'recibida' | 'en_revision' | 'completada' | 'rechazada';
+
+export interface ConsentRecord {
+  id: string;
+  type: 'terms' | 'privacy_notice' | 'age_declaration' | 'marketing';
+  version: string;
+  granted: boolean;
+  occurredAt: string;
+  source: string;
+}
+
+export interface PrivacyRequest {
+  id: string;
+  usuarioId?: string;
+  email?: string;
+  type: PrivacyRequestType;
+  details: string;
+  status: PrivacyRequestStatus;
+  submittedAt: string;
+  acknowledgedAt: string;
+  responseDueAt: string;
+  blockingDueAt?: string | null;
+  resolution?: string | null;
+  resolvedAt?: string | null;
+}
+
+export interface PrivacyOverview {
+  profile: SessionUser;
+  currentVersions: { terms: string; privacy: string };
+  legalAcceptanceRequired: boolean;
+  processingBlocked: boolean;
+  marketingConsent: boolean;
+  consents: ConsentRecord[];
+  requests: PrivacyRequest[];
+}
+
+export interface StoreAgreementClause {
+  id: string;
+  title: string;
+  text: string;
+}
+
+export interface StoreAgreementOverview {
+  version: string;
+  effectiveDate: string;
+  documentHash: string;
+  provider: {
+    legalName: string;
+    taxId: string;
+    address: string;
+    legalRepresentative: string;
+    legalEmail: string;
+  };
+  store: {
+    id: string;
+    legalName: string;
+    businessName: string;
+    taxId: string;
+    address: string;
+    commune: string;
+    city: string;
+    branchName: string;
+  };
+  clauses: StoreAgreementClause[];
+  status: 'pendiente' | 'vigente';
+  agreement: {
+    id: string;
+    aceptadoEn: string;
+    firmante?: { nombre?: string; rut?: string; cargo?: string; correo?: string };
+  } | null;
+}
+
+export type SecurityIncidentSeverity = 'baja' | 'media' | 'alta' | 'critica';
+export type SecurityIncidentStatus = 'abierto' | 'contenido' | 'recuperado' | 'cerrado';
+export type GovernanceEvidenceType = 'revision_controles' | 'prueba_recuperacion' | 'evaluacion_impacto'
+  | 'revision_encargados' | 'revision_accesos' | 'confidencialidad_personal';
+export type GovernanceEvidenceOutcome = 'conforme' | 'con_observaciones' | 'no_conforme' | 'no_aplica';
+
+export interface AdminAuditEntry {
+  id: string;
+  actorId: string;
+  actorRole: 'admin';
+  action: string;
+  method: string;
+  path: string;
+  statusCode: number;
+  outcome: 'success' | 'failure';
+  occurredAt: string;
+}
+
+export interface SecurityIncident {
+  id: string;
+  title: string;
+  description: string;
+  severity: SecurityIncidentSeverity;
+  status: SecurityIncidentStatus;
+  detectedAt: string;
+  systems: string[];
+  dataCategories: string[];
+  affectedPeopleEstimate: number;
+  reasonableRisk: boolean | null;
+  agencyNotificationRequired: boolean | null;
+  containmentActions?: string;
+  rootCause?: string;
+  lessonsLearned?: string;
+  agencyNotifiedAt?: string | null;
+  subjectsNotifiedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  closedAt?: string;
+}
+
+export interface GovernanceEvidence {
+  id: string;
+  type: GovernanceEvidenceType;
+  outcome: GovernanceEvidenceOutcome;
+  title: string;
+  owner: string;
+  performedAt: string;
+  nextReviewAt?: string | null;
+  notes?: string;
+  evidenceUrl?: string;
+  createdAt: string;
+}
+
+export interface GovernanceSummary {
+  openIncidents: number;
+  criticalOpenIncidents: number;
+  evidenceCount: number;
+  auditEventCount: number;
+  latestEvidenceByType: Partial<Record<GovernanceEvidenceType, GovernanceEvidence | null>>;
 }
 
 export interface SearchRow {
@@ -115,6 +258,7 @@ export interface FamilyProductRow {
 }
 
 export interface ProductStoreOfferRow {
+  offerId?: string;
   storeName: string;
   price: number;
   stock: number;
@@ -124,6 +268,22 @@ export interface ProductStoreOfferRow {
   address?: string;
   commune?: string;
   distanceKm?: number;
+  rut?: string;
+  email?: string;
+  phone?: string;
+  priceUpdatedAt: string;
+  includesVat: boolean;
+  comparisonEligible: boolean;
+  includesShipping: boolean;
+  validFrom: string;
+  validUntil?: string | null;
+  offerConditions: string;
+  sponsored: boolean;
+  measurementUnit?: 'kg' | 'l' | 'm' | 'm2' | 'unidad' | null;
+  measurementQuantity?: number | null;
+  pricePerMeasurement?: number | null;
+  measurementSource?: 'store_reported' | 'catalog_presentation' | null;
+  source: string;
 }
 
 export interface ProductTechSpecRow {
@@ -146,6 +306,7 @@ export interface ProductDetailView {
   productName: string;
   imageUrl: string;
   gallery: string[];
+  imageDisclosure: string;
   sku: string;
   unitLabel: string;
   packagingLabel: string;
@@ -164,6 +325,7 @@ export interface ProductDetailView {
   minPrice: number;
   maxPrice: number;
   stores: ProductStoreOfferRow[];
+  comparisonCriteria: string;
 }
 
 export interface ProjectItem {
@@ -243,6 +405,49 @@ export interface CatalogProduct {
   specValues: Record<string, string>;
   templateVersion: number;
   updatedAt?: string;
+  includesVat?: boolean;
+  validUntil?: string;
+  offerConditions?: string;
+  measurementUnit?: 'kg' | 'l' | 'm' | 'm2' | 'unidad' | '';
+  measurementQuantity?: number | null;
+  imageRights?: {
+    sourceType: 'ai_generated' | 'manufacturer_authorized' | 'store_authorized' | 'licensed_stock' | 'original' | 'other' | '';
+    provider: string;
+    sourceTermsUrl: string;
+    authorizationReference: string;
+    containsThirdPartyMarks: boolean;
+    trademarkAuthorizationReference: string;
+    reviewedAt?: string;
+  };
+  contentRights?: {
+    sourceType: 'manufacturer_authorized' | 'store_authorized' | 'licensed' | 'original' | 'ai_assisted_original' | 'public_domain' | 'other' | '';
+    sourceUrl: string;
+    authorizationReference: string;
+    reviewedAt?: string;
+  };
+}
+
+export type IpReportStatus = 'recibida' | 'en_revision' | 'retiro_preventivo' | 'esperando_respuesta' | 'repuesto' | 'retiro_definitivo' | 'rechazada';
+
+export interface IpReport {
+  id: string;
+  reference: string;
+  claimant: { name: string; email: string; organization?: string; capacity: 'owner' | 'authorized_agent' };
+  rightsType: 'copyright' | 'trademark' | 'both';
+  contentType: 'product_image' | 'logo' | 'technical_sheet' | 'commercial_description' | 'other';
+  targetType: 'store_offer' | 'master_product' | 'store' | 'other';
+  targetId?: string | null;
+  contentUrl: string;
+  originalWorkUrl?: string | null;
+  workDescription: string;
+  infringementDescription: string;
+  status: IpReportStatus;
+  publicStatusMessage: string;
+  submittedAt: string;
+  initialReviewDueAt: string;
+  targetResolutionAt: string;
+  resolution?: string | null;
+  resolvedAt?: string | null;
 }
 
 export type CatalogImportOutcome = 'subido' | 'sin_cambios' | 'fallido' | 'nuevo_validacion' | 'posible_match';
@@ -333,4 +538,3 @@ export interface CatalogValidationRequest {
     adminNote?: string;
   };
 }
-

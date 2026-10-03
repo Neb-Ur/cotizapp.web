@@ -1,7 +1,9 @@
 /
+/buscar
 /maestros
 /ferreterias
 /contacto
 /preguntas-frecuentes
 /terminos-condiciones
 /privacidad
+/propiedad-intelectual

@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, NgZone, computed, signal } from '@angular/core';
 import {
   browserLocalPersistence,
   browserSessionPersistence,
@@ -19,6 +19,13 @@ import { API_BASE_URL } from '../config/api.config';
 import { getFirebaseAuthInstance } from '../config/firebase.config';
 
 export const LOGIN_SUPPORT_ERROR_MESSAGE = 'Usuario con error, favor contactarse con soporte.';
+
+export class ProfileCompletionRequiredError extends Error {
+  constructor(readonly email: string) {
+    super('Debes completar tu perfil para continuar.');
+    this.name = 'ProfileCompletionRequiredError';
+  }
+}
 
 type StorageMode = 'local' | 'session';
 
@@ -49,6 +56,16 @@ interface ApiAuthUser {
   rut?: string;
   latitud?: number | null;
   longitud?: number | null;
+  tratamientoBloqueado?: boolean;
+  contratoFerreteriaEstado?: 'pendiente' | 'vigente' | 'suspendido' | 'terminado';
+  contratoFerreteriaVersion?: string;
+  contratoFerreteriaAceptadoEn?: string;
+}
+
+interface ApiAuthSession {
+  usuario: ApiAuthUser | null;
+  requiereCompletarPerfil: boolean;
+  requiereAceptacionLegal?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -70,9 +87,12 @@ export class AuthService {
     () => this.sessionVerifiedState() && this.currentUserState() !== null,
   );
 
-  constructor(private readonly http: HttpClient) {
+  constructor(
+    private readonly http: HttpClient,
+    private readonly ngZone: NgZone
+  ) {
     this.restoreCachedSession();
-    this.sessionReadyPromise = this.initializeFirebaseSession();
+    this.sessionReadyPromise = this.ngZone.runOutsideAngular(() => this.initializeFirebaseSession());
   }
 
   async login(payload: LoginPayload): Promise<SessionUser> {
@@ -86,6 +106,7 @@ export class AuthService {
       this.setSession(user, token, this.storageMode);
       return user;
     } catch (error) {
+      if (error instanceof ProfileCompletionRequiredError) throw error;
       throw new Error(this.resolveLoginErrorMessage(error));
     }
   }
@@ -99,26 +120,7 @@ export class AuthService {
     try {
       credential = await createUserWithEmailAndPassword(auth, payload.email.trim().toLowerCase(), payload.password);
       const token = await getIdToken(credential.user, true);
-      const response = await firstValueFrom(
-        this.http.post<ApiEnvelope<{ usuario: ApiAuthUser }>>(`${this.apiBaseUrl}/auth/register`, {
-          rol: payload.role,
-          nombre: payload.name.trim(),
-          correo: payload.email.trim().toLowerCase(),
-          telefono: payload.phone.trim(),
-          ciudad: payload.city.trim(),
-          comuna: payload.commune.trim(),
-          region: payload.region.trim(),
-          direccion: payload.address.trim(),
-          nombreComercial: payload.businessName?.trim() || undefined,
-          rut: payload.rut?.trim() || undefined,
-          latitud: payload.storeLatitude,
-          longitud: payload.storeLongitude
-        }, {
-          headers: this.authHeaders(token)
-        })
-      );
-
-      const user = this.mapApiUser(response.data.usuario);
+      const user = await this.createProfile(payload, token);
       this.setSession(user, token, 'local');
       return user;
     } catch (error) {
@@ -127,6 +129,20 @@ export class AuthService {
       }
       throw new Error(this.extractErrorMessage(error, this.firebaseErrorMessage(error, 'No se pudo crear la cuenta.')));
     }
+  }
+
+  async completeProfile(payload: RegisterPayload): Promise<SessionUser> {
+    const auth = await this.getAuth();
+    const firebaseUser = auth.currentUser;
+    if (!firebaseUser?.email) throw new Error('La sesión para completar el perfil expiró. Inicia sesión nuevamente.');
+    if (firebaseUser.email.toLowerCase() !== payload.email.trim().toLowerCase()) {
+      throw new Error('El correo no coincide con la sesión iniciada.');
+    }
+
+    const token = await getIdToken(firebaseUser, true);
+    const user = await this.createProfile(payload, token);
+    this.setSession(user, token, 'local');
+    return user;
   }
 
   async sendPasswordReset(email: string): Promise<void> {
@@ -177,6 +193,32 @@ export class AuthService {
       // Clear the local session even if Firebase is temporarily unavailable.
     }
     this.clearSession();
+  }
+
+  async refreshCurrentUser(): Promise<SessionUser | null> {
+    const auth = await this.getAuth();
+    if (!auth.currentUser) return null;
+    const token = await getIdToken(auth.currentUser, true);
+    const user = await this.fetchCurrentUser(token);
+    this.setSession(user, token, this.storageMode);
+    return user;
+  }
+
+  async clearAfterAccountDeletion(): Promise<void> {
+    try {
+      const auth = await this.getAuth();
+      await signOut(auth);
+    } catch {
+      // La cuenta puede haber desaparecido antes de cerrar la sesión local.
+    }
+    this.clearSession();
+    if (typeof window !== 'undefined') {
+      [window.localStorage, window.sessionStorage].forEach((storage) => {
+        Object.keys(storage)
+          .filter((key) => key.startsWith('cotizapp'))
+          .forEach((key) => storage.removeItem(key));
+      });
+    }
   }
 
   hasRole(role: UserRole): boolean {
@@ -328,19 +370,15 @@ export class AuthService {
         onIdTokenChanged(auth, async (firebaseUser) => {
           try {
             if (!firebaseUser) {
-              this.clearSession();
+              this.ngZone.run(() => this.clearSession());
               return;
             }
 
             const token = await getIdToken(firebaseUser);
             const user = await this.fetchCurrentUser(token);
-            this.tokenState.set(token);
-            this.currentUserState.set(user);
-            this.sessionVerifiedState.set(true);
-            this.sessionVerifiedAt = Date.now();
-            this.persistSession(user, token);
+            this.ngZone.run(() => this.setSession(user, token, this.storageMode));
           } catch {
-            this.clearSession();
+            this.ngZone.run(() => this.clearSession());
           } finally {
             if (!initialSessionResolved) {
               initialSessionResolved = true;
@@ -350,7 +388,7 @@ export class AuthService {
         });
       });
     } catch {
-      this.clearSession();
+      this.ngZone.run(() => this.clearSession());
     }
   }
 
@@ -420,18 +458,80 @@ export class AuthService {
   }
 
   private async fetchCurrentUser(token: string): Promise<SessionUser> {
+    try {
+      const response = await firstValueFrom(
+        this.http.get<ApiEnvelope<ApiAuthSession>>(`${this.apiBaseUrl}/auth/session`, {
+          headers: this.authHeaders(token)
+        })
+      );
+      if (response.data.requiereCompletarPerfil || !response.data.usuario) {
+        throw await this.profileCompletionError();
+      }
+      const user = this.mapLoginUser(response.data.usuario);
+      return {
+        ...user,
+        legalAcceptanceRequired: response.data.requiereAceptacionLegal === true,
+        privacyProcessingBlocked: response.data.usuario?.tratamientoBloqueado === true
+      };
+    } catch (error) {
+      if (error instanceof ProfileCompletionRequiredError) throw error;
+      if (!(error instanceof HttpErrorResponse) || error.status !== 404) throw error;
+    }
+
+    // Compatibilidad durante el despliegue: el backend anterior solo expone /auth/me.
+    try {
+      const response = await firstValueFrom(
+        this.http.get<ApiEnvelope<ApiAuthUser>>(`${this.apiBaseUrl}/auth/me`, {
+          headers: this.authHeaders(token)
+        })
+      );
+      return this.mapLoginUser(response.data);
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 404) {
+        throw await this.profileCompletionError();
+      }
+      throw error;
+    }
+  }
+
+  private async profileCompletionError(): Promise<ProfileCompletionRequiredError> {
+    const auth = await this.getAuth();
+    return new ProfileCompletionRequiredError(auth.currentUser?.email || '');
+  }
+
+  private async createProfile(payload: RegisterPayload, token: string): Promise<SessionUser> {
     const response = await firstValueFrom(
-      this.http.get<ApiEnvelope<ApiAuthUser>>(`${this.apiBaseUrl}/auth/me`, {
+      this.http.post<ApiEnvelope<{ usuario: ApiAuthUser }>>(`${this.apiBaseUrl}/auth/register`, {
+        rol: payload.role,
+        nombre: payload.name.trim(),
+        correo: payload.email.trim().toLowerCase(),
+        telefono: payload.phone.trim(),
+        ciudad: payload.city.trim(),
+        comuna: payload.commune.trim(),
+        region: payload.region.trim(),
+        direccion: payload.address.trim(),
+        nombreComercial: payload.businessName?.trim() || undefined,
+        rut: payload.rut?.trim() || undefined,
+        latitud: payload.storeLatitude,
+        longitud: payload.storeLongitude,
+        termsAccepted: payload.termsAccepted,
+        privacyAcknowledged: payload.privacyAcknowledged,
+        ageConfirmed: payload.ageConfirmed,
+        marketingConsent: payload.marketingConsent
+      }, {
         headers: this.authHeaders(token)
       })
     );
-    return this.mapLoginUser(response.data);
+    return this.mapApiUser(response.data.usuario);
   }
 
   private mapApiUser(user: ApiAuthUser): SessionUser {
     return {
       id: user.id,
       ferreteriaId: user.ferreteriaId,
+      storeAgreementStatus: user.contratoFerreteriaEstado,
+      storeAgreementVersion: user.contratoFerreteriaVersion,
+      storeAgreementAcceptedAt: user.contratoFerreteriaAceptadoEn,
       email: user.correo,
       displayName: user.nombreComercial?.trim() ? user.nombreComercial : user.nombre,
       role: user.rol,
@@ -446,7 +546,8 @@ export class AuthService {
       businessName: user.nombreComercial,
       rut: user.rut,
       storeLatitude: typeof user.latitud === 'number' ? user.latitud : undefined,
-      storeLongitude: typeof user.longitud === 'number' ? user.longitud : undefined
+      storeLongitude: typeof user.longitud === 'number' ? user.longitud : undefined,
+      privacyProcessingBlocked: user.tratamientoBloqueado === true
     };
   }
 
@@ -475,6 +576,9 @@ export class AuthService {
       rut: user.rut,
       latitud: user.storeLatitude,
       longitud: user.storeLongitude,
+      contratoFerreteriaEstado: user.storeAgreementStatus,
+      contratoFerreteriaVersion: user.storeAgreementVersion,
+      contratoFerreteriaAceptadoEn: user.storeAgreementAcceptedAt,
     };
   }
 

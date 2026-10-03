@@ -16,17 +16,18 @@
 
   <ng-container *ngIf="!isLoading">
   <article class="detail-card" *ngIf="detail as product; else noData">
-    <nav class="breadcrumb">
-      <span>{{ product.categoryName }}</span>
-      <span>{{ product.subcategoryName }}</span>
-      <span>{{ product.familyName }}</span>
-      <span>{{ product.productName }}</span>
+    <nav class="breadcrumb" aria-label="Ruta de navegación">
+      <a routerLink="/">Inicio</a>
+      <a routerLink="/buscar">{{ product.categoryName }}</a>
+      <a routerLink="/buscar">{{ product.subcategoryName }}</a>
+      <a routerLink="/buscar">{{ product.familyName }}</a>
+      <span aria-current="page">{{ product.productName }}</span>
     </nav>
 
     <section class="hero-grid">
       <div class="gallery-panel">
         <div class="main-image">
-          <img *ngIf="currentImageUrl" [src]="currentImageUrl" [alt]="product.productName" />
+          <img *ngIf="currentImageUrl" [src]="currentImageUrl" [alt]="product.productName" width="720" height="540" fetchpriority="high" decoding="async" />
           <span *ngIf="!currentImageUrl">Imagen del producto</span>
         </div>
         <div class="thumb-strip">
@@ -36,9 +37,10 @@
             [class.active]="i === selectedImageIndex"
             (click)="selectImage(i)"
           >
-            <img [src]="image" [alt]="product.productName + ' vista ' + (i + 1)" />
+            <img [src]="image" [alt]="product.productName + ' vista ' + (i + 1)" width="96" height="72" loading="lazy" decoding="async" />
           </button>
         </div>
+        <p class="image-disclosure" *ngIf="product.imageDisclosure">{{ product.imageDisclosure }}</p>
       </div>
 
       <aside class="purchase-panel">
@@ -48,6 +50,11 @@
         <p class="type">{{ product.productType }}</p>
         <p class="price-range">{{ formatCurrency(visibleMinPrice) }} - {{ formatCurrency(visibleMaxPrice) }}</p>
         <p class="best-price">Mejor precio en <strong>{{ bestPriceStoreName }}</strong></p>
+        <section class="comparison-method" aria-label="Cómo se comparan los precios">
+          <strong>Criterio de comparación</strong>
+          <p>{{ product.comparisonCriteria }}</p>
+          <p><strong>Fuente:</strong> precios informados por cada ferretería. CotizApp no vende ni confirma disponibilidad.</p>
+        </section>
 
         <section class="quick-stores">
           <h3>Precios por ferretería</h3>
@@ -76,7 +83,37 @@
             <input type="number" min="1" [ngModel]="selectedQuantity" (ngModelChange)="onQuantityChange($event)" />
           </label>
 
-          <ul>
+          <section class="distance-control" aria-label="Distancias a las ferreterías">
+            <button
+              *ngIf="!nearbyLocation"
+              type="button"
+              [disabled]="locationLoading"
+              (click)="enableLocationDistances()"
+            >
+              <i class="pi pi-map-marker" aria-hidden="true"></i>
+              {{ locationLoading ? 'Obteniendo ubicación...' : 'Usar mi ubicación para ver distancias' }}
+            </button>
+            <p class="location-active" *ngIf="nearbyLocation">
+              <i class="pi pi-check-circle" aria-hidden="true"></i>
+              Distancias calculadas desde tu ubicación.
+            </p>
+            <p class="stock-warning" *ngIf="locationError" role="alert">{{ locationError }}</p>
+          </section>
+
+          <div class="store-sort-control">
+            <label for="store-sort">Ordenar ferreterías por</label>
+            <select
+              id="store-sort"
+              [ngModel]="storeSort"
+              (ngModelChange)="onStoreSortChange($event)"
+            >
+              <option value="price">Precio: menor a mayor</option>
+              <option value="distance" [disabled]="!nearbyLocation">Distancia: más cercana</option>
+            </select>
+            <small *ngIf="!nearbyLocation">Autoriza tu ubicación para ordenar por distancia.</small>
+          </div>
+
+          <ul [attr.aria-label]="storeSort === 'distance' ? 'Ferreterías ordenadas por distancia' : 'Ferreterías ordenadas por precio'">
             <li
               *ngFor="let store of displayStores"
               [class.selected]="store.storeName === selectedStoreName"
@@ -91,20 +128,70 @@
                   (ngModelChange)="selectStore($event)"
                 />
                 <div>
-                  <p class="store-name">{{ store.storeName }}</p>
+                  <p class="store-name">
+                    {{ store.storeName }}
+                    <span class="sponsored-label" *ngIf="store.sponsored">Patrocinado</span>
+                  </p>
                   <p class="store-stock">Stock: {{ store.stock }} {{ product.unitLabel.toLowerCase() }}</p>
-                  <p class="store-stock" *ngIf="nearbyEnabled && store.distanceKm !== undefined">
+                  <p class="store-distance" *ngIf="store.distanceKm !== undefined">
+                    <i class="pi pi-map-marker" aria-hidden="true"></i>
                     A {{ formatDistance(store.distanceKm) }} de ti<span *ngIf="store.commune"> · {{ store.commune }}</span>
                   </p>
+                  <p class="offer-facts">
+                    Actualizado {{ store.priceUpdatedAt | date:'dd/MM/yyyy, HH:mm' }} ·
+                    {{ store.includesVat ? 'IVA incluido' : 'IVA no incluido' }} ·
+                    Despacho no incluido
+                  </p>
+                  <p class="comparison-exclusion" *ngIf="!store.comparisonEligible">No participa en “mejor precio” porque no declara IVA incluido.</p>
+                  <p class="offer-validity">
+                    Vigente desde {{ store.validFrom | date:'dd/MM/yyyy' }}
+                    <span *ngIf="store.validUntil"> hasta {{ store.validUntil | date:'dd/MM/yyyy' }}</span>
+                    <span *ngIf="!store.validUntil"> mientras esté publicada y exista stock</span>.
+                  </p>
+                  <details class="offer-details" (click)="$event.stopPropagation()">
+                    <summary>Condiciones y contacto</summary>
+                    <p>{{ store.offerConditions }}</p>
+                    <p><strong>{{ store.storeName }}</strong><span *ngIf="store.rut"> · RUT {{ store.rut }}</span></p>
+                    <p *ngIf="store.address">{{ store.address }}<span *ngIf="store.commune">, {{ store.commune }}</span></p>
+                    <p>
+                      <a *ngIf="store.email" [href]="'mailto:' + store.email">{{ store.email }}</a>
+                      <span *ngIf="store.email && store.phone"> · </span>
+                      <a *ngIf="store.phone" [href]="'tel:' + store.phone">{{ store.phone }}</a>
+                      <span *ngIf="!store.email && !store.phone">Contacto comercial no informado.</span>
+                    </p>
+                    <p>Fuente: {{ store.source }}.</p>
+                    <p>
+                      <a
+                        routerLink="/reportar-precio"
+                        [queryParams]="{ product: product.productName, store: store.storeName, storeId: store.storeId, offerId: store.offerId, price: store.price }"
+                      >Reportar precio incorrecto</a>
+                    </p>
+                  </details>
                 </div>
               </label>
-              <p class="store-price">{{ formatCurrency(store.price) }}</p>
+              <div class="store-price-block">
+                <span>Precio unitario</span>
+                <strong>{{ formatCurrency(store.price) }}</strong>
+                <em *ngIf="store.pricePerMeasurement">
+                  {{ formatCurrency(store.pricePerMeasurement) }} / {{ measurementLabel(store.measurementUnit) }}
+                </em>
+                <span class="measurement-source" *ngIf="store.pricePerMeasurement">
+                  {{ store.measurementSource === 'store_reported' ? 'Medida informada por la ferretería' : 'Calculado desde la presentación de la ficha' }}
+                </span>
+                <small>Total por {{ selectedQuantity }}: {{ formatCurrency(storeTotal(store)) }}</small>
+              </div>
             </li>
           </ul>
 
-          <p class="selected-total" *ngIf="canShowAddToQuotation">
-            Total estimado: {{ formatCurrency(selectedTotal) }}
-          </p>
+          <section class="selected-total" *ngIf="selectedStore as store" aria-live="polite">
+            <div>
+              <span>Ferretería seleccionada</span>
+              <strong>{{ store.storeName }}</strong>
+              <small>{{ selectedQuantity }} × {{ formatCurrency(store.price) }} por {{ quantityLabel.toLowerCase() }}</small>
+              <small>{{ store.includesVat ? 'IVA incluido' : 'IVA no incluido' }} · despacho no incluido</small>
+            </div>
+            <p><span>Total estimado sin despacho</span><strong>{{ formatCurrency(selectedTotal) }}</strong></p>
+          </section>
           <p class="stock-warning" *ngIf="exceedsSelectedStock && selectedStore">
             La cantidad supera el stock informado por {{ selectedStore.storeName }} ({{ selectedStore.stock }}).
           </p>
