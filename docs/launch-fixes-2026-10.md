@@ -12,11 +12,12 @@ Los precios ingresados por las ferreterías son importes finales con IVA incluid
 - Estados de errores de red y productos inexistentes separados. Compartir cancelado no anuncia éxito. Exportación y compartir usan el mismo PDF.
 - Límite de proyectos transaccional, agregados de ítems transaccionales, consulta por dueño y una sola lectura de ofertas para el listado.
 - Angular/PrimeNG 21, SheetJS 0.20.3 oficial; Vitest sustituye Karma. Dependencias instaladas con lockfiles. Firebase CLI fijada y hosting usa el artefacto validado.
+- Las cuentas del seed de demostración no tienen acceso a la API productiva, aunque se conozca su contraseña. Sigue siendo recomendable deshabilitarlas y revocar sesiones en Firebase Auth.
 - Piloto identificado y datos legales ficticios retirados. FAQ deja de prometer planes inexistentes. El contrato exige precio final con IVA incluido.
 
 ## Verificación
 
-41 pruebas frontend, 12 pruebas backend, build de producción y npm audit en ambos paquetes. El smoke de producción prueba catálogo → ficha API → HTML inicial, canonical/JSON-LD, 404 de producto/ruta desconocida y noindex de cuenta.
+41 pruebas frontend, 15 pruebas backend, build de producción y npm audit en ambos paquetes. El smoke de producción prueba catálogo → ficha API → HTML inicial, canonical/JSON-LD, 404 de producto/ruta desconocida y noindex de cuenta.
 
 ## Requisitos de operación que requieren datos reales
 
