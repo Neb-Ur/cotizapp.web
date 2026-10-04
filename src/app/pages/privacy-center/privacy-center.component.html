@@ -101,7 +101,7 @@
             <label>Ciudad<input name="city" [(ngModel)]="profileDraft.city" autocomplete="address-level2" /></label>
             <label>Comuna<input name="commune" [(ngModel)]="profileDraft.commune" /></label>
             <label>Dirección<input name="address" [(ngModel)]="profileDraft.address" autocomplete="street-address" /></label>
-            <p class="email-note">El correo {{ user?.email }} identifica tu cuenta y no se modifica desde este formulario.</p>
+            <p class="email-note">El correo {{ user?.email }} identifica tu cuenta y no se modifica desde este formulario. Los demás campos, salvo el nombre, son opcionales y se usan para personalizar el servicio y los datos de contacto.</p>
             <button class="primary" type="submit" [disabled]="!!busyAction">{{ busyAction === 'profile' ? 'Guardando…' : 'Guardar correcciones' }}</button>
           </form>
         </section>

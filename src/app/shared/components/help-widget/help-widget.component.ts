@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { API_BASE_URL } from '../../../core/config/api.config';
 import { LEGAL_IDENTITY } from '../../../core/config/legal-identity.config';
 import { AuthService } from '../../../core/services/auth.service';
@@ -10,7 +10,7 @@ import { UiModalComponent } from '../ui-modal/ui-modal.component';
 @Component({
   selector: 'app-help-widget',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, UiModalComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, UiModalComponent],
   templateUrl: './help-widget.component.html',
   styleUrl: './help-widget.component.scss'
 })

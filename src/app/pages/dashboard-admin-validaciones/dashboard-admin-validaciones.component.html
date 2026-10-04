@@ -762,6 +762,50 @@
       <ng-template #emptyContactRequests><p class="empty">No hay solicitudes para este estado.</p></ng-template>
     </article>
 
+    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'precios'">
+      <div class="toolbar">
+        <label>Estado
+          <select [(ngModel)]="priceStatusFilter">
+            <option value="recibido">Recibidos</option>
+            <option value="en_revision">En revisión</option>
+            <option value="corregido">Corregidos</option>
+            <option value="no_acreditado">No acreditados</option>
+            <option value="all">Todos</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="contact-request-grid" *ngIf="priceReportRows.length > 0; else emptyPriceReports">
+        <article class="contact-request-card" *ngFor="let report of priceReportRows">
+          <header>
+            <div><span class="request-kind">{{ report.reference }}</span><h2>{{ report.productName }}</h2></div>
+            <span class="status-chip" [class.ok]="report.status === 'corregido'" [class.bad]="report.status === 'no_acreditado'">{{ report.status.replace('_', ' ') }}</span>
+          </header>
+          <dl>
+            <div><dt>Ferretería</dt><dd>{{ report.storeName }}</dd></div>
+            <div><dt>Correo</dt><dd><a [href]="'mailto:' + report.email">{{ report.email }}</a></dd></div>
+            <div><dt>Precio publicado</dt><dd>{{ report.displayedPrice | currency:'CLP':'symbol-narrow':'1.0-0' }}</dd></div>
+            <div><dt>Precio observado</dt><dd>{{ report.observedPrice | currency:'CLP':'symbol-narrow':'1.0-0' }}</dd></div>
+            <div><dt>Recibido</dt><dd>{{ report.createdAt | date:'short' }}</dd></div>
+          </dl>
+          <p class="request-message">{{ report.details }}</p>
+          <p><a [href]="report.contentUrl" target="_blank" rel="noopener noreferrer">Abrir página informada</a></p>
+          <label>Fundamento y evidencia revisada
+            <textarea rows="3" [(ngModel)]="priceResolutionDrafts[report.id]" placeholder="Respuesta de la ferretería, comprobantes y conclusión"></textarea>
+          </label>
+          <label>Precio verificado para corregir
+            <input type="number" min="0" [(ngModel)]="correctedPriceDrafts[report.id]" />
+          </label>
+          <div class="actions">
+            <button type="button" (click)="setPriceReportStatus(report, 'en_revision')">Iniciar revisión</button>
+            <button type="button" (click)="setPriceReportStatus(report, 'corregido')">Corregir oferta</button>
+            <button type="button" class="ghost" (click)="setPriceReportStatus(report, 'no_acreditado')">No acreditado</button>
+          </div>
+        </article>
+      </div>
+      <ng-template #emptyPriceReports><p class="empty">No hay reclamos para este estado.</p></ng-template>
+    </article>
+
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'propiedad'">
       <div class="toolbar">
         <label>

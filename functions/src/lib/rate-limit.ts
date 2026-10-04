@@ -17,8 +17,9 @@ const buckets = new Map<string, Bucket>();
 let lastCleanupAt = 0;
 
 function clientKey(req: Request, name: string): string {
-  const forwarded = req.header('x-forwarded-for')?.split(',')[0]?.trim();
-  const address = forwarded || req.ip || req.socket.remoteAddress || 'unknown';
+  // Express resolves req.ip through the configured trusted proxy. Do not read
+  // the first X-Forwarded-For value directly because clients can spoof it.
+  const address = req.ip || req.socket.remoteAddress || 'unknown';
   return `${name}:${createHash('sha256').update(address).digest('hex')}`;
 }
 
@@ -57,5 +58,7 @@ export function rateLimit(options: RateLimitOptions) {
 }
 
 export const generalRateLimit = rateLimit({ name: 'general', windowMs: 60_000, max: 180 });
+export const writeRateLimit = rateLimit({ name: 'write', windowMs: 60_000, max: 60 });
+export const accountRateLimit = rateLimit({ name: 'account', windowMs: 15 * 60_000, max: 20 });
 export const sensitiveWriteRateLimit = rateLimit({ name: 'sensitive-write', windowMs: 15 * 60_000, max: 10 });
 export const statusLookupRateLimit = rateLimit({ name: 'status-lookup', windowMs: 15 * 60_000, max: 30 });

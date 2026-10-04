@@ -450,6 +450,27 @@ export interface IpReport {
   resolvedAt?: string | null;
 }
 
+export type PriceReportStatus = 'recibido' | 'en_revision' | 'corregido' | 'no_acreditado';
+
+export interface PriceReport {
+  id: string;
+  reference: string;
+  email: string;
+  productName: string;
+  storeName: string;
+  storeId: string;
+  offerId: string;
+  contentUrl: string;
+  displayedPrice: number;
+  observedPrice: number;
+  details: string;
+  status: PriceReportStatus;
+  createdAt: string;
+  updatedAt: string;
+  resolution?: string | null;
+  resolvedAt?: string | null;
+}
+
 export type CatalogImportOutcome = 'subido' | 'sin_cambios' | 'fallido' | 'nuevo_validacion' | 'posible_match';
 export type CatalogValidationType = 'nuevo_producto' | 'posible_match';
 export type CatalogValidationStatus = 'pendiente' | 'aprobado' | 'rechazado';

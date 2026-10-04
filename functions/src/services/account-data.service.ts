@@ -16,10 +16,11 @@ interface AccountDataSnapshot {
   consentRecords: Record<string, unknown>[];
   privacyRequests: Record<string, unknown>[];
   intellectualPropertyReports: Record<string, unknown>[];
+  priceReports: Record<string, unknown>[];
 }
 
 async function accountRows(userId: string, email: string): Promise<AccountDataSnapshot> {
-  const [userDoc, stores, storeProducts, priceHistory, storeAgreements, projects, productRequests, contacts, consents, privacyRequests, ipReports] = await Promise.all([
+  const [userDoc, stores, storeProducts, priceHistory, storeAgreements, projects, productRequests, contacts, consents, privacyRequests, ipReports, priceReports] = await Promise.all([
     db.collection(COLLECTIONS.users).doc(userId).get(),
     rows(COLLECTIONS.stores),
     rows(COLLECTIONS.storeProducts),
@@ -30,7 +31,8 @@ async function accountRows(userId: string, email: string): Promise<AccountDataSn
     rows(COLLECTIONS.contactRequests),
     rows(COLLECTIONS.consentRecords),
     rows(COLLECTIONS.privacyRequests),
-    rows(COLLECTIONS.intellectualPropertyReports)
+    rows(COLLECTIONS.intellectualPropertyReports),
+    rows(COLLECTIONS.priceReports)
   ]);
   const ownedStores = stores.filter((item) => item.usuarioDuenoId === userId);
   const storeIds = new Set(ownedStores.map((item) => item.id));
@@ -47,7 +49,8 @@ async function accountRows(userId: string, email: string): Promise<AccountDataSn
     contactRequests: contacts.filter((item) => String(item.email || '').toLowerCase() === email.toLowerCase()),
     consentRecords: consents.filter((item) => item.usuarioId === userId),
     privacyRequests: privacyRequests.filter((item) => item.usuarioId === userId),
-    intellectualPropertyReports: ipReports.filter((item) => String(item.claimant?.email || '').toLowerCase() === email.toLowerCase())
+    intellectualPropertyReports: ipReports.filter((item) => String(item.claimant?.email || '').toLowerCase() === email.toLowerCase()),
+    priceReports: priceReports.filter((item) => String(item.email || '').toLowerCase() === email.toLowerCase())
   };
 }
 
@@ -82,10 +85,20 @@ export async function deleteAccountData(userId: string, email: string, deleteAut
     receiptTokenHash: null,
     accountDataMinimizedAt: new Date().toISOString()
   }, { merge: true })));
+  // Price evidence is retained independently from the deleted account so the
+  // platform can demonstrate how a comparison was calculated at a given time.
+  await Promise.all(snapshot.priceHistory.map((entry) => db.collection(COLLECTIONS.priceHistory).doc(String(entry['id'])).set({
+    actorId: null,
+    actorAccountDeletedAt: new Date().toISOString(),
+    source: entry['source'] || 'retained_comparison_evidence'
+  }, { merge: true })));
+  await Promise.all(snapshot.priceReports.map((report) => db.collection(COLLECTIONS.priceReports).doc(String(report['id'])).set({
+    email: null,
+    accountDataMinimizedAt: new Date().toISOString()
+  }, { merge: true })));
 
   await Promise.all([
     deleteRowsByIds(COLLECTIONS.storeProducts, storeOffers.map((item) => String(item['id']))),
-    deleteRowsByIds(COLLECTIONS.priceHistory, snapshot.priceHistory.map((item) => String(item['id']))),
     deleteRowsByIds(COLLECTIONS.projects, snapshot.projects.map((item) => String(item['id']))),
     deleteRowsByIds(COLLECTIONS.productRequests, snapshot.productRequests.map((item) => String(item['id']))),
     deleteRowsByIds(COLLECTIONS.contactRequests, snapshot.contactRequests.map((item) => String(item['id']))),
@@ -109,14 +122,15 @@ export async function deleteAccountData(userId: string, email: string, deleteAut
     profiles: snapshot.profile ? 1 : 0,
     stores: snapshot.stores.length,
     offers: storeOffers.length,
-    priceHistory: snapshot.priceHistory.length,
+    priceHistoryMinimized: snapshot.priceHistory.length,
     storeAgreementsMinimized: snapshot.storeAgreements.length,
     projects: snapshot.projects.length,
     productRequests: snapshot.productRequests.length,
     contactRequests: snapshot.contactRequests.length,
     consentRecords: snapshot.consentRecords.length,
     privacyRequests: snapshot.privacyRequests.length,
-    intellectualPropertyReportsMinimized: snapshot.intellectualPropertyReports.length
+    intellectualPropertyReportsMinimized: snapshot.intellectualPropertyReports.length,
+    priceReportsMinimized: snapshot.priceReports.length
   };
 
   // Comprobante sin UID, correo ni contenido del usuario. Permite acreditar

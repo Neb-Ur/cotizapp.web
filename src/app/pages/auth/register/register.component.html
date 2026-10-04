@@ -30,13 +30,13 @@
       </div>
 
       <div class="field">
-        <label for="register-phone">Teléfono</label>
+        <label for="register-phone">Teléfono <small>(opcional)</small></label>
         <input id="register-phone" formControlName="phone" type="tel" placeholder="+56 9 ..." autocomplete="tel" [attr.aria-invalid]="hasError('phone')" aria-describedby="register-phone-error" />
         <small id="register-phone-error" *ngIf="hasError('phone')">Ingresa un teléfono válido.</small>
       </div>
 
       <div class="field">
-        <label for="register-commune">Comuna</label>
+        <label for="register-commune">Comuna <small>(opcional)</small></label>
         <input id="register-commune" formControlName="commune" type="text" placeholder="Ej: La Florida" autocomplete="address-level2" [attr.aria-invalid]="hasError('commune')" aria-describedby="register-commune-error" />
         <small id="register-commune-error" *ngIf="hasError('commune')">Ingresa tu comuna.</small>
       </div>
@@ -64,6 +64,11 @@
           Debes completar las tres confirmaciones obligatorias para crear la cuenta.
         </small>
       </fieldset>
+
+      <p class="field--full legal-help">
+        Usaremos tus datos para crear y proteger la cuenta, guardar cotizaciones y prestar el servicio. El teléfono y la comuna son opcionales para cuentas de maestro. Consulta finalidades, conservación y derechos en la
+        <a routerLink="/privacidad" target="_blank">Política de privacidad</a>.
+      </p>
 
       <div class="field--full form-actions">
         <button class="btn btn-primary btn-full" type="submit" [disabled]="isSubmitting">

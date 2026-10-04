@@ -14,6 +14,8 @@ import {
   FamilySpecField,
   FamilyTemplate,
   ProductDetailView,
+  PriceReport,
+  PriceReportStatus,
   ProductStoreOfferRow,
   ProjectComparisonStrategy,
   ProjectItem,
@@ -249,6 +251,23 @@ export class FirebaseDataService {
 
   async updateContactRequestStatus(requestId: string, status: ContactRequestStatus): Promise<ContactRequest> {
     return this.apiClient.patch<ContactRequest>(`/admin/solicitudes-contacto/${requestId}`, { status }, true);
+  }
+
+  getPriceReportsForAdmin(): Promise<PriceReport[]> {
+    return this.apiClient.get<PriceReport[]>('/admin/price-reports', true);
+  }
+
+  updatePriceReportForAdmin(
+    reportId: string,
+    status: Exclude<PriceReportStatus, 'recibido'>,
+    resolution: string,
+    correctedPrice?: number
+  ): Promise<PriceReport> {
+    return this.apiClient.patch<PriceReport>(`/admin/price-reports/${reportId}`, {
+      status,
+      resolution,
+      correctedPrice
+    }, true);
   }
 
   dashboardByRole(user: SessionUser | null): string {

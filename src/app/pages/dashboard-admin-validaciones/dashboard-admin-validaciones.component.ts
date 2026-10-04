@@ -28,6 +28,8 @@ import {
   GovernanceSummary,
   IpReport,
   IpReportStatus,
+  PriceReport,
+  PriceReportStatus,
   PrivacyRequest,
   PrivacyRequestStatus,
   SessionUser,
@@ -48,7 +50,7 @@ import { getCurrentBrowserLocation, hasValidCoordinates } from '../../core/utils
 import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 
-type AdminSection = 'ferreterias' | 'productos' | 'solicitudes' | 'contacto' | 'propiedad' | 'privacidad' | 'gobierno' | 'usuarios';
+type AdminSection = 'ferreterias' | 'productos' | 'solicitudes' | 'contacto' | 'precios' | 'propiedad' | 'privacidad' | 'gobierno' | 'usuarios';
 
 interface MasterProductDraft {
   masterProductId: string;
@@ -187,6 +189,11 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       description: 'Gestiona solicitudes comerciales de ferreterias y mensajes de contacto.'
     },
     {
+      id: 'precios',
+      label: 'Reclamos de precios',
+      description: 'Verifica diferencias, corrige ofertas y conserva la evidencia histórica del cambio.'
+    },
+    {
       id: 'privacidad',
       label: 'Derechos de datos',
       description: 'Atiende solicitudes de acceso, rectificación, supresión, oposición, bloqueo y portabilidad.'
@@ -220,6 +227,10 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   protected ipStatusFilter: IpReportStatus | 'all' = 'recibida';
   protected ipResolutionDrafts: Record<string, string> = {};
   protected ipPublicMessageDrafts: Record<string, string> = {};
+  protected priceReports: PriceReport[] = [];
+  protected priceStatusFilter: PriceReportStatus | 'all' = 'recibido';
+  protected priceResolutionDrafts: Record<string, string> = {};
+  protected correctedPriceDrafts: Record<string, number | null> = {};
   protected governanceSummary: GovernanceSummary | null = null;
   protected securityIncidents: SecurityIncident[] = [];
   protected governanceEvidence: GovernanceEvidence[] = [];
@@ -375,6 +386,30 @@ export class DashboardAdminValidacionesComponent implements OnInit {
 
   protected get ipReportRows(): IpReport[] {
     return this.ipReports.filter((report) => this.ipStatusFilter === 'all' || report.status === this.ipStatusFilter);
+  }
+
+  protected get priceReportRows(): PriceReport[] {
+    return this.priceReports.filter((report) => this.priceStatusFilter === 'all' || report.status === this.priceStatusFilter);
+  }
+
+  protected async setPriceReportStatus(report: PriceReport, status: Exclude<PriceReportStatus, 'recibido'>): Promise<void> {
+    this.notice = '';
+    this.error = '';
+    const resolution = (this.priceResolutionDrafts[report.id] || '').trim();
+    const correctedPrice = this.correctedPriceDrafts[report.id];
+    if (resolution.length < 10 || (status === 'corregido' && (correctedPrice === null || correctedPrice === undefined || correctedPrice < 0))) {
+      this.error = 'Registra un fundamento y, si corriges la oferta, el precio verificado.';
+      return;
+    }
+    try {
+      const updated = await this.apiService.updatePriceReportForAdmin(report.id, status, resolution, correctedPrice ?? undefined);
+      this.priceReports = this.priceReports.map((item) => item.id === updated.id ? updated : item);
+      this.notice = status === 'corregido'
+        ? 'Precio corregido; el valor anterior y el nuevo quedaron registrados en el historial.'
+        : 'Reclamo de precio actualizado.';
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : 'No fue posible actualizar el reclamo.';
+    }
   }
 
   protected ipRightLabel(value: IpReport['rightsType']): string {
@@ -1692,6 +1727,14 @@ export class DashboardAdminValidacionesComponent implements OnInit {
 
       if (section === 'contacto') {
         this.contactRequests = await this.apiService.getContactRequestsForAdmin();
+      }
+
+      if (section === 'precios') {
+        this.priceReports = await this.apiService.getPriceReportsForAdmin();
+        this.priceReports.forEach((report) => {
+          this.priceResolutionDrafts[report.id] = report.resolution || '';
+          this.correctedPriceDrafts[report.id] = report.observedPrice;
+        });
       }
 
       if (section === 'privacidad') {

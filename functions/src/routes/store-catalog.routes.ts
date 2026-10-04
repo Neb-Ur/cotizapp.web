@@ -18,6 +18,22 @@ function optionalOfferDate(value: unknown): string | null {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
+function offerEvidence(value: Record<string, any> | null | undefined): Record<string, unknown> | null {
+  if (!value) return null;
+  return {
+    precio: numberValue(value['precio']),
+    stock: Math.max(0, Math.floor(numberValue(value['stock']))),
+    incluyeIva: value['incluyeIva'] !== false,
+    unidadMedidaPrecio: normalizeText(value['unidadMedidaPrecio']) || null,
+    cantidadMedida: numberValue(value['cantidadMedida'], 0) || null,
+    vigenteDesde: normalizeText(value['vigenteDesde']) || null,
+    vigenteHasta: normalizeText(value['vigenteHasta']) || null,
+    condicionesOferta: normalizeText(value['condicionesOferta']).slice(0, 500) || null,
+    activo: value['activo'] !== false,
+    publicado: value['publicado'] !== false
+  };
+}
+
 storeCatalogRouter.get('/ferreterias/by-owner/:ownerId', requireAuth, requireRole('ferreteria', 'admin'), async (req, res) => {
   if (!canAccessOwner(req, req.params.ownerId)) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para consultar esta ferreteria.', 403);
   const store = (await rows(COLLECTIONS.stores)).find((item) => item.usuarioDuenoId === req.params.ownerId);
@@ -76,7 +92,9 @@ storeCatalogRouter.post('/ferreterias/:storeId/catalogo', requireAuth, requireRo
     precioNuevo: created.precio,
     incluyeIva: created.incluyeIva,
     ocurridoEn: nowIso(),
-    source: 'ferreteria'
+    source: 'ferreteria',
+    snapshotAnterior: null,
+    snapshotNuevo: offerEvidence(created)
   });
   return ok(res, { ...created, productoMaestro: product }, 201);
 });
@@ -120,7 +138,9 @@ storeCatalogRouter.patch('/ferreterias/:storeId/catalogo/:offerId', requireAuth,
     precioNuevo: numberValue(updated?.precio),
     incluyeIva: updated?.incluyeIva !== false,
     ocurridoEn: nowIso(),
-    source: req.authRole === 'admin' ? 'admin' : 'ferreteria'
+    source: req.authRole === 'admin' ? 'admin' : 'ferreteria',
+    snapshotAnterior: offerEvidence(existing),
+    snapshotNuevo: offerEvidence(updated)
   });
   const product = await row(COLLECTIONS.masterProducts, existing.productoMaestroId);
   return ok(res, { ...updated, productoMaestro: product });
@@ -144,7 +164,9 @@ storeCatalogRouter.delete('/ferreterias/:storeId/catalogo/:offerId', requireAuth
     precioNuevo: null,
     incluyeIva: existing.incluyeIva !== false,
     ocurridoEn: nowIso(),
-    source: req.authRole === 'admin' ? 'admin' : 'ferreteria'
+    source: req.authRole === 'admin' ? 'admin' : 'ferreteria',
+    snapshotAnterior: offerEvidence(existing),
+    snapshotNuevo: null
   });
   await db.collection(COLLECTIONS.storeProducts).doc(req.params.offerId).delete();
   return ok(res, { deleted: true });

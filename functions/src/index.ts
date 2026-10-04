@@ -3,7 +3,7 @@ import cors from 'cors';
 import { onRequest } from 'firebase-functions/v2/https';
 import { mvpRouter } from './routes/mvp.routes.js';
 import { publicCatalogRouter } from './routes/public-catalog.routes.js';
-import { generalRateLimit, sensitiveWriteRateLimit, statusLookupRateLimit } from './lib/rate-limit.js';
+import { accountRateLimit, generalRateLimit, sensitiveWriteRateLimit, statusLookupRateLimit, writeRateLimit } from './lib/rate-limit.js';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -33,14 +33,42 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '256kb', strict: true }));
 app.use(generalRateLimit);
-app.use(['/solicitudes-contacto', '/api/solicitudes-contacto', '/ip-reports', '/api/ip-reports', '/price-reports', '/api/price-reports', '/marketing/unsubscribe', '/api/marketing/unsubscribe'], sensitiveWriteRateLimit);
-app.use(['/ip-reports/status', '/api/ip-reports/status'], statusLookupRateLimit);
+app.use((req, res, next) => {
+  const path = req.path.replace(/^\/api/, '');
+  if (req.method === 'POST' && path === '/ip-reports/status') return statusLookupRateLimit(req, res, next);
+  if (req.method === 'POST' && ['/solicitudes-contacto', '/ip-reports', '/price-reports', '/marketing/unsubscribe'].includes(path)) {
+    return sensitiveWriteRateLimit(req, res, next);
+  }
+  if (['POST', 'PATCH', 'PUT', 'DELETE'].includes(req.method)
+    && ['/auth/register', '/auth/logout', '/privacy/account', '/privacy/export'].includes(path)) {
+    return accountRateLimit(req, res, next);
+  }
+  if (['POST', 'PATCH', 'PUT', 'DELETE'].includes(req.method)) return writeRateLimit(req, res, next);
+  next();
+});
 
 // Supports Firebase Hosting rewrites (/api/**) and the direct function URL.
 app.use('/api', publicCatalogRouter);
 app.use('/', publicCatalogRouter);
 app.use('/api', mvpRouter);
 app.use('/', mvpRouter);
+
+app.use((error: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (error instanceof Error && error.message === 'CORS_ORIGIN_DENIED') {
+    res.status(403).json({ ok: false, error: { code: 'CORS_ORIGIN_DENIED', message: 'Origen no autorizado.' } });
+    return;
+  }
+  const bodyError = error as { type?: string; status?: number };
+  if (bodyError?.type === 'entity.too.large' || bodyError?.status === 413) {
+    res.status(413).json({ ok: false, error: { code: 'PAYLOAD_TOO_LARGE', message: 'La solicitud excede el tamaño permitido.' } });
+    return;
+  }
+  if (error instanceof SyntaxError && bodyError?.status === 400) {
+    res.status(400).json({ ok: false, error: { code: 'INVALID_JSON', message: 'El cuerpo JSON no es válido.' } });
+    return;
+  }
+  next(error);
+});
 
 app.use((_req, res) => {
   res.status(404).json({

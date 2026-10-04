@@ -54,6 +54,8 @@
         <a routerLink="/recuperar-clave" class="forgot-link" [class.is-disabled]="isSubmitting">Olvidé mi contraseña</a>
       </div>
 
+      <p class="legal-help">Usamos tus credenciales únicamente para autenticar y proteger tu cuenta. Firebase administra la contraseña. Consulta la <a routerLink="/privacidad">Política de privacidad</a>.</p>
+
       <button class="btn btn-primary btn-full" type="submit" [disabled]="isSubmitting">
         {{ isSubmitting ? 'Ingresando...' : 'Iniciar sesión' }}
       </button>

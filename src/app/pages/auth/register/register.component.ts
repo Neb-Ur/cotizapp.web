@@ -32,8 +32,8 @@ export class RegisterComponent {
       Validators.maxLength(128),
       Validators.pattern(RegisterComponent.STRONG_PASSWORD)
     ]],
-    phone: ['', [Validators.required, Validators.minLength(8)]],
-    commune: ['', [Validators.required, Validators.minLength(2)]],
+    phone: [''],
+    commune: [''],
     termsAccepted: [false, Validators.requiredTrue],
     privacyAcknowledged: [false, Validators.requiredTrue],
     ageConfirmed: [false, Validators.requiredTrue],

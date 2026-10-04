@@ -1,10 +1,11 @@
 import { randomBytes } from 'node:crypto';
 import { Router } from 'express';
+import { db } from '../lib/firebase.js';
 import { COLLECTIONS } from '../lib/collections.js';
 import { requireAuth, requireRole } from '../lib/auth.js';
 import { fail, ok } from '../lib/http.js';
 import { normalizeText, nowIso, numberValue } from '../lib/values.js';
-import { createRow, patchRow, row, rows } from '../repositories/firestore.repository.js';
+import { createRow, deleteRowsByIds, patchRow, row, rows } from '../repositories/firestore.repository.js';
 
 export const priceReportsRouter = Router();
 
@@ -23,17 +24,27 @@ priceReportsRouter.post('/price-reports', async (req, res) => {
     || !/^https?:\/\//i.test(contentUrl) || displayedPrice < 0 || observedPrice < 0 || details.length < 10) {
     return fail(res, 'PRICE_REPORT_INVALID', 'Revisa la oferta, los precios, el correo y la descripción.', 400);
   }
+  const offer = await row(COLLECTIONS.storeProducts, offerId);
+  if (!offer || offer.ferreteriaId !== storeId) {
+    return fail(res, 'PRICE_REPORT_OFFER_NOT_FOUND', 'La oferta informada ya no está disponible.', 404);
+  }
+  const [store, product] = await Promise.all([
+    row(COLLECTIONS.stores, storeId),
+    row(COLLECTIONS.masterProducts, offer.productoMaestroId)
+  ]);
+  if (!store || !product) return fail(res, 'PRICE_REPORT_OFFER_NOT_FOUND', 'La oferta informada ya no está disponible.', 404);
 
   const reference = `PRECIO-${new Date().getUTCFullYear()}-${randomBytes(4).toString('hex').toUpperCase()}`;
   const created = await createRow(COLLECTIONS.priceReports, {
     reference,
     email,
-    productName,
-    storeName,
+    productName: normalizeText(product.nombre) || productName,
+    storeName: normalizeText(store.nombreComercial) || storeName,
     storeId,
     offerId,
     contentUrl,
     displayedPrice,
+    catalogPriceAtReport: numberValue(offer.precio),
     observedPrice,
     details,
     status: 'recibido',
@@ -79,8 +90,20 @@ priceReportsRouter.patch('/admin/price-reports/:id', requireAuth, requireRole('a
       incluyeIva: offer.incluyeIva !== false,
       ocurridoEn: changedAt,
       source: 'admin',
-      priceReportId: req.params.id
+      priceReportId: req.params.id,
+      snapshotAnterior: {
+        precio: numberValue(offer.precio), stock: numberValue(offer.stock), incluyeIva: offer.incluyeIva !== false,
+        vigenteDesde: offer.vigenteDesde || null, vigenteHasta: offer.vigenteHasta || null,
+        condicionesOferta: offer.condicionesOferta || null, activo: offer.activo !== false, publicado: offer.publicado !== false
+      },
+      snapshotNuevo: {
+        precio: correctedPrice, stock: numberValue(offer.stock), incluyeIva: offer.incluyeIva !== false,
+        vigenteDesde: offer.vigenteDesde || null, vigenteHasta: offer.vigenteHasta || null,
+        condicionesOferta: offer.condicionesOferta || null, activo: offer.activo !== false, publicado: offer.publicado !== false
+      }
     });
+    const publicCache = await db.collection(COLLECTIONS.publicCache).get();
+    await deleteRowsByIds(COLLECTIONS.publicCache, publicCache.docs.map((document) => document.id));
   }
 
   const updated = await patchRow(COLLECTIONS.priceReports, req.params.id, {

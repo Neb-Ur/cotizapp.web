@@ -23,8 +23,8 @@ contactRouter.post('/solicitudes-contacto', async (req, res) => {
   if (!validTypes.includes(type) || name.length < 2 || !/^\S+@\S+\.\S+$/.test(email) || message.length < 8) {
     return fail(res, 'CONTACT_INVALID_PAYLOAD', 'Revisa los datos de la solicitud.', 400);
   }
-  if (type === 'ferreteria' && (!businessName || !phone || !commune)) {
-    return fail(res, 'CONTACT_STORE_DATA_REQUIRED', 'Completa los datos de la ferreteria.', 400);
+  if (type === 'ferreteria' && !businessName) {
+    return fail(res, 'CONTACT_STORE_DATA_REQUIRED', 'Completa el nombre de la ferretería.', 400);
   }
 
   await createRow(COLLECTIONS.contactRequests, {

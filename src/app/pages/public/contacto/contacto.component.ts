@@ -84,8 +84,8 @@ export class ContactoComponent implements OnInit {
   private syncStoreValidators(): void {
     const validators = this.isStoreRequest ? [Validators.required, Validators.minLength(2)] : [];
     this.form.controls.businessName.setValidators(validators);
-    this.form.controls.phone.setValidators(this.isStoreRequest ? [Validators.required, Validators.minLength(8)] : []);
-    this.form.controls.commune.setValidators(validators);
+    this.form.controls.phone.clearValidators();
+    this.form.controls.commune.clearValidators();
     this.form.controls.businessName.updateValueAndValidity({ emitEvent: false });
     this.form.controls.phone.updateValueAndValidity({ emitEvent: false });
     this.form.controls.commune.updateValueAndValidity({ emitEvent: false });

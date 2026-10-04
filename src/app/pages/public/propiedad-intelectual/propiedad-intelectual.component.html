@@ -66,6 +66,7 @@
       <span class="eyebrow">Canal formal</span>
       <h2>Denunciar contenido</h2>
       <p>Usa este formulario solamente si eres titular del derecho o representante autorizado. No adjuntes documentos de identidad; podremos pedir antecedentes por un canal seguro si son necesarios.</p>
+      <p>Usaremos la información para verificar el reclamo, contactar a las partes y conservar evidencia de la decisión. Revisa los destinatarios y plazos en la <a routerLink="/privacidad">Política de privacidad</a>.</p>
 
       <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="submitting">
         <label>Nombre completo<input formControlName="claimantName" autocomplete="name" /></label>
