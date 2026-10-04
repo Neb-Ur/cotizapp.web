@@ -1,3 +1,4 @@
+import { DataModeService } from '../../core/services/data-mode.service';
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -335,7 +336,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   private catalogTaxonomyLoaded = false;
   private readonly loadedSections = new Set<AdminSection>();
 
-  constructor(
+  constructor(protected readonly dataMode: DataModeService,
     private readonly apiService: FirebaseDataService,
     private readonly authService: AuthService,
     private readonly privacyDataService: PrivacyDataService,

@@ -37,7 +37,7 @@ projectsRouter.post('/maestros/:ownerId/proyectos', requireAuth, requireRole('ma
   };
   const ref = db.collection(COLLECTIONS.projects).doc();
   const created = await db.runTransaction(async tx => {
-    const lock = db.collection('projectOwnerLocks').doc(req.params.ownerId);
+    const lock = db.collection(COLLECTIONS.projectOwnerLocks).doc(req.params.ownerId);
     await tx.get(lock);
     const existing = await tx.get(db.collection(COLLECTIONS.projects).where('ownerId', '==', req.params.ownerId));
     if (existing.size >= 2) return null;

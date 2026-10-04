@@ -20,6 +20,12 @@
 
   <section class="content">
     <article class="content-header">
+      <div class="data-mode-controls">
+        <button type="button" class="data-mode-toggle" [class.active]="dataMode.mode() === 'demo'"
+          [attr.aria-pressed]="dataMode.mode() === 'demo'" (click)="dataMode.toggleDemo()">Demo</button>
+        <span>{{ dataMode.mode() === 'demo' ? 'Datos de demostración' : 'Datos reales' }}</span>
+        <small>Catálogo base y ciudades compartidos</small>
+      </div>
       <div class="title-row">
         <div>
           <h1>{{ currentSectionLabel }}</h1>

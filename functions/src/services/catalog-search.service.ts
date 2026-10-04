@@ -1,3 +1,4 @@
+import { dataMode } from '../lib/data-mode.js';
 import { rows } from '../repositories/firestore.repository.js';
 import { COLLECTIONS } from '../lib/collections.js';
 import { coordinateValue, inferMeasurementFromLabel, normalizeText, numberValue, pricePerMeasurement } from '../lib/values.js';
@@ -36,9 +37,9 @@ export async function buildSearchRows(): Promise<SearchRow[]> {
         || !owner
         || product.estado === 'inactivo'
         || store.estado === 'inactivo'
-        || store.contratoEstado !== 'vigente'
-        || store.contratoVersion !== CURRENT_STORE_AGREEMENT_VERSION
-        || store.contratoDocumentHash !== storeAgreementDocumentHash()
+        || (dataMode() !== 'demo' && (store.contratoEstado !== 'vigente'
+          || store.contratoVersion !== CURRENT_STORE_AGREEMENT_VERSION
+          || store.contratoDocumentHash !== storeAgreementDocumentHash()))
         || owner.estadoCuenta !== 'activo'
       ) return null;
 

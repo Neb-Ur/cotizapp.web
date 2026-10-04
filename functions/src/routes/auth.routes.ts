@@ -1,3 +1,4 @@
+import { dataMode } from '../lib/data-mode.js';
 import { Router } from 'express';
 import { adminAuth, db } from '../lib/firebase.js';
 import { requireAuth } from '../lib/auth.js';
@@ -27,6 +28,7 @@ authRouter.post('/auth/register', requireAuth, async (req, res) => {
   const firebaseUser = await adminAuth.getUser(req.authUserId);
   const userPayload = {
     rol: role,
+    dataMode: dataMode(),
     nombre: normalizeText(req.body?.nombre),
     correo: (firebaseUser.email || normalizeText(req.body?.correo)).toLowerCase(),
     telefono: normalizeText(req.body?.telefono),

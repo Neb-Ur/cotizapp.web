@@ -323,6 +323,7 @@ function priceMeasureForName(name) {
 for (const store of storeAuth) {
   await setDoc(db.collection('usuarios').doc(store.uid), {
     rol: 'ferreteria',
+    dataMode: 'demo',
     nombre: store.nombre,
     correo: store.correo,
     telefono: '+56900000000',
@@ -393,6 +394,7 @@ await setDoc(db.collection('usuarios').doc(adminAuthUser.uid), {
 
 await setDoc(db.collection('usuarios').doc(maestroAuthUser.uid), {
   rol: 'maestro',
+  dataMode: 'demo',
   nombre: 'Maestro Demo',
   correo: 'maestro@demo.cl',
   telefono: '+56900000000',

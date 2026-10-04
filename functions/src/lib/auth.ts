@@ -1,3 +1,4 @@
+import { dataMode, profileBelongsToMode } from './data-mode.js';
 import type { NextFunction, Request, Response } from 'express';
 import { adminAuth, db } from './firebase.js';
 import { fail } from './http.js';
@@ -40,8 +41,14 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       : undefined;
     const profile = await db.collection('usuarios').doc(decoded.uid).get();
     if (profile.exists) {
+      if (!profileBelongsToMode(profile.data()!)) {
+        fail(res, 'AUTH_DATA_MODE_MISMATCH', 'Esta cuenta pertenece a otro entorno.', 403);
+        return;
+      }
       // Seeded fixtures must never provide access to a production API.
       if (process.env['FUNCTIONS_EMULATOR'] !== 'true' && !process.env['FIREBASE_AUTH_EMULATOR_HOST']
+        && profile.data()?.['rol'] !== 'admin'
+        && dataMode() !== 'demo'
         && profile.data()?.['seedTag'] === 'pilot-catalog-auth-v3-2026-09-30'
         && decoded.email?.toLowerCase().endsWith('@demo.cl')) {
         fail(res, 'AUTH_DEMO_ACCOUNT_DISABLED', 'Las cuentas de demostración no tienen acceso a esta aplicación.', 403);

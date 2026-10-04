@@ -1,4 +1,6 @@
 import { vi, type Mock, type Mocked } from 'vitest';
+import { signal } from '@angular/core';
+import { DataModeService } from './core/services/data-mode.service';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { AppComponent } from './app.component';
@@ -10,6 +12,7 @@ describe('AppComponent', () => {
       imports: [AppComponent],
       providers: [
         provideRouter([]),
+        { provide: DataModeService, useValue: { mode: signal('real') } },
         { provide: AuthService, useValue: { currentUser: () => null } }
       ]
     }).compileComponents();

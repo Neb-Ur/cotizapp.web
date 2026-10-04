@@ -1,5 +1,6 @@
+import { collectionForMode } from './data-mode.js';
 
-export const COLLECTIONS = {
+const names = {
   users: 'usuarios',
   stores: 'ferreterias',
   categories: 'categorias',
@@ -23,5 +24,14 @@ export const COLLECTIONS = {
   securityIncidents: 'registroIncidentesSeguridad',
   intellectualPropertyReports: 'denunciasPropiedadIntelectual',
   governanceEvidence: 'evidenciasGobiernoDatos',
-  publicCache: 'cachePublico'
+  publicCache: 'cachePublico',
+  storeMetrics: 'storeMetrics',
+  projectOwnerLocks: 'projectOwnerLocks'
 } as const;
+
+export const COLLECTIONS = new Proxy(names, {
+  get(target, property) {
+    return typeof property === 'string' && property in target
+      ? collectionForMode(target[property as keyof typeof names]) : Reflect.get(target, property);
+  }
+});

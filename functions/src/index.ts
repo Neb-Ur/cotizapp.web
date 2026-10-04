@@ -1,3 +1,4 @@
+import { dataModeMiddleware, dataMode, defaultDataMode } from './lib/data-mode.js';
 import { forwardAsyncErrors } from './lib/async-errors.js';
 import { storeMetricsRouter } from './routes/store-metrics.routes.js';
 import { publicPagesRouter } from './routes/public-pages.routes.js';
@@ -31,7 +32,7 @@ app.use(cors({
     return callback(new Error('CORS_ORIGIN_DENIED'));
   },
   methods: ['GET', 'HEAD', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Authorization', 'Content-Type'],
+  allowedHeaders: ['Authorization', 'Content-Type', 'X-Data-Mode'],
   maxAge: 3600
 }));
 app.use(express.json({ limit: '256kb', strict: true }));
@@ -48,6 +49,12 @@ app.use((req, res, next) => {
   }
   if (['POST', 'PATCH', 'PUT', 'DELETE'].includes(req.method)) return writeRateLimit(req, res, next);
   next();
+});
+
+app.use(dataModeMiddleware);
+app.get(['/api/config', '/config'], (_req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json({ ok: true, data: { demo: dataMode() === 'demo', defaultDemo: defaultDataMode() === 'demo' } });
 });
 
 // Supports Firebase Hosting rewrites (/api/**) and the direct function URL.
@@ -103,6 +110,8 @@ export const api = onRequest(
 
 export {
   publicCacheOnStoreProductWrite,
+  publicCacheOnRealStoreProductWrite,
+  publicCacheOnRealStoreWrite,
   publicCacheOnMasterProductWrite,
   publicCacheOnCategoryWrite,
   publicCacheOnSubcategoryWrite,

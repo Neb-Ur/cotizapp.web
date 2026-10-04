@@ -1,3 +1,6 @@
+import { rows } from '../repositories/firestore.repository.js';
+import { COLLECTIONS } from './collections.js';
+import { dataMode } from './data-mode.js';
 import { buildSearchRows } from '../services/catalog-search.service.js';
 import { randomUUID } from 'node:crypto';
 import type { DocumentReference } from 'firebase-admin/firestore';
@@ -19,29 +22,20 @@ export type PublicCatalogSnapshot = {
   searchRows: PublicSearchRow[];
 };
 
-const COLLECTIONS = {
-  users: 'usuarios',
-  stores: 'ferreterias',
-  categories: 'categorias',
-  subcategories: 'subcategorias',
-  families: 'familias',
-  masterProducts: 'productosMaestro',
-  storeProducts: 'productosFerreteria',
-  publicCache: 'cachePublico'
-} as const;
+
 
 const META_ID = 'meta';
 const CHUNK_SIZE = 150;
-const CACHE_POLICY = `final-prices-v3:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}`;
+const CACHE_POLICY = `data-modes-v1:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}`;
 const MAX_AGE_MS = 60_000;
 function fresh(meta: any): boolean {
   return meta?.policy === CACHE_POLICY && Date.now() - Date.parse(meta.updatedAt || '') < MAX_AGE_MS;
 }
-let rebuildPromise: Promise<PublicCatalogSnapshot> | null = null;
-let memorySnapshot: PublicCatalogSnapshot | null = null;
+const rebuildPromises = new Map<string, Promise<PublicCatalogSnapshot>>();
+const memorySnapshots = new Map<string, PublicCatalogSnapshot>();
 
 function rememberSnapshot(snapshot: PublicCatalogSnapshot): PublicCatalogSnapshot {
-  memorySnapshot = snapshot;
+  memorySnapshots.set(dataMode(), snapshot);
   return snapshot;
 }
 
@@ -62,11 +56,6 @@ function coordinateValue(value: unknown, min: number, max: number): number | nul
   if (value === undefined || value === null || value === '') return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed >= min && parsed <= max ? parsed : null;
-}
-
-async function rows(collectionName: string): Promise<any[]> {
-  const snapshot = await db.collection(collectionName).get();
-  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
 
 
@@ -105,7 +94,7 @@ async function materializeSnapshot(): Promise<PublicCatalogSnapshot> {
     .filter((item) => item.estado !== 'inactivo')
     .map((item) => ({
       id: item.id,
-      isDemo: /demo|test/i.test(String(item.seedTag || '')) || /demostrativ|generad.*pruebas/i.test(String(item.descripcionLarga || '')),
+      isDemo: dataMode() === 'demo',
       categoriaId: item.categoriaId,
       subcategoriaId: item.subcategoriaId,
       familiaId: item.familiaId,
@@ -187,9 +176,11 @@ async function materializeSnapshot(): Promise<PublicCatalogSnapshot> {
 }
 
 async function rebuildPublicCatalogCache(): Promise<PublicCatalogSnapshot> {
-  if (rebuildPromise) return rebuildPromise;
+  const mode = dataMode();
+  const existing = rebuildPromises.get(mode);
+  if (existing) return existing;
 
-  rebuildPromise = (async () => {
+  const rebuildPromise = (async () => {
     let latest: PublicCatalogSnapshot | null = null;
 
     for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -205,10 +196,11 @@ async function rebuildPublicCatalogCache(): Promise<PublicCatalogSnapshot> {
     return latest;
   })();
 
+  rebuildPromises.set(mode, rebuildPromise);
   try {
     return await rebuildPromise;
   } finally {
-    rebuildPromise = null;
+    rebuildPromises.delete(mode);
   }
 }
 
@@ -292,6 +284,7 @@ export async function getPublicCatalogSnapshot(
   const meta = metaSnapshot.exists ? metaSnapshot.data() as any : null;
 
   if (meta?.version && meta?.taxonomyDocId && meta.dirty === false && fresh(meta)) {
+    const memorySnapshot = memorySnapshots.get(dataMode());
     if (memorySnapshot?.version === String(meta.version)) return memorySnapshot;
     return readPublishedSnapshot(meta);
   }

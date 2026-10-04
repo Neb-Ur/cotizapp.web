@@ -1,3 +1,4 @@
+import { DataModeService } from './data-mode.service';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable, NgZone, computed, signal } from '@angular/core';
 import {
@@ -93,7 +94,8 @@ export class AuthService {
 
   constructor(
     private readonly http: HttpClient,
-    private readonly ngZone: NgZone
+    private readonly ngZone: NgZone,
+    private readonly dataMode: DataModeService | null = null
   ) {
     this.restoreCachedSession();
     this.sessionReadyPromise = this.ngZone.runOutsideAngular(() => this.initializeFirebaseSession());
@@ -438,6 +440,7 @@ export class AuthService {
     try {
       const cached = JSON.parse(raw) as { user: SessionUser; token: string };
       if (cached?.user?.email && cached?.token) {
+        this.dataMode?.setAccount(cached.user.id, cached.user.role);
         this.currentUserState.set(cached.user);
         this.tokenState.set(cached.token);
       }
@@ -447,6 +450,7 @@ export class AuthService {
   }
 
   private setSession(user: SessionUser, token: string, mode: StorageMode): void {
+    this.dataMode?.setAccount(user.id, user.role);
     this.storageMode = mode;
     this.currentUserState.set(user);
     this.tokenState.set(token);
@@ -468,6 +472,7 @@ export class AuthService {
   }
 
   private clearSession(): void {
+    this.dataMode?.setAccount('', '');
     this.currentUserState.set(null);
     this.tokenState.set(null);
     this.sessionVerifiedState.set(false);
@@ -489,7 +494,7 @@ export class AuthService {
   }
 
   private authHeaders(token: string): HttpHeaders {
-    return new HttpHeaders({ Authorization: `Bearer ${token}` });
+    return this.dataMode?.requestHeaders(token) || new HttpHeaders({ Authorization: `Bearer ${token}` });
   }
 
   private async fetchCurrentUser(token: string): Promise<SessionUser> {

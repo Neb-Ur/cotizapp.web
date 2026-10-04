@@ -1,8 +1,9 @@
+import { collectionForMode } from '../../lib/lib/data-mode.js';
 import { db } from '../../lib/lib/firebase.js';
 
 // In-memory Firestore boundary: production services run unchanged, with no network.
 export function firestoreFixture(t, seed = {}) {
-  const data = new Map(Object.entries(seed).map(([name, docs]) => [name, new Map(Object.entries(docs))]));
+  const data = new Map(Object.entries(seed).map(([name, docs]) => [collectionForMode(name), new Map(Object.entries(docs))]));
   let sequence = 0;
   const table = name => { if (!data.has(name)) data.set(name, new Map()); return data.get(name); };
   const snapshot = ref => ({ id: ref.id, exists: table(ref.name).has(ref.id), data: () => structuredClone(table(ref.name).get(ref.id)) });
@@ -25,7 +26,7 @@ export function firestoreFixture(t, seed = {}) {
   t.mock.method(db, 'collection', collection);
   t.mock.method(db, 'batch', () => {
     const operations = [];
-    return { delete: ref => operations.push(() => ref.delete()), update: (ref, value) => operations.push(() => ref.update(value)), commit: async () => { for (const op of operations) await op(); } };
+    return { set: (ref, value, options) => operations.push(() => ref.set(value, options)), delete: ref => operations.push(() => ref.delete()), update: (ref, value) => operations.push(() => ref.update(value)), commit: async () => { for (const op of operations) await op(); } };
   });
   t.mock.method(db, 'runTransaction', async callback => {
     const operations = [];
@@ -33,10 +34,11 @@ export function firestoreFixture(t, seed = {}) {
     const result = await callback({
       get: async ref => { if (writing) throw new Error('Transaction read after write'); return ref.get(); },
       create: (ref, value) => { writing = true; operations.push(async () => { if (table(ref.name).has(ref.id)) throw new Error('Already exists'); await ref.set(value); }); },
+      set: (ref, value, options) => { writing = true; operations.push(() => ref.set(value, options)); },
       update: (ref, value) => { writing = true; operations.push(() => ref.update(value)); }
     });
     for (const operation of operations) await operation();
     return result;
   });
-  return { rows: name => [...table(name)].map(([id, value]) => ({ id, ...structuredClone(value) })), get: (name, id) => structuredClone(table(name).get(id)) };
+  return { rows: name => [...table(collectionForMode(name))].map(([id, value]) => ({ id, ...structuredClone(value) })), get: (name, id) => structuredClone(table(collectionForMode(name)).get(id)) };
 }

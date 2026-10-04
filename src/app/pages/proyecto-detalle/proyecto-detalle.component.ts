@@ -1,3 +1,4 @@
+import { DataModeService } from '../../core/services/data-mode.service';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -28,7 +29,7 @@ import { shareQuotationPdf, downloadQuotationPdf } from '../../core/utils/quotat
   styleUrl: './proyecto-detalle.component.scss'
 })
 export class ProyectoDetalleComponent implements OnInit {
-  private get draftStorageKey(): string { return `cotizapp-project-draft:${this.user?.id || 'guest'}`; }
+  private get draftStorageKey(): string { return `cotizapp-project-draft:${this.dataMode.mode()}:${this.user?.id || 'guest'}`; }
   protected projectId = '';
   protected isNewProject = true;
   protected projectName = '';
@@ -44,7 +45,7 @@ export class ProyectoDetalleComponent implements OnInit {
   protected locationError = '';
   protected isLocating = false;
 
-  constructor(
+  constructor(private readonly dataMode: DataModeService,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly authService: AuthService,

@@ -1,3 +1,4 @@
+import { DataModeService } from './data-mode.service';
 import { findExactMasterMatch } from '../utils/catalog-match.util';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, signal } from '@angular/core';
@@ -173,7 +174,8 @@ export class FirebaseDataService {
 
   constructor(
     private readonly apiClient: ApiClientService,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private readonly dataMode: DataModeService | null = null
   ) {}
 
   async refreshMaestroData(ownerId: string): Promise<void> {
@@ -1452,7 +1454,7 @@ export class FirebaseDataService {
 
       const detail: ProductDetailView = {
         productoMaestroId: master.id,
-        isDemo: /demo|test/i.test(String(master.seedTag || '')) || /demostrativ|generad.*pruebas/i.test(String(master.descripcionLarga || '')),
+        isDemo: master.isDemo ?? (/demo|test/i.test(String(master.seedTag || '')) || /demostrativ|generad.*pruebas/i.test(String(master.descripcionLarga || ''))),
         productName: master.nombre,
         imageUrl: master.imagenPrincipalUrl || 'https://via.placeholder.com/600x420?text=Producto',
         gallery: Array.isArray(master.galeriaJson) && master.galeriaJson.length > 0
@@ -1613,22 +1615,26 @@ export class FirebaseDataService {
     });
   }
 
+  private get publicCatalogStorageKey(): string {
+    return `${PUBLIC_CATALOG_STORAGE_KEY}:${this.dataMode?.mode() || 'real'}`;
+  }
+
   private restorePublicCatalogBrowserCache(): boolean {
     if (typeof localStorage === 'undefined') return false;
 
     try {
       localStorage.removeItem(LEGACY_PUBLIC_CATALOG_STORAGE_KEY);
-      const raw = localStorage.getItem(PUBLIC_CATALOG_STORAGE_KEY);
+      const raw = localStorage.getItem(this.publicCatalogStorageKey);
       if (!raw) return false;
       const snapshot = JSON.parse(raw) as PublicCatalogSnapshotApi;
       if (!this.isUsablePublicCatalogSnapshot(snapshot) || Date.now() - Date.parse(snapshot.updatedAt || '') > 60_000) {
-        localStorage.removeItem(PUBLIC_CATALOG_STORAGE_KEY);
+        localStorage.removeItem(this.publicCatalogStorageKey);
         return false;
       }
       this.applyPublicCatalogSnapshot(snapshot);
       return true;
     } catch {
-      localStorage.removeItem(PUBLIC_CATALOG_STORAGE_KEY);
+      localStorage.removeItem(this.publicCatalogStorageKey);
       return false;
     }
   }
@@ -1643,7 +1649,7 @@ export class FirebaseDataService {
 
     if (typeof localStorage !== 'undefined') {
       try {
-        localStorage.setItem(PUBLIC_CATALOG_STORAGE_KEY, JSON.stringify(snapshot));
+        localStorage.setItem(this.publicCatalogStorageKey, JSON.stringify(snapshot));
       } catch {
         // Browser storage is optional; server-side cache remains authoritative.
       }

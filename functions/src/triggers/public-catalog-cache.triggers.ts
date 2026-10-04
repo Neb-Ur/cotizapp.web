@@ -1,43 +1,16 @@
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { markPublicCatalogDirty } from '../lib/public-catalog-cache.js';
-
+import { withDataMode } from '../lib/data-mode.js';
 const region = 'southamerica-west1';
-
-async function invalidate(): Promise<void> {
-  await markPublicCatalogDirty();
-}
-
-export const publicCacheOnStoreProductWrite = onDocumentWritten(
-  { document: 'productosFerreteria/{documentId}', region },
-  invalidate
-);
-
-export const publicCacheOnMasterProductWrite = onDocumentWritten(
-  { document: 'productosMaestro/{documentId}', region },
-  invalidate
-);
-
-export const publicCacheOnCategoryWrite = onDocumentWritten(
-  { document: 'categorias/{documentId}', region },
-  invalidate
-);
-
-export const publicCacheOnSubcategoryWrite = onDocumentWritten(
-  { document: 'subcategorias/{documentId}', region },
-  invalidate
-);
-
-export const publicCacheOnFamilyWrite = onDocumentWritten(
-  { document: 'familias/{documentId}', region },
-  invalidate
-);
-
-export const publicCacheOnStoreWrite = onDocumentWritten(
-  { document: 'ferreterias/{documentId}', region },
-  invalidate
-);
-
-export const publicCacheOnUserWrite = onDocumentWritten(
-  { document: 'usuarios/{documentId}', region },
-  invalidate
-);
+const invalidateDemo = () => withDataMode('demo', markPublicCatalogDirty);
+const invalidateReal = () => withDataMode('real', markPublicCatalogDirty);
+const invalidateShared = async () => { await Promise.all([invalidateDemo(), invalidateReal()]); };
+export const publicCacheOnStoreProductWrite = onDocumentWritten({ document: 'productosFerreteria/{documentId}', region }, invalidateDemo);
+export const publicCacheOnRealStoreProductWrite = onDocumentWritten({ document: 'real_productosFerreteria/{documentId}', region }, invalidateReal);
+export const publicCacheOnMasterProductWrite = onDocumentWritten({ document: 'productosMaestro/{documentId}', region }, invalidateShared);
+export const publicCacheOnCategoryWrite = onDocumentWritten({ document: 'categorias/{documentId}', region }, invalidateShared);
+export const publicCacheOnSubcategoryWrite = onDocumentWritten({ document: 'subcategorias/{documentId}', region }, invalidateShared);
+export const publicCacheOnFamilyWrite = onDocumentWritten({ document: 'familias/{documentId}', region }, invalidateShared);
+export const publicCacheOnStoreWrite = onDocumentWritten({ document: 'ferreterias/{documentId}', region }, invalidateDemo);
+export const publicCacheOnRealStoreWrite = onDocumentWritten({ document: 'real_ferreterias/{documentId}', region }, invalidateReal);
+export const publicCacheOnUserWrite = onDocumentWritten({ document: 'usuarios/{documentId}', region }, invalidateShared);

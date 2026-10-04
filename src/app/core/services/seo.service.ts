@@ -1,3 +1,4 @@
+import { DataModeService } from './data-mode.service';
 import { DOCUMENT } from '@angular/common';
 import { Inject, Injectable } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
@@ -81,7 +82,7 @@ const PAGE_SEO: Record<string, SeoPage> = {
 
 @Injectable({ providedIn: 'root' })
 export class SeoService {
-  constructor(
+  constructor(private readonly dataMode: DataModeService,
     private readonly router: Router,
     private readonly title: Title,
     private readonly meta: Meta,
@@ -165,7 +166,7 @@ export class SeoService {
   ): void {
     image = image || `${SITE_URL}/assets/home-hero-construction.webp`;
     const canonicalUrl = `${SITE_URL}${canonicalPath === '/' ? '' : canonicalPath}`;
-    const shouldIndex = page.index !== false && !forcePrivate;
+    const shouldIndex = this.dataMode.mode() !== 'demo' && page.index !== false && !forcePrivate;
 
     this.title.setTitle(page.title);
     this.meta.updateTag({ name: 'description', content: page.description });

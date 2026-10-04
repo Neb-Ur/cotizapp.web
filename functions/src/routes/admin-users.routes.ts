@@ -1,3 +1,4 @@
+import { dataMode } from '../lib/data-mode.js';
 import { Router } from 'express';
 import { adminAuth, db } from '../lib/firebase.js';
 import { requireAuth, requireRole } from '../lib/auth.js';
@@ -41,6 +42,7 @@ adminUsersRouter.post('/admin/usuarios', requireAuth, requireRole('admin'), asyn
   });
   await db.collection(COLLECTIONS.users).doc(firebaseUser.uid).set({
     rol: role,
+    dataMode: dataMode(),
     nombre: normalizeText(req.body?.nombre),
     correo: normalizeText(req.body?.correo).toLowerCase(),
     telefono: normalizeText(req.body?.telefono),

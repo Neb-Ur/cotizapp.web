@@ -1,3 +1,4 @@
+import { DataModeService } from './data-mode.service';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
@@ -18,11 +19,11 @@ interface ApiEnvelope<T> {
 export class ApiClientService {
   private readonly apiBaseUrl = API_BASE_URL;
 
-  constructor(private readonly http: HttpClient, private readonly authService: AuthService) {}
+  constructor(private readonly http: HttpClient, private readonly authService: AuthService, private readonly dataMode: DataModeService | null = null) {}
 
   private headers(requireAuth: boolean): HttpHeaders {
     if (!requireAuth) {
-      return new HttpHeaders();
+      return this.dataMode?.requestHeaders(this.authService.getToken(), false) || new HttpHeaders();
     }
 
     const token = this.authService.getToken();
@@ -30,7 +31,7 @@ export class ApiClientService {
       throw new Error('No hay sesion activa para llamar al backend.');
     }
 
-    return new HttpHeaders({ Authorization: `Bearer ${token}` });
+    return this.dataMode?.requestHeaders(token) || new HttpHeaders({ Authorization: `Bearer ${token}` });
   }
 
   async get<T>(path: string, requireAuth = false, query?: Record<string, string | number | undefined>): Promise<T> {
