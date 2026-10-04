@@ -47,6 +47,7 @@
       <aside class="purchase-panel">
         <p class="brand">{{ product.brand }}</p>
         <h1>{{ product.productName }}</h1>
+        <p *ngIf="product.isDemo" role="note">Ficha de demostración: no representa una oferta comercial confirmada.</p>
         <p class="sku">SKU {{ product.sku }}</p>
         <p class="type">{{ product.productType }}</p>
         <p class="price-range" *ngIf="displayStores.length > 0">{{ formatCurrency(visibleMinPrice) }} - {{ formatCurrency(visibleMaxPrice) }}</p>

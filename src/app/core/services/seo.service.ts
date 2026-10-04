@@ -102,6 +102,7 @@ export class SeoService {
     const image = this.validImage(product.imageUrl) ? product.imageUrl : undefined;
     const page: SeoPage = {
       title: `${product.productName}: precios en ferreterías | CotizApp`,
+      index: !product.isDemo,
       description
     };
 

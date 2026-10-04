@@ -303,6 +303,7 @@ export interface ProductExtraSection {
 }
 
 export interface ProductDetailView {
+  isDemo?: boolean;
   productoMaestroId?: string;
   productName: string;
   imageUrl: string;

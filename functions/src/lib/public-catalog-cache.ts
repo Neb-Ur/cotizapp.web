@@ -105,6 +105,7 @@ async function materializeSnapshot(): Promise<PublicCatalogSnapshot> {
     .filter((item) => item.estado !== 'inactivo')
     .map((item) => ({
       id: item.id,
+      isDemo: /demo|test/i.test(String(item.seedTag || '')) || /demostrativ|generad.*pruebas/i.test(String(item.descripcionLarga || '')),
       categoriaId: item.categoriaId,
       subcategoriaId: item.subcategoriaId,
       familiaId: item.familiaId,
