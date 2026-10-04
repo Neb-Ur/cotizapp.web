@@ -1,4 +1,8 @@
 <main class="dashboard">
+  <div *ngIf="dataLoadError" class="data-load-error" role="alert">
+    <p>{{ dataLoadError }}</p>
+    <button type="button" (click)="retryDataLoad()">Reintentar carga</button>
+  </div>
   <header class="store-header">
     <button *ngIf="isMobileViewport" type="button" class="menu-toggle menu-icon" (click)="toggleMobileMenu()" aria-label="Abrir menu">
       <span></span><span></span><span></span>
@@ -189,8 +193,8 @@
       </div>
 
       <ng-template #emptyCatalog>
-        <p *ngIf="catalog.length === 0">Aun no tienes productos. CotizApp puede cargarlos por ti o puedes agregarlos desde "Agregar productos".</p>
-        <p *ngIf="catalog.length > 0">No hay resultados para la búsqueda.</p>
+        <p *ngIf="catalog.length === 0 && !dataLoadError">Aun no tienes productos. CotizApp puede cargarlos por ti o puedes agregarlos desde "Agregar productos".</p>
+        <p *ngIf="catalog.length > 0 && !dataLoadError">No hay resultados para la búsqueda.</p>
       </ng-template>
 
       <p-paginator

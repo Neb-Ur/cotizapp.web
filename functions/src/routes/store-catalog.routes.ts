@@ -59,9 +59,7 @@ storeCatalogRouter.post('/ferreterias/:storeId/catalogo', requireAuth, requireRo
   const masterId = normalizeText(req.body?.productoMaestroId);
   const product = await row(COLLECTIONS.masterProducts, masterId);
   if (!product) return fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro indicado.', 404);
-  const current = (await rows(COLLECTIONS.storeProducts)).find((item) => item.ferreteriaId === req.params.storeId && item.productoMaestroId === masterId);
-  if (current) return fail(res, 'CATALOGO_ALREADY_LINKED', 'El producto ya esta vinculado en la ferreteria.', 409);
-  const created = await createRow(COLLECTIONS.storeProducts, {
+  const offerPayload = {
     ferreteriaId: req.params.storeId,
     productoMaestroId: masterId,
     skuFerreteria: normalizeText(req.body?.skuFerreteria),
@@ -81,7 +79,19 @@ storeCatalogRouter.post('/ferreterias/:storeId/catalogo', requireAuth, requireRo
     publicado: req.body?.publicado !== false,
     creadoEn: nowIso(),
     actualizadoEn: nowIso()
+  };
+  const created = await db.runTransaction(async tx => {
+    const storeRef = db.collection(COLLECTIONS.stores).doc(req.params.storeId);
+    const store = await tx.get(storeRef);
+    const existing = await tx.get(db.collection(COLLECTIONS.storeProducts)
+      .where('ferreteriaId', '==', req.params.storeId).where('productoMaestroId', '==', masterId));
+    if (!store.exists || !existing.empty) return null;
+    const ref = db.collection(COLLECTIONS.storeProducts).doc();
+    tx.create(ref, offerPayload);
+    tx.update(storeRef, { catalogoActualizadoEn: nowIso() });
+    return { id: ref.id, ...offerPayload };
   });
+  if (!created) return fail(res, 'CATALOGO_ALREADY_LINKED', 'El producto ya esta vinculado o la ferretería ya no está disponible.', 409);
   await createRow(COLLECTIONS.priceHistory, {
     ferreteriaId: req.params.storeId,
     productoFerreteriaId: created.id,

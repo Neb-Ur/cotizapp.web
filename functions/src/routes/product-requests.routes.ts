@@ -1,9 +1,10 @@
+import { ProductRequestError, resolveProductRequest } from '../services/product-request-resolution.service.js';
 import { Router } from 'express';
 import { requireAuth, requireRole } from '../lib/auth.js';
 import { fail, ok } from '../lib/http.js';
 import { COLLECTIONS } from '../lib/collections.js';
 import { nowIso, normalizeText, numberValue } from '../lib/values.js';
-import { rows, row, createRow, patchRow } from '../repositories/firestore.repository.js';
+import { rows, createRow } from '../repositories/firestore.repository.js';
 import { requireStoreWriteAccess } from '../lib/ownership.js';
 import { requireCurrentStoreAgreement } from '../services/store-agreement.service.js';
 export const productRequestsRouter = Router();
@@ -17,9 +18,12 @@ productRequestsRouter.post('/ferreterias/:storeId/solicitudes-creacion-producto'
     usuarioAdminId: null,
     nombreProducto: normalizeText(req.body?.nombreProducto),
     codigoBarras: normalizeText(req.body?.codigoBarras),
-    cantidadReferencia: Math.max(1, Math.floor(numberValue(req.body?.cantidadReferencia, 1))),
+    skuFerreteria: normalizeText(req.body?.skuFerreteria),
+    publicado: req.body?.publicado !== false,
+    cantidadReferencia: Math.max(0, Math.floor(numberValue(req.body?.cantidadReferencia, 1))),
     precioReferencia: Math.max(0, numberValue(req.body?.precioReferencia)),
     estado: 'pendiente',
+    tipoSolicitud: req.body?.tipoSolicitud === 'posible_match' ? 'posible_match' : 'nuevo_producto',
     productoMaestroSugeridoId: null,
     notasAdmin: '',
     fechaCreacion: nowIso(),
@@ -39,18 +43,15 @@ productRequestsRouter.get('/solicitudes-creacion-producto', requireAuth, require
 });
 
 productRequestsRouter.post('/solicitudes-creacion-producto/:id/resolver', requireAuth, requireRole('admin'), async (req, res) => {
-  const current = await row(COLLECTIONS.productRequests, req.params.id);
-  if (!current) return fail(res, 'SOLICITUD_NOT_FOUND', 'No existe la solicitud indicada.', 404);
   const action = req.body?.accion;
   if (!['aprobar', 'rechazar'].includes(action)) return fail(res, 'SOLICITUD_INVALID_PAYLOAD', 'Accion invalida.', 400);
-  const updated = await patchRow(COLLECTIONS.productRequests, req.params.id, {
-    estado: action === 'aprobar' ? 'aprobada' : 'rechazada',
-    usuarioAdminId: req.authUserId,
-    productoMaestroSugeridoId: normalizeText(req.body?.productoMaestroSugeridoId) || null,
-    notasAdmin: normalizeText(req.body?.notaAdmin),
-    fechaResolucion: nowIso()
-  });
-  return ok(res, updated);
+  try {
+    return ok(res, await resolveProductRequest(req.params.id, action,
+      normalizeText(req.body?.productoMaestroSugeridoId), req.authUserId!, normalizeText(req.body?.notaAdmin)));
+  } catch (error) {
+    if (error instanceof ProductRequestError) return fail(res, error.code, error.message, error.status);
+    throw error;
+  }
 });
 
 // Admin users.

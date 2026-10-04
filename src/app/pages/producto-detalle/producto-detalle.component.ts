@@ -30,6 +30,7 @@ export class ProductoDetalleComponent implements OnInit {
   protected activeTab: 'descripcion' | 'ficha' | 'adicional' = 'descripcion';
   protected selectedImageIndex = 0;
   protected selectedStoreName = '';
+  protected selectedStoreId = '';
   protected selectedQuantity = 1;
   protected selectedProjectId = '';
   protected projects: ProjectSummary[] = [];
@@ -91,6 +92,7 @@ export class ProductoDetalleComponent implements OnInit {
 
         this.selectedImageIndex = 0;
         this.selectedStoreName = '';
+        this.selectedStoreId = '';
         this.selectedQuantity = 1;
         this.selectedProjectId = '';
         this.quoteFeedback = '';
@@ -111,8 +113,12 @@ export class ProductoDetalleComponent implements OnInit {
         }
 
         const requestedStore = params.get('ferreteria') || '';
-        if (this.displayStores.some((store) => store.storeName === requestedStore)) {
-          this.selectedStoreName = requestedStore;
+        const requestedStoreId = params.get('ferreteriaId');
+        const matches = this.displayStores.filter(store => requestedStoreId
+          ? store.storeId === requestedStoreId : store.storeName === requestedStore);
+        if (matches.length === 1) {
+          this.selectedStoreName = matches[0].storeName;
+          this.selectedStoreId = this.storeSelectionId(matches[0]);
         }
 
         if (
@@ -161,7 +167,7 @@ export class ProductoDetalleComponent implements OnInit {
   }
 
   protected get selectedStore(): ProductStoreOfferRow | null {
-    return this.displayStores.find((store) => store.storeName === this.selectedStoreName) || null;
+    return this.displayStores.find((store) => this.storeSelectionId(store) === this.selectedStoreId) || null;
   }
 
   protected get canShowAddToQuotation(): boolean {
@@ -188,9 +194,14 @@ export class ProductoDetalleComponent implements OnInit {
     this.selectedImageIndex = index;
   }
 
-  protected selectStore(storeName: string): void {
-    void this.apiService.recordOfferEvent(this.displayStores.find(store => store.storeName === storeName)?.offerId, 'select');
+  protected storeSelectionId(store: ProductStoreOfferRow): string {
+    return store.storeId || store.offerId || store.storeName;
+  }
+
+  protected selectStore(storeName: string, storeId: string): void {
+    void this.apiService.recordOfferEvent(this.displayStores.find(store => this.storeSelectionId(store) === storeId)?.offerId, 'select');
     this.selectedStoreName = storeName;
+    this.selectedStoreId = storeId;
     this.quoteFeedback = '';
   }
 
@@ -315,6 +326,7 @@ export class ProductoDetalleComponent implements OnInit {
       queryParams: {
         crearCotizacion: '1',
         ferreteria: this.selectedStoreName || null,
+        ferreteriaId: this.selectedStoreId || null,
         cantidad: this.selectedQuantity
       },
       queryParamsHandling: 'merge'
@@ -419,6 +431,7 @@ export class ProductoDetalleComponent implements OnInit {
     const url = this.router.parseUrl(this.router.url);
     delete url.queryParams['crearCotizacion'];
     delete url.queryParams['ferreteria'];
+    delete url.queryParams['ferreteriaId'];
     delete url.queryParams['cantidad'];
     this.location.replaceState(this.router.serializeUrl(url));
   }

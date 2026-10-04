@@ -37,6 +37,7 @@ export class PrivacyCenterComponent implements OnInit {
   protected legalAgeConfirmed = false;
   protected marketingConsent = false;
   protected deleteEmail = '';
+  protected deletePassword = '';
   protected deleteConfirmed = false;
   protected deletePanelOpen = false;
   protected deletionReceipt: AccountDeletionReceipt | null = null;
@@ -72,7 +73,7 @@ export class PrivacyCenterComponent implements OnInit {
   }
 
   protected get deleteReady(): boolean {
-    return this.deleteConfirmed && this.deleteEmail.trim().toLowerCase() === (this.user?.email || '').toLowerCase();
+    return !!this.deletePassword && this.deleteConfirmed && this.deleteEmail.trim().toLowerCase() === (this.user?.email || '').toLowerCase();
   }
 
   protected get selectedRequestHelp(): string {
@@ -151,7 +152,23 @@ export class PrivacyCenterComponent implements OnInit {
       link.click();
       URL.revokeObjectURL(url);
       await this.loadOverview(false);
-      this.notice = 'Exportación generada y registrada como solicitud completada.';
+      this.notice = response.data['emailLinkedRecordsIncluded'] === false
+        ? 'Exportamos los datos de tu cuenta. Verifica tu correo para incluir solicitudes realizadas sin iniciar sesión.'
+        : 'Exportación generada y registrada como solicitud completada.';
+    });
+  }
+
+  protected async verifyEmail(): Promise<void> {
+    await this.runAction('verify', async () => {
+      await this.auth.sendVerificationEmail();
+      this.notice = 'Revisa tu correo y abre el enlace de verificación. Después presiona “Ya verifiqué mi correo”.';
+    });
+  }
+
+  protected async refreshVerification(): Promise<void> {
+    await this.runAction('verify', async () => {
+      const verified = await this.auth.refreshEmailVerification();
+      this.notice = verified ? 'Correo verificado. Puedes volver a descargar tu exportación completa.' : 'Tu correo todavía no está verificado.';
     });
   }
 
@@ -167,6 +184,8 @@ export class PrivacyCenterComponent implements OnInit {
   protected async deleteAccount(): Promise<void> {
     if (!this.deleteReady) return;
     await this.runAction('delete', async () => {
+      await this.auth.confirmPassword(this.deletePassword);
+      this.deletePassword = '';
       this.deletionReceipt = await this.privacyData.deleteAccount(this.deleteEmail.trim());
       await this.auth.clearAfterAccountDeletion();
       this.deletePanelOpen = false;

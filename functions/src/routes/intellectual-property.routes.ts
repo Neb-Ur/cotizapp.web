@@ -143,8 +143,14 @@ intellectualPropertyRouter.patch('/admin/ip-reports/:id', requireAuth, requireRo
   if ((shouldRemove || shouldRestore) && current.targetType === 'store_offer' && current.targetId) {
     const target = await row(COLLECTIONS.storeProducts, current.targetId);
     if (target) await patchRow(COLLECTIONS.storeProducts, current.targetId, {
-      publicado: shouldRestore,
-      activo: shouldRestore ? target.activo !== false : false,
+      // Preserve the previous state on the first removal, including across
+      // subsequent moderation decisions. Legacy removals default to active.
+      ...(shouldRemove && !target.propiedadIntelectualEstadoAnterior ? {
+        propiedadIntelectualEstadoAnterior: { activo: target.activo !== false, publicado: target.publicado !== false }
+      } : {}),
+      publicado: shouldRestore ? target.propiedadIntelectualEstadoAnterior?.publicado !== false : false,
+      activo: shouldRestore ? target.propiedadIntelectualEstadoAnterior?.activo !== false : false,
+      ...(shouldRestore ? { propiedadIntelectualEstadoAnterior: null } : {}),
       propiedadIntelectualEstado: status,
       propiedadIntelectualReporteId: req.params.id,
       actualizadoEn: changedAt

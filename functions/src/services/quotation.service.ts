@@ -20,7 +20,8 @@ export async function optimizeItems(
   items: ProjectItem[],
   proximity?: ProjectProximity | null,
   requestedStoreName?: string,
-  existingOffers?: Awaited<ReturnType<typeof buildSearchRows>>
+  existingOffers?: Awaited<ReturnType<typeof buildSearchRows>>,
+  requestedStoreId?: string
 ): Promise<any> {
   const allSearchRows = existingOffers || await buildSearchRows();
   const searchRows = proximity
@@ -33,20 +34,21 @@ export async function optimizeItems(
     })
     : allSearchRows;
 
-  return buildQuotationOptimization(normalizeItems(items), searchRows, requestedStoreName);
+  return buildQuotationOptimization(normalizeItems(items), searchRows, requestedStoreName, requestedStoreId);
 }
 
 export async function projectView(project: any, offers?: Awaited<ReturnType<typeof buildSearchRows>>): Promise<any> {
   const items = normalizeItems(project.items);
   const proximity = normalizeProjectProximity(project.proximity ?? project.proximidad);
   const requestedStoreName = normalizeText(project.singleStoreName ?? project.ferreteriaUnica);
-  const optimization = await optimizeItems(items, proximity, requestedStoreName, offers);
+  const optimization = await optimizeItems(items, proximity, requestedStoreName, offers, normalizeText(project.singleStoreId ?? project.ferreteriaUnicaId));
   return {
     id: project.id,
     name: project.name || project.nombre || 'Cotizacion',
     address: project.address || project.direccionObra || '',
     proximity: proximity || undefined,
     singleStoreName: optimization.appliedStoreName || undefined,
+    singleStoreId: optimization.appliedStoreId || undefined,
     createdAt: project.createdAt || project.creadoEn || nowIso(),
     items,
     availabilityStatus: items.length === 0 ? 'draft' : optimization.lines.some((line: any) => line.unitPrice <= 0) ? 'incomplete' : 'ready',

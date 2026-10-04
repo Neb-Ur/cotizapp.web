@@ -32,6 +32,7 @@ projectsRouter.post('/maestros/:ownerId/proyectos', requireAuth, requireRole('ma
     items: normalizeItems(req.body?.items),
     proximity: normalizeProjectProximity(req.body?.proximidad) || null,
     singleStoreName: normalizeText(req.body?.ferreteriaUnica) || null,
+    singleStoreId: normalizeText(req.body?.ferreteriaUnicaId) || null,
     createdAt: nowIso()
   };
   const ref = db.collection(COLLECTIONS.projects).doc();
@@ -65,6 +66,7 @@ projectsRouter.put('/maestros/:ownerId/proyectos/:projectId', requireAuth, requi
     items: normalizeItems(req.body?.items),
     proximity: normalizeProjectProximity(req.body?.proximidad) || null,
     singleStoreName: normalizeText(req.body?.ferreteriaUnica) || null,
+    singleStoreId: normalizeText(req.body?.ferreteriaUnicaId) || null,
     updatedAt: nowIso()
   });
   return ok(res, await projectView(updated));
@@ -102,7 +104,9 @@ projectsRouter.post('/cotizaciones/optimizar', requireAuth, requireRole('maestro
     await optimizeItems(
       normalizeItems(req.body?.items),
       normalizeProjectProximity(req.body?.proximidad),
-      normalizeText(req.body?.ferreteriaUnica)
+      normalizeText(req.body?.ferreteriaUnica),
+      undefined,
+      normalizeText(req.body?.ferreteriaUnicaId)
     )
   );
 });

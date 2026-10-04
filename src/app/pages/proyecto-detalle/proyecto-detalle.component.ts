@@ -28,7 +28,7 @@ import { shareQuotationPdf, downloadQuotationPdf } from '../../core/utils/quotat
   styleUrl: './proyecto-detalle.component.scss'
 })
 export class ProyectoDetalleComponent implements OnInit {
-  private readonly draftStorageKey = 'construcomparador-project-draft';
+  private get draftStorageKey(): string { return `cotizapp-project-draft:${this.user?.id || 'guest'}`; }
   protected projectId = '';
   protected isNewProject = true;
   protected projectName = '';
@@ -37,6 +37,7 @@ export class ProyectoDetalleComponent implements OnInit {
   protected saveNotice = '';
   protected projectProximity?: SearchProximity;
   protected selectedSingleStoreName = '';
+  protected selectedSingleStoreId = '';
   protected singleStoreNotice = '';
   protected readonly nearbyRadiusOptions = [5, 10, 20, 50];
   protected locationNotice = '';
@@ -52,23 +53,27 @@ export class ProyectoDetalleComponent implements OnInit {
 
   ngOnInit(): void {
     combineLatest([this.route.paramMap, this.route.queryParamMap]).subscribe(async ([params, queryParams]) => {
-      const incomingId = params.get('projectId') || 'nuevo';
-      const draftName = queryParams.get('draftName') || '';
-      const draftAddress = queryParams.get('draftAddress') || '';
-      const addProduct = queryParams.get('addProduct') || '';
+      try {
+        const incomingId = params.get('projectId') || 'nuevo';
+        const draftName = queryParams.get('draftName') || '';
+        const draftAddress = queryParams.get('draftAddress') || '';
+        const addProduct = queryParams.get('addProduct') || '';
 
-      const currentUser = this.user;
-      if (currentUser) {
-        await this.apiService.refreshMaestroData(currentUser.id);
-      }
+        const currentUser = this.user;
+        if (currentUser) {
+          await this.apiService.refreshMaestroData(currentUser.id);
+        }
 
-      await this.loadProject(incomingId, draftName, draftAddress);
+        await this.loadProject(incomingId, draftName, draftAddress);
 
-      if (addProduct.trim()) {
-        this.projectItems = [...this.projectItems, { productName: addProduct.trim(), quantity: 1 }];
-        this.saveNotice = `Producto agregado: ${addProduct}.`;
-        this.persistDraftIfNeeded();
-        this.clearAddProductQueryParams();
+        if (addProduct.trim()) {
+          this.projectItems = [...this.projectItems, { productName: addProduct.trim(), quantity: 1 }];
+          this.saveNotice = `Producto agregado: ${addProduct}.`;
+          this.persistDraftIfNeeded();
+          this.clearAddProductQueryParams();
+        }
+      } catch (error) {
+        this.saveNotice = error instanceof Error ? error.message : 'No se pudo cargar la cotización.';
       }
     });
   }
@@ -90,7 +95,8 @@ export class ProyectoDetalleComponent implements OnInit {
     return this.apiService.buildProjectQuotation(
       this.projectItems,
       this.projectProximity,
-      this.selectedSingleStoreName || undefined
+      this.selectedSingleStoreName || undefined,
+      this.selectedSingleStoreId || undefined
     );
   }
 
@@ -99,7 +105,8 @@ export class ProyectoDetalleComponent implements OnInit {
       this.projectItems,
       this.projectAddress,
       this.projectProximity,
-      this.quotation.appliedStoreName
+      this.quotation.appliedStoreName,
+      this.quotation.appliedStoreId
     );
   }
 
@@ -112,7 +119,7 @@ export class ProyectoDetalleComponent implements OnInit {
   }
 
   protected get singleStoreSelectionInvalid(): boolean {
-    return !!this.selectedSingleStoreName && !this.quotation.appliedStoreName;
+    return !!(this.selectedSingleStoreName || this.selectedSingleStoreId) && this.quotation.selectionAvailable === false;
   }
 
   protected get proximityEnabled(): boolean {
@@ -197,7 +204,8 @@ export class ProyectoDetalleComponent implements OnInit {
           this.projectItems,
           this.projectAddress,
           this.projectProximity,
-          this.quotation.appliedStoreName
+          this.quotation.appliedStoreName,
+          this.quotation.appliedStoreId
         );
         this.saveNotice = 'Cotizacion creada correctamente.';
         this.clearDraft();
@@ -217,7 +225,8 @@ export class ProyectoDetalleComponent implements OnInit {
       this.projectItems,
       this.projectAddress,
       this.projectProximity,
-      this.quotation.appliedStoreName
+      this.quotation.appliedStoreName,
+      this.quotation.appliedStoreId
     );
     if (!updated) {
       this.saveNotice = 'No se pudo actualizar la cotizacion.';
@@ -241,15 +250,17 @@ export class ProyectoDetalleComponent implements OnInit {
     });
   }
 
-  protected async applySingleStore(storeName: string): Promise<void> {
-    const option = this.singleStoreOptions.find((item) => item.storeName === storeName);
+  protected async applySingleStore(storeName: string, storeId?: string): Promise<void> {
+    const option = this.singleStoreOptions.find((item) => storeId ? item.storeId === storeId : item.storeName === storeName);
     if (!option) {
       this.singleStoreNotice = 'Esta ferreteria ya no tiene todos los productos disponibles.';
       return;
     }
 
     const previous = this.selectedSingleStoreName;
+    const previousId = this.selectedSingleStoreId;
     this.selectedSingleStoreName = storeName;
+    this.selectedSingleStoreId = option.storeId || '';
     this.singleStoreNotice = `${storeName} aplicada a todos los productos de la cotizacion.`;
     this.persistDraftIfNeeded();
 
@@ -257,16 +268,19 @@ export class ProyectoDetalleComponent implements OnInit {
       const saved = await this.persistExistingPurchaseSelection();
       if (!saved) {
         this.selectedSingleStoreName = previous;
+        this.selectedSingleStoreId = previousId;
         this.singleStoreNotice = 'No se pudo guardar la ferreteria seleccionada.';
       }
     }
   }
 
   protected async useMixedPurchase(): Promise<void> {
-    if (!this.selectedSingleStoreName) return;
+    if (!this.selectedSingleStoreName && !this.selectedSingleStoreId) return;
 
     const previous = this.selectedSingleStoreName;
+    const previousId = this.selectedSingleStoreId;
     this.selectedSingleStoreName = '';
+    this.selectedSingleStoreId = '';
     this.singleStoreNotice = 'Volviste a la compra combinada de menor precio.';
     this.persistDraftIfNeeded();
 
@@ -274,6 +288,7 @@ export class ProyectoDetalleComponent implements OnInit {
       const saved = await this.persistExistingPurchaseSelection();
       if (!saved) {
         this.selectedSingleStoreName = previous;
+        this.selectedSingleStoreId = previousId;
         this.singleStoreNotice = 'No se pudo actualizar la estrategia de compra.';
       }
     }
@@ -398,6 +413,7 @@ export class ProyectoDetalleComponent implements OnInit {
       }));
       this.projectProximity = draft?.proximity || nearbyPreference || undefined;
       this.selectedSingleStoreName = draft?.singleStoreName || '';
+      this.selectedSingleStoreId = draft?.singleStoreId || '';
       return;
     }
 
@@ -418,6 +434,7 @@ export class ProyectoDetalleComponent implements OnInit {
       this.projectAddress = refreshed.address || '';
       this.projectProximity = refreshed.proximity;
       this.selectedSingleStoreName = refreshed.singleStoreName || '';
+      this.selectedSingleStoreId = refreshed.singleStoreId || '';
       this.syncNearbyPreference();
       this.projectItems = refreshed.items.map((item) => ({
         ...item,
@@ -431,6 +448,7 @@ export class ProyectoDetalleComponent implements OnInit {
     this.projectAddress = project.address || '';
     this.projectProximity = project.proximity;
     this.selectedSingleStoreName = project.singleStoreName || '';
+    this.selectedSingleStoreId = project.singleStoreId || '';
     this.syncNearbyPreference();
     this.projectItems = project.items.map((item) => ({
       ...item,
@@ -451,6 +469,7 @@ export class ProyectoDetalleComponent implements OnInit {
       address: this.projectAddress,
       items: this.projectItems,
       proximity: this.projectProximity,
+      singleStoreId: this.quotation.appliedStoreId,
       singleStoreName: this.quotation.appliedStoreName
     };
     window.localStorage.setItem(this.draftStorageKey, JSON.stringify(payload));
@@ -462,11 +481,13 @@ export class ProyectoDetalleComponent implements OnInit {
     items: ProjectItem[];
     proximity?: SearchProximity;
     singleStoreName?: string;
+    singleStoreId?: string;
   } | null {
     if (typeof window === 'undefined') {
       return null;
     }
 
+    window.localStorage.removeItem('construcomparador-project-draft');
     const raw = window.localStorage.getItem(this.draftStorageKey);
     if (!raw) {
       return null;
@@ -479,6 +500,7 @@ export class ProyectoDetalleComponent implements OnInit {
         items: ProjectItem[];
         proximity?: SearchProximity;
         singleStoreName?: string;
+        singleStoreId?: string;
       };
     } catch {
       return null;
@@ -503,7 +525,8 @@ export class ProyectoDetalleComponent implements OnInit {
       this.projectItems,
       this.projectAddress,
       this.projectProximity,
-      this.quotation.appliedStoreName
+      this.quotation.appliedStoreName,
+      this.quotation.appliedStoreId
     );
 
     return !!updated;

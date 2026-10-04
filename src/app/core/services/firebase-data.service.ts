@@ -1,5 +1,6 @@
+import { findExactMasterMatch } from '../utils/catalog-match.util';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, computed, signal } from '@angular/core';
 import {
   CatalogImportReport,
   CatalogImportRowResult,
@@ -111,6 +112,34 @@ export interface TaxonomyDefinitionApi {
   providedIn: 'root'
 })
 export class FirebaseDataService {
+  private readonly observedLoads = new WeakSet<Promise<void>>();
+
+  private observeLoad(promise: Promise<void>): void {
+    // Getters run during change detection. Attach only once, so settled
+    // promises do not schedule another Angular render on every read.
+    if (this.observedLoads.has(promise)) return;
+    this.observedLoads.add(promise);
+    void promise.catch(() => undefined);
+  }
+
+  private readonly loadErrors = signal<Record<string, string>>({});
+  readonly loadError = computed(() => Object.values(this.loadErrors()).join(' '));
+
+  private clearLoadError(key: string): void {
+    this.loadErrors.update(errors => {
+      if (!errors[key]) return errors;
+      const next = { ...errors };
+      delete next[key];
+      return next;
+    });
+  }
+
+  private recordLoadError(key: string, error: unknown, message: string): Error {
+    const failure = this.normalizeError(error, message);
+    this.loadErrors.update(errors => ({ ...errors, [key]: message }));
+    return failure;
+  }
+
   private readonly categories: TaxonomyOption[] = [];
   private readonly subcategories: TaxonomyOption[] = [];
   private readonly families: TaxonomyOption[] = [];
@@ -286,12 +315,12 @@ export class FirebaseDataService {
   }
 
   getCategoryOptions(autoLoad = true): TaxonomyOption[] {
-    if (autoLoad) this.ensureBasicTaxonomyLoaded();
+    if (autoLoad) this.observeLoad(this.ensureBasicTaxonomyLoaded());
     return this.categories;
   }
 
   getSubcategoryOptions(categoryId?: string, autoLoad = true): TaxonomyOption[] {
-    if (autoLoad) this.ensureBasicTaxonomyLoaded();
+    if (autoLoad) this.observeLoad(this.ensureBasicTaxonomyLoaded());
     if (!categoryId) {
       return this.subcategories;
     }
@@ -299,7 +328,7 @@ export class FirebaseDataService {
   }
 
   getFamilyOptions(subcategoryId?: string, autoLoad = true): TaxonomyOption[] {
-    if (autoLoad) this.ensureBasicTaxonomyLoaded();
+    if (autoLoad) this.observeLoad(this.ensureBasicTaxonomyLoaded());
     if (!subcategoryId) {
       return this.families;
     }
@@ -307,12 +336,12 @@ export class FirebaseDataService {
   }
 
   getFamilyTemplate(familyId: string): FamilyTemplate | null {
-    this.ensureTaxonomyLoaded();
+    this.observeLoad(this.ensureTaxonomyLoaded());
     return this.familyTemplates.get(familyId) || null;
   }
 
   getFamilyDefinitionRows(familyId: string): TaxonomyDefinitionApi[] {
-    this.ensureTaxonomyLoaded();
+    this.observeLoad(this.ensureTaxonomyLoaded());
     return this.familyDefinitionsByFamily.get(familyId) || [];
   }
 
@@ -397,7 +426,7 @@ export class FirebaseDataService {
   }
 
   getMasterCatalogProducts(): CatalogProduct[] {
-    this.ensureMasterCatalogLoaded();
+    this.observeLoad(this.ensureMasterCatalogLoaded());
     return this.masterCatalog;
   }
 
@@ -603,7 +632,7 @@ export class FirebaseDataService {
 
   getCatalog(ownerId: string): CatalogProduct[] {
     const bucket = this.getOrCreateCatalogBucket(ownerId);
-    this.ensureCatalogLoaded(ownerId);
+    this.observeLoad(this.ensureCatalogLoaded(ownerId));
     return bucket;
   }
 
@@ -668,6 +697,9 @@ export class FirebaseDataService {
   async addCatalogProductFromMaster(ownerId: string, masterProductId: string, relation: {
     price: number;
     stock: number;
+    sku?: string;
+    barcode?: string;
+    isPublished?: boolean;
   }): Promise<{ catalog: CatalogProduct[]; wasUpdate: boolean }> {
     await this.ensureCatalogLoaded(ownerId, true);
     const catalog = this.getCatalog(ownerId);
@@ -678,7 +710,9 @@ export class FirebaseDataService {
         ...current,
         price: relation.price,
         stock: relation.stock,
-        isPublished: true
+        sku: relation.sku || current.sku,
+        barcode: relation.barcode || current.barcode || '',
+        isPublished: relation.isPublished ?? true
       });
       return { catalog: updated, wasUpdate: true };
     }
@@ -688,7 +722,7 @@ export class FirebaseDataService {
       throw new Error('No se encontro el producto maestro seleccionado.');
     }
 
-    const sku = master.sku?.trim() || `SKU-${masterProductId.slice(0, 8).toUpperCase()}`;
+    const sku = relation.sku?.trim() || master.sku?.trim() || `SKU-${masterProductId.slice(0, 8).toUpperCase()}`;
     try {
       const next = await this.upsertCatalog(ownerId, {
         ...master,
@@ -697,7 +731,8 @@ export class FirebaseDataService {
         sku,
         price: relation.price,
         stock: relation.stock,
-        isPublished: true
+        barcode: relation.barcode || master.barcode || '',
+        isPublished: relation.isPublished ?? true
       });
 
       return { catalog: next, wasUpdate: false };
@@ -717,7 +752,9 @@ export class FirebaseDataService {
         ...synced,
         price: relation.price,
         stock: relation.stock,
-        isPublished: true
+        sku: relation.sku || synced.sku || sku,
+        barcode: relation.barcode || synced.barcode || master.barcode || '',
+        isPublished: relation.isPublished ?? true
       });
       return { catalog: updated, wasUpdate: true };
     }
@@ -757,11 +794,13 @@ export class FirebaseDataService {
     barcode: string;
     quantity: number;
     price: number;
+    sku?: string;
+    isPublished?: boolean;
   }): Promise<{ id: string; type: CatalogValidationType }> {
     const ferreteriaId = await this.resolveFerreteriaId(ownerId);
 
     const maybeMatch = this.masterCatalog.some((item) => {
-      const barcodeMatches = this.normalizeBarcode(item.barcode || '') === this.normalizeBarcode(draft.barcode);
+      const barcodeMatches = !!draft.barcode && !!item.barcode && this.normalizeBarcode(item.barcode) === this.normalizeBarcode(draft.barcode);
       const nameMatches = item.name.toLowerCase().includes(draft.name.trim().toLowerCase());
       return barcodeMatches || nameMatches;
     });
@@ -769,8 +808,11 @@ export class FirebaseDataService {
     const created = await this.apiClient.post<{ id: string }>(`/ferreterias/${ferreteriaId}/solicitudes-creacion-producto`, {
       nombreProducto: draft.name.trim(),
       codigoBarras: draft.barcode.trim(),
-      cantidadReferencia: Math.max(1, Math.floor(Number(draft.quantity) || 1)),
-      precioReferencia: Math.max(1, Math.round(Number(draft.price) || 0))
+      skuFerreteria: draft.sku || '',
+      publicado: draft.isPublished !== false,
+      tipoSolicitud: maybeMatch ? 'posible_match' : 'nuevo_producto',
+      cantidadReferencia: Math.max(0, Math.floor(Number(draft.quantity) || 0)),
+      precioReferencia: Math.max(0, Math.round(Number(draft.price) || 0))
     }, true);
 
     return {
@@ -947,9 +989,13 @@ export class FirebaseDataService {
           continue;
         }
 
-        const existingCatalogProduct = skuMatches[0]
-          || barcodeMatches[0]
-          || catalog.find((item) => item.name.trim().toLowerCase() === parsed.name.trim().toLowerCase());
+        if (skuMatches.length > 1 || barcodeMatches.length > 1
+          || (skuMatches.length === 1 && barcodeMatches.length === 1 && skuMatches[0].id !== barcodeMatches[0].id)) {
+          reportRows.push(failedRow('Identificadores ambiguos: revisa el SKU y código de barras.'));
+          continue;
+        }
+        const existingCatalogProduct = skuMatches[0] || barcodeMatches[0]
+          || findExactMasterMatch(catalog, parsed.name, parsed.barcode);
 
         if (existingCatalogProduct) {
           await this.upsertCatalog(ownerId, {
@@ -976,14 +1022,16 @@ export class FirebaseDataService {
         }
 
         const suggestions = this.suggestMatches(parsed.name);
-        const firstMatch = suggestions[0];
+        const firstMatch = findExactMasterMatch(this.masterCatalog, parsed.name, parsed.barcode);
         if (!firstMatch) {
-          const fallbackBarcode = parsed.barcode || `sol-${String(parsed.lineNumber).padStart(8, '0')}`;
+          const fallbackBarcode = parsed.barcode || '';
           const created = await this.requestCatalogProductCreation(ownerId, ownerLabel, {
             name: parsed.name,
             barcode: fallbackBarcode,
             quantity: parsed.stock,
-            price: parsed.price
+            price: parsed.price,
+            sku: parsed.sku,
+            isPublished: options.isPublished
           });
 
           reportRows.push({
@@ -994,17 +1042,20 @@ export class FirebaseDataService {
             barcode: parsed.barcode,
             price: parsed.price,
             stock: parsed.stock,
-            outcome: 'nuevo_validacion',
-            message: 'Enviado a revision de catalogo maestro.',
-            suggestions: [],
+            outcome: suggestions.length ? 'posible_match' : 'nuevo_validacion',
+            message: suggestions.length ? 'Coincidencia ambigua enviada a revisión antes de publicar.' : 'Enviado a revision de catalogo maestro.',
+            suggestions,
             validationRequestId: created.id
           });
           continue;
         }
 
-        await this.addCatalogProductFromMaster(ownerId, firstMatch.masterProductId, {
+        await this.addCatalogProductFromMaster(ownerId, firstMatch.masterProductId || firstMatch.id, {
           price: parsed.price,
-          stock: parsed.stock
+          stock: parsed.stock,
+          sku: parsed.sku,
+          barcode: parsed.barcode,
+          isPublished: options.isPublished
         });
 
         reportRows.push({
@@ -1047,7 +1098,7 @@ export class FirebaseDataService {
   }
 
   getCatalogValidationQueue(status: CatalogValidationStatus | 'all' = 'pendiente'): CatalogValidationRequest[] {
-    this.ensureValidationQueueLoaded();
+    this.observeLoad(this.ensureValidationQueueLoaded());
     if (status === 'all') {
       return this.validationQueue;
     }
@@ -1133,7 +1184,7 @@ export class FirebaseDataService {
 
   getProjects(ownerId: string): ProjectSummary[] {
     const bucket = this.getOrCreateProjectsBucket(ownerId);
-    this.ensureProjectsLoaded(ownerId);
+    this.observeLoad(this.ensureProjectsLoaded(ownerId));
     return bucket;
   }
 
@@ -1147,7 +1198,8 @@ export class FirebaseDataService {
     items: ProjectItem[],
     address = '',
     proximity?: SearchProximity,
-    singleStoreName?: string
+    singleStoreName?: string,
+    singleStoreId?: string
   ): Promise<ProjectSummary> {
     try {
       const created = await this.apiClient.post<any>(`/maestros/${ownerId}/proyectos`, {
@@ -1159,6 +1211,7 @@ export class FirebaseDataService {
           radiusKm: proximity.radiusKm
         } : null,
         ferreteriaUnica: singleStoreName?.trim() || null,
+        ferreteriaUnicaId: singleStoreId?.trim() || null,
         items: items.map((item) => ({
           ...item,
           productName: item.productName.trim(),
@@ -1182,7 +1235,8 @@ export class FirebaseDataService {
     items: ProjectItem[],
     address = '',
     proximity?: SearchProximity,
-    singleStoreName?: string
+    singleStoreName?: string,
+    singleStoreId?: string
   ): Promise<ProjectSummary | null> {
     try {
       const updated = await this.apiClient.put<any>(`/maestros/${ownerId}/proyectos/${projectId}`, {
@@ -1194,6 +1248,7 @@ export class FirebaseDataService {
           radiusKm: proximity.radiusKm
         } : null,
         ferreteriaUnica: singleStoreName?.trim() || null,
+        ferreteriaUnicaId: singleStoreId?.trim() || null,
         items: items.map((item) => ({
           ...item,
           productName: item.productName.trim(),
@@ -1241,8 +1296,8 @@ export class FirebaseDataService {
     autoLoad = true
   ): FamilyProductRow[] {
     if (autoLoad) {
-      this.ensureSearchRowsLoaded();
-      this.ensureMasterCatalogLoaded();
+      this.observeLoad(this.ensureSearchRowsLoaded());
+      this.observeLoad(this.ensureMasterCatalogLoaded());
     }
 
     const query = searchTerm.trim().toLowerCase();
@@ -1254,6 +1309,7 @@ export class FirebaseDataService {
       minPrice: number;
       maxPrice: number;
       sellers: Set<string>;
+      storeIds: Set<string>;
       brand: string;
       productType: string;
       imageUrl: string;
@@ -1276,6 +1332,7 @@ export class FirebaseDataService {
           minPrice: row.price,
           maxPrice: row.price,
           sellers: new Set<string>(),
+          storeIds: new Set<string>(),
           brand: master?.brand || 'Sin marca',
           productType: master?.productType || 'Producto ferretero',
           imageUrl: master?.imageUrl && !master.imageUrl.includes('via.placeholder.com') ? master.imageUrl : '',
@@ -1285,6 +1342,7 @@ export class FirebaseDataService {
         current.minPrice = Math.min(current.minPrice, row.price);
         current.maxPrice = Math.max(current.maxPrice, row.price);
         current.sellers.add(row.storeName);
+        current.storeIds.add(row.storeId || row.storeName);
         if (rowDistance !== undefined) {
           current.nearestDistanceKm = current.nearestDistanceKm === undefined
             ? rowDistance
@@ -1300,7 +1358,7 @@ export class FirebaseDataService {
         imageUrl: item.imageUrl,
         minPrice: item.minPrice,
         maxPrice: item.maxPrice,
-        storeCount: item.sellers.size,
+        storeCount: item.storeIds.size,
         brand: item.brand,
         productType: item.productType,
         sellers: Array.from(item.sellers),
@@ -1322,7 +1380,7 @@ export class FirebaseDataService {
   }
 
   getProductOptions(filters: SearchFilters = {}, proximity?: SearchProximity, autoLoad = true): string[] {
-    if (autoLoad) this.ensureSearchRowsLoaded();
+    if (autoLoad) this.observeLoad(this.ensureSearchRowsLoaded());
     return Array.from(new Set(
       this.filterSearchRowsByProximity(this.searchRows, proximity)
         .filter((row) => !filters.categoryId || row.categoryId === filters.categoryId)
@@ -1417,8 +1475,8 @@ export class FirebaseDataService {
         featureBullets: [master.descripcionCorta || ''],
         descriptionBlocks: [{ text: master.descripcionLarga || master.descripcionCorta || '' }],
         technicalSheet: (raw.atributosProducto || []).map((item: any) => ({
-          label: item.definicionAtributoId,
-          value: String(item.valorTexto || item.valorNumero || item.valorOpcion || item.valorBooleano || '')
+          label: item.etiqueta || item.definicionAtributoId,
+          value: String(item.valorTexto ?? item.valorNumero ?? item.valorOpcion ?? item.valorBooleano ?? '')
         })),
         extraSections: [],
         minPrice: Number(raw.minPrice) || 0,
@@ -1453,13 +1511,14 @@ export class FirebaseDataService {
   getBestOfferForProduct(
     productName: string,
     proximity?: SearchProximity,
-    singleStoreName?: string
+    singleStoreName?: string,
+    singleStoreId?: string
   ): { storeName: string; price: number } | null {
-    this.ensureSearchRowsLoaded();
+    this.observeLoad(this.ensureSearchRowsLoaded());
 
     const rows = this.filterSearchRowsByProximity(this.searchRows, proximity)
       .filter((row) => row.productName.toLowerCase() === productName.toLowerCase())
-      .filter((row) => !singleStoreName || row.storeName === singleStoreName)
+      .filter((row) => singleStoreId ? row.storeId === singleStoreId : !singleStoreName || row.storeName === singleStoreName)
       .sort((a, b) => a.price - b.price);
 
     if (rows.length === 0) {
@@ -1475,13 +1534,14 @@ export class FirebaseDataService {
   buildProjectQuotation(
     items: ProjectItem[],
     proximity?: SearchProximity,
-    singleStoreName?: string
+    singleStoreName?: string,
+    singleStoreId?: string
   ): ProjectQuotationView {
-    this.ensureSearchRowsLoaded();
-    const key = JSON.stringify([items, proximity, singleStoreName]);
+    this.observeLoad(this.ensureSearchRowsLoaded());
+    const key = JSON.stringify([items, proximity, singleStoreName, singleStoreId]);
     const cached = this.quotationCache.get(key);
     if (cached) return cached;
-    const quotation = buildQuotationOptimization(items, this.filterSearchRowsByProximity(this.searchRows, proximity), singleStoreName);
+    const quotation = buildQuotationOptimization(items, this.filterSearchRowsByProximity(this.searchRows, proximity), singleStoreName, singleStoreId);
     if (this.quotationCache.size >= 16) this.quotationCache.clear();
     this.quotationCache.set(key, quotation);
     return quotation;
@@ -1492,12 +1552,13 @@ export class FirebaseDataService {
     items: ProjectItem[],
     _projectAddress = '',
     proximity?: SearchProximity,
-    singleStoreName?: string
+    singleStoreName?: string,
+    singleStoreId?: string
   ): ProjectComparisonStrategy[] {
-    const quotation = this.buildProjectQuotation(items, proximity, singleStoreName);
+    const quotation = this.buildProjectQuotation(items, proximity, singleStoreName, singleStoreId);
     const mixedStoresUsed = new Set(
       this.buildProjectQuotation(items, proximity).lines
-        .map((line) => line.bestStoreName)
+        .map((line) => line.bestStoreId || line.bestStoreName)
         .filter((name) => name && name !== 'Sin datos')
     ).size;
 
@@ -1578,6 +1639,7 @@ export class FirebaseDataService {
       throw new Error('El catalogo publico recibido no contiene productos disponibles.');
     }
     this.applyPublicCatalogSnapshot(snapshot);
+    ['basic-taxonomy', 'taxonomy', 'master', 'search', 'catalog'].forEach(key => this.clearLoadError(key));
 
     if (typeof localStorage !== 'undefined') {
       try {
@@ -1667,6 +1729,7 @@ export class FirebaseDataService {
     this.basicTaxonomyLoading = true;
     this.basicTaxonomyPromise = (async () => {
       try {
+        this.clearLoadError('basic-taxonomy');
         const [categories, subcategories, families] = await Promise.all([
           this.apiClient.get<any[]>('/categorias'),
           this.apiClient.get<any[]>('/subcategorias'),
@@ -1676,8 +1739,8 @@ export class FirebaseDataService {
         this.replaceArray(this.categories, categories.map((item) => ({ id: item.id, name: item.nombre })));
         this.replaceArray(this.subcategories, subcategories.map((item) => ({ id: item.id, parentId: item.categoriaId, name: item.nombre })));
         this.replaceArray(this.families, families.map((item) => ({ id: item.id, parentId: item.subcategoriaId, name: item.nombre })));
-      } catch {
-        // Keep the catalog usable even if taxonomy metadata is temporarily unavailable.
+      } catch (error) {
+        throw this.recordLoadError('basic-taxonomy', error, 'No se pudieron cargar las categorías.');
       } finally {
         this.basicTaxonomyLoading = false;
       }
@@ -1694,6 +1757,7 @@ export class FirebaseDataService {
     this.taxonomyLoading = true;
     this.taxonomyPromise = (async () => {
       try {
+        this.clearLoadError('taxonomy');
         await this.ensureBasicTaxonomyLoaded(force);
         const definitions = await this.apiClient.get<TaxonomyDefinitionApi[]>('/atributos-definicion');
         const definitionsByFamily = new Map<string, TaxonomyDefinitionApi[]>();
@@ -1711,8 +1775,8 @@ export class FirebaseDataService {
           this.familyDefinitionsByFamily.set(family.id, familyDefinitions);
           this.familyTemplates.set(family.id, this.mapFamilyTemplate(family.id, family.name, familyDefinitions));
         });
-      } catch {
-        // Preserve the last complete taxonomy if the bulk endpoint is temporarily unavailable.
+      } catch (error) {
+        throw this.recordLoadError('taxonomy', error, 'No se pudieron cargar los atributos del catálogo.');
       } finally {
         this.taxonomyLoading = false;
       }
@@ -1728,6 +1792,7 @@ export class FirebaseDataService {
 
     this.searchPromise = (async () => {
       try {
+        this.clearLoadError('search');
         const rows = await this.apiClient.get<any[]>('/busqueda');
         this.replaceArray(this.searchRows, rows.map((item) => ({
           ...item,
@@ -1750,8 +1815,8 @@ export class FirebaseDataService {
           sku: item.sku,
           stock: Number(item.stock) || 0
         })));
-      } catch {
-        // noop
+      } catch (error) {
+        throw this.recordLoadError('search', error, 'No se pudieron cargar las ofertas. Intenta nuevamente.');
       }
     })();
 
@@ -1765,6 +1830,7 @@ export class FirebaseDataService {
 
     this.masterPromise = (async () => {
       try {
+        this.clearLoadError('master');
         const [products] = await Promise.all([
           this.apiClient.get<ProductoMaestroApi[]>('/productos-maestro'),
           this.ensureSearchRowsLoaded(force)
@@ -1780,8 +1846,8 @@ export class FirebaseDataService {
         });
 
         this.replaceArray(this.masterCatalog, rows.sort((a, b) => a.name.localeCompare(b.name)));
-      } catch {
-        // Search rows remain enough to render the public catalog.
+      } catch (error) {
+        throw this.recordLoadError('master', error, 'No se pudo cargar el catálogo maestro.');
       }
     })();
 
@@ -1796,11 +1862,12 @@ export class FirebaseDataService {
 
     const promise = (async () => {
       try {
+        this.clearLoadError('projects');
         const rows = await this.apiClient.get<any[]>(`/maestros/${ownerId}/proyectos`, true);
         const mapped = rows.map((item) => this.mapProjectRow(item));
         this.replaceArray(this.getOrCreateProjectsBucket(ownerId), mapped);
-      } catch {
-        this.getOrCreateProjectsBucket(ownerId);
+      } catch (error) {
+        throw this.recordLoadError('projects', error, 'No se pudieron cargar tus cotizaciones.');
       }
     })();
 
@@ -1816,12 +1883,13 @@ export class FirebaseDataService {
 
     const promise = (async () => {
       try {
+        this.clearLoadError('store-catalog');
         const ferreteriaId = await this.resolveFerreteriaId(ownerId);
         const rows = await this.apiClient.get<any[]>(`/ferreterias/${ferreteriaId}/catalogo`, true);
         const mapped = rows.map((item) => this.mapCatalogRow(ownerId, ferreteriaId, item));
         this.replaceArray(this.getOrCreateCatalogBucket(ownerId), mapped);
-      } catch {
-        // noop
+      } catch (error) {
+        throw this.recordLoadError('store-catalog', error, 'No se pudo cargar el catálogo de la ferretería.');
       }
     })();
 
@@ -1836,6 +1904,7 @@ export class FirebaseDataService {
 
     this.validationPromise = (async () => {
       try {
+        this.clearLoadError('validation');
         await Promise.all([
           this.ensureTaxonomyLoaded(),
           this.ensureMasterCatalogLoaded()
@@ -1844,8 +1913,8 @@ export class FirebaseDataService {
         const rows = await this.apiClient.get<any[]>('/solicitudes-creacion-producto', true);
         const mapped = rows.map((item) => this.mapValidationRequest(item));
         this.replaceArray(this.validationQueue, mapped);
-      } catch {
-        // noop
+      } catch (error) {
+        throw this.recordLoadError('validation', error, 'No se pudieron cargar las solicitudes.');
       }
     })();
 
@@ -1972,6 +2041,7 @@ export class FirebaseDataService {
         name: row.name,
         address: row.address || '',
         proximity: this.mapSearchProximity(row.proximity),
+        singleStoreId: row.singleStoreId || undefined,
         singleStoreName: typeof row.singleStoreName === 'string' && row.singleStoreName.trim()
           ? row.singleStoreName.trim()
           : undefined,
@@ -2000,6 +2070,7 @@ export class FirebaseDataService {
       name: row.nombre,
       address: row.direccionObra || '',
       proximity: this.mapSearchProximity(row.proximity || row.proximidad),
+      singleStoreId: row.singleStoreId || row.ferreteriaUnicaId || undefined,
       singleStoreName: typeof (row.singleStoreName || row.ferreteriaUnica) === 'string'
         && String(row.singleStoreName || row.ferreteriaUnica).trim()
         ? String(row.singleStoreName || row.ferreteriaUnica).trim()

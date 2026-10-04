@@ -82,7 +82,9 @@ searchRouter.get('/productos/detalle', async (req, res) => {
     ? await row(COLLECTIONS.masterProducts, searchRows[0].productoMaestroId)
     : (await getPublicCatalogSnapshot()).products.find((item) => normalizeText(item.nombre).toLowerCase() === name);
   if (!product) return fail(res, 'PRODUCTO_NOT_FOUND', 'No se encontro el producto solicitado.', 404);
-  const attributes = (await rows(COLLECTIONS.masterAttributes)).filter((item) => item.productoMaestroId === product.id);
+  const [attributeRows, definitions] = await Promise.all([rows(COLLECTIONS.masterAttributes), rows(COLLECTIONS.familyDefinitions)]);
+  const attributes = attributeRows.filter((item) => item.productoMaestroId === product.id)
+    .map(item => ({ ...item, etiqueta: definitions.find(definition => definition.id === item.definicionAtributoId)?.etiqueta || item.definicionAtributoId }));
   const stores = searchRows.map((item) => ({
     storeName: item.storeName,
     storeId: item.storeId,

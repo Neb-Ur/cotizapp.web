@@ -1,4 +1,8 @@
 <main class="dashboard-admin">
+  <div *ngIf="dataLoadError" class="data-load-error" role="alert">
+    <p>{{ dataLoadError }}</p>
+    <button type="button" (click)="retryDataLoad()">Reintentar carga</button>
+  </div>
   <app-dashboard-menu
     title="Panel Admin"
     [userName]="currentUser?.displayName || 'Administrador'"
@@ -88,7 +92,7 @@
                     <button pButton type="button" icon="pi pi-ban" [rounded]="true" [text]="true" severity="danger" class="store-action-button" *ngIf="userStatus(store) !== 'bloqueado'" (click)="quickBlock(store)" aria-label="Bloquear ferretería" title="Bloquear ferretería"></button>
                   </td>
                 </tr>
-                <tr *ngIf="filteredFerreteriaRows.length === 0">
+                <tr *ngIf="filteredFerreteriaRows.length === 0 && !dataLoadError">
                   <td colspan="6" class="catalog-empty-cell">No encontramos ferreterías para estos filtros.</td>
                 </tr>
               </tbody>
@@ -106,7 +110,7 @@
             (onPageChange)="onStorePageChange($event)"
           />
           <ng-template #noStores>
-            <div class="empty-store-list">
+            <div class="empty-store-list" *ngIf="!dataLoadError">
               <p>Aún no hay ferreterías registradas.</p>
               <button type="button" (click)="openStoreCreate()">Crear la primera ferretería</button>
             </div>
@@ -217,7 +221,7 @@
                 <td>{{ product.stock }}</td>
                 <td>{{ product.isPublished ? 'Sí' : 'No' }}</td>
               </tr>
-              <tr *ngIf="selectedStoreCatalog.length === 0">
+              <tr *ngIf="selectedStoreCatalog.length === 0 && !dataLoadError">
                 <td colspan="5" class="catalog-empty-cell">
                   <div class="catalog-empty-state">
                     <i class="pi pi-box" aria-hidden="true"></i>
@@ -239,7 +243,7 @@
                   </div>
                 </td>
               </tr>
-              <tr *ngIf="selectedStoreCatalog.length > 0 && filteredSelectedStoreCatalog.length === 0">
+              <tr *ngIf="selectedStoreCatalog.length > 0 && filteredSelectedStoreCatalog.length === 0 && !dataLoadError">
                 <td colspan="5" class="catalog-empty-cell">No encontramos productos para esa búsqueda.</td>
               </tr>
             </tbody>
@@ -316,7 +320,7 @@
                   <button pButton type="button" icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" class="store-action-button" (click)="deleteCategory(category)" aria-label="Eliminar categoría" title="Eliminar"></button>
                 </div>
               </article>
-              <div class="empty-taxonomy-state" *ngIf="!categoryOptions.length">
+              <div class="empty-taxonomy-state" *ngIf="!categoryOptions.length && !dataLoadError">
                 Aún no hay categorías creadas.
               </div>
             </div>
@@ -345,7 +349,7 @@
                   <button pButton type="button" icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" class="store-action-button" (click)="deleteSubcategory(subcategory)" aria-label="Eliminar subcategoria" title="Eliminar"></button>
                 </div>
               </article>
-              <div class="empty-taxonomy-state" *ngIf="!selectedTaxSubcategories.length">
+              <div class="empty-taxonomy-state" *ngIf="!selectedTaxSubcategories.length && !dataLoadError">
                 Selecciona una categoría para ver o crear subcategorías.
               </div>
             </div>
@@ -374,7 +378,7 @@
                   <button pButton type="button" icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" class="store-action-button" (click)="deleteFamily(family)" aria-label="Eliminar familia" title="Eliminar"></button>
                 </div>
               </article>
-              <div class="empty-taxonomy-state" *ngIf="!selectedTaxFamilies.length">
+              <div class="empty-taxonomy-state" *ngIf="!selectedTaxFamilies.length && !dataLoadError">
                 Selecciona una subcategoria para ver o crear familias.
               </div>
             </div>
@@ -759,7 +763,7 @@
           </div>
         </article>
       </div>
-      <ng-template #emptyContactRequests><p class="empty">No hay solicitudes para este estado.</p></ng-template>
+      <ng-template #emptyContactRequests><p class="empty" *ngIf="!dataLoadError">No hay solicitudes para este estado.</p></ng-template>
     </article>
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'precios'">
@@ -803,7 +807,7 @@
           </div>
         </article>
       </div>
-      <ng-template #emptyPriceReports><p class="empty">No hay reclamos para este estado.</p></ng-template>
+      <ng-template #emptyPriceReports><p class="empty" *ngIf="!dataLoadError">No hay reclamos para este estado.</p></ng-template>
     </article>
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'propiedad'">
@@ -865,7 +869,7 @@
           </div>
         </article>
       </div>
-      <ng-template #emptyIpReports><p class="empty">No hay denuncias para este estado.</p></ng-template>
+      <ng-template #emptyIpReports><p class="empty" *ngIf="!dataLoadError">No hay denuncias para este estado.</p></ng-template>
     </article>
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'privacidad'">
@@ -910,7 +914,7 @@
           </div>
         </article>
       </div>
-      <ng-template #emptyPrivacyRequests><p class="empty">No hay solicitudes de derechos para este estado.</p></ng-template>
+      <ng-template #emptyPrivacyRequests><p class="empty" *ngIf="!dataLoadError">No hay solicitudes de derechos para este estado.</p></ng-template>
     </article>
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'gobierno'">
@@ -964,7 +968,7 @@
           </div>
         </article>
       </div>
-      <ng-template #noSecurityIncidents><p class="empty">No existen incidentes registrados.</p></ng-template>
+      <ng-template #noSecurityIncidents><p class="empty" *ngIf="!dataLoadError">No existen incidentes registrados.</p></ng-template>
 
       <p-divider />
       <section>
@@ -1095,7 +1099,7 @@
           </table>
         </div>
 
-        <p class="empty" *ngIf="userRows.length === 0">No hay usuarios para este filtro.</p>
+        <p class="empty" *ngIf="userRows.length === 0 && !dataLoadError">No hay usuarios para este filtro.</p>
       </ng-container>
     </article>
 

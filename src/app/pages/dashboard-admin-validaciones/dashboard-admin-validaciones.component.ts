@@ -155,6 +155,12 @@ interface AdminSectionMeta {
   styleUrl: './dashboard-admin-validaciones.component.scss'
 })
 export class DashboardAdminValidacionesComponent implements OnInit {
+  private sectionLoadError = '';
+  protected get dataLoadError(): string { return this.sectionLoadError || this.apiService.loadError(); }
+  protected async retryDataLoad(): Promise<void> {
+    await this.ensureSectionData(this.currentSection, true).catch(() => undefined);
+  }
+
   protected readonly storeCityOptions = CHILE_CITY_OPTIONS;
   protected readonly catalogViewOptions = [
     { label: 'Productos', value: 'productos', icon: 'pi pi-box' },
@@ -1760,7 +1766,11 @@ export class DashboardAdminValidacionesComponent implements OnInit {
         await this.ensureUsersLoaded(force);
       }
 
+      this.sectionLoadError = '';
       this.loadedSections.add(section);
+    } catch (error) {
+      this.sectionLoadError = error instanceof Error ? error.message : 'No se pudo cargar esta sección. Intenta nuevamente.';
+      this.loadedSections.delete(section);
     } finally {
       this.isSectionLoading = false;
     }

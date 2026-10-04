@@ -119,16 +119,16 @@
           <ul [attr.aria-label]="storeSort === 'distance' ? 'Ferreterías ordenadas por distancia' : 'Ferreterías ordenadas por precio'">
             <li
               *ngFor="let store of displayStores"
-              [class.selected]="store.storeName === selectedStoreName"
-              (click)="selectStore(store.storeName)"
+              [class.selected]="storeSelectionId(store) === selectedStoreId"
+              (click)="selectStore(store.storeName, storeSelectionId(store))"
             >
               <label class="store-select">
                 <input
                   type="radio"
                   name="store-selection"
-                  [value]="store.storeName"
-                  [ngModel]="selectedStoreName"
-                  (ngModelChange)="selectStore($event)"
+                  [value]="storeSelectionId(store)"
+                  [ngModel]="selectedStoreId"
+                  (ngModelChange)="selectStore(store.storeName, $event)"
                 />
                 <div>
                   <p class="store-name">

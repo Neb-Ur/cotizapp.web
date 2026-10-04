@@ -47,6 +47,12 @@ interface MasterCatalogSelectionDraft {
   styleUrl: './dashboard-ferreteria.component.scss'
 })
 export class DashboardFerreteriaComponent implements OnInit {
+  private sectionLoadError = '';
+  protected get dataLoadError(): string { return this.sectionLoadError || this.apiService.loadError(); }
+  protected async retryDataLoad(): Promise<void> {
+    await this.ensureSectionData(this.currentSection, true).catch(() => undefined);
+  }
+
   protected readonly sections: FerreteriaSectionMeta[] = [
     { id: 'inicio', label: 'Inicio', description: 'Resumen de la actividad de tu ferretería.' },
     { id: 'catalogo', label: 'Mantener catálogo', description: 'Mantiene precio, stock y agrega productos cuando lo necesites.' },
@@ -693,7 +699,11 @@ export class DashboardFerreteriaComponent implements OnInit {
       }
 
       if (section === 'perfil') this.syncProfileDraftFromUser();
+      this.sectionLoadError = '';
       this.loadedSections.add(section);
+    } catch (error) {
+      this.sectionLoadError = error instanceof Error ? error.message : 'No se pudo cargar esta sección. Intenta nuevamente.';
+      this.loadedSections.delete(section);
     } finally {
       this.isSectionLoading = false;
     }

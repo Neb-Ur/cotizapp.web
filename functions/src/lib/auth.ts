@@ -10,6 +10,7 @@ declare global {
       authUserId?: string;
       authRole?: 'maestro' | 'ferreteria' | 'admin';
       authSecondFactor?: string;
+      authTime?: number;
     }
   }
 }
@@ -33,6 +34,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     // password reset or explicit administrative revocation.
     const decoded = await adminAuth.verifyIdToken(token, true);
     req.authUserId = decoded.uid;
+    req.authTime = decoded.auth_time;
     req.authSecondFactor = typeof decoded.firebase?.sign_in_second_factor === 'string'
       ? decoded.firebase.sign_in_second_factor
       : undefined;

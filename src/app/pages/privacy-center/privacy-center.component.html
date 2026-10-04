@@ -73,6 +73,9 @@
               <h3>Descargar mis datos</h3>
               <p>Obtén perfil, cotizaciones, solicitudes y registros de consentimiento en JSON.</p>
               <button type="button" class="secondary" [disabled]="!!busyAction" (click)="downloadData()">{{ busyAction === 'export' ? 'Preparando…' : 'Descargar exportación' }}</button>
+              <p>Para incluir solicitudes enviadas sin iniciar sesión, verifica la propiedad de tu correo.</p>
+              <button type="button" class="secondary" [disabled]="!!busyAction" (click)="verifyEmail()">Verificar mi correo</button>
+              <button type="button" class="secondary" [disabled]="!!busyAction" (click)="refreshVerification()">Ya verifiqué mi correo</button>
             </article>
             <article>
               <span class="action-number">02</span>
@@ -197,6 +200,7 @@
           <p>Esta acción elimina la cuenta activa, cotizaciones, contactos, solicitudes y, si eres ferretería, catálogo y ofertas. No se puede deshacer.</p>
           <button type="button" class="danger-outline" *ngIf="!deletePanelOpen" (click)="deletePanelOpen = true">Iniciar eliminación</button>
           <div class="delete-confirm" *ngIf="deletePanelOpen">
+            <label>Confirma tu contraseña<input type="password" [(ngModel)]="deletePassword" autocomplete="current-password" /></label>
             <label>Confirma tu correo<input type="email" [(ngModel)]="deleteEmail" [placeholder]="user?.email || ''" autocomplete="off" /></label>
             <label class="check-row"><input type="checkbox" [(ngModel)]="deleteConfirmed" /><span>Entiendo que perderé el acceso y que esta acción no se puede deshacer.</span></label>
             <div class="button-pair">

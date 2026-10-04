@@ -347,6 +347,7 @@ export interface ProjectSummary {
   address?: string;
   proximity?: SearchProximity;
   singleStoreName?: string;
+  singleStoreId?: string;
   createdAt: string;
   items: ProjectItem[];
   totalOptimal: number;
@@ -354,6 +355,7 @@ export interface ProjectSummary {
 }
 
 export interface ProjectStoreTotal {
+  storeId?: string;
   storeName: string;
   total: number;
 }
@@ -366,6 +368,7 @@ export interface ProjectQuotationLine {
   productoFerreteriaId?: string;
   productoMaestroId?: string;
   bestStoreName: string;
+  bestStoreId?: string;
   unitPrice: number;
   subtotal: number;
 }
@@ -379,6 +382,8 @@ export interface ProjectQuotationView {
   mixedTotal: number;
   mixedSaving: number;
   appliedStoreName?: string;
+  appliedStoreId?: string;
+  selectionAvailable?: boolean;
 }
 
 export type ProjectComparisonStrategyId = 'cheapest' | 'same-store';

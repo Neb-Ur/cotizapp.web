@@ -15,3 +15,20 @@ test('missing selected offer never silently switches store', () => {
  const result = optimize([{productName:'Cemento',quantity:2,productoFerreteriaId:'removed'}],offers);
  assert.equal(result.lines[0].unitPrice,0); assert.equal(result.mixedSaving,0);
 });
+test('same-name branches are separate stores and cannot form a fictitious single-store quotation', () => {
+ const branchOffers = [{productName:'Cemento', storeName:'Cadena', storeId:'north', price:1000, stock:10}, {productName:'Clavos', storeName:'Cadena', storeId:'south', price:500, stock:10}];
+ const result = optimize([{productName:'Cemento', quantity:1}, {productName:'Clavos', quantity:1}], branchOffers);
+ assert.equal(result.singleStoreOptions.length, 0);
+ assert.deepEqual(result.lines.map(line => line.bestStoreId), ['north','south']);
+ const ambiguous = optimize([{productName:'Cemento',quantity:1}], branchOffers, 'Cadena');
+ assert.equal(ambiguous.selectionAvailable, false);
+ assert.equal(ambiguous.optimalTotal, 0);
+});
+test('single-store IDs select the exact branch and never substitute unavailable branches', () => {
+ const branches = [{productName:'Cemento',storeName:'Cadena',storeId:'north',price:1000,stock:10},{productName:'Cemento',storeName:'Cadena',storeId:'south',price:2000,stock:10}];
+ const result = optimize([{productName:'Cemento',quantity:2}], branches, 'Cadena', 'south');
+ assert.equal(result.optimalTotal,4000); assert.equal(result.lines[0].bestStoreId,'south');
+ assert.equal(result.appliedStoreId,'south'); assert.equal(result.selectionAvailable,true);
+ const unavailable = optimize([{productName:'Cemento',quantity:2}], branches, 'Cadena', 'removed');
+ assert.equal(unavailable.optimalTotal,0); assert.equal(unavailable.selectionAvailable,false);
+});

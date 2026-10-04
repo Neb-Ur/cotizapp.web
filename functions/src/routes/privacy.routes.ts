@@ -128,6 +128,9 @@ privacyRouter.delete('/privacy/account', requireAuth, async (req, res) => {
   if (req.authRole === 'admin') {
     return fail(res, 'ADMIN_SELF_DELETE_DISABLED', 'La cuenta administradora debe eliminarse mediante un procedimiento administrativo para evitar perder el control del sistema.', 409);
   }
+  if (!req.authTime || Date.now() / 1000 - req.authTime > 300) {
+    return fail(res, 'AUTH_RECENT_LOGIN_REQUIRED', 'Confirma nuevamente tu contraseña antes de eliminar la cuenta.', 401);
+  }
   const firebaseUser = await adminAuth.getUser(req.authUserId);
   const email = (firebaseUser.email || '').toLowerCase();
   if (normalizeText(req.body?.email).toLowerCase() !== email || req.body?.confirmation !== 'ELIMINAR') {

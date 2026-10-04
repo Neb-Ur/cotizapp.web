@@ -1,4 +1,8 @@
 <main class="dashboard" [class.dashboard--public]="!user">
+  <div *ngIf="dataLoadError" class="data-load-error" role="alert">
+    <p>{{ dataLoadError }}</p>
+    <button type="button" (click)="retryDataLoad()">Reintentar carga</button>
+  </div>
   <app-dashboard-menu
     *ngIf="user"
     title="Panel Maestro"
@@ -218,7 +222,7 @@
 
       <ng-template #emptyProducts>
         <p class="cards-empty" *ngIf="isPublicCatalogRefreshing">Actualizando productos disponibles...</p>
-        <ng-container *ngIf="!isPublicCatalogRefreshing">
+        <ng-container *ngIf="!isPublicCatalogRefreshing && !dataLoadError">
           <p class="cards-empty" *ngIf="!nearbyEnabled">No encontramos productos para la búsqueda actual.</p>
           <p class="cards-empty" *ngIf="nearbyEnabled">
             No encontramos ferreterías con estos productos dentro de {{ nearbyRadiusKm }} km. Prueba aumentando el radio o viendo todas las ferreterías.
@@ -270,7 +274,7 @@
           </tbody>
         </table>
       </div>
-      <ng-template #emptyQuotes><p>Aún no tienes cotizaciones. Crea la primera para comenzar a comparar.</p></ng-template>
+      <ng-template #emptyQuotes><p *ngIf="!dataLoadError">Aún no tienes cotizaciones. Crea la primera para comenzar a comparar.</p></ng-template>
     </article>
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'historial'">
@@ -288,7 +292,7 @@
           </div>
         </article>
       </div>
-      <ng-template #emptyHistory><p>Aún no tienes cotizaciones guardadas.</p></ng-template>
+      <ng-template #emptyHistory><p *ngIf="!dataLoadError">Aún no tienes cotizaciones guardadas.</p></ng-template>
     </article>
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'perfil'">

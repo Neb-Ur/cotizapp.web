@@ -5,6 +5,10 @@ import {
   browserSessionPersistence,
   createUserWithEmailAndPassword,
   deleteUser,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  reload,
+  sendEmailVerification,
   getIdToken,
   onIdTokenChanged,
   sendPasswordResetEmail,
@@ -185,7 +189,37 @@ export class AuthService {
     }
   }
 
+  async sendVerificationEmail(): Promise<void> {
+    const auth = await this.getAuth();
+    if (!auth.currentUser) throw new Error('Inicia sesión para verificar tu correo.');
+    await reload(auth.currentUser);
+    if (!auth.currentUser.emailVerified) await sendEmailVerification(auth.currentUser);
+  }
+
+  async refreshEmailVerification(): Promise<boolean> {
+    const auth = await this.getAuth();
+    if (!auth.currentUser) return false;
+    await reload(auth.currentUser);
+    await this.refreshCurrentUser();
+    return auth.currentUser?.emailVerified === true;
+  }
+
+  async confirmPassword(password: string): Promise<void> {
+    const auth = await this.getAuth();
+    if (!auth.currentUser?.email) throw new Error('Inicia sesión nuevamente.');
+    await reauthenticateWithCredential(auth.currentUser, EmailAuthProvider.credential(auth.currentUser.email, password));
+    const token = await getIdToken(auth.currentUser, true);
+    this.tokenState.set(token);
+  }
+
+  private clearQuotationDrafts(): void {
+    if (typeof window === 'undefined') return;
+    Object.keys(window.localStorage).filter(key => key.startsWith('cotizapp-project-draft:') || key === 'construcomparador-project-draft')
+      .forEach(key => window.localStorage.removeItem(key));
+  }
+
   async logout(): Promise<void> {
+    this.clearQuotationDrafts();
     try {
       const auth = await this.getAuth();
       await signOut(auth);
@@ -205,6 +239,7 @@ export class AuthService {
   }
 
   async clearAfterAccountDeletion(): Promise<void> {
+    this.clearQuotationDrafts();
     try {
       const auth = await this.getAuth();
       await signOut(auth);

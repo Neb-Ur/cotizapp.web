@@ -5,6 +5,7 @@ import { deleteRowsByIds, rows } from '../repositories/firestore.repository.js';
 
 interface AccountDataSnapshot {
   exportedAt: string;
+  emailLinkedRecordsIncluded: boolean;
   profile: Record<string, unknown> | null;
   stores: Record<string, unknown>[];
   storeProducts: Record<string, unknown>[];
@@ -20,6 +21,18 @@ interface AccountDataSnapshot {
 }
 
 async function accountRows(userId: string, email: string): Promise<AccountDataSnapshot> {
+  // An authenticated UID is not proof of ownership of an unverified email.
+  // Keep self-service UID data available; anonymous email-linked records need
+  // verified ownership, including when deletion is initiated by an admin.
+  const authUser = await adminAuth.getUser(userId).catch((error: { code?: string }) => {
+    if (error.code === 'auth/user-not-found') return null;
+    throw error;
+  });
+  const verifiedEmail = authUser?.emailVerified && authUser.email
+    && authUser.email.toLowerCase() === email.trim().toLowerCase()
+    ? authUser.email.toLowerCase() : null;
+  const belongsToAccount = (item: any, recordEmail: unknown) => item.usuarioId === userId
+    || (!!verifiedEmail && String(recordEmail || '').toLowerCase() === verifiedEmail);
   const [userDoc, stores, storeProducts, priceHistory, storeAgreements, projects, productRequests, contacts, consents, privacyRequests, ipReports, priceReports] = await Promise.all([
     db.collection(COLLECTIONS.users).doc(userId).get(),
     rows(COLLECTIONS.stores),
@@ -39,6 +52,7 @@ async function accountRows(userId: string, email: string): Promise<AccountDataSn
 
   return {
     exportedAt: new Date().toISOString(),
+    emailLinkedRecordsIncluded: !!verifiedEmail,
     profile: userDoc.exists ? { id: userDoc.id, ...userDoc.data() } : null,
     stores: ownedStores,
     storeProducts: storeProducts.filter((item) => storeIds.has(item.ferreteriaId)),
@@ -46,11 +60,11 @@ async function accountRows(userId: string, email: string): Promise<AccountDataSn
     storeAgreements: storeAgreements.filter((item) => item.usuarioFirmanteId === userId || storeIds.has(item.ferreteriaId)),
     projects: projects.filter((item) => item.ownerId === userId),
     productRequests: productRequests.filter((item) => item.usuarioSolicitanteId === userId || storeIds.has(item.ferreteriaId)),
-    contactRequests: contacts.filter((item) => String(item.email || '').toLowerCase() === email.toLowerCase()),
+    contactRequests: contacts.filter((item) => belongsToAccount(item, item.email)),
     consentRecords: consents.filter((item) => item.usuarioId === userId),
     privacyRequests: privacyRequests.filter((item) => item.usuarioId === userId),
-    intellectualPropertyReports: ipReports.filter((item) => String(item.claimant?.email || '').toLowerCase() === email.toLowerCase()),
-    priceReports: priceReports.filter((item) => String(item.email || '').toLowerCase() === email.toLowerCase())
+    intellectualPropertyReports: ipReports.filter((item) => belongsToAccount(item, item.claimant?.email)),
+    priceReports: priceReports.filter((item) => belongsToAccount(item, item.email))
   };
 }
 
@@ -60,7 +74,6 @@ export async function exportAccountData(userId: string, email: string): Promise<
 
 export async function deleteAccountData(userId: string, email: string, deleteAuthUser = true): Promise<Record<string, number>> {
   const snapshot = await accountRows(userId, email);
-  const storeIds = new Set(snapshot.stores.map((item) => String(item['id'])));
   const storeOffers = snapshot.storeProducts;
 
   // El contrato mercantil y su huella se conservan de forma minimizada para
@@ -115,7 +128,9 @@ export async function deleteAccountData(userId: string, email: string, deleteAut
   await deleteRowsByIds(COLLECTIONS.publicCache, publicCache.docs.map((doc) => doc.id));
 
   if (deleteAuthUser) {
-    try { await adminAuth.deleteUser(userId); } catch { /* La cuenta de Auth puede no existir en datos heredados. */ }
+    try { await adminAuth.deleteUser(userId); } catch (error) {
+      if ((error as { code?: string }).code !== 'auth/user-not-found') throw error;
+    }
   }
 
   const counts = {

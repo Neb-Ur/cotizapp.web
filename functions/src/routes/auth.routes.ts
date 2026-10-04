@@ -48,7 +48,13 @@ authRouter.post('/auth/register', requireAuth, async (req, res) => {
     return fail(res, 'FERRETERIA_LOCATION_REQUIRED', 'Registra la ubicacion del local para aparecer en busquedas cercanas.', 400);
   }
 
-  await db.collection(COLLECTIONS.users).doc(req.authUserId).set(userPayload, { merge: true });
+  const created = await db.runTransaction(async tx => {
+    const ref = db.collection(COLLECTIONS.users).doc(req.authUserId!);
+    if ((await tx.get(ref)).exists) return false;
+    tx.create(ref, userPayload);
+    return true;
+  });
+  if (!created) return fail(res, 'AUTH_PROFILE_ALREADY_EXISTS', 'Tu perfil ya existe. Puedes actualizarlo desde tu cuenta.', 409);
 
   if (role === 'ferreteria') {
     const existingStores = (await rows(COLLECTIONS.stores)).filter((store) => store.usuarioDuenoId === req.authUserId);
@@ -105,7 +111,10 @@ authRouter.patch('/auth/me', requireAuth, async (req, res) => {
   allowed.forEach((key) => {
     if (req.body?.[key] !== undefined) patch[key] = req.body[key];
   });
-  if (Object.keys(patch).length > 0) await db.collection(COLLECTIONS.users).doc(req.authUserId).set(patch, { merge: true });
+  const profileRef = db.collection(COLLECTIONS.users).doc(req.authUserId);
+  if (!(await profileRef.get()).exists) return fail(res, 'AUTH_USER_NOT_FOUND', 'Completa tu perfil antes de editarlo.', 404);
+  const batch = db.batch();
+  if (Object.keys(patch).length > 0) batch.update(profileRef, patch);
 
   const stores = (await rows(COLLECTIONS.stores)).filter((store) => store.usuarioDuenoId === req.authUserId);
   if (stores[0]) {
@@ -123,9 +132,10 @@ authRouter.patch('/auth/me', requireAuth, async (req, res) => {
       storePatch['longitud'] = longitude;
     }
 
-    if (Object.keys(storePatch).length > 0) await db.collection(COLLECTIONS.stores).doc(stores[0].id).set(storePatch, { merge: true });
+    if (Object.keys(storePatch).length > 0) batch.update(db.collection(COLLECTIONS.stores).doc(stores[0].id), storePatch);
   }
 
+  await batch.commit();
   return ok(res, await authUserResponse(req.authUserId));
 });
 

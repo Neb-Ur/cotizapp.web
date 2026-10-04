@@ -47,7 +47,7 @@
         ]
       },
       {
-        "source": "/@(login|registro|recuperar-clave)",
+        "source": "/@(login|registro|recuperar-clave|auth|producto)",
         "headers": [
           {
             "key": "X-Robots-Tag",
@@ -81,6 +81,13 @@
         }
       },
       {
+        "source": "/producto",
+        "function": {
+          "functionId": "api",
+          "region": "southamerica-west1"
+        }
+      },
+      {
         "source": "/productos/**",
         "function": {
           "functionId": "api",
@@ -105,6 +112,13 @@
           "functionId": "api",
           "region": "southamerica-west1"
         }
+      }
+    ],
+    "redirects": [
+      {
+        "source": "/auth",
+        "destination": "/login",
+        "type": 301
       }
     ]
   }

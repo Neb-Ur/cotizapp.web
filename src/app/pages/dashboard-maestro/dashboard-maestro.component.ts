@@ -42,6 +42,12 @@ interface MaestroProfileDraft {
   styleUrl: './dashboard-maestro.component.scss'
 })
 export class DashboardMaestroComponent implements OnInit {
+  private sectionLoadError = '';
+  protected get dataLoadError(): string { return this.sectionLoadError || this.apiService.loadError(); }
+  protected async retryDataLoad(): Promise<void> {
+    await this.ensureSectionData(this.currentSection, true).catch(() => undefined);
+  }
+
   protected readonly faFilters = faSliders;
   protected readonly faSort = faArrowDownWideShort;
   protected readonly faLocation = faLocationDot;
@@ -95,6 +101,7 @@ export class DashboardMaestroComponent implements OnInit {
   protected isMobileViewport = false;
   protected isMobileMenuVisible = false;
   private readonly loadedSections = new Set<MaestroSection>();
+  private lastQuerySearch = '';
   private productSearchTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
@@ -121,6 +128,13 @@ export class DashboardMaestroComponent implements OnInit {
     }
 
     this.route.queryParamMap.subscribe((params) => {
+      const requestedQuery = params.get('q') || '';
+      if (requestedQuery !== this.lastQuerySearch) {
+        this.lastQuerySearch = requestedQuery;
+        this.tableProductSearch = requestedQuery;
+        this.currentPage = 1;
+        this.refreshProductRows();
+      }
       const requested = params.get('section');
       if (this.isValidSection(requested) && (this.user || requested === 'buscar')) {
         this.currentSection = requested;
@@ -469,7 +483,8 @@ export class DashboardMaestroComponent implements OnInit {
     const quotation = this.apiService.buildProjectQuotation(
       project.items,
       project.proximity,
-      project.singleStoreName
+      project.singleStoreName,
+      project.singleStoreId
     );
     if (quotation.lines.length === 0) {
       this.quotationNotice = 'Esta cotizacion no tiene productos para enviar.';
@@ -599,7 +614,11 @@ export class DashboardMaestroComponent implements OnInit {
         this.hydrateProfileDraft();
       }
 
+      this.sectionLoadError = '';
       this.loadedSections.add(section);
+    } catch (error) {
+      this.sectionLoadError = error instanceof Error ? error.message : 'No se pudo cargar esta sección. Intenta nuevamente.';
+      this.loadedSections.delete(section);
     } finally {
       this.isSectionLoading = false;
     }
@@ -612,7 +631,7 @@ export class DashboardMaestroComponent implements OnInit {
     const hasTaxonomyFilter = !!(this.selectedCategoryId || this.selectedSubcategoryId || this.selectedFamilyId);
     const rows = hasTaxonomyFilter
       ? this.apiService.getFamilyProductRows(this.selectedFamilyId, query, this.currentProximity, autoLoad)
-      : this.apiService.getPopularProductRows(query, 100, this.currentProximity, autoLoad);
+      : this.apiService.getFamilyProductRows('', query, this.currentProximity, autoLoad);
 
     if (hasTaxonomyFilter) {
       const allowedProducts = new Set(this.apiService.getProductOptions({

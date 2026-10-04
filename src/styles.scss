@@ -767,3 +767,12 @@ app-dashboard-admin-validaciones .admin-data-table .p-datatable-tbody > tr > td 
     grid-column: auto;
   }
 }
+
+.data-load-error {
+  padding: 1rem;
+  margin: 1rem;
+  border: 1px solid #a62020;
+  border-radius: .75rem;
+  background: #fff4f4;
+  color: #791919;
+}

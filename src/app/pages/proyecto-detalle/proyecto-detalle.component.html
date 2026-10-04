@@ -181,7 +181,7 @@
       </div>
 
       <p class="nearby-warning" *ngIf="singleStoreSelectionInvalid">
-        La ferretería que habías aplicado ya no tiene todos los productos disponibles. CotizApp volvió temporalmente a la compra combinada.
+        La ferretería que habías aplicado ya no tiene todos los productos disponibles. Revisa la selección o vuelve a la compra combinada; los productos faltantes siguen marcados como incompletos.
       </p>
 
       <div class="same-store-applied" *ngIf="quotation.appliedStoreName">
@@ -194,7 +194,7 @@
         <article
           class="same-store-option"
           *ngFor="let option of singleStoreOptions"
-          [class.applied]="option.storeName === quotation.appliedStoreName"
+          [class.applied]="(option.storeId ? option.storeId === quotation.appliedStoreId : option.storeName === quotation.appliedStoreName)"
         >
           <div>
             <h3>{{ option.storeName }}</h3>
@@ -211,10 +211,10 @@
           </div>
           <button
             type="button"
-            (click)="applySingleStore(option.storeName)"
-            [disabled]="option.storeName === quotation.appliedStoreName"
+            (click)="applySingleStore(option.storeName, option.storeId)"
+            [disabled]="(option.storeId ? option.storeId === quotation.appliedStoreId : option.storeName === quotation.appliedStoreName)"
           >
-            {{ option.storeName === quotation.appliedStoreName ? 'Aplicada' : 'Aplicar' }}
+            {{ (option.storeId ? option.storeId === quotation.appliedStoreId : option.storeName === quotation.appliedStoreName) ? 'Aplicada' : 'Aplicar' }}
           </button>
         </article>
       </div>
