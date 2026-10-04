@@ -1,29 +1,11 @@
+import { buildSearchRows } from '../services/catalog-search.service.js';
 import { randomUUID } from 'node:crypto';
 import type { DocumentReference } from 'firebase-admin/firestore';
 import { db } from './firebase.js';
 import { CURRENT_STORE_AGREEMENT_VERSION } from './legal.js';
 import { storeAgreementDocumentHash } from '../services/store-agreement.service.js';
 
-export type PublicSearchRow = {
-  productoMaestroId: string;
-  productoFerreteriaId: string;
-  productName: string;
-  storeName: string;
-  storeId: string;
-  storeLatitude: number | null;
-  storeLongitude: number | null;
-  storeAddress: string;
-  storeCommune: string;
-  price: number;
-  categoryId: string;
-  categoryName: string;
-  subcategoryId: string;
-  subcategoryName: string;
-  familyId: string;
-  familyName: string;
-  stock: number;
-  sku: string;
-};
+export type PublicSearchRow = import('../models/domain.models.js').SearchRow;
 
 export type PublicCatalogSnapshot = {
   version: string;
@@ -50,6 +32,11 @@ const COLLECTIONS = {
 
 const META_ID = 'meta';
 const CHUNK_SIZE = 150;
+const CACHE_POLICY = `final-prices-v3:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}`;
+const MAX_AGE_MS = 60_000;
+function fresh(meta: any): boolean {
+  return meta?.policy === CACHE_POLICY && Date.now() - Date.parse(meta.updatedAt || '') < MAX_AGE_MS;
+}
 let rebuildPromise: Promise<PublicCatalogSnapshot> | null = null;
 let memorySnapshot: PublicCatalogSnapshot | null = null;
 
@@ -82,75 +69,10 @@ async function rows(collectionName: string): Promise<any[]> {
   return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
 
-async function buildSearchRows(): Promise<PublicSearchRow[]> {
-  const [offers, products, stores, users, categories, subcategories, families] = await Promise.all([
-    rows(COLLECTIONS.storeProducts),
-    rows(COLLECTIONS.masterProducts),
-    rows(COLLECTIONS.stores),
-    rows(COLLECTIONS.users),
-    rows(COLLECTIONS.categories),
-    rows(COLLECTIONS.subcategories),
-    rows(COLLECTIONS.families)
-  ]);
 
-  const productById = new Map(products.map((item) => [item.id, item]));
-  const storeById = new Map(stores.map((item) => [item.id, item]));
-  const userById = new Map(users.map((item) => [item.id, item]));
-  const categoryById = new Map(categories.map((item) => [item.id, item]));
-  const subcategoryById = new Map(subcategories.map((item) => [item.id, item]));
-  const familyById = new Map(families.map((item) => [item.id, item]));
-
-  return offers
-    .filter((offer) => offer.activo !== false && offer.publicado !== false)
-    .map((offer) => {
-      const product = productById.get(offer.productoMaestroId);
-      const store = storeById.get(offer.ferreteriaId);
-      const owner = store ? userById.get(store.usuarioDuenoId) : null;
-
-      if (
-        !product
-        || !store
-        || !owner
-        || product.estado === 'inactivo'
-        || store.estado === 'inactivo'
-        || store.contratoEstado !== 'vigente'
-        || store.contratoVersion !== CURRENT_STORE_AGREEMENT_VERSION
-        || store.contratoDocumentHash !== storeAgreementDocumentHash()
-        || owner.estadoCuenta !== 'activo'
-      ) {
-        return null;
-      }
-
-      return {
-        productoMaestroId: product.id,
-        productoFerreteriaId: offer.id,
-        productName: normalizeText(product.nombre),
-        storeName: normalizeText(store.nombreComercial),
-        storeId: store.id,
-        storeLatitude: coordinateValue(store.latitud, -90, 90),
-        storeLongitude: coordinateValue(store.longitud, -180, 180),
-        storeAddress: normalizeText(owner.direccion),
-        storeCommune: normalizeText(owner.comuna),
-        price: numberValue(offer.precio),
-        categoryId: normalizeText(product.categoriaId),
-        categoryName: normalizeText(categoryById.get(product.categoriaId)?.nombre) || 'Sin categoria',
-        subcategoryId: normalizeText(product.subcategoriaId),
-        subcategoryName: normalizeText(subcategoryById.get(product.subcategoriaId)?.nombre) || 'Sin subcategoria',
-        familyId: normalizeText(product.familiaId),
-        familyName: normalizeText(familyById.get(product.familiaId)?.nombre) || 'Sin familia',
-        stock: numberValue(offer.stock),
-        sku: normalizeText(offer.skuFerreteria)
-      } satisfies PublicSearchRow;
-    })
-    .filter((item): item is PublicSearchRow => item !== null)
-    .sort((a, b) => a.price - b.price);
-}
-
-function chunk<T>(items: T[]): T[][] {
+function chunk<T>(items: T[], size: number = CHUNK_SIZE): T[][] {
   const result: T[][] = [];
-  for (let offset = 0; offset < items.length; offset += CHUNK_SIZE) {
-    result.push(items.slice(offset, offset + CHUNK_SIZE));
-  }
+  for (let i = 0; i < items.length; i += size) result.push(items.slice(i, i + size));
   return result;
 }
 
@@ -183,6 +105,7 @@ async function materializeSnapshot(): Promise<PublicCatalogSnapshot> {
     .filter((item) => item.estado !== 'inactivo')
     .map((item) => ({
       id: item.id,
+      isDemo: /demo|test/i.test(String(item.seedTag || '')) || /demostrativ|generad.*pruebas/i.test(String(item.descripcionLarga || '')),
       categoriaId: item.categoriaId,
       subcategoriaId: item.subcategoriaId,
       familiaId: item.familiaId,
@@ -225,7 +148,6 @@ async function materializeSnapshot(): Promise<PublicCatalogSnapshot> {
     }))
   ]);
 
-  let published = false;
   await db.runTransaction(async (transaction) => {
     const latest = await transaction.get(metaRef);
     const latestGeneration = Number(latest.data()?.generation || 0);
@@ -235,13 +157,13 @@ async function materializeSnapshot(): Promise<PublicCatalogSnapshot> {
       generation,
       builtGeneration: generation,
       dirty: false,
+      policy: CACHE_POLICY,
       version,
       updatedAt,
       taxonomyDocId,
       offerDocIds,
       productDocIds
     }, { merge: true });
-    published = true;
   });
 
   const snapshot: PublicCatalogSnapshot = {
@@ -252,17 +174,15 @@ async function materializeSnapshot(): Promise<PublicCatalogSnapshot> {
     searchRows
   };
 
-  if (published) {
-    const keepIds = new Set([META_ID, taxonomyDocId, ...offerDocIds, ...productDocIds]);
-    const existing = await db.collection(COLLECTIONS.publicCache).get();
-    const obsolete = existing.docs.filter((doc) => !keepIds.has(doc.id));
-    for (let offset = 0; offset < obsolete.length; offset += 400) {
-      const batch = db.batch();
-      obsolete.slice(offset, offset + 400).forEach((doc) => batch.delete(doc.ref));
-      await batch.commit();
-    }
-  }
 
+  // Keep a grace period so concurrent readers retain their published chunks.
+  const expired = await db.collection(COLLECTIONS.publicCache).where('updatedAt', '<', new Date(Date.now() - 3_600_000).toISOString()).limit(400).get();
+  const obsolete = expired.docs.filter(doc => doc.id !== META_ID);
+  if (obsolete.length) {
+    const batch = db.batch();
+    obsolete.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+  }
   return snapshot;
 }
 
@@ -357,7 +277,7 @@ export async function getPublicCatalogMetadata(): Promise<{ version: string; upd
   const publishedVersion = String(meta.version || '');
   const generation = Number(meta.generation || 0);
   return {
-    version: meta.dirty === true
+    version: meta.dirty === true || !fresh(meta)
       ? `dirty-${generation}-${publishedVersion || 'none'}`
       : publishedVersion,
     updatedAt: String(meta.updatedAt || meta.invalidatedAt || '')
@@ -367,44 +287,13 @@ export async function getPublicCatalogMetadata(): Promise<{ version: string; upd
 export async function getPublicCatalogSnapshot(
   options: { allowStale?: boolean; expectedVersion?: string } = {}
 ): Promise<PublicCatalogSnapshot> {
-  if (memorySnapshot) {
-    if (options.allowStale && !options.expectedVersion) {
-      return memorySnapshot;
-    }
-    if (options.expectedVersion && options.expectedVersion === memorySnapshot.version) {
-      return memorySnapshot;
-    }
-  }
-
   const metaRef = db.collection(COLLECTIONS.publicCache).doc(META_ID);
   const metaSnapshot = await metaRef.get();
   const meta = metaSnapshot.exists ? metaSnapshot.data() as any : null;
 
-  let publishedSnapshot: PublicCatalogSnapshot | null = null;
-  if (meta?.version && meta?.taxonomyDocId) {
-    if (
-      memorySnapshot?.version === String(meta.version)
-      && (meta.dirty === false || options.allowStale)
-    ) {
-      return memorySnapshot;
-    }
-
-    try {
-      publishedSnapshot = await readPublishedSnapshot(meta);
-      if (meta.dirty === false || options.allowStale) {
-        return publishedSnapshot;
-      }
-    } catch {
-      publishedSnapshot = null;
-    }
+  if (meta?.version && meta?.taxonomyDocId && meta.dirty === false && fresh(meta)) {
+    if (memorySnapshot?.version === String(meta.version)) return memorySnapshot;
+    return readPublishedSnapshot(meta);
   }
-
-  try {
-    return rememberSnapshot(await rebuildPublicCatalogCache());
-  } catch (error) {
-    if (publishedSnapshot) {
-      return publishedSnapshot;
-    }
-    throw error;
-  }
+  return rememberSnapshot(await rebuildPublicCatalogCache());
 }

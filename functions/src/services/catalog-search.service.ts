@@ -24,6 +24,7 @@ export async function buildSearchRows(): Promise<SearchRow[]> {
 
   return offers
     .filter((offer) => offer.activo !== false && offer.publicado !== false)
+    .filter((offer) => !offer.vigenteDesde || new Date(offer.vigenteDesde).getTime() <= Date.now())
     .filter((offer) => !offer.vigenteHasta || new Date(offer.vigenteHasta).getTime() >= Date.now())
     .map((offer) => {
       const product = productById.get(offer.productoMaestroId);
@@ -42,6 +43,7 @@ export async function buildSearchRows(): Promise<SearchRow[]> {
       ) return null;
 
       const price = numberValue(offer.precio);
+      if (price <= 0) return null;
       const declaredMeasurementUnit = ['kg', 'l', 'm', 'm2', 'unidad'].includes(offer.unidadMedidaPrecio)
         ? offer.unidadMedidaPrecio as 'kg' | 'l' | 'm' | 'm2' | 'unidad'
         : null;
@@ -68,8 +70,8 @@ export async function buildSearchRows(): Promise<SearchRow[]> {
         storePhone: normalizeText(store.telefonoContactoPublico || owner.telefono),
         price,
         priceUpdatedAt: normalizeText(offer.actualizadoEn || offer.creadoEn),
-        includesVat: offer.incluyeIva !== false,
-        comparisonEligible: offer.incluyeIva !== false && price > 0,
+        includesVat: true as boolean,
+        comparisonEligible: price > 0 && numberValue(offer.stock) > 0,
         includesShipping: false as boolean,
         validFrom: normalizeText(offer.vigenteDesde || offer.actualizadoEn || offer.creadoEn),
         validUntil: normalizeText(offer.vigenteHasta) || null,

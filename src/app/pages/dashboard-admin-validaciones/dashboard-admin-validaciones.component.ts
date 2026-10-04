@@ -6,10 +6,10 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DividerModule } from 'primeng/divider';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
-import { InputTextareaModule } from 'primeng/inputtextarea';
+import { TextareaModule } from 'primeng/textarea';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { TableModule } from 'primeng/table';
@@ -142,10 +142,10 @@ interface AdminSectionMeta {
     CardModule,
     CheckboxModule,
     DividerModule,
-    DropdownModule,
+    SelectModule,
     InputNumberModule,
     InputTextModule,
-    InputTextareaModule,
+    TextareaModule,
     PaginatorModule,
     SelectButtonModule,
     TableModule,

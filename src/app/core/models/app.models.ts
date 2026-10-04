@@ -303,6 +303,8 @@ export interface ProductExtraSection {
 }
 
 export interface ProductDetailView {
+  isDemo?: boolean;
+  productoMaestroId?: string;
   productName: string;
   imageUrl: string;
   gallery: string[];
@@ -331,9 +333,15 @@ export interface ProductDetailView {
 export interface ProjectItem {
   productName: string;
   quantity: number;
+  storeId?: string;
+  storeName?: string;
+  productoFerreteriaId?: string;
+  productoMaestroId?: string;
 }
 
 export interface ProjectSummary {
+  availabilityStatus?: 'draft' | 'incomplete' | 'ready';
+  pricesCheckedAt?: string;
   id: string;
   name: string;
   address?: string;
@@ -353,6 +361,10 @@ export interface ProjectStoreTotal {
 export interface ProjectQuotationLine {
   productName: string;
   quantity: number;
+  storeId?: string;
+  storeName?: string;
+  productoFerreteriaId?: string;
+  productoMaestroId?: string;
   bestStoreName: string;
   unitPrice: number;
   subtotal: number;

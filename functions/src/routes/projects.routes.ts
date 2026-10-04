@@ -1,3 +1,4 @@
+import { buildSearchRows } from '../services/catalog-search.service.js';
 import { Router } from 'express';
 import { db } from '../lib/firebase.js';
 import { requireAuth, requireRole } from '../lib/auth.js';
@@ -11,30 +12,20 @@ export const projectsRouter = Router();
 
 projectsRouter.get('/maestros/:ownerId/proyectos', requireAuth, requireRole('maestro', 'admin'), async (req, res) => {
   if (!canAccessOwner(req, req.params.ownerId)) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para estas cotizaciones.', 403);
-  const projects = (await rows(COLLECTIONS.projects))
-    .filter((item) => item.ownerId === req.params.ownerId)
+  const snapshot = await db.collection(COLLECTIONS.projects).where('ownerId', '==', req.params.ownerId).get();
+  const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any))
     .sort((a, b) => normalizeText(b.createdAt).localeCompare(normalizeText(a.createdAt)));
-  const data = await Promise.all(projects.map(projectView));
+  const offers = await buildSearchRows();
+  const data = await Promise.all(projects.map(project => projectView(project, offers)));
   return ok(res, data);
 });
 
 projectsRouter.post('/maestros/:ownerId/proyectos', requireAuth, requireRole('maestro', 'admin'), async (req, res) => {
   if (!canAccessOwner(req, req.params.ownerId)) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para crear esta cotizacion.', 403);
 
-  const ownerProjects = (await rows(COLLECTIONS.projects))
-    .filter((item) => item.ownerId === req.params.ownerId);
-  if (ownerProjects.length >= 2) {
-    return fail(
-      res,
-      'COTIZACION_LIMIT_REACHED',
-      'Puedes guardar un maximo de 2 cotizaciones. Elimina una para crear otra.',
-      409
-    );
-  }
-
   const name = normalizeText(req.body?.nombre);
   if (!name) return fail(res, 'PROYECTO_INVALID_PAYLOAD', 'Nombre de cotizacion requerido.', 400);
-  const created = await createRow(COLLECTIONS.projects, {
+  const payload = {
     ownerId: req.params.ownerId,
     name,
     address: normalizeText(req.body?.direccionObra),
@@ -42,7 +33,18 @@ projectsRouter.post('/maestros/:ownerId/proyectos', requireAuth, requireRole('ma
     proximity: normalizeProjectProximity(req.body?.proximidad) || null,
     singleStoreName: normalizeText(req.body?.ferreteriaUnica) || null,
     createdAt: nowIso()
+  };
+  const ref = db.collection(COLLECTIONS.projects).doc();
+  const created = await db.runTransaction(async tx => {
+    const lock = db.collection('projectOwnerLocks').doc(req.params.ownerId);
+    await tx.get(lock);
+    const existing = await tx.get(db.collection(COLLECTIONS.projects).where('ownerId', '==', req.params.ownerId));
+    if (existing.size >= 2) return null;
+    tx.set(lock, { updatedAt: nowIso() });
+    tx.create(ref, payload);
+    return { id: ref.id, ...payload };
   });
+  if (!created) return fail(res, 'COTIZACION_LIMIT_REACHED', 'Puedes guardar un maximo de 2 cotizaciones. Elimina una para crear otra.', 409);
   return ok(res, await projectView(created), 201);
 });
 
@@ -72,8 +74,16 @@ projectsRouter.post('/maestros/:ownerId/proyectos/:projectId/items', requireAuth
   if (!canAccessOwner(req, req.params.ownerId)) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para esta cotizacion.', 403);
   const project = await row(COLLECTIONS.projects, req.params.projectId);
   if (!project || project.ownerId !== req.params.ownerId) return fail(res, 'PROYECTO_NOT_FOUND', 'No existe la cotizacion indicada.', 404);
-  const nextItems = [...normalizeItems(project.items), ...normalizeItems([req.body])];
-  const updated = await patchRow(COLLECTIONS.projects, req.params.projectId, { items: nextItems, updatedAt: nowIso() });
+  const updated = await db.runTransaction(async tx => {
+    const ref = db.collection(COLLECTIONS.projects).doc(req.params.projectId);
+    const latest = await tx.get(ref);
+    if (!latest.exists || latest.data()?.['ownerId'] !== req.params.ownerId) return null;
+    const data = latest.data()!;
+    const patch = { items: [...normalizeItems(data['items']), ...normalizeItems([req.body])], updatedAt: nowIso() };
+    tx.update(ref, patch);
+    return { id: ref.id, ...data, ...patch };
+  });
+  if (!updated) return fail(res, 'PROYECTO_NOT_FOUND', 'No existe la cotizacion indicada.', 404);
   return ok(res, await projectView(updated), 201);
 });
 

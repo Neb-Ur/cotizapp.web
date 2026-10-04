@@ -259,7 +259,7 @@
               <td>{{ project.name }}</td>
               <td>{{ project.createdAt | date:'short' }}</td>
               <td>{{ project.items.length }}</td>
-              <td>{{ formatCurrency(project.totalOptimal) }}</td>
+              <td>{{ project.availabilityStatus === 'incomplete' ? 'Incompleta: revisar ofertas' : formatCurrency(project.totalOptimal) }}</td>
               <td>{{ formatCurrency(project.saving) }}</td>
               <td class="row-actions">
                 <button type="button" class="secondary" (click)="goToProjectDetail(project.id)">Editar</button>
@@ -280,7 +280,7 @@
           <h4>{{ project.name }}</h4>
           <p>{{ project.createdAt | date:'short' }}</p>
           <p>Items: {{ project.items.length }}</p>
-          <p>Total optimo: {{ formatCurrency(project.totalOptimal) }}</p>
+          <p>Total optimo: {{ project.availabilityStatus === 'incomplete' ? 'Incompleta: revisar ofertas' : formatCurrency(project.totalOptimal) }}</p>
           <p>Ahorro estimado: {{ formatCurrency(project.saving) }}</p>
           <div class="row-actions">
             <button type="button" class="secondary" (click)="goToProjectDetail(project.id)">Ver cotización</button>

@@ -1,3 +1,4 @@
+import { vi, type Mock, type Mocked } from 'vitest';
 import { SessionUser } from '../models/app.models';
 import { resolvePostAuthUrl, sanitizeReturnUrl } from './auth-navigation.util';
 

@@ -40,6 +40,7 @@ publicCatalogRouter.get('/sitemap.xml', async (_req, res) => {
   const lastModified = snapshot.updatedAt.slice(0, 10);
   const productPaths = Array.from(new Set(
     snapshot.searchRows
+      .filter(row => !snapshot.products.find(product => product.id === row.productoMaestroId)?.isDemo)
       .map((row) => productSlug(row.productName))
       .filter(Boolean)
       .map((slug) => `/productos/${slug}`)
@@ -74,9 +75,9 @@ publicCatalogRouter.get('/catalogo-publico', async (req, res) => {
   });
 
   if (requestedVersion && requestedVersion === snapshot.version) {
-    res.set('Cache-Control', 'public, max-age=300, s-maxage=86400, stale-while-revalidate=604800');
+    res.set('Cache-Control', 'public, max-age=0, s-maxage=30, must-revalidate');
   } else {
-    res.set('Cache-Control', 'public, max-age=300, s-maxage=86400, stale-while-revalidate=604800');
+    res.set('Cache-Control', 'public, max-age=0, s-maxage=30, must-revalidate');
   }
 
   res.set('ETag', `"catalog-${snapshot.version}"`);

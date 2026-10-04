@@ -23,7 +23,7 @@ searchRouter.get('/busqueda', async (req, res) => {
 
 searchRouter.get('/productos/opciones', async (req, res) => {
   const familyId = normalizeText(req.query['familiaId']);
-  const names = (await buildSearchRows())
+  const names = ((await getPublicCatalogSnapshot()).searchRows)
     .filter((item) => !familyId || item.familyId === familyId)
     .map((item) => item.productName);
   return ok(res, Array.from(new Set(names)).sort());
@@ -31,7 +31,7 @@ searchRouter.get('/productos/opciones', async (req, res) => {
 
 searchRouter.get('/familias/:familyId/productos', async (req, res) => {
   const q = normalizeText(req.query['search']).toLowerCase();
-  const searchRows = (await buildSearchRows())
+  const searchRows = ((await getPublicCatalogSnapshot()).searchRows)
     .filter((item) => item.familyId === req.params.familyId)
     .filter((item) => !q || item.productName.toLowerCase().includes(q));
   const grouped = new Map<string, any>();
@@ -56,7 +56,7 @@ searchRouter.get('/familias/:familyId/productos', async (req, res) => {
 
 searchRouter.get('/productos/populares', async (req, res) => {
   const limit = Math.max(1, Math.floor(numberValue(req.query['limit'], 12)));
-  const searchRows = await buildSearchRows();
+  const searchRows = (await getPublicCatalogSnapshot()).searchRows;
   const grouped = new Map<string, any>();
   searchRows.forEach((item) => {
     const current = grouped.get(item.productName) || { productName: item.productName, score: 0, minPrice: item.price, maxPrice: item.price, sellers: new Set<string>() };
@@ -77,9 +77,10 @@ searchRouter.get('/productos/populares', async (req, res) => {
 
 searchRouter.get('/productos/detalle', async (req, res) => {
   const name = normalizeText(req.query['producto']).toLowerCase();
-  const searchRows = (await buildSearchRows()).filter((item) => item.productName.toLowerCase() === name);
-  if (searchRows.length === 0) return fail(res, 'PRODUCTO_NOT_FOUND', 'No se encontro el producto solicitado.', 404);
-  const product = await row(COLLECTIONS.masterProducts, searchRows[0].productoMaestroId);
+  const searchRows = ((await getPublicCatalogSnapshot()).searchRows).filter((item) => item.productName.toLowerCase() === name);
+  const product = searchRows.length
+    ? await row(COLLECTIONS.masterProducts, searchRows[0].productoMaestroId)
+    : (await getPublicCatalogSnapshot()).products.find((item) => normalizeText(item.nombre).toLowerCase() === name);
   if (!product) return fail(res, 'PRODUCTO_NOT_FOUND', 'No se encontro el producto solicitado.', 404);
   const attributes = (await rows(COLLECTIONS.masterAttributes)).filter((item) => item.productoMaestroId === product.id);
   const stores = searchRows.map((item) => ({
@@ -114,15 +115,15 @@ searchRouter.get('/productos/detalle', async (req, res) => {
     productoMaestro: product,
     atributosProducto: attributes,
     stores,
-    minPrice: stores[0]?.price || 0,
-    maxPrice: stores[stores.length - 1]?.price || 0,
-    comparisonCriteria: 'Menor precio final unitario con IVA incluido, informado para la misma ficha de producto, con oferta activa y vigente. Ofertas sin IVA incluido se muestran, pero no califican como mejor precio. El patrocinio no altera el orden. El despacho no está incluido.'
+    minPrice: stores.length ? Math.min(...stores.map((item) => item.price)) : 0,
+    maxPrice: stores.length ? Math.max(...stores.map((item) => item.price)) : 0,
+    comparisonCriteria: 'Menor precio final unitario con IVA incluido, informado para la misma ficha de producto, con oferta activa y vigente. El patrocinio no altera el orden. El despacho no está incluido.'
   });
 });
 
 searchRouter.get('/ofertas/mejor', async (req, res) => {
   const name = normalizeText(req.query['producto']).toLowerCase();
-  const offers = (await buildSearchRows())
+  const offers = ((await getPublicCatalogSnapshot()).searchRows)
     .filter((item) => item.productName.toLowerCase() === name)
     .filter((item) => item.comparisonEligible)
     .sort((a, b) => a.price - b.price);

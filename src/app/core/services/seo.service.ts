@@ -102,6 +102,7 @@ export class SeoService {
     const image = this.validImage(product.imageUrl) ? product.imageUrl : undefined;
     const page: SeoPage = {
       title: `${product.productName}: precios en ferreterías | CotizApp`,
+      index: !product.isDemo,
       description
     };
 
@@ -145,11 +146,11 @@ export class SeoService {
 
   private updateRoute(url: string): void {
     const path = url.split('?')[0].split('#')[0] || '/';
-    const isPrivate = path.startsWith('/dashboard/') || path.startsWith('/recuperar-clave');
+    const isPrivate = path.startsWith('/dashboard/') || path.startsWith('/cuenta/') || path.startsWith('/recuperar-clave');
     const isProduct = path.startsWith('/productos/');
     const page = PAGE_SEO[path]
       || (isProduct ? PAGE_SEO['/producto'] : undefined)
-      || { ...DEFAULT_PAGE, index: !isPrivate };
+      || { ...DEFAULT_PAGE, index: false };
 
     this.applyPage(page, path, 'website', undefined, isPrivate);
     this.removeStructuredData();
@@ -162,6 +163,7 @@ export class SeoService {
     image?: string,
     forcePrivate = false
   ): void {
+    image = image || `${SITE_URL}/assets/home-hero-construction.webp`;
     const canonicalUrl = `${SITE_URL}${canonicalPath === '/' ? '' : canonicalPath}`;
     const shouldIndex = page.index !== false && !forcePrivate;
 

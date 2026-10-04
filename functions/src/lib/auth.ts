@@ -38,6 +38,13 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       : undefined;
     const profile = await db.collection('usuarios').doc(decoded.uid).get();
     if (profile.exists) {
+      // Seeded fixtures must never provide access to a production API.
+      if (process.env['FUNCTIONS_EMULATOR'] !== 'true' && !process.env['FIREBASE_AUTH_EMULATOR_HOST']
+        && profile.data()?.['seedTag'] === 'pilot-catalog-auth-v3-2026-09-30'
+        && decoded.email?.toLowerCase().endsWith('@demo.cl')) {
+        fail(res, 'AUTH_DEMO_ACCOUNT_DISABLED', 'Las cuentas de demostración no tienen acceso a esta aplicación.', 403);
+        return;
+      }
       if (profile.data()?.['estadoCuenta'] === 'bloqueado') {
         fail(res, 'AUTH_ACCOUNT_BLOCKED', 'Tu cuenta se encuentra bloqueada.', 403);
         return;

@@ -1,3 +1,4 @@
+import { vi, type Mock, type Mocked } from 'vitest';
 import { CATALOG_IMPORT_COLUMNS, buildCatalogTemplateRows, catalogImportTemplateFileName, parseCatalogImportContent } from './catalog-import.util';
 
 describe('catalog import template', () => {
@@ -28,9 +29,9 @@ describe('catalog import template', () => {
     );
 
     expect(rows.length).toBe(2);
-    expect(rows[0].valid).toBeFalse();
+    expect(rows[0].valid).toBe(false);
     expect(rows[0].error).toContain('negativo');
-    expect(rows[1].valid).toBeTrue();
+    expect(rows[1].valid).toBe(true);
     expect(rows[1].stock).toBe(8);
   });
 
@@ -39,7 +40,7 @@ describe('catalog import template', () => {
       'nombre,sku,precio,stock\nCemento,CEM,5490,sin stock'
     );
 
-    expect(rows[0].valid).toBeFalse();
+    expect(rows[0].valid).toBe(false);
     expect(rows[0].error).toContain('numero valido');
   });
 });
@@ -51,7 +52,7 @@ describe('parseCatalogImportContent', () => {
     );
 
     expect(rows.length).toBe(1);
-    expect(rows[0]).toEqual(jasmine.objectContaining({
+    expect(rows[0]).toEqual(expect.objectContaining({
       name: 'Cemento 25kg',
       sku: 'CEM25',
       price: 5490,
@@ -67,7 +68,7 @@ describe('parseCatalogImportContent', () => {
     );
 
     expect(rows.length).toBe(1);
-    expect(rows[0].valid).toBeFalse();
+    expect(rows[0].valid).toBe(false);
     expect(rows[0].error).toContain('nombre');
   });
 });

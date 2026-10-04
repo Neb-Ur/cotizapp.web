@@ -4,9 +4,9 @@ export const CURRENT_STORE_AGREEMENT_VERSION = '1.0';
 export const CURRENT_STORE_AGREEMENT_EFFECTIVE_DATE = '2026-10-03';
 
 export const STORE_AGREEMENT_PROVIDER = {
-  legalName: process.env['COTIZAPP_LEGAL_NAME'] || 'CotizApp SpA',
-  taxId: process.env['COTIZAPP_TAX_ID'] || '76.000.000-0',
-  address: process.env['COTIZAPP_LEGAL_ADDRESS'] || 'Av. Ejemplo 1234, Santiago, Región Metropolitana, Chile',
+  legalName: process.env['COTIZAPP_LEGAL_NAME'] || 'CotizApp (piloto; identidad legal pendiente de completar)',
+  taxId: process.env['COTIZAPP_TAX_ID'] || 'Pendiente de completar',
+  address: process.env['COTIZAPP_LEGAL_ADDRESS'] || 'Pendiente de completar',
   legalRepresentative: process.env['COTIZAPP_LEGAL_REPRESENTATIVE'] || 'Nombre del representante legal por definir',
   legalEmail: process.env['COTIZAPP_LEGAL_EMAIL'] || 'legal@cotizapp.cl'
 } as const;
@@ -15,7 +15,7 @@ export const STORE_AGREEMENT_CLAUSES = [
   {
     id: 'catalog-accuracy',
     title: 'Exactitud, precio y stock',
-    text: 'La Ferretería declara que los precios, stock, vigencia, condiciones y características que informa son completos y veraces. Debe actualizar los cambios sin demora y, como máximo, dentro de 24 horas desde que ocurran. Cada precio debe indicar expresamente si incluye IVA.'
+    text: 'La Ferretería declara que los precios, stock, vigencia, condiciones y características que informa son completos y veraces. Debe actualizar los cambios sin demora y, como máximo, dentro de 24 horas desde que ocurran. Cada precio informado es el precio final al público, con IVA incluido. CotizApp no agrega IVA ni fija el precio de venta.'
   },
   {
     id: 'identity-branches',

@@ -3,6 +3,10 @@ export type UserRole = 'maestro' | 'ferreteria' | 'admin';
 export type ProjectItem = {
   productName: string;
   quantity: number;
+  storeId?: string;
+  storeName?: string;
+  productoFerreteriaId?: string;
+  productoMaestroId?: string;
 };
 
 export type ProjectProximity = {

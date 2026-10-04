@@ -1,3 +1,4 @@
+import { vi, type Mock, type Mocked } from 'vitest';
 import { distanceKm, hasValidCoordinates } from './location.util';
 
 describe('location.util', () => {
@@ -19,8 +20,8 @@ describe('location.util', () => {
   });
 
   it('validates coordinate ranges', () => {
-    expect(hasValidCoordinates(-33.45, -70.66)).toBeTrue();
-    expect(hasValidCoordinates(95, -70.66)).toBeFalse();
-    expect(hasValidCoordinates(-33.45, -190)).toBeFalse();
+    expect(hasValidCoordinates(-33.45, -70.66)).toBe(true);
+    expect(hasValidCoordinates(95, -70.66)).toBe(false);
+    expect(hasValidCoordinates(-33.45, -190)).toBe(false);
   });
 });

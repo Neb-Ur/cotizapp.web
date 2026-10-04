@@ -10,6 +10,7 @@ export interface QuotationPdfInput {
 }
 
 export function buildQuotationPdfFile(input: QuotationPdfInput): File {
+  if (!input.quotation.lines.length || input.quotation.lines.some(line => line.unitPrice <= 0)) throw new Error('Revisa los productos sin oferta disponible antes de exportar.');
   const exportedAt = input.exportedAt || new Date();
   const lines = buildQuotationPdfLines(input, exportedAt);
   const blob = buildPdfBlob(lines);
@@ -17,7 +18,7 @@ export function buildQuotationPdfFile(input: QuotationPdfInput): File {
   return new File([blob], filename, { type: 'application/pdf' });
 }
 
-export async function shareQuotationPdf(input: QuotationPdfInput): Promise<'shared' | 'downloaded'> {
+export async function shareQuotationPdf(input: QuotationPdfInput): Promise<'shared' | 'downloaded' | 'cancelled'> {
   const file = buildQuotationPdfFile(input);
   const shareData: ShareData = {
     title: `Cotizacion - ${input.projectName || 'CotizApp'}`,
@@ -33,7 +34,7 @@ export async function shareQuotationPdf(input: QuotationPdfInput): Promise<'shar
       }
     } catch (error) {
       if ((error as DOMException)?.name === 'AbortError') {
-        return 'shared';
+        return 'cancelled';
       }
     }
   }
@@ -48,9 +49,7 @@ export function downloadQuotationPdf(input: QuotationPdfInput): void {
 
 function buildQuotationPdfLines(input: QuotationPdfInput, exportedAt: Date): string[] {
   const lines: string[] = [];
-  const netTotal = input.quotation.optimalTotal;
-  const ivaAmount = Math.round(netTotal * 0.19);
-  const totalWithIva = netTotal + ivaAmount;
+  const totalWithIva = input.quotation.optimalTotal;
 
   lines.push('COTIZACION DE MATERIALES');
   lines.push(`Proyecto: ${input.projectName || 'Sin titulo'}`);
@@ -80,9 +79,7 @@ function buildQuotationPdfLines(input: QuotationPdfInput, exportedAt: Date): str
   });
 
   lines.push('RESUMEN DE COTIZACION');
-  lines.push(`Total neto: ${formatCurrency(netTotal)}`);
-  lines.push(`IVA (19%): ${formatCurrency(ivaAmount)}`);
-  lines.push(`Total con IVA: ${formatCurrency(totalWithIva)}`);
+  lines.push(`Total final (IVA incluido): ${formatCurrency(totalWithIva)}`);
   lines.push(`Ahorro estimado: ${formatCurrency(input.quotation.mixedSaving)}`);
   lines.push(`Mejor tienda global: ${input.quotation.bestStore.storeName}`);
   lines.push(`Total tienda global: ${formatCurrency(input.quotation.bestStore.total)}`);
@@ -94,6 +91,8 @@ function buildQuotationPdfLines(input: QuotationPdfInput, exportedAt: Date): str
   });
 
   lines.push('');
+  lines.push('Precios finales con IVA incluido, informados por las ferreterias.');
+  lines.push('Cotizacion referencial: stock y precios sujetos a confirmacion. Despacho no incluido.');
   lines.push('Documento generado por CotizApp.');
 
   return lines.flatMap((line) => wrapLine(line, 95));

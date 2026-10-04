@@ -30,7 +30,7 @@ export class PreguntasFrecuentesComponent {
     },
     {
       question: 'Que planes tienen para maestros y ferreterias?',
-      answer: 'Existen planes Basico, Pro y Premium con limites distintos de uso segun tipo de usuario.'
+      answer: 'Los maestros pueden buscar gratis y guardar hasta dos cotizaciones. Las ferreterías ingresan previa aprobación y aceptación del contrato. Las condiciones comerciales se acuerdan directamente; el piloto no tiene cobros automáticos.'
     },
     {
       question: 'Donde pido soporte?',
