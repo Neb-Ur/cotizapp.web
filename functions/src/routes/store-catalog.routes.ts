@@ -52,7 +52,7 @@ storeCatalogRouter.post('/ferreterias/:storeId/catalogo', requireAuth, requireRo
     codigoBarras: normalizeText(req.body?.codigoBarras) || null,
     precio: Math.max(0, numberValue(req.body?.precio)),
     stock: Math.max(0, Math.floor(numberValue(req.body?.stock))),
-    incluyeIva: req.body?.incluyeIva !== false,
+    incluyeIva: true,
     unidadMedidaPrecio: measurementUnits.includes(normalizeText(req.body?.unidadMedidaPrecio))
       ? normalizeText(req.body?.unidadMedidaPrecio)
       : null,
@@ -92,7 +92,7 @@ storeCatalogRouter.patch('/ferreterias/:storeId/catalogo/:offerId', requireAuth,
   });
   if (req.body?.precio !== undefined) patch['precio'] = Math.max(0, numberValue(req.body.precio));
   if (req.body?.stock !== undefined) patch['stock'] = Math.max(0, Math.floor(numberValue(req.body.stock)));
-  if (req.body?.incluyeIva !== undefined) patch['incluyeIva'] = req.body.incluyeIva === true;
+  patch['incluyeIva'] = true;
   if (req.body?.unidadMedidaPrecio !== undefined) {
     const unit = normalizeText(req.body.unidadMedidaPrecio);
     patch['unidadMedidaPrecio'] = measurementUnits.includes(unit) ? unit : null;

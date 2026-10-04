@@ -12,9 +12,7 @@
   },
   "hosting": {
     "public": "dist/cotizacion-web/browser",
-    "predeploy": [
-      "npm run build"
-    ],
+    "predeploy": [],
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -56,6 +54,15 @@
             "value": "noindex, nofollow"
           }
         ]
+      },
+      {
+        "source": "/cuenta/**",
+        "headers": [
+          {
+            "key": "X-Robots-Tag",
+            "value": "noindex, nofollow"
+          }
+        ]
       }
     ],
     "rewrites": [
@@ -74,8 +81,30 @@
         }
       },
       {
-        "source": "**",
+        "source": "/productos/**",
+        "function": {
+          "functionId": "api",
+          "region": "southamerica-west1"
+        }
+      },
+      {
+        "source": "/@(buscar|producto|maestros|ferreterias|contacto|terminos-condiciones|privacidad|propiedad-intelectual|desuscribir|reportar-precio|preguntas-frecuentes|login|registro|recuperar-clave|auth)",
         "destination": "/index.html"
+      },
+      {
+        "source": "/dashboard/**",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/cuenta/**",
+        "destination": "/index.html"
+      },
+      {
+        "source": "**",
+        "function": {
+          "functionId": "api",
+          "region": "southamerica-west1"
+        }
       }
     ]
   }

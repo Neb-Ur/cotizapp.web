@@ -1,3 +1,4 @@
+<p style="text-align:center">Precios actualizados al consultar, informados por cada ferretería. Confirma stock y precio antes de comprar.</p>
 <main class="project-detail-page">
   <header class="page-header">
     <button type="button" (click)="backToProjects()">{{ user ? 'Volver a mis cotizaciones' : 'Volver al buscador' }}</button>
@@ -54,8 +55,8 @@
           <p class="nearby-error" *ngIf="locationError">{{ locationError }}</p>
         </section>
 
-        <p class="nearby-warning" *ngIf="proximityEnabled && unavailableItemCount > 0">
-          {{ unavailableItemCount }} producto(s) no tienen una oferta con stock suficiente dentro de {{ projectProximity?.radiusKm }} km.
+        <p class="nearby-warning" *ngIf="unavailableItemCount > 0">
+          {{ unavailableItemCount }} producto(s) no tienen una oferta vigente con stock suficiente. Revisa cantidades y la ferretería seleccionada antes de exportar.
           Puedes aumentar el radio o usar todas las ferreterías.
         </p>
 
@@ -87,16 +88,8 @@
             <span>Cantidad total</span>
             <strong>{{ totalQuantity }}</strong>
           </p>
-          <p>
-            <span>Subtotal neto</span>
-            <strong>{{ formatCurrency(netTotal) }}</strong>
-          </p>
-          <p>
-            <span>IVA (19%)</span>
-            <strong>{{ formatCurrency(ivaAmount) }}</strong>
-          </p>
           <p class="highlight">
-            <span>Total final</span>
+            <span>Total final (IVA incluido)</span>
             <strong>{{ formatCurrency(totalWithIva) }}</strong>
           </p>
         </div>
@@ -152,18 +145,8 @@
             </tr>
           </tbody>
           <tfoot>
-            <tr class="totals-row">
-              <th colspan="3">Subtotal neto</th>
-              <td>{{ formatCurrency(netTotal) }}</td>
-              <td></td>
-            </tr>
-            <tr class="totals-row">
-              <th colspan="3">IVA (19%)</th>
-              <td>{{ formatCurrency(ivaAmount) }}</td>
-              <td></td>
-            </tr>
             <tr class="totals-row total-final">
-              <th colspan="3">Total final</th>
+              <th colspan="3">Total final (IVA incluido)</th>
               <td>{{ formatCurrency(totalWithIva) }}</td>
               <td></td>
             </tr>

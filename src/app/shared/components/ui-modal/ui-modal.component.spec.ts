@@ -1,3 +1,4 @@
+import { vi, type Mock, type Mocked } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { UiModalComponent } from './ui-modal.component';
@@ -30,7 +31,7 @@ describe('UiModalComponent', () => {
   });
 
   it('emits close when Escape is pressed', () => {
-    const closed = jasmine.createSpy('closed');
+    const closed = vi.fn();
     component.closed.subscribe(closed);
 
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
@@ -39,7 +40,7 @@ describe('UiModalComponent', () => {
   });
 
   it('does not close while the parent operation is locked', () => {
-    const closed = jasmine.createSpy('closed');
+    const closed = vi.fn();
     component.closeDisabled = true;
     component.closed.subscribe(closed);
     fixture.detectChanges();

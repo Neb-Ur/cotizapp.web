@@ -26,6 +26,7 @@ import {
 export class ProductoDetalleComponent implements OnInit {
   protected detail: ProductDetailView | null = null;
   protected isLoading = true;
+  protected loadError = '';
   protected activeTab: 'descripcion' | 'ficha' | 'adicional' = 'descripcion';
   protected selectedImageIndex = 0;
   protected selectedStoreName = '';
@@ -47,6 +48,7 @@ export class ProductoDetalleComponent implements OnInit {
   protected locationError = '';
   protected storeSort: 'price' | 'distance' = 'price';
   private openExtraSectionIds = new Set<string>();
+  private readonly recordedViews = new Set<string>();
   private handledCreateQuotationIntent = false;
 
   constructor(
@@ -61,10 +63,10 @@ export class ProductoDetalleComponent implements OnInit {
   ngOnInit(): void {
     combineLatest([this.route.paramMap, this.route.queryParamMap]).subscribe(async ([routeParams, params]) => {
       this.isLoading = true;
+      this.loadError = '';
       this.detail = null;
       const legacyProductName = params.get('product') || '';
-      const productName = legacyProductName
-        || await this.apiService.resolveProductNameBySlug(routeParams.get('slug') || '');
+      let productName = legacyProductName;
       const nearbyPreference = readNearbySearchPreference();
       this.nearbyEnabled = !!nearbyPreference;
       this.nearbyLocation = nearbyPreference
@@ -73,13 +75,13 @@ export class ProductoDetalleComponent implements OnInit {
       this.nearbyRadiusKm = nearbyPreference?.radiusKm || 10;
 
       try {
+        productName ||= await this.apiService.resolveProductNameBySlug(routeParams.get('slug') || '');
         const currentUser = this.user;
         if (currentUser) {
           await this.apiService.refreshMaestroData(currentUser.id);
         }
 
-        this.detail = await this.apiService.loadProductDetail(productName)
-          || this.apiService.getProductDetail(productName);
+        this.detail = routeParams.get('slug') && !productName ? null : await this.apiService.loadProductDetail(productName);
 
         if (this.detail) {
           this.seoService.updateProduct(this.detail);
@@ -96,6 +98,12 @@ export class ProductoDetalleComponent implements OnInit {
         this.openExtraSectionIds.clear();
         this.loadProjects();
         this.displayStores = this.buildDisplayStores(this.detail?.stores || []);
+        for (const store of this.displayStores) {
+          if (store.offerId && !this.recordedViews.has(store.offerId)) {
+            this.recordedViews.add(store.offerId);
+            void this.apiService.recordOfferEvent(store.offerId, 'view');
+          }
+        }
 
         const requestedQuantity = Math.floor(Number(params.get('cantidad')));
         if (Number.isFinite(requestedQuantity) && requestedQuantity > 0) {
@@ -116,6 +124,8 @@ export class ProductoDetalleComponent implements OnInit {
           this.openCreateQuotationModal();
           this.clearCreateQuotationIntent();
         }
+      } catch (error) {
+        this.loadError = error instanceof Error ? error.message : 'No fue posible cargar el producto. Intenta nuevamente.';
       } finally {
         this.isLoading = false;
       }
@@ -179,6 +189,7 @@ export class ProductoDetalleComponent implements OnInit {
   }
 
   protected selectStore(storeName: string): void {
+    void this.apiService.recordOfferEvent(this.displayStores.find(store => store.storeName === storeName)?.offerId, 'select');
     this.selectedStoreName = storeName;
     this.quoteFeedback = '';
   }
@@ -274,6 +285,10 @@ export class ProductoDetalleComponent implements OnInit {
       if (this.selectedStore && this.detail && !this.exceedsSelectedStock) {
         const updated = await this.apiService.addItemToProject(currentUser.id, created.id, {
           productName: this.detail.productName,
+          productoMaestroId: this.detail.productoMaestroId,
+          storeId: this.selectedStore?.storeId,
+          storeName: this.selectedStore?.storeName,
+          productoFerreteriaId: this.selectedStore?.offerId,
           quantity: this.selectedQuantity
         });
 
@@ -331,6 +346,10 @@ export class ProductoDetalleComponent implements OnInit {
 
     const updated = await this.apiService.addItemToProject(this.user.id, this.selectedProjectId, {
       productName: this.detail.productName,
+          productoMaestroId: this.detail.productoMaestroId,
+          storeId: this.selectedStore?.storeId,
+          storeName: this.selectedStore?.storeName,
+          productoFerreteriaId: this.selectedStore?.offerId,
       quantity: this.selectedQuantity
     });
 

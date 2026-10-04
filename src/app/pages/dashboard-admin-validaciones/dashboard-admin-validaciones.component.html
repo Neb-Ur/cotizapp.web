@@ -390,7 +390,7 @@
             </div>
             <div class="taxonomy-attribute-flow">
               <label class="taxonomy-form-field field-span-2">Familia seleccionada
-                <p-dropdown
+                <p-select
                   [options]="selectedTaxFamilies"
                   optionLabel="name"
                   optionValue="id"
@@ -460,13 +460,13 @@
                       <input pInputText type="text" [(ngModel)]="definitionDraft.etiqueta" [disabled]="!selectedTaxFamilyId" placeholder="Diámetro" />
                     </label>
                     <label class="taxonomy-form-field">Tipo de dato
-                      <p-dropdown [options]="definitionTypeOptions" optionLabel="label" optionValue="value" [(ngModel)]="definitionDraft.tipoDato" [disabled]="!selectedTaxFamilyId" styleClass="w-full" />
+                      <p-select [options]="definitionTypeOptions" optionLabel="label" optionValue="value" [(ngModel)]="definitionDraft.tipoDato" [disabled]="!selectedTaxFamilyId" styleClass="w-full" />
                     </label>
                     <label class="taxonomy-form-field">Orden de despliegue
                       <p-inputNumber [(ngModel)]="definitionDraft.orden" [min]="1" [showButtons]="true" [disabled]="!selectedTaxFamilyId" styleClass="w-full" inputStyleClass="w-full" />
                     </label>
                     <label class="taxonomy-form-field field-span-2">Opciones
-                      <textarea pInputTextarea rows="3" [(ngModel)]="definitionDraft.opcionesTexto" [disabled]="!selectedTaxFamilyId || definitionDraft.tipoDato !== 'seleccion'" placeholder="Una opción por línea"></textarea>
+                      <textarea pTextarea rows="3" [(ngModel)]="definitionDraft.opcionesTexto" [disabled]="!selectedTaxFamilyId || definitionDraft.tipoDato !== 'seleccion'" placeholder="Una opción por línea"></textarea>
                     </label>
                     <div class="taxonomy-check-grid field-span-2">
                       <label class="taxonomy-check-card">
@@ -528,17 +528,17 @@
 
           <label>
             Categoría
-            <p-dropdown [options]="categoryOptions" optionLabel="name" optionValue="id" [(ngModel)]="masterCategoryFilter" (ngModelChange)="onMasterCategoryFilterChange()" [showClear]="true" placeholder="Todas" styleClass="w-full" />
+            <p-select [options]="categoryOptions" optionLabel="name" optionValue="id" [(ngModel)]="masterCategoryFilter" (ngModelChange)="onMasterCategoryFilterChange()" [showClear]="true" placeholder="Todas" styleClass="w-full" />
           </label>
 
           <label>
             Subcategoria
-            <p-dropdown [options]="subcategoryOptions" optionLabel="name" optionValue="id" [(ngModel)]="masterSubcategoryFilter" (ngModelChange)="onMasterSubcategoryFilterChange()" [showClear]="true" placeholder="Todas" styleClass="w-full" />
+            <p-select [options]="subcategoryOptions" optionLabel="name" optionValue="id" [(ngModel)]="masterSubcategoryFilter" (ngModelChange)="onMasterSubcategoryFilterChange()" [showClear]="true" placeholder="Todas" styleClass="w-full" />
           </label>
 
           <label>
             Familia
-            <p-dropdown [options]="familyOptions" optionLabel="name" optionValue="id" [(ngModel)]="masterFamilyFilter" (ngModelChange)="onMasterFamilyFilterChange()" [showClear]="true" placeholder="Todas" styleClass="w-full" />
+            <p-select [options]="familyOptions" optionLabel="name" optionValue="id" [(ngModel)]="masterFamilyFilter" (ngModelChange)="onMasterFamilyFilterChange()" [showClear]="true" placeholder="Todas" styleClass="w-full" />
           </label>
           <button pButton type="button" icon="pi pi-filter-slash" [rounded]="true" [text]="true" severity="secondary" class="store-action-button" (click)="clearMasterFilters()" aria-label="Limpiar filtros" title="Limpiar filtros"></button>
         </div>

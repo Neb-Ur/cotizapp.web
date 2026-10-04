@@ -1,3 +1,4 @@
+<p *ngIf="loadError" role="alert">{{ loadError }}</p>
 <main class="detail-page">
   <article class="detail-card detail-loading" *ngIf="isLoading" aria-live="polite" aria-label="Cargando producto">
     <div class="loading-line loading-line-short"></div>
@@ -48,14 +49,15 @@
         <h1>{{ product.productName }}</h1>
         <p class="sku">SKU {{ product.sku }}</p>
         <p class="type">{{ product.productType }}</p>
-        <p class="price-range">{{ formatCurrency(visibleMinPrice) }} - {{ formatCurrency(visibleMaxPrice) }}</p>
-        <p class="best-price">Mejor precio en <strong>{{ bestPriceStoreName }}</strong></p>
+        <p class="price-range" *ngIf="displayStores.length > 0">{{ formatCurrency(visibleMinPrice) }} - {{ formatCurrency(visibleMaxPrice) }}</p>
+        <p class="best-price" *ngIf="displayStores.length > 0">Mejor precio en <strong>{{ bestPriceStoreName }}</strong></p>
         <section class="comparison-method" aria-label="Cómo se comparan los precios">
           <strong>Criterio de comparación</strong>
           <p>{{ product.comparisonCriteria }}</p>
           <p><strong>Fuente:</strong> precios informados por cada ferretería. CotizApp no vende ni confirma disponibilidad.</p>
         </section>
 
+        <p *ngIf="displayStores.length === 0 && !nearbyEnabled" role="status">No hay ofertas vigentes para este producto.</p>
         <section class="quick-stores">
           <h3>Precios por ferretería</h3>
           <p class="quick-stores-hint" *ngIf="!nearbyEnabled">{{ displayStores.length }} ferretería(s) con oferta activa.</p>

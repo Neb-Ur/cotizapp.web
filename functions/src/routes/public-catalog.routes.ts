@@ -74,9 +74,9 @@ publicCatalogRouter.get('/catalogo-publico', async (req, res) => {
   });
 
   if (requestedVersion && requestedVersion === snapshot.version) {
-    res.set('Cache-Control', 'public, max-age=300, s-maxage=86400, stale-while-revalidate=604800');
+    res.set('Cache-Control', 'public, max-age=0, s-maxage=30, must-revalidate');
   } else {
-    res.set('Cache-Control', 'public, max-age=300, s-maxage=86400, stale-while-revalidate=604800');
+    res.set('Cache-Control', 'public, max-age=0, s-maxage=30, must-revalidate');
   }
 
   res.set('ETag', `"catalog-${snapshot.version}"`);

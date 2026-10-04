@@ -90,7 +90,7 @@ interface PublicCatalogSnapshotApi {
   searchRows: any[];
 }
 
-const PUBLIC_CATALOG_STORAGE_KEY = 'cotizapp.publicCatalog.v2';
+const PUBLIC_CATALOG_STORAGE_KEY = 'cotizapp.publicCatalog.v3';
 const LEGACY_PUBLIC_CATALOG_STORAGE_KEY = 'cotizapp.publicCatalog.v1';
 
 export interface TaxonomyDefinitionApi {
@@ -116,7 +116,9 @@ export class FirebaseDataService {
   private readonly familyDefinitionsByFamily = new Map<string, TaxonomyDefinitionApi[]>();
 
   private readonly masterCatalog: CatalogProduct[] = [];
+  private readonly quotationCache = new Map<string, ProjectQuotationView>();
   private readonly searchRows: SearchRowExtended[] = [];
+  private readonly productDetailLoadedAt = new Map<string, number>();
   private readonly productDetailByName = new Map<string, ProductDetailView>();
 
   private readonly projectsByOwner = new Map<string, ProjectSummary[]>();
@@ -596,7 +598,7 @@ export class FirebaseDataService {
         codigoBarras: payload.barcode || null,
         precio: payload.price,
         stock: payload.stock,
-        incluyeIva: payload.includesVat !== false,
+        incluyeIva: true,
         unidadMedidaPrecio: payload.measurementUnit || null,
         cantidadMedida: payload.measurementQuantity || null,
         vigenteHasta: payload.validUntil || null,
@@ -620,7 +622,7 @@ export class FirebaseDataService {
       codigoBarras: payload.barcode || null,
       precio: payload.price,
       stock: payload.stock,
-      incluyeIva: payload.includesVat !== false,
+      incluyeIva: true,
       unidadMedidaPrecio: payload.measurementUnit || null,
       cantidadMedida: payload.measurementQuantity || null,
       vigenteHasta: payload.validUntil || null,
@@ -1139,6 +1141,7 @@ export class FirebaseDataService {
         } : null,
         ferreteriaUnica: singleStoreName?.trim() || null,
         items: items.map((item) => ({
+          ...item,
           productName: item.productName.trim(),
           quantity: Math.max(1, Math.floor(Number(item.quantity) || 0))
         }))
@@ -1173,6 +1176,7 @@ export class FirebaseDataService {
         } : null,
         ferreteriaUnica: singleStoreName?.trim() || null,
         items: items.map((item) => ({
+          ...item,
           productName: item.productName.trim(),
           quantity: Math.max(1, Math.floor(Number(item.quantity) || 0))
         }))
@@ -1190,6 +1194,7 @@ export class FirebaseDataService {
   async addItemToProject(ownerId: string, projectId: string, item: ProjectItem): Promise<ProjectSummary | null> {
     try {
       const updated = await this.apiClient.post<any>(`/maestros/${ownerId}/proyectos/${projectId}/items`, {
+        ...item,
         productName: item.productName.trim(),
         quantity: Math.max(1, Math.floor(Number(item.quantity) || 0))
       }, true);
@@ -1271,6 +1276,7 @@ export class FirebaseDataService {
 
     return Array.from(byProduct.values())
       .map((item) => ({
+        ...item,
         productName: item.productName,
         imageUrl: item.imageUrl,
         minPrice: item.minPrice,
@@ -1307,6 +1313,15 @@ export class FirebaseDataService {
     )).sort((a, b) => a.localeCompare(b));
   }
 
+  async recordOfferEvent(offerId: string | undefined, event: 'view' | 'select'): Promise<void> {
+    if (!offerId || typeof window === 'undefined') return;
+    try { await this.apiClient.post('/metricas/oferta', { offerId, event }, false); } catch { /* Metrics never block a purchase flow. */ }
+  }
+
+  async loadStoreMetrics(ownerId: string): Promise<{ views: number; selections: number }> {
+    return this.apiClient.get(`/ferreterias/propietario/${ownerId}/metricas`, true);
+  }
+
   async loadProductDetail(productName?: string): Promise<ProductDetailView | null> {
     await Promise.all([
       this.ensureBasicTaxonomyLoaded(),
@@ -1320,7 +1335,7 @@ export class FirebaseDataService {
     }
 
     const key = selectedName.toLowerCase();
-    if (this.productDetailByName.has(key)) {
+    if (this.productDetailByName.has(key) && Date.now() - (this.productDetailLoadedAt.get(key) || 0) < 60_000) {
       return this.productDetailByName.get(key) || null;
     }
 
@@ -1359,6 +1374,7 @@ export class FirebaseDataService {
       }));
 
       const detail: ProductDetailView = {
+        productoMaestroId: master.id,
         productName: master.nombre,
         imageUrl: master.imagenPrincipalUrl || 'https://via.placeholder.com/600x420?text=Producto',
         gallery: Array.isArray(master.galeriaJson) && master.galeriaJson.length > 0
@@ -1392,10 +1408,12 @@ export class FirebaseDataService {
           || 'Menor precio final unitario con IVA incluido, informado para la misma ficha de producto, con oferta activa y vigente. El patrocinio no altera el orden. El despacho no está incluido.'
       };
 
+      this.productDetailLoadedAt.set(key, Date.now());
       this.productDetailByName.set(key, detail);
       return detail;
-    } catch {
-      return null;
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 404) return null;
+      throw this.normalizeError(error, 'No fue posible cargar el producto. Intenta nuevamente.');
     }
   }
 
@@ -1440,11 +1458,13 @@ export class FirebaseDataService {
     singleStoreName?: string
   ): ProjectQuotationView {
     this.ensureSearchRowsLoaded();
-    return buildQuotationOptimization(
-      items,
-      this.filterSearchRowsByProximity(this.searchRows, proximity),
-      singleStoreName
-    );
+    const key = JSON.stringify([items, proximity, singleStoreName]);
+    const cached = this.quotationCache.get(key);
+    if (cached) return cached;
+    const quotation = buildQuotationOptimization(items, this.filterSearchRowsByProximity(this.searchRows, proximity), singleStoreName);
+    if (this.quotationCache.size >= 16) this.quotationCache.clear();
+    this.quotationCache.set(key, quotation);
+    return quotation;
   }
 
 
@@ -1520,7 +1540,7 @@ export class FirebaseDataService {
       const raw = localStorage.getItem(PUBLIC_CATALOG_STORAGE_KEY);
       if (!raw) return false;
       const snapshot = JSON.parse(raw) as PublicCatalogSnapshotApi;
-      if (!this.isUsablePublicCatalogSnapshot(snapshot)) {
+      if (!this.isUsablePublicCatalogSnapshot(snapshot) || Date.now() - Date.parse(snapshot.updatedAt || '') > 60_000) {
         localStorage.removeItem(PUBLIC_CATALOG_STORAGE_KEY);
         return false;
       }
@@ -1551,12 +1571,11 @@ export class FirebaseDataService {
   private isUsablePublicCatalogSnapshot(snapshot: PublicCatalogSnapshotApi | null | undefined): snapshot is PublicCatalogSnapshotApi {
     return !!snapshot?.version
       && Array.isArray(snapshot.searchRows)
-      && snapshot.searchRows.length > 0
-      && Array.isArray(snapshot.products)
-      && snapshot.products.length > 0;
+      && Array.isArray(snapshot.products);
   }
 
   private applyPublicCatalogSnapshot(snapshot: PublicCatalogSnapshotApi): void {
+    if (snapshot.version !== this.publicCatalogVersion) this.productDetailByName.clear();
     this.publicCatalogVersion = snapshot.version || '';
 
     const categories = Array.isArray(snapshot.taxonomy?.categories) ? snapshot.taxonomy.categories : [];
@@ -1579,6 +1598,7 @@ export class FirebaseDataService {
     })));
 
     const mappedSearchRows: SearchRowExtended[] = (snapshot.searchRows || []).map((item) => ({
+      ...item,
       productName: item.productName,
       storeName: item.storeName,
       storeId: item.storeId,
@@ -1690,6 +1710,7 @@ export class FirebaseDataService {
       try {
         const rows = await this.apiClient.get<any[]>('/busqueda');
         this.replaceArray(this.searchRows, rows.map((item) => ({
+          ...item,
           productName: item.productName,
           storeName: item.storeName,
           storeId: item.storeId,
@@ -1925,6 +1946,8 @@ export class FirebaseDataService {
   private mapProjectRow(row: any): ProjectSummary {
     if ('name' in row && 'createdAt' in row) {
       return {
+        availabilityStatus: row.availabilityStatus,
+        pricesCheckedAt: row.pricesCheckedAt,
         id: row.id,
         name: row.name,
         address: row.address || '',
@@ -1934,6 +1957,7 @@ export class FirebaseDataService {
           : undefined,
         createdAt: row.createdAt,
         items: (row.items || []).map((item: any) => ({
+          ...item,
           productName: item.productName,
           quantity: Number(item.quantity) || 0
         })),
@@ -1946,6 +1970,7 @@ export class FirebaseDataService {
       .sort((a, b) => String(b.actualizadaEn || '').localeCompare(String(a.actualizadaEn || '')))[0];
 
     const items: ProjectItem[] = (row.items || []).map((item: any) => ({
+      ...item,
       productName: item.productName,
       quantity: Number(item.quantity) || 0
     }));
@@ -2140,6 +2165,7 @@ export class FirebaseDataService {
   }
 
   private replaceArray<T>(target: T[], source: T[]): void {
+    this.quotationCache.clear();
     target.splice(0, target.length, ...source);
   }
 

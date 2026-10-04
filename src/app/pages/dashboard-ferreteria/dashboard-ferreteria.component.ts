@@ -141,7 +141,9 @@ export class DashboardFerreteriaComponent implements OnInit {
     private readonly router: Router
   ) {}
 
+  protected metrics: { views: number; selections: number } | null = null;
   ngOnInit(): void {
+    if (this.user) void this.apiService.loadStoreMetrics(this.user.id).then(metrics => this.metrics = metrics).catch(() => this.metrics = null);
     this.syncViewportState();
     this.syncProfileDraftFromUser();
     void this.initializeDashboard();

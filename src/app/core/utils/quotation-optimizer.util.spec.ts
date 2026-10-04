@@ -1,3 +1,4 @@
+import { vi, type Mock, type Mocked } from 'vitest';
 import { buildQuotationOptimization } from './quotation-optimizer.util';
 
 describe('buildQuotationOptimization', () => {
@@ -35,7 +36,7 @@ describe('buildQuotationOptimization', () => {
     expect(result.bestStore).toEqual({ storeName: 'Con stock', total: 50000 });
     expect(result.mixedSaving).toBe(0);
   });
-  it('solo ofrece como tienda unica ferreterias ya usadas por la compra combinada', () => {
+  it('considera todas las ferreterias capaces de cubrir la cotizacion', () => {
     const result = buildQuotationOptimization(
       [
         { productName: 'Cemento', quantity: 1 },
@@ -52,8 +53,8 @@ describe('buildQuotationOptimization', () => {
     );
 
     expect(result.lines.map((line) => line.bestStoreName)).toEqual(['Ferreteria A', 'Ferreteria B']);
-    expect(result.singleStoreOptions.map((row) => row.storeName)).toEqual(['Ferreteria B', 'Ferreteria A']);
-    expect(result.singleStoreOptions.some((row) => row.storeName === 'Ferreteria D')).toBeFalse();
+    expect(result.singleStoreOptions.map((row) => row.storeName)).toEqual(['Ferreteria B', 'Ferreteria D', 'Ferreteria A']);
+    expect(result.singleStoreOptions.some((row) => row.storeName === 'Ferreteria D')).toBe(true);
   });
 
   it('aplica una ferreteria valida a todos los productos de la cotizacion', () => {
@@ -71,12 +72,12 @@ describe('buildQuotationOptimization', () => {
     const result = buildQuotationOptimization(items, offers, 'Ferreteria A');
 
     expect(result.appliedStoreName).toBe('Ferreteria A');
-    expect(result.lines.every((line) => line.bestStoreName === 'Ferreteria A')).toBeTrue();
+    expect(result.lines.every((line) => line.bestStoreName === 'Ferreteria A')).toBe(true);
     expect(result.optimalTotal).toBe(19000);
     expect(result.mixedTotal).toBe(16000);
   });
 
-  it('ignora una tienda aplicada si deja de tener toda la cotizacion disponible', () => {
+  it('conserva la tienda aplicada y marca el producto no disponible', () => {
     const result = buildQuotationOptimization(
       [
         { productName: 'Cemento', quantity: 2 },
@@ -91,8 +92,8 @@ describe('buildQuotationOptimization', () => {
       'Ferreteria A'
     );
 
-    expect(result.appliedStoreName).toBeUndefined();
-    expect(result.lines.map((line) => line.bestStoreName)).toEqual(['Ferreteria A', 'Ferreteria B']);
+    expect(result.appliedStoreName).toBe('Ferreteria A');
+    expect(result.lines.map((line) => line.bestStoreName)).toEqual(['Ferreteria A', 'Sin datos']);
   });
 
 });

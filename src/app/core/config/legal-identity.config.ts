@@ -6,11 +6,11 @@
  */
 export const LEGAL_IDENTITY = {
   isProvisional: true,
-  legalName: 'CotizApp SpA',
-  taxId: '76.000.000-0',
-  registeredAddress: 'Av. Ejemplo 1234, Santiago, Región Metropolitana, Chile',
+  legalName: 'CotizApp (piloto; identidad legal pendiente de completar)',
+  taxId: 'Pendiente de completar',
+  registeredAddress: 'Pendiente de completar',
   legalRepresentative: 'Nombre del representante legal por definir',
-  dataController: 'CotizApp SpA',
+  dataController: 'CotizApp (piloto; identidad legal pendiente de completar)',
   privacyOfficer: 'Encargado de Privacidad de CotizApp',
   legalEmail: 'legal@cotizapp.cl',
   privacyEmail: 'privacidad@cotizapp.cl',

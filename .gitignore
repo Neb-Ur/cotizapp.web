@@ -55,3 +55,5 @@ testem.log
 Thumbs.db
 *.swp
 *.swo
+
+/functions/assets/index.html

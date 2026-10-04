@@ -26,7 +26,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
   FUNCTIONS_NODE_VERSION: '22'
   FIREBASE_PROJECT_ID: cotizapp-d71c8
   PRODUCTION_URL: https://cotizapp-d71c8.web.app
@@ -47,10 +47,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Install frontend dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Run frontend tests
-        run: npm test -- --watch=false --browsers=ChromeHeadless
+        run: npm test -- --watch=false
 
       - name: Build Angular production bundle
         run: npm run build
@@ -61,7 +61,7 @@ jobs:
           node-version: ${{ env.FUNCTIONS_NODE_VERSION }}
 
       - name: Install Functions dependencies
-        run: npm --prefix functions install --no-audit --no-fund
+        run: npm --prefix functions ci --no-audit --no-fund
 
       - name: Test Firebase Functions contracts
         run: npm --prefix functions test
@@ -117,7 +117,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Install frontend dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Setup Node for Functions
         uses: actions/setup-node@v4
@@ -125,7 +125,7 @@ jobs:
           node-version: ${{ env.FUNCTIONS_NODE_VERSION }}
 
       - name: Install Functions dependencies
-        run: npm --prefix functions install --no-audit --no-fund
+        run: npm --prefix functions ci --no-audit --no-fund
 
       - name: Download validated web build
         uses: actions/download-artifact@v4
@@ -171,9 +171,11 @@ jobs:
             echo "Standard push: deploying Functions and Hosting. Firestore rules/indexes are unchanged."
           fi
 
-          npx --yes firebase-tools@latest deploy             --only "$DEPLOY_TARGETS"             --project "$FIREBASE_PROJECT_ID"             --non-interactive
+          npx --yes firebase-tools@15.32.1 deploy             --only "$DEPLOY_TARGETS"             --project "$FIREBASE_PROJECT_ID"             --non-interactive
 
       - name: Create Firebase Auth demo users and seed Firestore
+        env:
+          DEMO_PASSWORD: ${{ secrets.DEMO_PASSWORD }}
         if: github.event_name == 'push' && contains(github.event.head_commit.message, '[seed-firestore]')
         shell: bash
         run: |
@@ -183,33 +185,8 @@ jobs:
             exit 1
           fi
 
-          DEMO_PASSWORD=123456 node functions/scripts/seed-firestore.mjs
+          : "${DEMO_PASSWORD:?Configura el secreto DEMO_PASSWORD para ejecutar el seed}"
+          node functions/scripts/seed-firestore.mjs
 
       - name: Smoke test production
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          echo "Checking $PRODUCTION_URL"
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 5 "$PRODUCTION_URL/" > /tmp/cotizapp-index.html
-          grep -q "<app-root" /tmp/cotizapp-index.html
-
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 5 "$PRODUCTION_URL/__/firebase/init.json" > /tmp/firebase-init.json
-          grep -q '"projectId"' /tmp/firebase-init.json
-
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 5 "$PRODUCTION_URL/api/busqueda" > /tmp/cotizapp-api.json
-          grep -q '"ok":true' /tmp/cotizapp-api.json
-
-          echo "Hosting, Firebase bootstrap and API are responding correctly."
-
-      - name: Deployment summary
-        if: always()
-        shell: bash
-        run: |
-          {
-            echo "## CotizApp production"
-            echo "- URL: $PRODUCTION_URL"
-            echo "- Firebase project: $FIREBASE_PROJECT_ID"
-            echo "- Commit: ${GITHUB_SHA:0:7}"
-            echo "- Trigger: push to main or manual publish"
-          } >> "$GITHUB_STEP_SUMMARY"
+        run: node scripts/smoke-production.mjs

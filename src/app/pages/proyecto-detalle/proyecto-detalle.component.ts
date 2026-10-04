@@ -18,7 +18,7 @@ import {
   readNearbySearchPreference,
   saveNearbySearchPreference
 } from '../../core/utils/location.util';
-import { shareQuotationPdf } from '../../core/utils/quotation-pdf.util';
+import { shareQuotationPdf, downloadQuotationPdf } from '../../core/utils/quotation-pdf.util';
 
 @Component({
   selector: 'app-proyecto-detalle',
@@ -29,7 +29,6 @@ import { shareQuotationPdf } from '../../core/utils/quotation-pdf.util';
 })
 export class ProyectoDetalleComponent implements OnInit {
   private readonly draftStorageKey = 'construcomparador-project-draft';
-  private readonly ivaRate = 0.19;
   protected projectId = '';
   protected isNewProject = true;
   protected projectName = '';
@@ -152,16 +151,8 @@ export class ProyectoDetalleComponent implements OnInit {
     }, 0);
   }
 
-  protected get netTotal(): number {
-    return this.quotation.optimalTotal;
-  }
-
-  protected get ivaAmount(): number {
-    return Math.round(this.netTotal * this.ivaRate);
-  }
-
   protected get totalWithIva(): number {
-    return this.netTotal + this.ivaAmount;
+    return this.quotation.optimalTotal;
   }
 
   protected removeProjectItem(index: number): void {
@@ -171,27 +162,11 @@ export class ProyectoDetalleComponent implements OnInit {
   }
 
   protected getRowUnitPrice(item: ProjectItem): number {
-    const productName = item.productName.trim();
-    if (!productName) {
-      return 0;
-    }
-    return this.apiService.getBestOfferForProduct(
-      productName,
-      this.projectProximity,
-      this.quotation.appliedStoreName
-    )?.price || 0;
+    return this.quotation.lines[this.projectItems.indexOf(item)]?.unitPrice || 0;
   }
 
   protected getRowBestStore(item: ProjectItem): string {
-    const productName = item.productName.trim();
-    if (!productName) {
-      return 'Sin tienda';
-    }
-    return this.apiService.getBestOfferForProduct(
-      productName,
-      this.projectProximity,
-      this.quotation.appliedStoreName
-    )?.storeName || 'Sin tienda';
+    return this.quotation.lines[this.projectItems.indexOf(item)]?.bestStoreName || 'Sin datos';
   }
 
   protected getRowTotal(item: ProjectItem): number {
@@ -370,6 +345,7 @@ export class ProyectoDetalleComponent implements OnInit {
         proximity: this.projectProximity
       });
 
+      if (result === 'cancelled') return;
       this.saveNotice = result === 'shared'
         ? 'Cotizacion lista para enviar al cliente.'
         : 'El PDF se descargo para que puedas enviarlo al cliente.';
@@ -385,16 +361,13 @@ export class ProyectoDetalleComponent implements OnInit {
       return;
     }
 
-    const exportedAt = new Date();
-    const pdfLines = this.buildQuotationPdfLines(exportedAt);
-    const blob = this.buildPdfBlob(pdfLines);
-    const url = window.URL.createObjectURL(blob);
-    const link = window.document.createElement('a');
-    const filename = `${this.toFileSafeName(this.projectName.trim() || 'cotizacion')}-${this.buildFilenameDate(exportedAt)}.pdf`;
-    link.href = url;
-    link.download = filename;
-    link.click();
-    window.URL.revokeObjectURL(url);
+    downloadQuotationPdf({
+      projectName: this.projectName.trim() || 'Cotizacion',
+      projectAddress: this.projectAddress,
+      maestroName: this.user?.displayName || '',
+      quotation: this.quotation,
+      proximity: this.projectProximity
+    });
   }
 
   protected backToProjects(): void {
@@ -419,7 +392,8 @@ export class ProyectoDetalleComponent implements OnInit {
       this.projectName = draftName || draft?.name || '';
       this.projectAddress = draftAddress || draft?.address || '';
       this.projectItems = (draft?.items || []).map((item) => ({
-        productName: item.productName,
+        ...item,
+          productName: item.productName,
         quantity: item.quantity
       }));
       this.projectProximity = draft?.proximity || nearbyPreference || undefined;
@@ -446,7 +420,8 @@ export class ProyectoDetalleComponent implements OnInit {
       this.selectedSingleStoreName = refreshed.singleStoreName || '';
       this.syncNearbyPreference();
       this.projectItems = refreshed.items.map((item) => ({
-        productName: item.productName,
+        ...item,
+          productName: item.productName,
         quantity: item.quantity
       }));
       return;
@@ -458,7 +433,8 @@ export class ProyectoDetalleComponent implements OnInit {
     this.selectedSingleStoreName = project.singleStoreName || '';
     this.syncNearbyPreference();
     this.projectItems = project.items.map((item) => ({
-      productName: item.productName,
+      ...item,
+          productName: item.productName,
       quantity: item.quantity
     }));
   }
@@ -514,215 +490,6 @@ export class ProyectoDetalleComponent implements OnInit {
       return;
     }
     window.localStorage.removeItem(this.draftStorageKey);
-  }
-
-  private buildQuotationPdfLines(exportedAt: Date): string[] {
-    const maestroName = this.user?.displayName?.trim() || 'No definido';
-    const projectTitle = this.projectName.trim() || 'Sin titulo';
-    const workAddress = this.projectAddress.trim() || 'Sin direccion de obra';
-    const lines: string[] = [];
-
-    lines.push('COTIZACION DE MATERIALES');
-    lines.push(`Proyecto: ${projectTitle}`);
-    lines.push(`Maestro: ${maestroName}`);
-    lines.push(`Fecha de exportacion: ${this.formatExportDate(exportedAt)}`);
-    lines.push(`Direccion de obra: ${workAddress}`);
-    lines.push(
-      this.projectProximity
-        ? `Busqueda por cercania: hasta ${this.projectProximity.radiusKm} km desde la ubicacion del maestro`
-        : 'Busqueda por cercania: todas las ferreterias'
-    );
-    lines.push(
-      this.quotation.appliedStoreName
-        ? `Estrategia de compra: todo en ${this.quotation.appliedStoreName}`
-        : 'Estrategia de compra: compra combinada'
-    );
-    lines.push('');
-    lines.push('DETALLE DE ARTICULOS');
-
-    this.quotation.lines.forEach((line, index) => {
-      lines.push(`${index + 1}. ${line.productName}`);
-      lines.push(`Cantidad: ${line.quantity}`);
-      lines.push(`Mejor tienda: ${line.bestStoreName}`);
-      lines.push(`Precio unitario: ${this.formatCurrency(line.unitPrice)}`);
-      lines.push(`Subtotal: ${this.formatCurrency(line.subtotal)}`);
-      lines.push('');
-    });
-
-    lines.push('RESUMEN DE COTIZACION');
-    lines.push(`Total neto: ${this.formatCurrency(this.netTotal)}`);
-    lines.push(`IVA (19%): ${this.formatCurrency(this.ivaAmount)}`);
-    lines.push(`Total con IVA: ${this.formatCurrency(this.totalWithIva)}`);
-    lines.push(`Ahorro estimado: ${this.formatCurrency(this.quotation.mixedSaving)}`);
-    lines.push(`Mejor tienda global: ${this.quotation.bestStore.storeName}`);
-    lines.push(`Total tienda global: ${this.formatCurrency(this.quotation.bestStore.total)}`);
-    lines.push('');
-    lines.push('TOTALES POR FERRETERIA');
-
-    this.quotation.totalsByStore.forEach((storeRow) => {
-      lines.push(`${storeRow.storeName}: ${this.formatCurrency(storeRow.total)}`);
-    });
-
-    lines.push('');
-    lines.push('Documento generado por CotizApp.');
-
-    return lines.flatMap((line) => this.wrapLine(line, 95));
-  }
-
-  private buildPdfBlob(lines: string[]): Blob {
-    const pageChunks = this.chunkLines(lines, 50);
-    const objects: string[] = [];
-    const pageObjectIds: number[] = [];
-
-    objects.push('<< /Type /Catalog /Pages 2 0 R >>');
-    objects.push('');
-
-    pageChunks.forEach((pageLines, index) => {
-      const pageObjectId = 3 + (index * 2);
-      const contentObjectId = pageObjectId + 1;
-      pageObjectIds.push(pageObjectId);
-
-      const pageContent = this.buildPdfPageContent(pageLines);
-      objects.push(
-        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 ${3 + (pageChunks.length * 2)} 0 R >> >> /Contents ${contentObjectId} 0 R >>`
-      );
-      objects.push(`<< /Length ${pageContent.length} >>\nstream\n${pageContent}\nendstream`);
-    });
-
-    const fontObjectId = 3 + (pageChunks.length * 2);
-    objects[1] = `<< /Type /Pages /Kids [${pageObjectIds.map((id) => `${id} 0 R`).join(' ')}] /Count ${pageObjectIds.length} >>`;
-    objects.push('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
-
-    let documentContent = '%PDF-1.4\n';
-    const objectOffsets: number[] = new Array(fontObjectId + 1).fill(0);
-
-    objects.forEach((objectValue, index) => {
-      const objectId = index + 1;
-      objectOffsets[objectId] = documentContent.length;
-      documentContent += `${objectId} 0 obj\n${objectValue}\nendobj\n`;
-    });
-
-    const xrefStart = documentContent.length;
-    documentContent += `xref\n0 ${objects.length + 1}\n`;
-    documentContent += '0000000000 65535 f \n';
-    objectOffsets.slice(1, objects.length + 1).forEach((offset) => {
-      documentContent += `${offset.toString().padStart(10, '0')} 00000 n \n`;
-    });
-
-    documentContent += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefStart}\n%%EOF`;
-
-    return new Blob([documentContent], { type: 'application/pdf' });
-  }
-
-  private buildPdfPageContent(lines: string[]): string {
-    const escapedLines = lines.map((line) => this.escapePdfText(line));
-    const commands: string[] = [
-      'BT',
-      '/F1 11 Tf',
-      '14 TL',
-      '40 800 Td'
-    ];
-
-    escapedLines.forEach((line, index) => {
-      if (index > 0) {
-        commands.push('T*');
-      }
-      commands.push(`(${line}) Tj`);
-    });
-
-    commands.push('ET');
-    return commands.join('\n');
-  }
-
-  private escapePdfText(value: string): string {
-    const normalized = value
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^\x20-\x7E]/g, ' ');
-
-    return normalized
-      .replace(/\\/g, '\\\\')
-      .replace(/\(/g, '\\(')
-      .replace(/\)/g, '\\)');
-  }
-
-  private wrapLine(value: string, maxLength: number): string[] {
-    const normalized = value.replace(/\s+/g, ' ').trim();
-    if (!normalized) {
-      return [''];
-    }
-
-    const words = normalized.split(' ');
-    const wrapped: string[] = [];
-    let current = '';
-
-    words.forEach((word) => {
-      const candidate = current ? `${current} ${word}` : word;
-      if (candidate.length <= maxLength) {
-        current = candidate;
-        return;
-      }
-
-      if (current) {
-        wrapped.push(current);
-      }
-
-      if (word.length <= maxLength) {
-        current = word;
-        return;
-      }
-
-      let overflow = word;
-      while (overflow.length > maxLength) {
-        wrapped.push(`${overflow.slice(0, maxLength - 1)}-`);
-        overflow = overflow.slice(maxLength - 1);
-      }
-      current = overflow;
-    });
-
-    if (current) {
-      wrapped.push(current);
-    }
-
-    return wrapped;
-  }
-
-  private chunkLines(lines: string[], chunkSize: number): string[][] {
-    const chunks: string[][] = [];
-    for (let index = 0; index < lines.length; index += chunkSize) {
-      chunks.push(lines.slice(index, index + chunkSize));
-    }
-    return chunks.length > 0 ? chunks : [[]];
-  }
-
-  private formatExportDate(value: Date): string {
-    const day = String(value.getDate()).padStart(2, '0');
-    const month = String(value.getMonth() + 1).padStart(2, '0');
-    const year = value.getFullYear();
-    const hours = String(value.getHours()).padStart(2, '0');
-    const minutes = String(value.getMinutes()).padStart(2, '0');
-    return `${day}/${month}/${year} ${hours}:${minutes}`;
-  }
-
-  private buildFilenameDate(value: Date): string {
-    const year = value.getFullYear();
-    const month = String(value.getMonth() + 1).padStart(2, '0');
-    const day = String(value.getDate()).padStart(2, '0');
-    const hours = String(value.getHours()).padStart(2, '0');
-    const minutes = String(value.getMinutes()).padStart(2, '0');
-    return `${year}${month}${day}-${hours}${minutes}`;
-  }
-
-  private toFileSafeName(value: string): string {
-    const normalized = value
-      .trim()
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9-_]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-
-    return normalized || 'cotizacion';
   }
 
   private async persistExistingPurchaseSelection(): Promise<boolean> {

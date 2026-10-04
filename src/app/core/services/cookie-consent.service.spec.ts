@@ -1,3 +1,4 @@
+import { vi, type Mock, type Mocked } from 'vitest';
 import { COOKIE_CONSENT_STORAGE_KEY, CookieConsentService } from './cookie-consent.service';
 
 describe('CookieConsentService', () => {
@@ -25,7 +26,7 @@ describe('CookieConsentService', () => {
     const service = new CookieConsentService('browser' as unknown as object, document);
     const consent = service.consent();
 
-    expect(consent?.preferences).toBeTrue();
+    expect(consent?.preferences).toBe(true);
     expect((consent as unknown as Record<string, unknown>)['analytics']).toBeUndefined();
     expect(window.localStorage.getItem(legacyKey)).toBeNull();
   });
@@ -35,7 +36,7 @@ describe('CookieConsentService', () => {
     service.acceptPreferences();
 
     const stored = JSON.parse(window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY) || '{}') as Record<string, unknown>;
-    expect(stored['preferences']).toBeTrue();
+    expect(stored['preferences']).toBe(true);
     expect(stored['analytics']).toBeUndefined();
   });
 });

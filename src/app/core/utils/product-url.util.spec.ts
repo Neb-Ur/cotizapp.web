@@ -1,3 +1,4 @@
+import { vi, type Mock, type Mocked } from 'vitest';
 import { productPath, productSlug } from './product-url.util';
 
 describe('product URL helpers', () => {

@@ -1,3 +1,6 @@
+import { forwardAsyncErrors } from './lib/async-errors.js';
+import { storeMetricsRouter } from './routes/store-metrics.routes.js';
+import { publicPagesRouter } from './routes/public-pages.routes.js';
 import express from 'express';
 import cors from 'cors';
 import { onRequest } from 'firebase-functions/v2/https';
@@ -39,14 +42,26 @@ app.use(['/ip-reports/status', '/api/ip-reports/status'], statusLookupRateLimit)
 // Supports Firebase Hosting rewrites (/api/**) and the direct function URL.
 app.use('/api', publicCatalogRouter);
 app.use('/', publicCatalogRouter);
+app.use('/api', storeMetricsRouter);
+app.use('/', storeMetricsRouter);
 app.use('/api', mvpRouter);
 app.use('/', mvpRouter);
+
+app.use('/', publicPagesRouter);
 
 app.use((_req, res) => {
   res.status(404).json({
     ok: false,
     error: { code: 'NOT_FOUND', message: 'Endpoint no encontrado.' }
   });
+});
+
+forwardAsyncErrors((app as any)._router);
+app.use((error: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('Request failed', error?.code || error?.name || 'ERROR');
+  if (res.headersSent) return _next(error);
+  const status = error?.type === 'entity.too.large' ? 413 : error instanceof SyntaxError ? 400 : 500;
+  res.status(status).json({ ok: false, error: { code: status === 500 ? 'INTERNAL_ERROR' : 'INVALID_REQUEST', message: status === 500 ? 'No fue posible completar la solicitud. Intenta nuevamente.' : 'Solicitud inválida.' } });
 });
 
 export const api = onRequest(

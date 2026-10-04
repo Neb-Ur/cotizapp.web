@@ -34,6 +34,7 @@
 
   <button type="button" class="mobile-overlay" *ngIf="isMobileViewport && isMobileMenuVisible" (click)="closeMobileMenu()" aria-label="Cerrar menú"></button>
 
+  <p *ngIf="metrics" role="status">Ofertas vistas: {{ metrics.views }} · Selecciones de ferretería: {{ metrics.selections }}. Conteos acumulados desde la activación de las métricas; no equivalen a ventas ni visitantes únicos.</p>
   <div class="dashboard-shell">
     <aside class="sidebar" [class.mobile-open]="isMobileViewport && isMobileMenuVisible">
       <div class="sidebar-head">
@@ -404,8 +405,8 @@
       </div>
 
       <label class="catalog-edit-published">
-        <input type="checkbox" [(ngModel)]="catalogEditDraft.includesVat" [disabled]="catalogEditSaving" />
-        <span><strong>El precio incluye IVA</strong><small>Esta declaración se mostrará públicamente junto a la oferta.</small></span>
+
+        <span><strong>El precio incluye IVA</strong><small>Ingresa el precio final que cobra la ferretería, con IVA incluido. CotizApp no agrega impuestos.</small></span>
       </label>
 
       <label>
