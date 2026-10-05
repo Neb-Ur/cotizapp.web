@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { LEGAL_IDENTITY } from '../../../core/config/legal-identity.config';
 
 @Component({
   selector: 'app-preguntas-frecuentes',
@@ -12,6 +11,7 @@ import { LEGAL_IDENTITY } from '../../../core/config/legal-identity.config';
 })
 export class PreguntasFrecuentesComponent {
   protected readonly faqItems = [
+    { question: '¿Puedo comprar o reservar productos aquí?', answer: 'No. CotizApp compara precios y genera cotizaciones. Guardar o compartir una cotización no constituye una compra, un pedido ni una reserva; compras directamente en la ferretería.' },
     {
       question: 'Como funciona CotizApp para maestros?',
       answer: 'Permite comparar precios entre ferreterias, crear cotizaciones y organizar compras por proyecto.'
@@ -34,7 +34,7 @@ export class PreguntasFrecuentesComponent {
     },
     {
       question: 'Donde pido soporte?',
-      answer: `Puedes escribir desde la página de contacto o enviar correo a ${LEGAL_IDENTITY.supportEmail}.`
+      answer: 'Puedes escribir desde la página de contacto. Las solicitudes sobre datos personales pueden enviarse sin iniciar sesión.'
     }
   ];
 }

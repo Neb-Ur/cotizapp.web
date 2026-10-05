@@ -39,10 +39,8 @@
 
       <article class="panel contact-card">
         <h2>Responsable del procedimiento</h2>
-        <p>{{ legalIdentity.legalName }} · RUT {{ legalIdentity.taxId }}</p>
-        <p>{{ legalIdentity.registeredAddress }}</p>
-        <p><a [href]="'mailto:' + legalIdentity.legalEmail">{{ legalIdentity.legalEmail }}</a></p>
-        <p *ngIf="legalIdentity.isProvisional"><strong>Advertencia:</strong> estos datos son mock y deben reemplazarse antes del lanzamiento.</p>
+        <p>Responsable: {{ legalIdentity.legalName }}.</p>
+        <p><a routerLink="/contacto">Formulario de contacto</a></p>
       </article>
 
       <article class="panel">
@@ -84,7 +82,7 @@
 
         <label class="check"><input type="checkbox" formControlName="goodFaithConfirmed" /><span>Declaro de buena fe que el uso denunciado no está autorizado.</span></label>
         <label class="check"><input type="checkbox" formControlName="accuracyConfirmed" /><span>Declaro que la información entregada es exacta según mi conocimiento.</span></label>
-        <label class="check"><input type="checkbox" formControlName="contactAuthorized" /><span>Autorizo a CotizApp a contactarme y compartir lo estrictamente necesario con quien publicó el contenido para gestionar el reclamo.</span></label>
+        <label class="check"><input type="checkbox" formControlName="contactAuthorized" /><span>Autorizo el tratamiento de mis datos para gestionar este reclamo, contactarme y compartir lo estrictamente necesario con quien publicó el contenido, conforme a la <a routerLink="/privacidad" target="_blank" rel="noopener">Política de privacidad</a>.</span></label>
         <label class="form-trap" aria-hidden="true">Sitio web<input formControlName="website" tabindex="-1" autocomplete="off" /></label>
 
         <p class="form-error" *ngIf="form.invalid && form.touched">Completa todos los campos y declaraciones obligatorias.</p>

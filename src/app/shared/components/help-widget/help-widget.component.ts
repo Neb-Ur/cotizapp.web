@@ -35,7 +35,8 @@ export class HelpWidgetComponent {
     email: ['', [Validators.required, Validators.email, Validators.maxLength(160)]],
     category: [this.categories[0], Validators.required],
     description: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(1500)]],
-    website: ['']
+    website: [''],
+    privacyAcknowledged: [false, Validators.requiredTrue]
   });
 
   constructor(
@@ -47,12 +48,6 @@ export class HelpWidgetComponent {
   protected get whatsappUrl(): string {
     const text = `Hola, necesito ayuda con CotizApp. Estoy en la página ${this.safePagePath}.`;
     return `${this.legalIdentity.whatsappUrl}?text=${encodeURIComponent(text)}`;
-  }
-
-  protected get supportEmailUrl(): string {
-    const subject = encodeURIComponent('Ayuda con CotizApp');
-    const body = encodeURIComponent(`Hola, necesito ayuda con CotizApp. Estoy en la página ${this.safePagePath}.`);
-    return `mailto:${this.legalIdentity.supportEmail}?subject=${subject}&body=${body}`;
   }
 
   protected toggleMenu(): void {
@@ -117,7 +112,9 @@ export class HelpWidgetComponent {
           businessName: '',
           phone: '',
           commune: '',
-          website: values.website
+          website: values.website,
+          privacyAcknowledged: values.privacyAcknowledged,
+          privacyVersion: this.legalIdentity.privacyPolicyVersion
         })
       });
       const payload = await response.json() as { error?: { message?: string } };
@@ -125,6 +122,7 @@ export class HelpWidgetComponent {
 
       this.reportSent = true;
       this.reportForm.controls.description.reset('');
+      this.reportForm.controls.privacyAcknowledged.reset(false);
       this.reportForm.controls.category.reset(this.categories[0]);
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : 'No se pudo enviar el reporte.';

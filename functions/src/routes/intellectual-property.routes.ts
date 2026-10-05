@@ -4,7 +4,7 @@ import { db } from '../lib/firebase.js';
 import { requireAuth, requireRole } from '../lib/auth.js';
 import { COLLECTIONS } from '../lib/collections.js';
 import { fail, ok } from '../lib/http.js';
-import { calendarDeadline } from '../lib/legal.js';
+import { calendarDeadline, CURRENT_PRIVACY_VERSION } from '../lib/legal.js';
 import { normalizeText, nowIso } from '../lib/values.js';
 import { deleteRowsByIds, patchRow, row, rows } from '../repositories/firestore.repository.js';
 
@@ -65,6 +65,9 @@ intellectualPropertyRouter.post('/ip-reports', async (req, res) => {
     return fail(res, 'IP_REPORT_INVALID', 'Revisa la identificación, las URLs, la descripción y las declaraciones obligatorias.', 400);
   }
 
+  if (req.body?.privacyVersion !== CURRENT_PRIVACY_VERSION) {
+    return fail(res, 'IP_REPORT_PRIVACY_VERSION_OUTDATED', 'Revisa la política vigente antes de autorizar el tratamiento.', 409);
+  }
   const submittedAt = new Date();
   const receiptToken = randomBytes(24).toString('hex');
   const reference = `PI-${submittedAt.getUTCFullYear()}-${randomBytes(4).toString('hex').toUpperCase()}`;
@@ -81,6 +84,7 @@ intellectualPropertyRouter.post('/ip-reports', async (req, res) => {
     workDescription,
     infringementDescription,
     declarations: { goodFaith: true, accuracy: true, contactAuthorized: true },
+    privacyConsent: { granted: true, purpose: 'intellectual_property_report', version: CURRENT_PRIVACY_VERSION, acceptedAt: submittedAt.toISOString() },
     status: 'recibida',
     publicStatusMessage: 'Denuncia recibida y pendiente de revisión inicial.',
     submittedAt: submittedAt.toISOString(),

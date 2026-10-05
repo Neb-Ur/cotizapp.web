@@ -1,131 +1,62 @@
 <section class="legal-page">
   <article class="hero">
-    <p class="eyebrow">Marco legal del servicio</p>
-    <h1>Terminos y condiciones</h1>
-    <p>
-      Al usar CotizApp aceptas estas condiciones. Este documento regula el uso de la plataforma
-      para maestros, ferreterías y visitantes.
-    </p>
+    <p class="eyebrow">Marcha blanca</p>
+    <h1>Términos y condiciones</h1>
+    <p>Condiciones para comparar productos, crear cotizaciones y publicar catálogos en CotizApp.</p>
   </article>
-
   <article class="content-card">
-    @if (legalIdentity.isProvisional) {
-      <aside class="provisional-notice" role="note">
-        <strong>Información legal provisoria.</strong>
-        Estos datos deben completarse y verificarse antes de la operación pública de CotizApp.
-      </aside>
-    }
-
-    <p class="updated">Versión {{ legalIdentity.termsVersion }} · Última actualización: {{ legalIdentity.termsLastUpdated }}</p>
-
+    <p class="updated">Versión {{ legalIdentity.termsVersion }} · Actualizados el {{ legalIdentity.termsLastUpdated }}</p>
     <section>
-      <h2>1. Identificación del responsable</h2>
-      <p>
-        CotizApp es una plataforma operada por <strong>{{ legalIdentity.legalName }}</strong>,
-        RUT <strong>{{ legalIdentity.taxId }}</strong>, con domicilio en
-        <strong>{{ legalIdentity.registeredAddress }}</strong>, representada legalmente por
-        <strong>{{ legalIdentity.legalRepresentative }}</strong>.
-      </p>
-      <p>
-        El medio formal para comunicaciones y notificaciones legales es
-        <a [href]="'mailto:' + legalIdentity.legalEmail">{{ legalIdentity.legalEmail }}</a>.
-      </p>
+      <h2>1. Responsable y contacto</h2>
+      <p>CotizApp es operado por <strong>{{ legalIdentity.legalName }}</strong>, como persona natural.
+        Puedes enviar consultas y solicitudes desde <a routerLink="/contacto">Contacto</a>.</p>
     </section>
-
     <section>
-      <h2>2. Objeto del servicio</h2>
-      <p>
-        CotizApp permite consultar productos, comparar precios, crear cotizaciones y administrar catálogos
-        para facilitar decisiones de compra de materiales.
-      </p>
+      <h2>2. Qué permite la web</h2>
+      <p>Puedes buscar materiales, herramientas y otros productos de ferretería, comparar precios, consultar locales cercanos,
+        preparar cotizaciones y compartirlas. Las ferreterías autorizadas pueden administrar su catálogo.</p>
+      <p><strong>Crear, guardar o compartir una cotización no constituye una compra, un pedido ni una reserva de productos.</strong>
+        La web no permite confirmar compras, aceptar pedidos ni realizar pagos. La compra se concreta directamente con la ferretería.</p>
     </section>
-
     <section>
-      <h2>3. Registro y cuentas</h2>
-      <p>
-        Cada usuario debe entregar información válida. La cuenta es personal e intransferible. El titular es
-        responsable del uso de sus credenciales y de la información que publica.
-      </p>
-      <p>
-        La aceptación se solicita mediante una casilla obligatoria no premarcada y se registra con la versión, fecha,
-        hora y cuenta asociada. Los consentimientos opcionales se solicitan por separado. Si existe un cambio material,
-        CotizApp requerirá una nueva aceptación antes de continuar usando las funciones autenticadas.
-      </p>
-      <p>
-        El servicio y la creación de cuentas están dirigidos exclusivamente a personas de 18 años o más. CotizApp no
-        busca recopilar datos de menores; si detecta una cuenta de una persona menor de edad, podrá bloquearla y
-        eliminar sus datos conforme a la política de privacidad, salvo la evidencia mínima exigida por ley.
-      </p>
+      <h2>3. Precios, stock y cotizaciones</h2>
+      <p>Los precios son informados por cada ferretería e incluyen IVA. CotizApp no vuelve a agregar ese impuesto.
+        Los totales no incluyen despacho ni otros servicios que no estén expresamente informados.</p>
+      <p>El stock es el informado por la ferretería; CotizApp no verifica existencias en tiempo real.
+        Confirma precio, disponibilidad y condiciones directamente con el local antes de comprar.
+        Las cotizaciones son una estimación basada en los datos consultados y no congelan precios ni reservan stock.</p>
+      <p>Puedes reportar diferencias desde la oferta o <a routerLink="/contacto">contactarnos</a>.
+        Revisaremos los antecedentes y corregiremos la información cuando corresponda. Esto no limita los derechos legales aplicables.</p>
     </section>
-
     <section>
-      <h2>4. Publicación de catálogo</h2>
-      <p>
-        Las ferreterías son responsables de mantener precios, stock y SKU actualizados. La plataforma puede suspender
-        publicaciones con datos falsos, duplicados o que incumplan normativa aplicable.
-      </p>
+      <h2>4. Cuentas y datos personales</h2>
+      <p>La creación de cuentas está dirigida a mayores de 18 años. Entrega datos correctos, protege tus credenciales
+        y utiliza únicamente tu cuenta. Al registrarte se solicita la aceptación de estos términos y una autorización específica
+        para tratar los datos necesarios para tu cuenta y cotizaciones. La publicidad es opcional y se autoriza por separado.</p>
+      <p>Consulta la <a routerLink="/privacidad">Política de privacidad</a> y gestiona tu información en
+        <a routerLink="/cuenta/privacidad-datos">Privacidad y datos</a>. Si no puedes entrar, usa <a routerLink="/contacto">Contacto</a>.</p>
     </section>
-
     <section>
-      <h2>5. Cotizaciones y disponibilidad</h2>
-      <p>
-        Las cotizaciones generadas son referenciales y pueden cambiar por variación de stock, logística, despacho o
-        condiciones comerciales del proveedor.
-      </p>
-      <p>
-        Si detectas una diferencia puedes usar “Reportar precio incorrecto” desde la oferta. CotizApp solicitará antecedentes,
-        podrá marcar el reclamo en revisión y, si corresponde, corregirá la oferta conservando el precio anterior, el nuevo valor,
-        la fecha, la fuente y el fundamento de la decisión. Un reclamo no acredita por sí solo que el precio sea incorrecto.
-      </p>
+      <h2>5. Publicación de ferreterías</h2>
+      <p>La ferretería debe estar autorizada para publicar su catálogo, mantener precios finales, stock y datos de contacto
+        actualizados y contar con derechos sobre las imágenes y descripciones que entrega.
+        Antes de publicar debe aceptar el acuerdo de participación de la marcha blanca.</p>
+      <p>CotizApp responde por la operación de su comparador. La ferretería realiza la venta y atiende las obligaciones que le
+        correspondan como vendedora. Esta distribución no exonera a ninguna parte de sus propias obligaciones legales.</p>
     </section>
-
     <section>
-      <h2>6. Propiedad intelectual y marcas</h2>
-      <p>
-        Quien publique fotografías, imágenes, logotipos, fichas técnicas o descripciones declara que es titular
-        o que cuenta con una autorización o licencia suficiente para el uso realizado en CotizApp. Debe conservar
-        evidencia verificable y entregarla cuando sea requerida. El hecho de que una imagen haya sido generada con
-        inteligencia artificial no autoriza el uso de marcas ni de otros elementos protegidos de terceros.
-      </p>
-      <p>
-        CotizApp puede ocultar o retirar contenido mientras revisa una denuncia y suspender cuentas ante infracciones
-        reiteradas. Titulares y representantes autorizados pueden consultar el procedimiento y
-        <a routerLink="/propiedad-intelectual" fragment="denunciar">denunciar contenido</a>.
-      </p>
+      <h2>6. Uso del servicio</h2>
+      <p>No se permiten fraude, suplantación, acceso a cuentas ajenas, contenido ilícito ni acciones que interrumpan el servicio.
+        Podemos retirar publicaciones o restringir cuentas ante incumplimientos, indicando la causa cuando sea posible.</p>
+      <p>Si necesitas denunciar contenido ajeno, utiliza <a routerLink="/contacto">Contacto</a> o el
+        <a routerLink="/propiedad-intelectual" fragment="denunciar">formulario de denuncia</a>.</p>
     </section>
-
     <section>
-      <h2>7. Uso permitido</h2>
-      <p>
-        No esta permitido usar la plataforma para fraude, scraping no autorizado, suplantacion de identidad,
-        publicacion de contenido ilegal o interrupcion del servicio.
-      </p>
-    </section>
-
-    <section>
-      <h2>8. Suspensión o término</h2>
-      <p>
-        Podemos suspender o cerrar cuentas ante incumplimientos graves, usos abusivos o requerimientos legales.
-      </p>
-    </section>
-
-    <section>
-      <h2>9. Contacto legal</h2>
-      <p>
-        Para consultas sobre estos términos puedes escribir a
-        <a [href]="'mailto:' + legalIdentity.legalEmail"><strong>{{ legalIdentity.legalEmail }}</strong></a>
-        o usar la página de <a routerLink="/contacto">contacto</a>.
-      </p>
-    </section>
-
-    <section>
-      <h2>10. Comunicaciones publicitarias</h2>
-      <p>
-        CotizApp solo enviará publicidad cuando exista una autorización opcional y separada. Soporte, recuperación de cuenta y
-        mensajes operativos no se consideran consentimiento comercial. Toda comunicación deberá identificar al remitente, indicar
-        que es publicidad y ofrecer una salida simple. La autorización puede retirarse desde el centro de privacidad o mediante la
-        página <a routerLink="/desuscribir">Dejar de recibir publicidad</a>.
-      </p>
+      <h2>7. Cambios y comunicaciones</h2>
+      <p>La web está en marcha blanca. Puede recibir mejoras y correcciones; esa condición no elimina las obligaciones legales.
+        Publicaremos las versiones actualizadas y solicitaremos una nueva aceptación si cambian las condiciones o el uso autorizado de tus datos.</p>
+      <p>Puedes retirar la autorización publicitaria en tu centro de privacidad o en
+        <a routerLink="/desuscribir">Dejar de recibir publicidad</a>, sin perder acceso al servicio.</p>
     </section>
   </article>
 </section>

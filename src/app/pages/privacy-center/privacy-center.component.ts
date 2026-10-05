@@ -48,9 +48,9 @@ export class PrivacyCenterComponent implements OnInit {
     { value: 'access', label: 'Acceso', help: 'Consulta qué datos tratamos, su origen, finalidad y destinatarios.' },
     { value: 'rectification', label: 'Rectificación', help: 'Solicita corregir información que no puedas editar directamente.' },
     { value: 'deletion', label: 'Supresión', help: 'Solicita eliminar datos específicos cuando corresponda.' },
-    { value: 'objection', label: 'Oposición', help: 'Objeta un tratamiento concreto basado en interés legítimo u otra causal aplicable.' },
+    { value: 'objection', label: 'Oposición', help: 'Solicita detener el uso publicitario de tus datos u otro tratamiento cuando corresponda.' },
     { value: 'blocking', label: 'Bloqueo temporal', help: 'Suspende temporalmente el tratamiento mientras se revisa tu solicitud.' },
-    { value: 'portability', label: 'Portabilidad', help: 'Solicita tus datos en un formato estructurado y reutilizable.' }
+    { value: 'portability', label: 'Copia de datos', help: 'Solicita tus datos en un formato estructurado y reutilizable.' }
   ];
 
   constructor(
@@ -90,7 +90,7 @@ export class PrivacyCenterComponent implements OnInit {
   protected async acceptLegalDocuments(): Promise<void> {
     if (this.legalAcceptanceIncomplete) return;
     await this.runAction('legal', async () => {
-      this.overview = await this.privacyData.acceptCurrentLegalDocuments(this.marketingConsent);
+      this.overview = await this.privacyData.acceptCurrentLegalDocuments(this.marketingConsent, this.overview!.currentVersions);
       await this.auth.refreshCurrentUser();
       this.notice = 'Aceptación registrada con versión, fecha, hora y cuenta asociada.';
     });
@@ -204,7 +204,7 @@ export class PrivacyCenterComponent implements OnInit {
   protected consentLabel(type: string): string {
     const labels: Record<string, string> = {
       terms: 'Términos del servicio',
-      privacy_notice: 'Aviso de privacidad',
+      privacy_notice: 'Autorización de datos y aviso de privacidad',
       age_declaration: 'Declaración de mayoría de edad',
       marketing: 'Comunicaciones opcionales'
     };

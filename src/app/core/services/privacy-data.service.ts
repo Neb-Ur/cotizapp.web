@@ -22,8 +22,10 @@ export class PrivacyDataService {
     return this.api.get<PrivacyOverview>('/privacy/overview', true);
   }
 
-  acceptCurrentLegalDocuments(marketingConsent: boolean): Promise<PrivacyOverview> {
+  acceptCurrentLegalDocuments(marketingConsent: boolean, versions: { terms: string; privacy: string }): Promise<PrivacyOverview> {
     return this.api.post<PrivacyOverview>('/privacy/consents/current', {
+      termsVersion: versions.terms,
+      privacyVersion: versions.privacy,
       termsAccepted: true,
       privacyAcknowledged: true,
       ageConfirmed: true,

@@ -5,8 +5,6 @@ import { of, throwError, Subject } from 'rxjs';
 import { getIdToken, onIdTokenChanged, signOut, type Auth } from 'firebase/auth';
 import { AuthService, SESSION_IDLE_TIMEOUT_MS } from './auth.service';
 
-vi.mock('firebase/auth', { spy: true });
-
 const profile = { id: 'user-1', correo: 'user@example.test', nombre: 'Usuario', rol: 'maestro' };
 const user = { id: profile.id, email: profile.correo, displayName: profile.nombre, role: 'maestro' };
 const response = { ok: true, data: { usuario: profile, requiereCompletarPerfil: false } };

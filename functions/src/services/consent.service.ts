@@ -38,7 +38,7 @@ export function stageLegalAcceptance(
 ): void {
   const events = [
     { type: 'terms', version: CURRENT_TERMS_VERSION, granted: input.termsAccepted },
-    { type: 'privacy_notice', version: CURRENT_PRIVACY_VERSION, granted: input.privacyAcknowledged },
+    { type: 'privacy_notice', version: CURRENT_PRIVACY_VERSION, granted: input.privacyAcknowledged, purpose: 'account_and_requested_features', expressConsent: true },
     { type: 'age_declaration', version: '18+', granted: input.ageConfirmed },
     { type: 'marketing', version: '1.0', granted: input.marketingConsent === true }
   ];

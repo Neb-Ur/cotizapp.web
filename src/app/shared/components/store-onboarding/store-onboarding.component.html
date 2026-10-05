@@ -6,7 +6,7 @@
     <fieldset [disabled]="saving || !overview.canAccept">
       <legend class="visually-hidden">Aceptaciones obligatorias</legend>
       <label><input type="checkbox" [(ngModel)]="checks.termsAccepted" /><span>Acepto los <a href="/terminos-condiciones" target="_blank" rel="noopener noreferrer">términos y condiciones</a> (v{{ overview.termsVersion }}).</span></label>
-      <label><input type="checkbox" [(ngModel)]="checks.privacyAcknowledged" /><span>He leído la <a href="/privacidad" target="_blank" rel="noopener noreferrer">política de privacidad</a> (v{{ overview.privacyVersion }}).</span></label>
+      <label><input type="checkbox" [(ngModel)]="checks.privacyAcknowledged" /><span>He leído y autorizo el tratamiento de mis datos para administrar la cuenta y el catálogo, conforme a la <a href="/privacidad" target="_blank" rel="noopener noreferrer">política de privacidad</a> (v{{ overview.privacyVersion }}).</span></label>
       <label><input type="checkbox" [(ngModel)]="checks.ageConfirmed" /><span>Confirmo que tengo 18 años o más.</span></label>
       <label><input type="checkbox" [(ngModel)]="checks.agreementAccepted" /><span>Acepto el <a href="/cuenta/contrato-ferreteria" target="_blank" rel="noopener noreferrer">acuerdo comercial de ferreterías</a> (v{{ overview.agreementVersion }}).</span></label>
       <label><input type="checkbox" [(ngModel)]="checks.authorityConfirmed" /><span>Tengo autorización para representar a esta ferretería.</span></label>

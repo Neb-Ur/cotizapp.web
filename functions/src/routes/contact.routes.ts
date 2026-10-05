@@ -19,7 +19,7 @@ contactRouter.post('/solicitudes-contacto', async (req, res) => {
   const businessName = normalizeText(req.body?.businessName);
   const phone = normalizeText(req.body?.phone);
   const commune = normalizeText(req.body?.commune);
-  const validTypes = ['maestro', 'ferreteria', 'otro'];
+  const validTypes = ['maestro', 'ferreteria', 'otro', 'privacidad'];
 
   if (!validTypes.includes(type) || name.length < 2 || !/^\S+@\S+\.\S+$/.test(email) || message.length < 8) {
     return fail(res, 'CONTACT_INVALID_PAYLOAD', 'Revisa los datos de la solicitud.', 400);
@@ -28,10 +28,17 @@ contactRouter.post('/solicitudes-contacto', async (req, res) => {
     return fail(res, 'CONTACT_STORE_DATA_REQUIRED', 'Completa el nombre de la ferretería.', 400);
   }
 
+  if (req.body?.privacyAcknowledged !== true) {
+    return fail(res, 'CONTACT_LEGAL_ACCEPTANCE_REQUIRED', 'Autoriza el uso de tus datos para gestionar esta solicitud.', 400);
+  }
+  if (req.body?.privacyVersion !== CURRENT_PRIVACY_VERSION) {
+    return fail(res, 'CONTACT_LEGAL_VERSION_OUTDATED', 'La política cambió. Recarga y revisa la versión vigente.', 409);
+  }
+
   if (type === 'ferreteria') {
     const required = ['termsAccepted', 'privacyAcknowledged', 'ageConfirmed', 'authorityConfirmed', 'accuracyConfirmed'];
     if (required.some(field => req.body?.[field] !== true)) {
-      return fail(res, 'CONTACT_LEGAL_ACCEPTANCE_REQUIRED', 'Debes aceptar los términos, confirmar la lectura de privacidad y completar las declaraciones obligatorias de la ferretería.', 400);
+      return fail(res, 'CONTACT_LEGAL_ACCEPTANCE_REQUIRED', 'Debes aceptar los términos, autorizar el tratamiento de datos de la solicitud y completar las declaraciones obligatorias de la ferretería.', 400);
     }
     if (req.body?.termsVersion !== CURRENT_TERMS_VERSION || req.body?.privacyVersion !== CURRENT_PRIVACY_VERSION) {
       return fail(res, 'CONTACT_LEGAL_VERSION_OUTDATED', 'Las condiciones cambiaron. Recarga el formulario y revisa las versiones vigentes antes de enviar.', 409);
@@ -50,6 +57,7 @@ contactRouter.post('/solicitudes-contacto', async (req, res) => {
     commune: commune.slice(0, 120),
     status: 'pendiente',
     createdAt,
+    privacyConsent: { granted: true, purpose: 'contact_request', version: CURRENT_PRIVACY_VERSION, acceptedAt: createdAt },
     ...(type === 'ferreteria' ? {
       legalAcceptance: {
         termsAccepted: true,

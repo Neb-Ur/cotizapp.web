@@ -732,7 +732,7 @@
         <article class="contact-request-card" *ngFor="let request of contactRequestRows">
           <header>
             <div>
-              <span class="request-kind">{{ request.type === 'ferreteria' ? 'Solicitud de ferretería' : 'Contacto' }}</span>
+              <span class="request-kind">{{ request.type === 'ferreteria' ? 'Solicitud de ferretería' : request.type === 'privacidad' ? 'Solicitud de privacidad' : 'Contacto' }}</span>
               <h2>{{ request.businessName || request.name }}</h2>
             </div>
             <span class="status-chip" [class.ok]="request.status === 'contactado'" [class.bad]="request.status === 'cerrado'">
@@ -747,6 +747,7 @@
             <div *ngIf="request.commune"><dt>Comuna</dt><dd>{{ request.commune }}</dd></div>
             <div><dt>Recibida</dt><dd>{{ request.createdAt | date:'short' }}</dd></div>
             <div *ngIf="request.legalAcceptance as acceptance"><dt>Condiciones</dt><dd>Términos v{{ acceptance.termsVersion }} · Privacidad v{{ acceptance.privacyVersion }} · Confirmadas el {{ acceptance.acceptedAt | date:'short' }}</dd></div>
+            <div *ngIf="request.privacyConsent"><dt>Autorización de datos</dt><dd>Privacidad v{{ request.privacyConsent.version }} · {{ request.privacyConsent.acceptedAt | date:'dd/MM/yyyy HH:mm' }}</dd></div>
             <div *ngIf="request.type === 'ferreteria' && !request.legalAcceptance"><dt>Condiciones</dt><dd>Sin aceptaciones registradas</dd></div>
           </dl>
 

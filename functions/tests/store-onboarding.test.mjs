@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { CURRENT_TERMS_VERSION, CURRENT_PRIVACY_VERSION, CURRENT_STORE_AGREEMENT_VERSION } from '../lib/lib/legal.js';
 import assert from 'node:assert/strict';
 import { storeOnboardingRouter } from '../lib/routes/store-onboarding.routes.js';
 import { requireAuth } from '../lib/lib/auth.js';
@@ -6,7 +7,7 @@ import { adminAuth } from '../lib/lib/firebase.js';
 import { firestoreFixture } from './helpers/firestore-fixture.mjs';
 const handle = method => storeOnboardingRouter.stack.find(layer => layer.route?.path === `/store-onboarding/${method === 'get' ? 'current' : 'accept'}`).route.stack.at(-1).handle;
 const declarations = ['termsAccepted', 'privacyAcknowledged', 'ageConfirmed', 'agreementAccepted', 'authorityConfirmed', 'catalogCommitmentConfirmed'];
-const payload = { ...Object.fromEntries(declarations.map(key => [key, true])), termsVersion: '1.0', privacyVersion: '1.1', agreementVersion: '1.0' };
+const payload = { ...Object.fromEntries(declarations.map(key => [key, true])), termsVersion: CURRENT_TERMS_VERSION, privacyVersion: CURRENT_PRIVACY_VERSION, agreementVersion: CURRENT_STORE_AGREEMENT_VERSION };
 const seed = { usuarios: { owner: { rol: 'ferreteria', nombre: 'Representante', correo: 'store@example.test' } }, ferreterias: { store: { usuarioDuenoId: 'owner', nombreComercial: 'Tienda', rut: '76000000-0' } } };
 const response = () => ({ statusCode: 200, status(code) { this.statusCode = code; return this; }, json(body) { this.body = body; return this; } });
 const request = body => ({ authUserId: 'owner', body, header: () => 'test-browser' });
@@ -31,7 +32,7 @@ test('compact acceptance records legal and commercial evidence together using th
   await handle('post')(request({ ...payload, signerName: 'forged', marketingConsent: true }), res);
   assert.equal(res.statusCode, 201);
   const user = fixture.get('usuarios', 'owner');
-  assert.equal(user.terminosVersion, '1.0'); assert.equal(user.privacidadVersion, '1.1');
+  assert.equal(user.terminosVersion, CURRENT_TERMS_VERSION); assert.equal(user.privacidadVersion, CURRENT_PRIVACY_VERSION);
   assert.equal(user.marketingConsent, undefined);
   const agreement = fixture.rows('contratosFerreteria')[0];
   assert.equal(agreement.firmante.nombre, 'Representante'); assert.equal(agreement.firmante.correo, 'store@example.test');

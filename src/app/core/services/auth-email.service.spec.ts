@@ -4,8 +4,6 @@ import { NgZone } from '@angular/core';
 import { reload, sendEmailVerification, sendPasswordResetEmail, type Auth } from 'firebase/auth';
 import { AuthService } from './auth.service';
 
-vi.mock('firebase/auth', { spy: true });
-
 describe('account email language and recipients', () => {
   beforeEach(() => {
     vi.clearAllMocks();

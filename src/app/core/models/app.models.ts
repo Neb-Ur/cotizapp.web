@@ -48,6 +48,8 @@ export interface RegisterPayload {
   storeLongitude?: number;
   termsAccepted: boolean;
   privacyAcknowledged: boolean;
+  termsVersion: string;
+  privacyVersion: string;
   ageConfirmed: boolean;
   marketingConsent: boolean;
 }
@@ -105,6 +107,7 @@ export interface StoreAgreementOverview {
     address: string;
     legalRepresentative: string;
     legalEmail: string;
+    contactPath?: string;
   };
   store: {
     id: string;
@@ -506,7 +509,7 @@ export type ContactRequestStatus = 'pendiente' | 'contactado' | 'cerrado';
 
 export interface ContactRequest {
   id: string;
-  type: 'maestro' | 'ferreteria' | 'otro';
+  type: 'maestro' | 'ferreteria' | 'otro' | 'privacidad';
   name: string;
   email: string;
   message: string;
@@ -516,6 +519,7 @@ export interface ContactRequest {
   status: ContactRequestStatus;
   createdAt: string;
   updatedAt?: string;
+  privacyConsent?: { granted: boolean; purpose: string; version: string; acceptedAt: string };
   legalAcceptance?: {
     termsAccepted: boolean;
     termsVersion: string;

@@ -46,7 +46,7 @@
           </label>
           <label class="check-row">
             <input type="checkbox" [(ngModel)]="legalPrivacyAcknowledged" />
-            <span>Declaro haber leído la <a routerLink="/privacidad" target="_blank">Política de privacidad</a>, versión {{ overview.currentVersions.privacy }}. Esto no constituye un consentimiento general.</span>
+            <span>He leído y autorizo el tratamiento de mis datos para operar mi cuenta y cotizaciones o catálogo, conforme a la <a routerLink="/privacidad" target="_blank">Política de privacidad</a>, versión {{ overview.currentVersions.privacy }}. Esta autorización no incluye publicidad ni otras finalidades.</span>
           </label>
           <label class="check-row">
             <input type="checkbox" [(ngModel)]="legalAgeConfirmed" />
@@ -112,7 +112,7 @@
         <section class="panel" id="request">
           <div class="panel-heading">
             <div><span class="panel-kicker">Solicitud formal</span><h2>Ejercer un derecho</h2></div>
-            <span class="deadline-chip">Respuesta general: 30 días</span>
+            <span class="deadline-chip">Revisión inicial: hasta 2 días corridos</span>
           </div>
           <label class="field-label">Derecho
             <select [(ngModel)]="selectedRequestType">

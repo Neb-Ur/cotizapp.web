@@ -41,11 +41,11 @@
     </a>
 
     <ng-template #supportEmailOption>
-      <a class="help-option" [href]="supportEmailUrl" (click)="closeMenu()">
+      <a class="help-option" routerLink="/contacto" (click)="closeMenu()">
         <span class="help-option__icon"><i class="pi pi-envelope" aria-hidden="true"></i></span>
         <span>
           <strong>Escribir a soporte</strong>
-          <small>{{ legalIdentity.supportEmail }}</small>
+          <small>Formulario de contacto</small>
         </span>
         <i class="pi pi-external-link help-option__arrow" aria-hidden="true"></i>
       </a>
@@ -147,6 +147,11 @@
       <input formControlName="website" type="text" tabindex="-1" autocomplete="off" />
     </label>
 
+    <label class="privacy-check">
+      <input type="checkbox" formControlName="privacyAcknowledged" /><span>Autorizo el uso de mis datos para investigar y responder este reporte,
+        conforme a la <a routerLink="/privacidad" target="_blank" rel="noopener">Política de privacidad</a>.</span>
+      <small *ngIf="reportForm.controls.privacyAcknowledged.touched && reportForm.controls.privacyAcknowledged.invalid" class="field-error">Autoriza el uso de los datos de este reporte.</small>
+    </label>
     <p class="report-form__error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
 
     <div class="report-form__actions">

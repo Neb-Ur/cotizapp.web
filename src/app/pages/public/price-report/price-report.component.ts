@@ -2,6 +2,7 @@ import { CommonModule, DOCUMENT } from '@angular/common';
 import { Component, Inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { LEGAL_IDENTITY } from '../../../core/config/legal-identity.config';
 import { API_BASE_URL } from '../../../core/config/api.config';
 
 @Component({
@@ -24,7 +25,8 @@ export class PriceReportComponent {
     displayedPrice: [Number(this.route.snapshot.queryParamMap.get('price') || 0), [Validators.required, Validators.min(0)]],
     observedPrice: [0, [Validators.required, Validators.min(0)]],
     details: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(2000)]],
-    website: ['']
+    website: [''],
+    privacyAcknowledged: [false, Validators.requiredTrue]
   });
 
   constructor(
@@ -44,7 +46,7 @@ export class PriceReportComponent {
       const response = await fetch(`${API_BASE_URL}/price-reports`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...this.form.getRawValue(), contentUrl: this.document.location.href })
+        body: JSON.stringify({ ...this.form.getRawValue(), privacyVersion: LEGAL_IDENTITY.privacyPolicyVersion, contentUrl: this.document.location.href })
       });
       const body = await response.json() as { data?: { reference?: string }; error?: { message?: string } };
       if (!response.ok) throw new Error(body.error?.message || 'No fue posible registrar el reclamo.');

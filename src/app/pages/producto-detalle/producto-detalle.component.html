@@ -54,7 +54,7 @@
         <section class="comparison-method" aria-label="Cómo se comparan los precios">
           <strong>Criterio de comparación</strong>
           <p>{{ product.comparisonCriteria }}</p>
-          <p><strong>Fuente:</strong> precios informados por cada ferretería. CotizApp no vende ni confirma disponibilidad.</p>
+          <p><strong>Fuente:</strong> precios informados por cada ferretería. CotizApp no vende ni reserva productos. La compra se realiza directamente con la ferretería.</p>
         </section>
 
         <p class="product-unavailable-alert" *ngIf="displayStores.length === 0 && !loadError" role="alert">
@@ -136,7 +136,7 @@
                     {{ store.storeName }}
                     <span class="sponsored-label" *ngIf="store.sponsored">Patrocinado</span>
                   </p>
-                  <p class="store-stock">Stock: {{ store.stock }} {{ product.unitLabel.toLowerCase() }}</p>
+                  <p class="store-stock">Stock informado por la ferretería: {{ store.stock }} {{ product.unitLabel.toLowerCase() }}</p>
                   <p class="store-distance" *ngIf="store.distanceKm !== undefined">
                     <i class="pi pi-map-marker" aria-hidden="true"></i>
                     A {{ formatDistance(store.distanceKm) }} de ti<span *ngIf="store.commune"> · {{ store.commune }}</span>

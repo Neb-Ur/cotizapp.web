@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { CURRENT_TERMS_VERSION, CURRENT_PRIVACY_VERSION } from '../lib/lib/legal.js';
 import assert from 'node:assert/strict';
 import { adminAuth } from '../lib/lib/firebase.js';
 import { authRouter } from '../lib/routes/auth.routes.js';
@@ -12,7 +13,7 @@ test('existing profile cannot be overwritten through registration', async t => {
  const fixture = firestoreFixture(t, {usuarios:{user:profile}});
  t.mock.method(adminAuth, 'getUser', async () => ({email:'user@example.test'}));
  const res = response();
- await handler(authRouter,'/auth/register','post')({authUserId:'user',body:{rol:'maestro',nombre:'Changed',termsAccepted:true,privacyAcknowledged:true,ageConfirmed:true}},res);
+ await handler(authRouter,'/auth/register','post')({authUserId:'user',body:{rol:'maestro',nombre:'Changed',termsAccepted:true,privacyAcknowledged:true,termsVersion:CURRENT_TERMS_VERSION,privacyVersion:CURRENT_PRIVACY_VERSION,ageConfirmed:true}},res);
  assert.equal(res.statusCode,409);assert.deepEqual(fixture.get('usuarios','user'),profile);
 });
 test('invalid store coordinates do not partially update the user profile', async t => {

@@ -94,6 +94,7 @@
           "options": {
             "tsConfig": "tsconfig.spec.json",
             "runner": "vitest",
+            "setupFiles": ["src/firebase-test-setup.ts"],
             "buildTarget": "::development"
           }
         }

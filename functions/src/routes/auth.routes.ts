@@ -20,11 +20,14 @@ authRouter.post('/auth/register', requireAuth, async (req, res) => {
     return fail(
       res,
       'LEGAL_ACCEPTANCE_REQUIRED',
-      'Debes aceptar los términos, confirmar la lectura de la política de privacidad y declarar que eres mayor de edad.',
+      'Debes aceptar los términos, autorizar el tratamiento de datos necesario para la cuenta y declarar que eres mayor de edad.',
       400
     );
   }
 
+  if (req.body?.termsVersion !== CURRENT_TERMS_VERSION || req.body?.privacyVersion !== CURRENT_PRIVACY_VERSION) {
+    return fail(res, 'LEGAL_VERSION_OUTDATED', 'Los documentos cambiaron. Recarga y revisa las versiones vigentes antes de aceptar.', 409);
+  }
   const firebaseUser = await adminAuth.getUser(req.authUserId);
   const userPayload = {
     rol: role,

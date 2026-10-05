@@ -12,3 +12,20 @@ button { min-height: 48px; border: 0; border-radius: 10px; background: #e75c25; 
 .trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 .error { color: #b42318; }.success { padding: 1rem; border-radius: 12px; background: #edf8f1; color: #17653a; }
 @media (max-width: 560px) { .price-grid { grid-template-columns: 1fr; } }
+
+.privacy-check {
+  display: flex;
+  align-items: flex-start;
+  gap: .65rem;
+  font-weight: 400;
+  line-height: 1.55;
+
+  input[type='checkbox'] {
+    flex: 0 0 auto;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin: .2rem 0 0;
+    padding: 0;
+    accent-color: var(--orange);
+  }
+}

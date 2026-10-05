@@ -1,3 +1,4 @@
+import { CURRENT_PRIVACY_VERSION } from '../lib/legal.js';
 import { randomBytes } from 'node:crypto';
 import { Router } from 'express';
 import { db } from '../lib/firebase.js';
@@ -24,6 +25,9 @@ priceReportsRouter.post('/price-reports', async (req, res) => {
     || !/^https?:\/\//i.test(contentUrl) || displayedPrice < 0 || observedPrice < 0 || details.length < 10) {
     return fail(res, 'PRICE_REPORT_INVALID', 'Revisa la oferta, los precios, el correo y la descripción.', 400);
   }
+  if (req.body?.privacyAcknowledged !== true || req.body?.privacyVersion !== CURRENT_PRIVACY_VERSION) {
+    return fail(res, 'PRICE_REPORT_CONSENT_REQUIRED', 'Revisa la política vigente y autoriza el uso de los datos de este reclamo.', 400);
+  }
   const offer = await row(COLLECTIONS.storeProducts, offerId);
   if (!offer || offer.ferreteriaId !== storeId) {
     return fail(res, 'PRICE_REPORT_OFFER_NOT_FOUND', 'La oferta informada ya no está disponible.', 404);
@@ -37,6 +41,7 @@ priceReportsRouter.post('/price-reports', async (req, res) => {
   const reference = `PRECIO-${new Date().getUTCFullYear()}-${randomBytes(4).toString('hex').toUpperCase()}`;
   const created = await createRow(COLLECTIONS.priceReports, {
     reference,
+    privacyConsent: { granted: true, version: CURRENT_PRIVACY_VERSION, purpose: 'price_report', acceptedAt: nowIso() },
     email,
     productName: normalizeText(product.nombre) || productName,
     storeName: normalizeText(store.nombreComercial) || storeName,

@@ -79,6 +79,8 @@ export class RegisterComponent {
       region: '',
       city: '',
       address: '',
+      termsVersion: this.legalIdentity.termsVersion,
+      privacyVersion: this.legalIdentity.privacyPolicyVersion,
       termsAccepted: values.termsAccepted,
       privacyAcknowledged: values.privacyAcknowledged,
       ageConfirmed: values.ageConfirmed,

@@ -93,6 +93,8 @@ function buildQuotationPdfLines(input: QuotationPdfInput, exportedAt: Date): str
   lines.push('');
   lines.push('Precios finales con IVA incluido, informados por las ferreterias.');
   lines.push('Cotizacion referencial: stock y precios sujetos a confirmacion. Despacho no incluido.');
+  lines.push('Esta cotizacion no constituye una compra, un pedido ni una reserva de productos.');
+  lines.push('La compra se realiza directamente con cada ferreteria.');
   lines.push('Documento generado por CotizApp.');
 
   return lines.flatMap((line) => wrapLine(line, 95));

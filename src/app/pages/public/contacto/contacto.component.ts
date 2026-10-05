@@ -40,9 +40,9 @@ export class ContactoComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    if (this.route.snapshot.queryParamMap.get('type')?.toLowerCase() === 'ferreteria') {
-      this.form.controls.type.setValue('Ferreteria');
-    }
+    const type = this.route.snapshot.queryParamMap.get('type')?.toLowerCase();
+    if (type === 'ferreteria') this.form.controls.type.setValue('Ferreteria');
+    if (type === 'privacidad') this.form.controls.type.setValue('Privacidad');
     this.syncStoreValidators();
     this.form.controls.type.valueChanges.subscribe(() => this.syncStoreValidators());
   }
@@ -67,10 +67,8 @@ export class ContactoComponent implements OnInit {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...this.form.getRawValue(),
-          ...(this.isStoreRequest ? {
-            termsVersion: this.legalIdentity.termsVersion,
-            privacyVersion: this.legalIdentity.privacyPolicyVersion
-          } : {})
+          privacyVersion: this.legalIdentity.privacyPolicyVersion,
+          ...(this.isStoreRequest ? { termsVersion: this.legalIdentity.termsVersion } : {})
         })
       });
       const payload = await response.json() as { error?: { message?: string } };
@@ -113,7 +111,7 @@ export class ContactoComponent implements OnInit {
     this.form.controls.phone.updateValueAndValidity({ emitEvent: false });
     this.form.controls.commune.updateValueAndValidity({ emitEvent: false });
     for (const control of this.acceptanceControls) {
-      control.setValidators(this.isStoreRequest ? [Validators.requiredTrue] : []);
+      control.setValidators(this.isStoreRequest || control === this.form.controls.privacyAcknowledged ? [Validators.requiredTrue] : []);
       control.reset(false, { emitEvent: false });
       control.updateValueAndValidity({ emitEvent: false });
     }

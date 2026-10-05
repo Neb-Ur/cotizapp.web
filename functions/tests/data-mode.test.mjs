@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { CURRENT_TERMS_VERSION, CURRENT_PRIVACY_VERSION } from '../lib/lib/legal.js';
 import assert from 'node:assert/strict';
 import { dataMode, dataModeMiddleware } from '../lib/lib/data-mode.js';
 import { COLLECTIONS } from '../lib/lib/collections.js';
@@ -64,7 +65,7 @@ test('new registrations and legal records use the real collections', async t => 
   t.mock.method(adminAuth,'getUser',async()=>({email:'new@example.test'}));
   const register=authRouter.stack.find(layer=>layer.route?.path==='/auth/register').route.stack.at(-1).handle;
   const res=response();
-  await register({authUserId:'new',body:{rol:'ferreteria',nombre:'New Store',nombreComercial:'New Store',termsAccepted:true,privacyAcknowledged:true,ageConfirmed:true,latitud:-33,longitud:-70}},res);
+  await register({authUserId:'new',body:{rol:'ferreteria',nombre:'New Store',nombreComercial:'New Store',termsAccepted:true,privacyAcknowledged:true,termsVersion:CURRENT_TERMS_VERSION,privacyVersion:CURRENT_PRIVACY_VERSION,ageConfirmed:true,latitud:-33,longitud:-70}},res);
   assert.equal(res.statusCode,201);assert.equal(fixture.get('usuarios','new').dataMode,'real');
   assert.equal(fixture.rows('ferreterias').length,1);assert.equal(fixture.rows('registrosConsentimiento').length,4);
 });

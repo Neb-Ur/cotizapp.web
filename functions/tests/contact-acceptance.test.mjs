@@ -53,7 +53,7 @@ test('valid store request saves current versions and server timestamp together w
 });
 test('ordinary contact inquiries remain available without store declarations', async t => {
   const fixture=firestoreFixture(t);const res=response();
-  await handler({body:{type:'Maestro',name:'Persona',email:'person@example.test',message:'Una consulta sobre mis cotizaciones.'}},res);
+  await handler({body:{type:'Maestro',name:'Persona',email:'person@example.test',message:'Una consulta sobre mis cotizaciones.',privacyAcknowledged:true,privacyVersion:CURRENT_PRIVACY_VERSION}},res);
   assert.equal(res.statusCode,201);assert.equal(fixture.rows('solicitudesContacto')[0].legalAcceptance,undefined);
 });
 test('honeypot submissions never store contact data or fabricated acceptance', async t => {
@@ -61,3 +61,21 @@ test('honeypot submissions never store contact data or fabricated acceptance', a
   await handler({body:{type:'Ferreteria',website:'bot.example.test'}},res);
   assert.equal(res.statusCode,201);assert.equal(fixture.rows('solicitudesContacto').length,0);
 });
+
+for (const type of ['Maestro', 'Otro', 'Privacidad']) {
+  test(`public ${type} inquiry requires current express consent and stores purpose and server time`, async t => {
+    const fixture = firestoreFixture(t);
+    const body = {type, name:'Persona', email:'person@example.test', message:'Consulta sobre mis datos personales.'};
+    for (const value of [undefined, false, 'true']) {
+      const res=response(); await handler({body:{...body,privacyAcknowledged:value,privacyVersion:CURRENT_PRIVACY_VERSION}},res);
+      assert.equal(res.statusCode,400); assert.equal(fixture.rows('solicitudesContacto').length,0);
+    }
+    const old=response(); await handler({body:{...body,privacyAcknowledged:true,privacyVersion:'old'}},old);
+    assert.equal(old.statusCode,409); assert.equal(fixture.rows('solicitudesContacto').length,0);
+    const res=response(); await handler({body:{...body,privacyAcknowledged:true,privacyVersion:CURRENT_PRIVACY_VERSION,acceptedAt:'forged'}},res);
+    assert.equal(res.statusCode,201);
+    const request=fixture.rows('solicitudesContacto')[0];
+    assert.deepEqual(request.privacyConsent,{granted:true,purpose:'contact_request',version:CURRENT_PRIVACY_VERSION,acceptedAt:request.createdAt});
+    assert.equal(request.legalAcceptance,undefined);
+  });
+}

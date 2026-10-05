@@ -730,6 +730,8 @@ export class AuthService implements OnDestroy {
         rut: payload.rut?.trim() || undefined,
         latitud: payload.storeLatitude,
         longitud: payload.storeLongitude,
+        termsVersion: payload.termsVersion,
+        privacyVersion: payload.privacyVersion,
         termsAccepted: payload.termsAccepted,
         privacyAcknowledged: payload.privacyAcknowledged,
         ageConfirmed: payload.ageConfirmed,

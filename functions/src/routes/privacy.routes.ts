@@ -50,7 +50,10 @@ privacyRouter.get('/privacy/overview', requireAuth, async (req, res) => {
 privacyRouter.post('/privacy/consents/current', requireAuth, async (req, res) => {
   if (!req.authUserId) return fail(res, 'AUTH_REQUIRED', 'Debes iniciar sesión.', 401);
   if (req.body?.termsAccepted !== true || req.body?.privacyAcknowledged !== true || req.body?.ageConfirmed !== true) {
-    return fail(res, 'LEGAL_ACCEPTANCE_REQUIRED', 'Debes aceptar los términos, confirmar la lectura del aviso de privacidad y declarar que eres mayor de edad.', 400);
+    return fail(res, 'LEGAL_ACCEPTANCE_REQUIRED', 'Debes aceptar los términos, autorizar el tratamiento de datos necesario para la cuenta y declarar que eres mayor de edad.', 400);
+  }
+  if (req.body?.termsVersion !== CURRENT_TERMS_VERSION || req.body?.privacyVersion !== CURRENT_PRIVACY_VERSION) {
+    return fail(res, 'LEGAL_VERSION_OUTDATED', 'Los documentos cambiaron. Recarga y revisa las versiones vigentes antes de aceptar.', 409);
   }
   await recordLegalAcceptance(req.authUserId, {
     termsAccepted: true,
@@ -88,7 +91,7 @@ privacyRouter.post('/privacy/requests', requireAuth, async (req, res) => {
     status: 'recibida',
     submittedAt: submitted.toISOString(),
     acknowledgedAt: submitted.toISOString(),
-    responseDueAt: calendarDeadline(submitted, 30),
+    responseDueAt: calendarDeadline(submitted, 2),
     blockingDueAt: req.body.type === 'blocking' ? conservativeBlockingDeadline(submitted) : null,
     resolution: null,
     resolvedAt: null
@@ -115,7 +118,7 @@ privacyRouter.post('/privacy/export', requireAuth, async (req, res) => {
     status: 'completada',
     submittedAt: submitted.toISOString(),
     acknowledgedAt: submitted.toISOString(),
-    responseDueAt: calendarDeadline(submitted, 30),
+    responseDueAt: calendarDeadline(submitted, 2),
     resolvedAt: new Date().toISOString(),
     resolution: 'Datos entregados en formato JSON estructurado.'
   });
@@ -166,7 +169,7 @@ privacyRouter.patch('/admin/privacy-requests/:id', requireAuth, requireRole('adm
     return fail(res, 'PRIVACY_RESOLUTION_REQUIRED', 'Registra una respuesta fundada antes de cerrar la solicitud.', 400);
   }
   const resolution = status === 'rechazada'
-    ? `${resolutionInput} Puedes reclamar ante la Agencia de Protección de Datos Personales dentro de 30 días hábiles, conforme a la Ley N.º 21.719.`
+    ? `${resolutionInput} Esta respuesta no limita tu derecho a ejercer las acciones previstas en la normativa vigente de protección de datos personales.`
     : resolutionInput;
   const updated = await patchRow(COLLECTIONS.privacyRequests, req.params.id, {
     status,

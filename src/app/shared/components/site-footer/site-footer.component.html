@@ -25,8 +25,6 @@
       <p class="footer-heading">Legal</p>
       <a routerLink="/terminos-condiciones">Términos</a>
       <a routerLink="/privacidad">Privacidad</a>
-      <a routerLink="/propiedad-intelectual">Propiedad intelectual</a>
-      <a routerLink="/propiedad-intelectual" fragment="denunciar">Denunciar contenido</a>
       <a routerLink="/desuscribir">Dejar de recibir publicidad</a>
       <button type="button" (click)="openCookieSettings()">Configurar cookies</button>
     </nav>
@@ -34,11 +32,7 @@
 
   <div class="footer-bottom">
     <p>© 2026 CotizApp. Todos los derechos reservados.</p>
-    <p class="legal-identity">
-      Operado por {{ legalIdentity.legalName }} · RUT {{ legalIdentity.taxId }} · {{ legalIdentity.registeredAddress }}
-    </p>
-    @if (legalIdentity.isProvisional) {
-      <p class="provisional-label">Información legal provisoria — no usar en producción.</p>
-    }
+    <p class="legal-identity">Marcha blanca · Operado por {{ legalIdentity.legalName }} · <a routerLink="/contacto">Contacto</a></p>
+    <p>Compara y cotiza. Las compras se realizan directamente con cada ferretería.</p>
   </div>
 </footer>

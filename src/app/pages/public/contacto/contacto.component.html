@@ -23,6 +23,7 @@
           <option>Maestro</option>
           <option value="Ferreteria">Ferretería</option>
           <option>Otro</option>
+          <option>Privacidad</option>
         </select>
       </label>
 
@@ -59,6 +60,13 @@
 
       <p class="privacy-copy">Usaremos estos datos para responder la solicitud y hacer seguimiento. No los utilizaremos para publicidad sin un consentimiento separado. Consulta los plazos de conservación y tus derechos en la <a routerLink="/privacidad">Política de privacidad</a>.</p>
 
+      <label class="privacy-check" *ngIf="!isStoreRequest">
+        <input type="checkbox" formControlName="privacyAcknowledged" required />
+        <span>Autorizo el uso de mi nombre, correo y mensaje para responder y gestionar esta solicitud, conforme a la
+          <a routerLink="/privacidad" target="_blank" rel="noopener">Política de privacidad</a> (versión {{ legalIdentity.privacyPolicyVersion }}).</span>
+      </label>
+      <small *ngIf="!isStoreRequest && form.controls.privacyAcknowledged.touched && form.controls.privacyAcknowledged.invalid" role="alert">Autoriza el tratamiento de los datos de esta solicitud antes de enviarla.</small>
+
       <fieldset class="legal-choices" *ngIf="isStoreRequest" [attr.aria-describedby]="hasAcceptanceError ? 'contact-acceptance-error' : 'contact-acceptance-help'">
         <legend>Condiciones para solicitar acceso</legend>
         <p id="contact-acceptance-help">Revisa los documentos y marca cada declaración. Todas son obligatorias.</p>
@@ -68,7 +76,7 @@
         </label>
         <label class="check-row" for="contact-privacy">
           <input id="contact-privacy" type="checkbox" formControlName="privacyAcknowledged" required />
-          <span>Declaro haber leído la <a routerLink="/privacidad" target="_blank" rel="noopener">Política de privacidad</a> (versión {{ legalIdentity.privacyPolicyVersion }}) y recibido información sobre el uso de mis datos para gestionar esta solicitud.</span>
+          <span>He leído y autorizo el tratamiento de mis datos de contacto para gestionar esta solicitud, conforme a la <a routerLink="/privacidad" target="_blank" rel="noopener">Política de privacidad</a> (versión {{ legalIdentity.privacyPolicyVersion }}).</span>
         </label>
         <label class="check-row" for="contact-age">
           <input id="contact-age" type="checkbox" formControlName="ageConfirmed" required />
@@ -83,7 +91,7 @@
           <span>Confirmo que los datos enviados son correctos y están actualizados.</span>
         </label>
         <small id="contact-acceptance-error" *ngIf="hasAcceptanceError" role="alert">Debes completar las cinco declaraciones obligatorias antes de enviar la solicitud.</small>
-        <p class="agreement-help">La solicitud será revisada por administración. Antes de publicar productos, el representante autorizado deberá aceptar el contrato comercial de ferreterías.</p>
+        <p class="agreement-help">La solicitud será revisada por administración. Antes de publicar productos, el representante autorizado deberá aceptar el acuerdo de participación de la marcha blanca.</p>
       </fieldset>
 
       <button class="btn btn-primary" type="submit" [disabled]="isSubmitting">
@@ -97,14 +105,8 @@
 
   <article class="card info">
     <h2>Canales directos</h2>
-    @if (legalIdentity.isProvisional) {
-      <p class="provisional-copy"><strong>Datos provisorios:</strong> reemplázalos antes de publicar.</p>
-    }
-    <p><strong>Operador:</strong> {{ legalIdentity.legalName }}</p>
-    <p><strong>RUT:</strong> {{ legalIdentity.taxId }}</p>
-    <p><strong>Email soporte:</strong> <a [href]="'mailto:' + legalIdentity.supportEmail">{{ legalIdentity.supportEmail }}</a></p>
-    <p><strong>Email legal:</strong> <a [href]="'mailto:' + legalIdentity.legalEmail">{{ legalIdentity.legalEmail }}</a></p>
-    <p><strong>Email privacidad:</strong> <a [href]="'mailto:' + legalIdentity.privacyEmail">{{ legalIdentity.privacyEmail }}</a></p>
+    <p><strong>Responsable de la marcha blanca:</strong> {{ legalIdentity.legalName }} (persona natural).</p>
+    <p>Usa este formulario para consultas, reportes y solicitudes sobre tus datos personales. No necesitas una cuenta.</p>
     <p><strong>WhatsApp:</strong> <a [href]="legalIdentity.whatsappUrl" target="_blank" rel="noopener noreferrer">{{ legalIdentity.whatsappLabel }}</a></p>
     <p><strong>Horario:</strong> {{ legalIdentity.supportHours }}</p>
     <p><strong>Base legal:</strong></p>

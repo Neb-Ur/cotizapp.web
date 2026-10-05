@@ -10,6 +10,8 @@ it('exports the store final price without another VAT charge', async () => {
     reader.onload = () => resolve(String(reader.result)); reader.onerror = reject; reader.readAsText(file);
   });
   expect(text).toContain('IVA incluido');
+  expect(text).toContain('no constituye una compra, un pedido ni una reserva');
+  expect(text).toContain('directamente con cada ferreteria');
   expect(text).toContain('2.000');
   expect(text).not.toContain('2.380');
   expect(text).not.toContain('IVA (19%)');

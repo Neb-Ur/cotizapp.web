@@ -4,8 +4,6 @@ import { NgZone } from '@angular/core';
 import { getIdToken, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
 import { AuthService } from './auth.service';
 
-vi.mock('firebase/auth', { spy: true });
-
 const currentPassword='Previous!12345';
 const newPassword='Changed!12345';
 function fixture() {

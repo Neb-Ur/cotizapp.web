@@ -4,14 +4,14 @@
     <a routerLink="/cuenta/privacidad-datos">Privacidad y datos</a>
   </header>
 
-  <div class="loading" *ngIf="loading">Cargando contrato comercial…</div>
+  <div class="loading" *ngIf="loading">Cargando acuerdo de participación…</div>
   <div class="error" *ngIf="error">{{ error }}</div>
 
   <ng-container *ngIf="overview as contract">
     <section class="hero">
       <div>
-        <span class="eyebrow">Acuerdo entre empresas</span>
-        <h1>Contrato comercial para ferreterías</h1>
+        <span class="eyebrow">Marcha blanca</span>
+        <h1>Acuerdo de participación de ferreterías</h1>
         <p>Regula la publicación y comparación de precios, stock y contenido comercial dentro de CotizApp.</p>
       </div>
       <div class="status" [class.status--active]="contract.status === 'vigente'">
@@ -35,7 +35,11 @@
           <section>
             <span>CotizApp</span>
             <strong>{{ contract.provider.legalName }}</strong>
-            <p>RUT {{ contract.provider.taxId }}<br>{{ contract.provider.address }}<br>Representante: {{ contract.provider.legalRepresentative }}<br>{{ contract.provider.legalEmail }}</p>
+            <p *ngIf="contract.provider.taxId">RUT {{ contract.provider.taxId }}</p>
+            <p *ngIf="contract.provider.address">{{ contract.provider.address }}</p>
+            <p *ngIf="contract.provider.legalRepresentative">Representante: {{ contract.provider.legalRepresentative }}</p>
+            <p *ngIf="contract.provider.legalEmail">{{ contract.provider.legalEmail }}</p>
+            <p><a routerLink="/contacto">Contacto</a></p>
           </section>
           <section>
             <span>Ferretería</span>

@@ -59,7 +59,7 @@ export class PropiedadIntelectualComponent {
     }
     this.submitting = true;
     try {
-      this.receipt = await this.ipService.create(this.form.getRawValue());
+      this.receipt = await this.ipService.create({ ...this.form.getRawValue(), privacyVersion: this.legalIdentity.privacyPolicyVersion });
       this.form.reset({
         claimantName: '', claimantEmail: '', organization: '', capacity: '', rightsType: '', contentType: '',
         targetType: 'other', targetId: '', contentUrl: '', originalWorkUrl: '', workDescription: '',
