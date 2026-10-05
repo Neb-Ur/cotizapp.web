@@ -13,10 +13,9 @@ export type ProductSearchOptions = {
   size: number;
 };
 
-// Filter and aggregate all eligible public offers before slicing a page. The
-// snapshot is already isolated by data mode and enforces publication rules.
+// Search the shared master catalog, then attach the public offers available in
+// the selected data mode/radius. Products without offers remain discoverable.
 export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: ProductSearchOptions) {
-  const products = new Map(snapshot.products.map(product => [product.id, product]));
   const query = (options.query || '').trim().toLowerCase();
   const grouped = new Map<string, {
     productoMaestroId: string;
@@ -31,11 +30,30 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
     nearestDistanceKm?: number;
   }>();
 
+  for (const product of snapshot.products) {
+    if (product.estado === 'inactivo') continue;
+    const name = String(product.nombre || '');
+    if (query && !name.toLowerCase().includes(query) && !String(product.marca || '').toLowerCase().includes(query)) continue;
+    if (options.categoryId && product.categoriaId !== options.categoryId) continue;
+    if (options.subcategoryId && product.subcategoriaId !== options.subcategoryId) continue;
+    if (options.familyId && product.familiaId !== options.familyId) continue;
+    grouped.set(product.id, {
+      productoMaestroId: product.id,
+      productName: name,
+      imageUrl: product.imagenPrincipalUrl && !product.imagenPrincipalUrl.includes('via.placeholder.com')
+        ? product.imagenPrincipalUrl : '',
+      minPrice: 0,
+      maxPrice: 0,
+      brand: product.marca || 'Sin marca',
+      productType: product.descripcionCorta || 'Producto ferretero',
+      sellers: new Set<string>(),
+      storeIds: new Set<string>()
+    });
+  }
+
   for (const offer of snapshot.searchRows) {
-    if (query && !offer.productName.toLowerCase().includes(query)) continue;
-    if (options.categoryId && offer.categoryId !== options.categoryId) continue;
-    if (options.subcategoryId && offer.subcategoryId !== options.subcategoryId) continue;
-    if (options.familyId && offer.familyId !== options.familyId) continue;
+    const current = grouped.get(offer.productoMaestroId);
+    if (!current) continue;
     let distance: number | undefined;
     if (options.proximity) {
       const latitude = coordinateValue(offer.storeLatitude, -90, 90);
@@ -44,21 +62,7 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
       distance = geographicDistanceKm(options.proximity, { latitude, longitude });
       if (distance > options.proximity.radiusKm) continue;
     }
-    const product = products.get(offer.productoMaestroId);
-    const current = grouped.get(offer.productoMaestroId) || {
-      productoMaestroId: offer.productoMaestroId,
-      productName: offer.productName,
-      imageUrl: product?.imagenPrincipalUrl && !product.imagenPrincipalUrl.includes('via.placeholder.com')
-        ? product.imagenPrincipalUrl : '',
-      minPrice: offer.price,
-      maxPrice: offer.price,
-      brand: product?.marca || 'Sin marca',
-      productType: product?.descripcionCorta || 'Producto ferretero',
-      sellers: new Set<string>(),
-      storeIds: new Set<string>(),
-      nearestDistanceKm: distance
-    };
-    current.minPrice = Math.min(current.minPrice, offer.price);
+    current.minPrice = current.storeIds.size === 0 ? offer.price : Math.min(current.minPrice, offer.price);
     current.maxPrice = Math.max(current.maxPrice, offer.price);
     current.sellers.add(offer.storeName);
     current.storeIds.add(offer.storeId);
@@ -70,6 +74,9 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
     ...product, storeCount: storeIds.size, sellers: Array.from(sellers)
   }));
   results.sort((a, b) => {
+    // No-offer references never appear as a fictitious cheapest price of $0.
+    const availability = Number(b.storeCount > 0) - Number(a.storeCount > 0);
+    if (availability) return availability;
     const order = options.sort === 'price-asc' ? a.minPrice - b.minPrice
       : options.sort === 'price-desc' ? b.minPrice - a.minPrice
       : b.storeCount - a.storeCount || a.minPrice - b.minPrice;

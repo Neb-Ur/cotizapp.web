@@ -1,4 +1,4 @@
-import { DataModeService } from '../../core/services/data-mode.service';
+import { PasswordFieldComponent } from '../../shared/components/password-field/password-field.component';
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -136,6 +136,7 @@ interface AdminSectionMeta {
   selector: 'app-dashboard-admin-validaciones',
   standalone: true,
   imports: [
+    PasswordFieldComponent,
     CommonModule,
     FormsModule,
     DashboardMenuComponent,
@@ -336,8 +337,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   private catalogTaxonomyLoaded = false;
   private readonly loadedSections = new Set<AdminSection>();
 
-  constructor(protected readonly dataMode: DataModeService,
-    private readonly apiService: FirebaseDataService,
+  constructor(private readonly apiService: FirebaseDataService,
     private readonly authService: AuthService,
     private readonly privacyDataService: PrivacyDataService,
     private readonly governanceDataService: GovernanceDataService,

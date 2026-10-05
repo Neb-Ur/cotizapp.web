@@ -47,7 +47,6 @@
       <aside class="purchase-panel">
         <p class="brand">{{ product.brand }}</p>
         <h1>{{ product.productName }}</h1>
-        <p *ngIf="product.isDemo" role="note">Ficha de demostración: no representa una oferta comercial confirmada.</p>
         <p class="sku">SKU {{ product.sku }}</p>
         <p class="type">{{ product.productType }}</p>
         <p class="price-range" *ngIf="displayStores.length > 0">{{ formatCurrency(visibleMinPrice) }} - {{ formatCurrency(visibleMaxPrice) }}</p>
@@ -58,15 +57,17 @@
           <p><strong>Fuente:</strong> precios informados por cada ferretería. CotizApp no vende ni confirma disponibilidad.</p>
         </section>
 
-        <p *ngIf="displayStores.length === 0 && !nearbyEnabled" role="status">No hay ofertas vigentes para este producto.</p>
+        <p class="product-unavailable-alert" *ngIf="displayStores.length === 0 && !loadError" role="alert">
+          <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+          <span>{{ nearbyEnabled && product.stores.length > 0
+            ? 'No hay ferreterías con este producto dentro de ' + nearbyRadiusKm + ' km.'
+            : 'No hay ferreterías con este producto.' }}</span>
+        </p>
         <section class="quick-stores">
           <h3>Precios por ferretería</h3>
           <p class="quick-stores-hint" *ngIf="!nearbyEnabled">{{ displayStores.length }} ferretería(s) con oferta activa.</p>
           <p class="quick-stores-hint" *ngIf="nearbyEnabled">
             {{ displayStores.length }} ferretería(s) dentro de {{ nearbyRadiusKm }} km.
-          </p>
-          <p class="stock-warning" *ngIf="nearbyEnabled && displayStores.length === 0">
-            No hay ferreterías con ubicación registrada y esta oferta dentro de {{ nearbyRadiusKm }} km.
           </p>
 
           <label class="quantity-field">

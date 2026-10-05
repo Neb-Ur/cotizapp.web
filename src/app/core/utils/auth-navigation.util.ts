@@ -20,6 +20,7 @@ export function resolvePostAuthUrl(
   requestedReturnUrl: string | null | undefined,
   dashboardUrl: string
 ): string {
+  if (user.role === 'ferreteria' && (user.legalAcceptanceRequired || user.storeAgreementStatus !== 'vigente')) return dashboardUrl;
   const returnUrl = sanitizeReturnUrl(requestedReturnUrl);
   if (!returnUrl) return dashboardUrl;
 

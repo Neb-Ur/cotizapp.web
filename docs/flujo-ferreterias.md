@@ -1,0 +1,11 @@
+# Primer ingreso de ferreterías
+
+Las cuentas creadas por administración ingresan a `/dashboard/ferreteria`, sección Inicio. Las aceptaciones pendientes se solicitan en un modal de seis casillas, inicialmente desmarcadas: términos, privacidad, mayoría de edad, acuerdo comercial, representación autorizada y compromiso de catálogo. No se solicitan nuevamente datos de identificación. Los documentos completos se pueden abrir voluntariamente desde sus enlaces; después siguen disponibles en el menú, en «Contrato comercial» y «Privacidad y datos».
+
+El fondo del panel permanece inerte y no carga el catálogo ni métricas hasta confirmar las aceptaciones. «No acepto, cerrar sesión», la X, Escape o abandonar el panel antes de aceptar cierran la sesión. No se registra aceptación al rechazar. Un fallo de carga o guardado mantiene el modal; no habilita el panel.
+
+`GET /api/store-onboarding/current` entrega las versiones y el estado real de aceptación. `POST /api/store-onboarding/accept` exige seis booleanos estrictos y las versiones vigentes. Registra los eventos legales y el contrato en un solo lote de Firestore, con fecha del servidor, usuario autenticado y huella del contrato. La identidad de quien acepta proviene de la cuenta; no se inventan RUT ni cargo del representante. No modifica el consentimiento de marketing. La API sigue exigiendo aceptación legal y contrato vigente para las operaciones del catálogo. Un contrato suspendido o terminado no se reactiva mediante el modal. El bloqueo de tratamiento conserva su flujo en el centro de privacidad.
+
+Después de aceptar aparece un modal rojo para verificar el correo si Firebase aún lo indica como no verificado. «Verificar correo» envía el enlace mediante Firebase y solo tras confirmar el envío aparece «Enlace enviado». Cerrar estos avisos permite seguir usando el panel, con un recordatorio rojo hasta verificar. La comprobación se repite cada 15 segundos con la pestaña visible, al volver a la ventana o con «Ya verifiqué mi correo». Al confirmar Firebase la verificación, desaparecen los avisos y se detiene la comprobación. Una cuenta con documentos aceptados y correo verificado no vuelve a mostrar los modales al ingresar.
+
+Pruebas: `npm test -- --watch=false`, `npm --prefix functions test` y `npm run build`. Las pruebas no envían correos reales ni aceptan acuerdos en producción.

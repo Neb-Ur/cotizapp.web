@@ -38,7 +38,7 @@ Comandos reproducibles: `npm test -- --watch=false`, `npm --prefix functions tes
 ## Pendientes que estas correcciones no sustituyen
 
 - Desplegar frontend, Functions y configuración de Hosting juntos; la producción auditada todavía conserva el comportamiento anterior.
-- Incorporar ofertas reales. La auditoría encontró 60 maestros demo y cero ofertas públicas; estos cambios no fabrican precios ni convierten registros demo en datos comerciales.
+- Incorporar ofertas reales. La auditoría encontró 60 maestros de prueba y cero ofertas públicas; estos cambios no fabrican precios ni convierten registros de prueba en datos comerciales.
 - Comprobar en un entorno Firebase controlado el recorrido autenticado completo con maestro, ferretería y administrador, incluidos verificación de correo y autenticación reciente. Las pruebas locales no acreditan configuración real de correos, MFA, respaldos ni permisos del proyecto.
 - Alinear identidad legal y datos comerciales con los del operador real.
 - Mejorar rendimiento móvil y reducir CSS; no se atribuye una mejora de Lighthouse a esta entrega sin una nueva medición de producción.

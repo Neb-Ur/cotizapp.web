@@ -8,6 +8,7 @@ export const legalAcceptanceGuard: CanActivateFn = () => {
 
   return authService.verifiedUser().then((user) => {
     if (!user) return router.parseUrl('/login');
+    if (user.role === 'ferreteria' && !user.privacyProcessingBlocked) return true;
     if (user.legalAcceptanceRequired || user.privacyProcessingBlocked) {
       return router.createUrlTree(['/cuenta/privacidad-datos'], {
         queryParams: {

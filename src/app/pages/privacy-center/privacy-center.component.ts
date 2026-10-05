@@ -1,3 +1,4 @@
+import { PasswordFieldComponent } from '../../shared/components/password-field/password-field.component';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -20,7 +21,7 @@ interface ProfileDraft {
 @Component({
   selector: 'app-privacy-center',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [PasswordFieldComponent, CommonModule, FormsModule, RouterLink],
   templateUrl: './privacy-center.component.html',
   styleUrl: './privacy-center.component.scss'
 })

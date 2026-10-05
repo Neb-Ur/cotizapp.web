@@ -1,3 +1,4 @@
+import { PasswordFieldComponent } from '../../../shared/components/password-field/password-field.component';
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -10,7 +11,7 @@ import { LEGAL_IDENTITY } from '../../../core/config/legal-identity.config';
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [PasswordFieldComponent, CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss'
 })

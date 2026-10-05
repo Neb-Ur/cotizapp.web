@@ -5,10 +5,9 @@ import { searchRouter } from '../lib/routes/search.routes.js';
 import { firestoreFixture } from './helpers/firestore-fixture.mjs';
 import { CURRENT_STORE_AGREEMENT_VERSION } from '../lib/lib/legal.js';
 import { storeAgreementDocumentHash } from '../lib/services/store-agreement.service.js';
-import { withDataMode } from '../lib/lib/data-mode.js';
 
 function catalog(count = 135) {
-  const products = Array.from({length:count}, (_, index) => ({id:`p${index}`,nombre:`Producto ${String(index).padStart(3,'0')}`,marca:'Genérico',imagenPrincipalUrl:'/product.png'}));
+  const products = Array.from({length:count}, (_, index) => ({id:`p${index}`,nombre:`Producto ${String(index).padStart(3,'0')}`,marca:'Genérico',imagenPrincipalUrl:'/product.png',categoriaId:index%2?'other':'cat',subcategoriaId:'sub',familiaId:'fam'}));
   const searchRows = products.flatMap((product, index) => [
     {productoMaestroId:product.id,productoFerreteriaId:`offer${index}`,productName:product.nombre,storeId:'north',storeName:'Cadena',sku:'',price:1000+index,categoryId:index%2?'other':'cat',subcategoryId:'sub',familyId:'fam',storeLatitude:0,storeLongitude:0},
     {productoMaestroId:product.id,productoFerreteriaId:`second${index}`,productName:product.nombre,storeId:'south',storeName:'Cadena',sku:'',price:2000+index,categoryId:index%2?'other':'cat',subcategoryId:'sub',familyId:'fam',storeLatitude:1,storeLongitude:0}
@@ -55,7 +54,8 @@ test('proximity excludes unknown and distant branches before price aggregation',
   assert.equal(nearby.total,2);assert.equal(nearby.items[0].storeCount,1);
   assert.equal(nearby.items[0].minPrice,1000);assert.equal(nearby.items[0].maxPrice,1000);
   assert.equal(nearby.items[0].nearestDistanceKm,0);
-  assert.equal(paginateProductSearch(snapshot,{...defaults,proximity:{latitude:10,longitude:10,radiusKm:5}}).total,0);
+  const distant=paginateProductSearch(snapshot,{...defaults,proximity:{latitude:10,longitude:10,radiusKm:5}});
+  assert.equal(distant.total,2);assert.ok(distant.items.every(item=>item.storeCount===0));
 });
 test('an out-of-range page is clamped after catalog shrink; empty totals remain truthful',()=>{
   assert.equal(paginateProductSearch(catalog(2),{...defaults,page:7}).page,1);
@@ -68,21 +68,44 @@ test('paged search rejects invalid pagination, order and partial proximity befor
     assert.equal(res.statusCode,400);
   }
 });
-test('API returns product pages while preserving legacy offer arrays and isolating demo/real',async t=>{
+test('API returns product pages and legacy offer arrays with and without offers',async t=>{
   firestoreFixture(t);
   const {db}=await import('../lib/lib/firebase.js');
   const {COLLECTIONS}=await import('../lib/lib/collections.js');
-  for(const mode of ['demo','real'])await withDataMode(mode,async()=>{
-    const snapshot=catalog(mode==='demo'?135:0);
+  for(const hasOffers of [true,false]){
+    const snapshot=catalog(135);
+    if(!hasOffers)snapshot.searchRows=[];
     const cache=db.collection(COLLECTIONS.publicCache);
-    await cache.doc('meta').set({dirty:false,version:`paged-search-${mode}`,updatedAt:snapshot.updatedAt,policy:`data-modes-v1:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']});
+    await cache.doc('meta').set({dirty:false,version:`paged-search-${hasOffers}`,updatedAt:snapshot.updatedAt,policy:`data-modes-v1:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']});
     await cache.doc('taxonomy').set(snapshot.taxonomy);
     await cache.doc('products').set({items:snapshot.products});await cache.doc('offers').set({items:snapshot.searchRows});
     const res=response();await handler({query:{vista:'productos',page:'7',size:'20'}},res);
-    assert.equal(res.body.data.total,mode==='demo'?135:0);
-    assert.equal(res.body.data.items.length,mode==='demo'?15:0);
+    assert.equal(res.body.data.total,135);
+    assert.equal(res.body.data.items.length,15);
+    assert.equal(res.body.data.items[0].storeCount,hasOffers?2:0);
     assert.equal(res.headers['Cache-Control'],'no-store');
     const legacy=response();await handler({query:{query:'Producto 134'}},legacy);
-    assert.ok(Array.isArray(legacy.body.data));assert.equal(legacy.body.data.length,mode==='demo'?2:0);
-  });
+    assert.ok(Array.isArray(legacy.body.data));assert.equal(legacy.body.data.length,hasOffers?2:0);
+  }
+});
+
+test('master products without any stores remain searchable with their catalog details',()=>{
+  const snapshot=catalog();snapshot.searchRows=[];
+  const found=paginateProductSearch(snapshot,{...defaults,query:'Producto 134',categoryId:'cat',familyId:'fam'});
+  assert.equal(found.total,1);assert.equal(found.items[0].productName,'Producto 134');
+  assert.equal(found.items[0].storeCount,0);assert.equal(found.items[0].imageUrl,'/product.png');
+  assert.deepEqual(found.items[0].sellers,[]);
+});
+test('unavailable products sort after priced products and inactive masters stay excluded',()=>{
+  const snapshot=catalog(3);snapshot.searchRows=snapshot.searchRows.filter(row=>row.productoMaestroId==='p1');
+  snapshot.products.push({id:'inactive',nombre:'Inactive',estado:'inactivo'});
+  for(const sort of ['price-asc','price-desc','relevance','stores']){
+    const found=paginateProductSearch(snapshot,{...defaults,sort});
+    assert.equal(found.total,3);assert.equal(found.items[0].productName,'Producto 001');
+    assert.equal(found.items[1].storeCount,0);
+  }
+});
+test('brand searches use the master catalog even when the product has no offers',()=>{
+  const snapshot=catalog(1);snapshot.searchRows=[];snapshot.products[0].marca='Marca Especial';
+  assert.equal(paginateProductSearch(snapshot,{...defaults,query:'MARCA ESPECIAL'}).total,1);
 });

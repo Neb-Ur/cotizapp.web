@@ -40,7 +40,6 @@ publicCatalogRouter.get('/sitemap.xml', async (_req, res) => {
   const lastModified = snapshot.updatedAt.slice(0, 10);
   const productPaths = Array.from(new Set(
     snapshot.searchRows
-      .filter(row => !snapshot.products.find(product => product.id === row.productoMaestroId)?.isDemo)
       .map((row) => productSlug(row.productName))
       .filter(Boolean)
       .map((slug) => `/productos/${slug}`)

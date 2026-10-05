@@ -23,6 +23,7 @@ import {
 import { getCurrentBrowserLocation } from '../../core/utils/location.util';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 import { UiModalComponent } from '../../shared/components/ui-modal/ui-modal.component';
+import { StoreOnboardingComponent } from '../../shared/components/store-onboarding/store-onboarding.component';
 
 type FerreteriaSection = 'inicio' | 'catalogo' | 'perfil';
 type CatalogUploadMode = 'buscar' | 'archivo' | 'solicitud';
@@ -42,7 +43,7 @@ interface MasterCatalogSelectionDraft {
 @Component({
   selector: 'app-dashboard-ferreteria',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginatorModule, UiModalComponent, UiLoaderComponent],
+  imports: [CommonModule, FormsModule, PaginatorModule, UiModalComponent, UiLoaderComponent, StoreOnboardingComponent],
   templateUrl: './dashboard-ferreteria.component.html',
   styleUrl: './dashboard-ferreteria.component.scss'
 })
@@ -148,10 +149,16 @@ export class DashboardFerreteriaComponent implements OnInit {
   ) {}
 
   protected metrics: { views: number; selections: number } | null = null;
+  protected onboardingReady = false;
   ngOnInit(): void {
-    if (this.user) void this.apiService.loadStoreMetrics(this.user.id).then(metrics => this.metrics = metrics).catch(() => this.metrics = null);
     this.syncViewportState();
     this.syncProfileDraftFromUser();
+  }
+
+  protected finishOnboarding(): void {
+    if (this.onboardingReady) return;
+    this.onboardingReady = true;
+    if (this.user) void this.apiService.loadStoreMetrics(this.user.id).then(metrics => this.metrics = metrics).catch(() => this.metrics = null);
     void this.initializeDashboard();
   }
 

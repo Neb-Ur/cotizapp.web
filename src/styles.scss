@@ -776,10 +776,3 @@ app-dashboard-admin-validaciones .admin-data-table .p-datatable-tbody > tr > td 
   background: #fff4f4;
   color: #791919;
 }
-
-.data-mode-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-bottom: 1rem; }
-.data-mode-toggle { padding: .55rem 1rem; border: 1px solid #334155; border-radius: .5rem; background: white; color: #334155; cursor: pointer; }
-.data-mode-toggle.active { background: #334155; color: white; }
-.data-mode-controls small { color: #475569; }
-
-.demo-banner { padding: .65rem 1rem; text-align: center; color: #713f12; background: #fef3c7; font-weight: 600; }

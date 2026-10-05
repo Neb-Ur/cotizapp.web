@@ -156,6 +156,6 @@
       <i class="pi pi-shop" aria-hidden="true"></i>
       <div><strong>¿Tienes una ferretería?</strong><span>Publica tu catálogo y conecta con técnicos y maestros.</span></div>
     </div>
-    <a class="btn btn-secondary" routerLink="/contacto" [queryParams]="{ type: 'Ferreteria' }">Solicitar acceso</a>
+    <a class="btn btn-secondary" [href]="storeAccessWhatsappUrl" target="_blank" rel="noopener noreferrer" aria-label="Solicitar acceso para mi ferretería por WhatsApp">Solicitar acceso por WhatsApp</a>
   </section>
 </main>

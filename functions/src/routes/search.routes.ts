@@ -1,4 +1,3 @@
-import { dataMode } from '../lib/data-mode.js';
 import { Router } from 'express';
 import { fail, ok } from '../lib/http.js';
 import { getPublicCatalogSnapshot } from '../lib/public-catalog-cache.js';
@@ -142,7 +141,7 @@ searchRouter.get('/productos/detalle', async (req, res) => {
     productoFerreteriaId: item.productoFerreteriaId
   })).sort((a, b) => Number(b.comparisonEligible) - Number(a.comparisonEligible) || a.price - b.price);
   return ok(res, {
-    productoMaestro: { ...product, isDemo: dataMode() === 'demo' },
+    productoMaestro: product,
     atributosProducto: attributes,
     stores,
     minPrice: stores.length ? Math.min(...stores.map((item) => item.price)) : 0,

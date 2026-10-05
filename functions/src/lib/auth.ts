@@ -1,4 +1,4 @@
-import { dataMode, profileBelongsToMode } from './data-mode.js';
+import { profileBelongsToMode } from './data-mode.js';
 import type { NextFunction, Request, Response } from 'express';
 import { adminAuth, db } from './firebase.js';
 import { fail } from './http.js';
@@ -45,15 +45,6 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
         fail(res, 'AUTH_DATA_MODE_MISMATCH', 'Esta cuenta pertenece a otro entorno.', 403);
         return;
       }
-      // Seeded fixtures must never provide access to a production API.
-      if (process.env['FUNCTIONS_EMULATOR'] !== 'true' && !process.env['FIREBASE_AUTH_EMULATOR_HOST']
-        && profile.data()?.['rol'] !== 'admin'
-        && dataMode() !== 'demo'
-        && profile.data()?.['seedTag'] === 'pilot-catalog-auth-v3-2026-09-30'
-        && decoded.email?.toLowerCase().endsWith('@demo.cl')) {
-        fail(res, 'AUTH_DEMO_ACCOUNT_DISABLED', 'Las cuentas de demostración no tienen acceso a esta aplicación.', 403);
-        return;
-      }
       if (profile.data()?.['estadoCuenta'] === 'bloqueado') {
         fail(res, 'AUTH_ACCOUNT_BLOCKED', 'Tu cuenta se encuentra bloqueada.', 403);
         return;
@@ -68,6 +59,10 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
         || requestPath.endsWith('/auth/me')
         || requestPath.endsWith('/auth/register')
         || requestPath.endsWith('/auth/logout');
+      const storeOnboardingOperation = role === 'ferreteria' && (
+        /\/(?:api\/)?store-onboarding\/(current|accept)(?:\?.*)?$/.test(requestPath)
+        || (req.method === 'GET' && requestPath.split('?')[0].endsWith('/store-agreement/current'))
+      );
       if (profile.data()?.['tratamientoBloqueado'] === true && !privacyOperation) {
         fail(
           res,
@@ -77,7 +72,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
         );
         return;
       }
-      if (!hasCurrentLegalAcceptance(profile.data()) && !privacyOperation) {
+      if (!hasCurrentLegalAcceptance(profile.data()) && !privacyOperation && !storeOnboardingOperation) {
         fail(
           res,
           'LEGAL_ACCEPTANCE_REQUIRED',

@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { legalAcceptanceGuard } from './core/guards/legal-acceptance.guard';
-import { storeAgreementGuard } from './core/guards/store-agreement.guard';
 
 export const routes: Routes = [
   {
@@ -51,6 +50,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'cuenta/cambiar-contrasena',
+    loadComponent: () => import('./pages/auth/change-password/change-password.component').then((module) => module.ChangePasswordComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'dashboard/maestro',
     loadComponent: () => import('./pages/dashboard-maestro/dashboard-maestro.component').then((module) => module.DashboardMaestroComponent),
     canActivate: [authGuard, legalAcceptanceGuard, roleGuard],
@@ -91,7 +95,7 @@ export const routes: Routes = [
   {
     path: 'dashboard/ferreteria',
     loadComponent: () => import('./pages/dashboard-ferreteria/dashboard-ferreteria.component').then((module) => module.DashboardFerreteriaComponent),
-    canActivate: [authGuard, legalAcceptanceGuard, roleGuard, storeAgreementGuard],
+    canActivate: [authGuard, legalAcceptanceGuard, roleGuard],
     data: { role: 'ferreteria' }
   },
   {

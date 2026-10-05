@@ -192,6 +192,18 @@
     "middlewareCount": 3
   },
   {
+    "method": "get",
+    "path": "/store-onboarding/current",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "post",
+    "path": "/store-onboarding/accept",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
     "method": "post",
     "path": "/ip-reports",
     "auth": false,

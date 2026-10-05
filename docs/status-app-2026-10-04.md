@@ -1,33 +1,34 @@
 # Estado de CotizApp — 4 de octubre de 2026
 
-> Informe actualizado al código del commit `82b8569` y los cambios locales de búsqueda paginada, con las correcciones posteriores a la auditoría inicial de `8d414a8` y la separación demo/real. Las verificaciones locales y las observaciones históricas de producción se identifican por separado. No se ha desplegado esta entrega.
+> Informe actualizado al código del commit `6ab35e3` y los cambios locales de búsqueda sobre el catálogo maestro, con las correcciones posteriores a la auditoría inicial de `8d414a8` y la eliminación de la selección de entornos. Las verificaciones locales y las observaciones históricas de producción se identifican por separado. No se ha desplegado esta entrega.
 
 ## Dictamen
 
-**Los hallazgos críticos y los errores principales de la auditoría están corregidos en el código y sus regresiones locales pasan.** La última validación registra **61 pruebas frontend y 50 backend aprobadas**, además de compilación de producción y comprobaciones en Chrome. La funcionalidad existente se conserva en los recorridos revisados; esto no acredita el 100% de los flujos autenticados en producción.
+**Los hallazgos críticos y los errores principales de la auditoría están corregidos en el código y sus regresiones locales pasan.** La última validación registra **66 pruebas frontend y 47 backend aprobadas**, además de compilación de producción y comprobaciones en Chrome. La funcionalidad existente se conserva en los recorridos revisados; esto no acredita el 100% de los flujos autenticados en producción.
 
-La aplicación incorpora `DEMO=true|false`, con valor predeterminado **false**, para iniciar con negocio real vacío y mantener disponibles los datos demo. El administrador es compartido y puede alternar ambos entornos con el botón **Demo**. El catálogo genérico y los catálogos de referencia se comparten; maestros como usuarios, ferreterías y registros de negocio se separan.
+La aplicación usa un único entorno real. Los datos, incluido el catálogo, fueron eliminados por petición del propietario; se conserva únicamente el administrador. El seed y su ejecución desde CI también fueron retirados. Consulta el informe de limpieza enlazado abajo.
 
-**Antes de abrir comercialmente quedan pendientes el despliegue, la validación autenticada con Firebase, la configuración operativa/legal y la incorporación de ofertas reales autorizadas.** También sigue pendiente mejorar rendimiento móvil y resolver deuda de escalabilidad y SEO. Un catálogo real sin ofertas al iniciar es ahora una condición prevista, no un error de carga.
+**Antes de abrir comercialmente quedan pendientes el despliegue, la validación autenticada con Firebase, la configuración operativa/legal y la incorporación de ofertas reales autorizadas.** También sigue pendiente mejorar rendimiento móvil y resolver deuda de escalabilidad y SEO. El catálogo genérico se puede buscar aunque no haya ferreterías reales. Los resultados sin ofertas no muestran precios y sus fichas muestran una alerta roja: “No hay ferreterías con este producto”.
 
-La auditoría inicial de `https://cotizapp-d71c8.web.app` observó **60 productos maestros demo y cero ofertas activas**. Esa observación es anterior a las correcciones y no constituye una comprobación del estado actual del servicio publicado. No se ha realizado una nueva medición de producción en esta actualización.
+La auditoría inicial de `https://cotizapp-d71c8.web.app` observó **60 productos maestros de prueba y cero ofertas activas**. Esa observación es anterior a las correcciones y no constituye una comprobación del estado actual del servicio publicado. No se ha realizado una nueva medición de producción en esta actualización.
 
-Detalle de implementación: [correcciones importantes](fixes-important-2026-10-04.md) y [configuración demo/real](demo-real.md).
+Detalle de implementación: [correcciones importantes](fixes-important-2026-10-04.md) y [limpieza de datos](limpieza-datos-2026-10-04.md).
 
 ## Última validación del código
 
 | Verificación | Resultado |
 |---|---|
-| Pruebas frontend | 61 aprobadas en 18 archivos |
-| Pruebas backend | 50 aprobadas, sin fallos ni pruebas omitidas |
+| Pruebas frontend | 66 aprobadas en 20 archivos |
+| Pruebas backend | 47 aprobadas, sin fallos ni pruebas omitidas |
 | TypeScript frontend y Functions | Compilación aprobada |
 | Compilación Angular de producción | Aprobada; nueve rutas prerenderizadas |
 | Presupuesto CSS | Tres advertencias pendientes: admin 20,39 kB, maestro 19,93 kB y ferretería 20,41 kB; límite de aviso 17 kB |
 | Contratos de API existentes | Se conservan método, orden, autenticación y middlewares de las rutas revisadas |
 | Chrome local, escritorio y móvil | Seis rutas públicas revisadas en ambos tamaños, sin errores JavaScript ni desbordamientos horizontales |
 | Regresiones de negocio en navegador | Búsqueda con `q`, selección por ID de sucursal, selección antigua ambigua y error 503 con reintento comprobados |
-| Demo/real en navegador | Real vacío, demo con ofertas y mismo administrador alternando en ambos sentidos sin perder sesión; datos simulados |
-| Búsqueda paginada | Catálogo controlado de 135 productos, última página, total completo, filtros/orden global y carga de una sola página comprobados |
+| Búsqueda paginada | Catálogo maestro controlado de 135 productos, incluidos productos sin ofertas; última página, total completo, filtros/orden y carga de una sola página comprobados |
+| Cambio/recuperación de contraseña | Chrome local: confirmación, reautenticación, actualización, limpieza de campos y tamaños escritorio/móvil comprobados con Firebase simulado; sin envío de correos reales |
+| Ficha sin ferreterías | Alerta roja accesible, sin precio ficticio; ficha con ofertas conserva precios y no muestra la alerta |
 | Aislamiento de datos | Pruebas de lectura/escritura, perfiles, autorización, caché y solicitudes concurrentes aprobadas |
 | Conflictos y formato | Sin archivos sin fusionar; comprobación de diferencias aprobada en la entrega de código |
 
@@ -52,49 +53,32 @@ En la auditoría inicial, `npm audit` informó cero vulnerabilidades conocidas e
 | P2 | Registro sobrescribe perfiles existentes | **Corregido.** Se rechaza el registro repetido sin alterar rol, estado ni datos anteriores. |
 | P2 | Borrador compartido entre cuentas | **Corregido.** Claves por UID y entorno; limpieza al salir/eliminar, incluyendo la clave histórica. |
 | P2 | Ficha técnica pierde `0` y `false` o muestra IDs | **Corregido.** Valores preservados y etiquetas legibles en el detalle API. |
-| P2 | Búsqueda corta el catálogo a 100 productos | **Corregido.** La pantalla solicita páginas al servidor con búsqueda, filtros, ordenamiento y cercanía; recibe el total completo, sin descargar el catálogo entero. Pruebas con 135 productos y respuesta antigua descartada al cambiar la búsqueda. |
+| P2 | Búsqueda corta el catálogo a 100 productos | **Corregido.** La pantalla busca sobre el catálogo maestro, incluyendo productos sin ofertas, y solicita páginas al servidor con filtros, ordenamiento y cercanía; recibe el total completo, sin descargar el catálogo entero. Pruebas con 135 productos y respuesta antigua descartada al cambiar la búsqueda. |
 | P2 | Duplicados concurrentes y actualización parcial de perfiles | **Corregido.** Vinculación protegida por transacción y coordenadas validadas antes de confirmar el lote. |
 | Operativo | Eliminación informa éxito pese a un fallo de Firebase Auth | **Corregido.** Solo se tolera que el usuario ya no exista; otros errores no generan comprobante de éxito. La eliminación entre servicios no es atómica y puede requerir reintento. |
 
-## Separación demo y real
+## Entorno único
 
-```dotenv
-DEMO=false
-```
+La aplicación usa únicamente el entorno real. El administrador no tiene selector de entorno. Se retiraron la variable de configuración anterior, los avisos, los marcadores de productos de prueba, los triggers sobre colecciones históricas y las excepciones comerciales para ofertas ficticias.
 
-La variable se configura en Functions; admite únicamente `true` o `false`. El frontend consulta `/api/config` antes de iniciar. Si no puede obtener la configuración, muestra un error en lugar de seleccionar un entorno implícitamente.
+Las colecciones de negocio mantienen el prefijo `real_` para conservar la estructura de almacenamiento vigente. El catálogo y los perfiles de usuario conservan sus nombres originales. La API rechaza cualquier selección de otro entorno y las respuestas autenticadas son privadas. El navegador descarta las preferencias administrativas antiguas.
 
-| Aspecto | Comportamiento |
-|---|---|
-| `DEMO=true` | Entorno público y cuentas de negocio usan datos demo históricos |
-| `DEMO=false` | Entorno real; no copia usuarios de negocio, ferreterías, ofertas ni cotizaciones demo |
-| Referencias compartidas | Categorías, subcategorías, familias, productos maestros, atributos, ciudades y comunas |
-| Catálogo genérico | Las fichas del seed se presentan como referencias genéricas en real; no generan precios ni stock |
-| Identidad | Firebase Auth y `usuarios` compartidos; perfiles de negocio con `dataMode`, históricos sin campo considerados demo |
-| Negocio | Colecciones históricas para demo y prefijo `real_` para registros reales |
-| Administrador | Misma cuenta en ambos entornos; botón Demo activado selecciona demo y desactivado real |
-| Alcance del botón | Preferencia por administrador/navegador; no cambia la variable del servidor ni el entorno de otros usuarios |
-| Autorización | Solo admin autorizado puede seleccionar entorno por cabecera; cuentas de negocio no acceden al entorno contrario |
-| Caché y borradores | Separados por entorno; respuestas con selección administrativa protegidas frente a caché pública |
-| Requisitos comerciales | Real conserva contratos, activación, vigencia y stock; demo admite ofertas sin contrato comercial real |
-| SEO demo | Aviso visible y protección noindex para fichas/API demo |
-
-No se borran ni migran los registros históricos. Las colecciones reales se crean al registrar datos reales; la variable no ejecuta el seed ni crea cuentas. Las cuentas Firebase deshabilitadas continúan deshabilitadas. Los cambios administrativos al catálogo central sí afectan a ambos entornos por ser compartido.
+La limpieza de Firebase dejó únicamente la cuenta y el perfil del administrador. Las nuevas ofertas requieren contrato vigente, versión y documento correctos, cuenta activa, vigencia y stock.
 
 ## Funcionalidades y límites de validación
 
 | Área | Estado actual |
 |---|---|
 | Sitio público e información | Navegación comprobada en la muestra de rutas; pendientes operativos del contenido legal |
-| Catálogo/comparador | Implementado; búsqueda y paginación de servidor corregidas, aislamiento demo/real comprobado; necesita ofertas reales para validar precios comerciales |
-| Registro/login/recuperación | Integración implementada y protección de perfiles corregida; falta recorrido con correo controlado y configuración Firebase real |
+| Catálogo/comparador | Implementado; búsqueda y paginación de servidor corregidas, entorno real único; necesita ofertas reales para validar precios comerciales |
+| Registro/login/recuperación | Integración implementada y protección de perfiles corregida; login de la cuenta solicitada comprobado en Firebase/backend. Recuperación existente y cambio de contraseña con reautenticación implementado para todos los roles; falta comprobar entrega real de correos |
 | Cotizaciones y optimización | Regresiones aprobadas, sucursales por ID; máximo dos cotizaciones guardadas |
 | Historial | Cotizaciones guardadas con precios recalculados; no conserva un presupuesto original inmutable |
 | PDF/compartir | Implementado y con pruebas básicas; PDF largo y entrega nativa Android/iOS pendientes |
 | Ubicación/cercanía | Implementada; faltan permisos en dispositivos y coordenadas comerciales reales |
 | Catálogo ferretería/CSV | Coincidencias y opciones corregidas; falta recuperación/progreso ante límites de importación masiva |
 | Solicitudes de productos | Aprobación transaccional con incorporación de oferta y protección frente a duplicados |
-| Administración/moderación | Reposición corregida; administrador compartido con selector Demo |
+| Administración/moderación | Reposición corregida; administrador sin selector de entorno |
 | Métricas ferretería | Vistas/selecciones agregadas; no representan ventas ni visitas únicas y admiten repetición de eventos |
 | Privacidad/denuncias | Correcciones de identidad y autenticación reciente comprobadas localmente; pendientes configuración externa y recorrido real |
 | Contacto/soporte | Guarda solicitudes para gestión administrativa; sin envío automático de email observado; WhatsApp deshabilitado |
@@ -102,13 +86,12 @@ No se borran ni migran los registros históricos. Las colecciones reales se crea
 
 ## SEO
 
-La auditoría inicial de producción comprobó títulos, canonical y H1 de nueve rutas estáticas; `robots.txt`, sitemap de nueve URLs, fichas demo noindex, páginas privadas con cabecera noindex y respuestas 404 para rutas/productos inexistentes. Es evidencia histórica, anterior a esta entrega.
+La auditoría inicial de producción comprobó títulos, canonical y H1 de nueve rutas estáticas; `robots.txt`, sitemap de nueve URLs, fichas históricas de prueba con noindex, páginas privadas con cabecera noindex y respuestas 404 para rutas/productos inexistentes. Es evidencia histórica, anterior a esta entrega.
 
 Correcciones locales aplicadas:
 
 - `/auth` redirige a login; `/producto?product=...` redirige a la ficha conservando parámetros y, sin producto, al buscador. Las rutas antiguas tienen protección noindex.
 - Las vistas previas de producto usan su imagen, en lugar de la imagen genérica de inicio.
-- La selección demo incorpora protección noindex y el catálogo real se mantiene separado.
 
 Pendientes:
 
@@ -139,7 +122,7 @@ Se corrigieron el nombre accesible del botón de búsqueda móvil y el contraste
 
 | Prioridad | Pendiente | Acción requerida |
 |---|---|---|
-| Antes de apertura | Despliegue de esta entrega | Publicar frontend, Functions, Hosting y nuevos triggers de caché conjuntamente, con `DEMO=false` para negocio real |
+| Antes de apertura | Despliegue de esta entrega | Publicar frontend, Functions, Hosting y nuevos triggers de caché conjuntamente, para negocio real |
 | Antes de apertura | Identidad legal y canales | Completar operador, RUT, domicilio y representante; retirar textos provisionales y verificar buzones atendidos |
 | Antes de apertura | Recorrido Firebase real | Probar roles, verificación de correo, recuperación, autenticación reciente, aislamiento y eliminación con cuentas controladas |
 | Antes de apertura | Reglas y permisos | Confirmar reglas Firestore desplegadas e IAM; el archivo local niega acceso directo y el despliegue estándar no publica reglas/indexes automáticamente |
@@ -151,11 +134,17 @@ Se corrigieron el nombre accesible del botón de búsqueda móvil y el contraste
 | P2 | Rendimiento, accesibilidad y SEO | Resolver los pendientes detallados y volver a medir el servicio desplegado |
 | P3 | Documentación general | Actualizar README Angular 17 frente a Angular 21, promesa de cotizaciones ilimitadas frente al límite de dos y referencias antiguas a MockApiService/Karma |
 
+## Cuenta administrativa solicitada
+
+Por solicitud explícita, se promovió la cuenta existente a administrador en Firebase/Firestore, conservando UID y los demás datos del perfil. Se estableció una contraseña temporal, se revocaron sesiones anteriores y se comprobaron login por contraseña y rol admin en el backend publicado. La aceptación de términos vigentes y la verificación de correo siguen pendientes del titular; no se registraron como realizadas.
+
+Se añadió `/cuenta/cambiar-contrasena`, accesible desde el menú del panel, con contraseña actual, nueva y confirmación. Reautentica en Firebase, respeta la política de contraseñas y renueva la sesión. Si la renovación falla después del cambio, informa que la contraseña sí cambió y solicita iniciar sesión nuevamente. La recuperación por correo permanece disponible en `/recuperar-clave`. Todos los campos de contraseña incluyen un botón accesible para mostrar/ocultar el valor, incluidos login, registro, cambio de contraseña, creación administrativa y confirmación de eliminación. Se conservan validaciones y autocompletado; el botón no envía formularios y respeta campos deshabilitados. Esta pantalla nueva aún requiere despliegue; las credenciales no se guardan en el repositorio.
+
 ## Orden recomendado
 
 1. Preparar configuración real, identidad legal, canales, permisos y respaldo; desplegar conjuntamente las piezas de esta entrega.
 2. Verificar con cuentas controladas el flujo completo de maestro, administrador y dos ferreterías: contratos, activación, carga, modificación, búsqueda, cotización, PDF y privacidad.
-3. Comprobar en el entorno desplegado que real inicia vacío, demo conserva sus datos y el administrador alterna sin filtraciones entre entornos.
+3. Comprobar que el entorno desplegado inicia sin datos de negocio ni catálogo, conserva el administrador y no ofrece selección de entornos.
 4. Incorporar ofertas reales autorizadas y contrastar precios/stock antes de abrir comercialmente.
 5. Medir nuevamente rendimiento/accesibilidad, comprobar SEO/indexación y priorizar importación masiva y escalabilidad según el volumen esperado.
 
@@ -163,14 +152,14 @@ Se corrigieron el nombre accesible del botón de búsqueda móvil y el contraste
 
 Este documento consolida la auditoría inicial y las validaciones posteriores; su actualización no ejecuta una nueva auditoría de producción. Las pruebas locales cubren los comportamientos señalados y regresiones existentes, sin garantizar todos los flujos, la configuración externa ni carga comercial real.
 
-No se han desplegado estas correcciones ni creado cuentas, aceptado contratos, enviado formularios o alterado datos de negocio en producción. No se verificaron en consola correos, MFA, IAM, respaldos, facturación o retención. Sin ofertas reales no se contrastaron comercialmente precios/stock ni ahorro.
+No se han desplegado estas correcciones ni aceptado contratos o enviado formularios de negocio en producción. La actualización administrativa solicitada se describe arriba; no se modificaron catálogos, ofertas ni cotizaciones. No se verificaron en consola correos, MFA, IAM, respaldos, facturación o retención. Sin ofertas reales no se contrastaron comercialmente precios/stock ni ahorro.
 
 Comandos de validación utilizados: `npm test -- --watch=false`, `npm --prefix functions test`, `npm run build`, `npm --prefix functions run build` y `npx tsc --noEmit -p tsconfig.app.json`.
 
 Evidencias temporales locales:
 
 - Auditoría inicial y Lighthouse histórico: `/tmp/cotizapp-audit/`.
-- Últimas pruebas y build: `/tmp/cotizapp-three-findings-frontend.log`, `/tmp/cotizapp-three-findings-backend.log` y `/tmp/cotizapp-three-findings-build.log`.
-- Navegador, regresiones y alternancia demo/real: `/tmp/cotizapp-fixes-browser.json`, `/tmp/cotizapp-data-mode-browser.json` y `/tmp/cotizapp-three-findings-browser.json`.
+- Últimas pruebas y build: `/tmp/cotizapp-password-toggle-frontend.log`, `/tmp/cotizapp-admin-password-backend.log` y `/tmp/cotizapp-password-toggle-build.log`.
+- Navegador y regresiones históricas: `/tmp/cotizapp-fixes-browser.json`, `/tmp/cotizapp-data-mode-browser.json` y `/tmp/cotizapp-master-search-browser.json` y `/tmp/cotizapp-admin-password-browser.json` y `/tmp/cotizapp-password-toggle-browser.json`.
 
 Los archivos de `/tmp` son evidencia temporal y no forman parte del repositorio.

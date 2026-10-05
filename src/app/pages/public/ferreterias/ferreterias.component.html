@@ -8,7 +8,7 @@
         Publica tus productos, administra precios y stock en tiempo real,
         y recibe más consultas de maestros que buscan comprar cerca.
       </p>
-      <a class="btn btn-secondary btn-lg" routerLink="/contacto" [queryParams]="{ type: 'Ferreteria' }">Solicitar acceso</a>
+      <a class="btn btn-secondary btn-lg" [href]="storeAccessWhatsappUrl" target="_blank" rel="noopener noreferrer" aria-label="Solicitar acceso para mi ferretería por WhatsApp">Solicitar acceso por WhatsApp</a>
     </div>
   </section>
 
@@ -44,7 +44,7 @@
           <li>Precio y stock actualizables</li>
           <li>Activación manual de la cuenta por administración</li>
         </ul>
-        <a class="btn btn-secondary" routerLink="/contacto" [queryParams]="{ type: 'Ferreteria' }">Completar solicitud</a>
+        <a class="btn btn-secondary" [href]="storeAccessWhatsappUrl" target="_blank" rel="noopener noreferrer" aria-label="Solicitar acceso para mi ferretería por WhatsApp">Solicitar acceso por WhatsApp</a>
       </div>
     </div>
   </section></div>

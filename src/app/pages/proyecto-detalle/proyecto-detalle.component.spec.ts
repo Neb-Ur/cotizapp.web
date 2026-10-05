@@ -14,7 +14,7 @@ describe('quotation drafts isolated by account and environment',()=>{
     expect(component.readDraft()?.address).toBe('Private address');
     localStorage.setItem('construcomparador-project-draft',JSON.stringify({address:'Legacy private address'}));
     uid='second';expect(component.readDraft()).toBeNull();expect(localStorage.getItem('construcomparador-project-draft')).toBeNull();
-    uid='first';mode='demo';expect(component.readDraft()).toBeNull();
+    uid='first';mode='retired';expect(component.readDraft()).toBeNull();
     mode='real';expect(component.readDraft()?.items).toEqual([{productName:'Cemento',quantity:2}]);
   });
 });

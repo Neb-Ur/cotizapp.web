@@ -1471,7 +1471,6 @@ export class FirebaseDataService {
 
       const detail: ProductDetailView = {
         productoMaestroId: master.id,
-        isDemo: master.isDemo ?? (/demo|test/i.test(String(master.seedTag || '')) || /demostrativ|generad.*pruebas/i.test(String(master.descripcionLarga || ''))),
         productName: master.nombre,
         imageUrl: master.imagenPrincipalUrl || 'https://via.placeholder.com/600x420?text=Producto',
         gallery: Array.isArray(master.galeriaJson) && master.galeriaJson.length > 0

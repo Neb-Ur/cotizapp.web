@@ -18,6 +18,18 @@
   gap: 1rem;
 }
 
+.product-unavailable-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #b91c1c;
+  border-radius: var(--r-md);
+  background: #fef2f2;
+  color: #991b1b;
+  font-weight: 600;
+}
+
 .detail-loading {
   overflow: hidden;
 }

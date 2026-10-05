@@ -12,7 +12,6 @@ Los precios ingresados por las ferreterías son importes finales con IVA incluid
 - Estados de errores de red y productos inexistentes separados. Compartir cancelado no anuncia éxito. Exportación y compartir usan el mismo PDF.
 - Límite de proyectos transaccional, agregados de ítems transaccionales, consulta por dueño y una sola lectura de ofertas para el listado.
 - Angular/PrimeNG 21, SheetJS 0.20.3 oficial; Vitest sustituye Karma. Dependencias instaladas con lockfiles. Firebase CLI fijada y hosting usa el artefacto validado.
-- Las cuentas del seed de demostración no tienen acceso a la API productiva, aunque se conozca su contraseña. Sigue siendo recomendable deshabilitarlas y revocar sesiones en Firebase Auth.
 - Piloto identificado y datos legales ficticios retirados. FAQ deja de prometer planes inexistentes. El contrato exige precio final con IVA incluido.
 
 ## Verificación
@@ -25,7 +24,7 @@ Los precios ingresados por las ferreterías son importes finales con IVA incluid
 - Incorporar catálogos, precios, stock y coordenadas confirmados por ferreterías reales. Nunca se aceptan contratos en nombre de terceros ni se fabrican ofertas.
 - Aceptar el contrato vigente: los cambios de identidad/cláusulas cambian su hash e invalidan las aceptaciones anteriores para publicación.
 - Probar el recorrido autenticado completo con cuentas controladas de maestro y dos ferreterías; compartir nativo en Android/iOS y permisos de ubicación en dispositivos reales.
-- Confirmar MFA administrativo, cuentas demo deshabilitadas, backups, alertas y presupuesto en Firebase. El límite general de solicitudes sigue siendo por instancia.
+- Confirmar MFA administrativo, única cuenta administradora conservada, backups, alertas y presupuesto en Firebase. El límite general de solicitudes sigue siendo por instancia.
 - Medir Core Web Vitals desde usuarios reales. Queda deuda de tamaño en los estilos de los paneles y búsqueda local sobre el catálogo completo: conviene pasar a consultas/paginación del servidor al crecer.
 
 No se habilitan pagos ni se inventan condiciones comerciales. El lanzamiento comercial depende de los datos reales y del piloto acompañado.

@@ -1,11 +1,13 @@
 import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { STORE_ACCESS_WHATSAPP_URL } from '../../../core/config/legal-identity.config';
 
 @Component({
   selector: 'app-ferreterias',
   standalone: true,
-  imports: [RouterLink],
+  imports: [],
   templateUrl: './ferreterias.component.html',
   styleUrl: './ferreterias.component.scss'
 })
-export class FerreteriasComponent {}
+export class FerreteriasComponent {
+  protected readonly storeAccessWhatsappUrl = STORE_ACCESS_WHATSAPP_URL;
+}

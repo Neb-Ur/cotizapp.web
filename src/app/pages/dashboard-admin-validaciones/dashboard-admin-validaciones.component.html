@@ -20,12 +20,6 @@
 
   <section class="content">
     <article class="content-header">
-      <div class="data-mode-controls">
-        <button type="button" class="data-mode-toggle" [class.active]="dataMode.mode() === 'demo'"
-          [attr.aria-pressed]="dataMode.mode() === 'demo'" (click)="dataMode.toggleDemo()">Demo</button>
-        <span>{{ dataMode.mode() === 'demo' ? 'Datos de demostración' : 'Datos reales' }}</span>
-        <small>Catálogo base y ciudades compartidos</small>
-      </div>
       <div class="title-row">
         <div>
           <h1>{{ currentSectionLabel }}</h1>
@@ -138,7 +132,7 @@
             <label>RUT<input type="text" [(ngModel)]="storeCreateDraft.rut" /></label>
             <label>Correo de acceso<input type="email" [(ngModel)]="storeCreateDraft.email" /></label>
             <label>Contraseña temporal
-              <input type="password" [(ngModel)]="storeCreateDraft.password" minlength="12" maxlength="128" autocomplete="new-password" />
+              <app-password-field><input #passwordInput type="password" [(ngModel)]="storeCreateDraft.password" minlength="12" maxlength="128" autocomplete="new-password" /></app-password-field>
               <small>12 o más caracteres, con mayúscula, minúscula, número y símbolo.</small>
             </label>
             <label>Teléfono<input type="text" [(ngModel)]="storeCreateDraft.phone" /></label>
@@ -752,6 +746,8 @@
             <div *ngIf="request.phone"><dt>Teléfono</dt><dd>{{ request.phone }}</dd></div>
             <div *ngIf="request.commune"><dt>Comuna</dt><dd>{{ request.commune }}</dd></div>
             <div><dt>Recibida</dt><dd>{{ request.createdAt | date:'short' }}</dd></div>
+            <div *ngIf="request.legalAcceptance as acceptance"><dt>Condiciones</dt><dd>Términos v{{ acceptance.termsVersion }} · Privacidad v{{ acceptance.privacyVersion }} · Confirmadas el {{ acceptance.acceptedAt | date:'short' }}</dd></div>
+            <div *ngIf="request.type === 'ferreteria' && !request.legalAcceptance"><dt>Condiciones</dt><dd>Sin aceptaciones registradas</dd></div>
           </dl>
 
           <p class="request-message">{{ request.message }}</p>
@@ -1435,7 +1431,7 @@
             </label>
             <label *ngIf="userModalDraft.isNew">
               Contraseña temporal
-              <input type="password" [(ngModel)]="userModalDraft.password" minlength="12" maxlength="128" autocomplete="new-password" />
+              <app-password-field><input #passwordInput type="password" [(ngModel)]="userModalDraft.password" minlength="12" maxlength="128" autocomplete="new-password" /></app-password-field>
               <small>12 o más caracteres, con mayúscula, minúscula, número y símbolo.</small>
             </label>
             <label>

@@ -8,6 +8,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { FamilyProductRow, TaxonomyOption } from '../../core/models/app.models';
 import { FirebaseDataService } from '../../core/services/firebase-data.service';
 import { productPath } from '../../core/utils/product-url.util';
+import { STORE_ACCESS_WHATSAPP_URL } from '../../core/config/legal-identity.config';
 
 interface HomeCategory extends TaxonomyOption {
   icon: string;
@@ -21,6 +22,7 @@ interface HomeCategory extends TaxonomyOption {
   styleUrl: './home.component.scss'
 })
 export class HomeComponent implements OnInit {
+  protected readonly storeAccessWhatsappUrl = STORE_ACCESS_WHATSAPP_URL;
   protected searchValue: string | FamilyProductRow = '';
   protected searchSuggestions: FamilyProductRow[] = [];
   protected featuredProducts: FamilyProductRow[] = [];

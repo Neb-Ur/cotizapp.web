@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import type { WriteBatch } from 'firebase-admin/firestore';
 import { db } from '../lib/firebase.js';
 import { COLLECTIONS } from '../lib/collections.js';
 import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION } from '../lib/legal.js';
@@ -23,6 +24,18 @@ export async function recordLegalAcceptance(
 ): Promise<void> {
   const occurredAt = new Date().toISOString();
   const batch = db.batch();
+  stageLegalAcceptance(batch, userId, input, source, occurredAt);
+  await batch.commit();
+}
+
+export function stageLegalAcceptance(
+  batch: WriteBatch,
+  userId: string,
+  input: LegalAcceptanceInput,
+  source: 'registration' | 'profile_completion' | 'privacy_center' | 'store_onboarding',
+  occurredAt: string,
+  includeMarketing = true
+): void {
   const events = [
     { type: 'terms', version: CURRENT_TERMS_VERSION, granted: input.termsAccepted },
     { type: 'privacy_notice', version: CURRENT_PRIVACY_VERSION, granted: input.privacyAcknowledged },
@@ -30,7 +43,7 @@ export async function recordLegalAcceptance(
     { type: 'marketing', version: '1.0', granted: input.marketingConsent === true }
   ];
 
-  events.forEach((event) => {
+  events.filter(event => includeMarketing || event.type !== 'marketing').forEach((event) => {
     batch.set(db.collection(COLLECTIONS.consentRecords).doc(randomUUID()), {
       usuarioId: userId,
       ...event,
@@ -44,10 +57,11 @@ export async function recordLegalAcceptance(
     privacidadVersion: CURRENT_PRIVACY_VERSION,
     privacidadInformadaEn: occurredAt,
     mayoriaEdadDeclarada: true,
-    marketingConsent: input.marketingConsent === true,
-    marketingConsentUpdatedAt: occurredAt
+    ...(includeMarketing ? {
+      marketingConsent: input.marketingConsent === true,
+      marketingConsentUpdatedAt: occurredAt
+    } : {})
   }, { merge: true });
-  await batch.commit();
 }
 
 export async function recordMarketingConsent(userId: string, granted: boolean): Promise<void> {

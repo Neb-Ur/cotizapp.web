@@ -313,7 +313,6 @@ export interface ProductExtraSection {
 }
 
 export interface ProductDetailView {
-  isDemo?: boolean;
   productoMaestroId?: string;
   productName: string;
   imageUrl: string;
@@ -517,6 +516,17 @@ export interface ContactRequest {
   status: ContactRequestStatus;
   createdAt: string;
   updatedAt?: string;
+  legalAcceptance?: {
+    termsAccepted: boolean;
+    termsVersion: string;
+    privacyAcknowledged: boolean;
+    privacyVersion: string;
+    ageConfirmed: boolean;
+    authorityConfirmed: boolean;
+    accuracyConfirmed: boolean;
+    source: string;
+    acceptedAt: string;
+  };
 }
 
 export interface CatalogMatchSuggestion {

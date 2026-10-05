@@ -1,4 +1,4 @@
-import { dataModeMiddleware, dataMode, defaultDataMode } from './lib/data-mode.js';
+import { dataModeMiddleware } from './lib/data-mode.js';
 import { forwardAsyncErrors } from './lib/async-errors.js';
 import { storeMetricsRouter } from './routes/store-metrics.routes.js';
 import { publicPagesRouter } from './routes/public-pages.routes.js';
@@ -54,7 +54,7 @@ app.use((req, res, next) => {
 app.use(dataModeMiddleware);
 app.get(['/api/config', '/config'], (_req, res) => {
   res.set('Cache-Control', 'no-store');
-  res.json({ ok: true, data: { demo: dataMode() === 'demo', defaultDemo: defaultDataMode() === 'demo' } });
+  res.json({ ok: true, data: { dataMode: 'real' } });
 });
 
 // Supports Firebase Hosting rewrites (/api/**) and the direct function URL.
@@ -109,13 +109,11 @@ export const api = onRequest(
 );
 
 export {
-  publicCacheOnStoreProductWrite,
   publicCacheOnRealStoreProductWrite,
   publicCacheOnRealStoreWrite,
   publicCacheOnMasterProductWrite,
   publicCacheOnCategoryWrite,
   publicCacheOnSubcategoryWrite,
   publicCacheOnFamilyWrite,
-  publicCacheOnStoreWrite,
   publicCacheOnUserWrite
 } from './triggers/public-catalog-cache.triggers.js';

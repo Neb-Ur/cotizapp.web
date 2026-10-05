@@ -1,4 +1,5 @@
-<main class="dashboard">
+<app-store-onboarding (ready)="finishOnboarding()" />
+<main class="dashboard" [attr.inert]="!onboardingReady ? '' : null" [attr.aria-hidden]="!onboardingReady ? 'true' : null">
   <div *ngIf="dataLoadError" class="data-load-error" role="alert">
     <p>{{ dataLoadError }}</p>
     <button type="button" (click)="retryDataLoad()">Reintentar carga</button>

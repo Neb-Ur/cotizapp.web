@@ -1,6 +1,6 @@
 import { DataModeService } from './data-mode.service';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { Injectable, NgZone, computed, signal } from '@angular/core';
+import { Injectable, NgZone, OnDestroy, computed, signal } from '@angular/core';
 import {
   browserLocalPersistence,
   browserSessionPersistence,
@@ -13,6 +13,7 @@ import {
   getIdToken,
   onIdTokenChanged,
   sendPasswordResetEmail,
+  updatePassword,
   setPersistence,
   signInWithEmailAndPassword,
   signOut,
@@ -22,8 +23,10 @@ import { firstValueFrom } from 'rxjs';
 import { LoginPayload, RegisterPayload, SessionUser, UserRole } from '../models/app.models';
 import { API_BASE_URL } from '../config/api.config';
 import { getFirebaseAuthInstance } from '../config/firebase.config';
+import { STRONG_PASSWORD_PATTERN } from '../utils/password-policy.util';
 
 export const LOGIN_SUPPORT_ERROR_MESSAGE = 'Usuario con error, favor contactarse con soporte.';
+export const SESSION_IDLE_TIMEOUT_MS = 30 * 60 * 1000;
 
 export class ProfileCompletionRequiredError extends Error {
   constructor(readonly email: string) {
@@ -74,18 +77,48 @@ interface ApiAuthSession {
 }
 
 @Injectable({ providedIn: 'root' })
-export class AuthService {
+export class AuthService implements OnDestroy {
   private readonly apiBaseUrl = API_BASE_URL;
   private readonly sessionStorageKey = 'cotizapp-session';
 
   private readonly currentUserState = signal<SessionUser | null>(null);
   private readonly tokenState = signal<string | null>(null);
+  private readonly emailVerifiedState = signal(false);
+  readonly emailVerified = this.emailVerifiedState.asReadonly();
   private readonly sessionVerifiedState = signal(false);
   private readonly sessionReadyPromise: Promise<void>;
   private sessionVerifiedAt = 0;
   private sessionVerificationPromise: Promise<SessionUser | null> | null = null;
   private firebaseAuth: Auth | null = null;
   private storageMode: StorageMode = 'local';
+  private readonly activityStorageKey = 'cotizapp-session-activity';
+  private lastActivityAt = 0;
+  private sessionGeneration = 0;
+  private sessionClosed = false;
+  private idleTimer: ReturnType<typeof setTimeout> | null = null;
+  private retryTimer: ReturnType<typeof setTimeout> | null = null;
+  private unsubscribeAuth: (() => void) | null = null;
+  private readonly activityEvents = ['pointerdown', 'pointermove', 'keydown', 'scroll', 'touchstart'];
+  readonly sessionExpired = signal(false);
+
+  private readonly onActivity = () => {
+    if (!this.sessionVerifiedState() || !this.currentUserState()) return;
+    this.readSharedActivity();
+    if (this.isIdleExpired()) { void this.expireIdleSession(); return; }
+    if (Date.now() - this.lastActivityAt < 1_000) return;
+    this.lastActivityAt = Date.now();
+    this.writeActivity();
+    this.scheduleIdleCheck();
+  };
+  private readonly onResume = () => {
+    if (!this.currentUserState()) return;
+    this.readSharedActivity();
+    if (this.isIdleExpired()) void this.expireIdleSession();
+    else this.scheduleIdleCheck();
+  };
+  private readonly onStorage = (event: StorageEvent) => {
+    if (event.key === this.activityStorageKey) this.onResume();
+  };
 
   readonly currentUser = computed(() => this.currentUserState());
   readonly isLoggedIn = computed(
@@ -98,17 +131,27 @@ export class AuthService {
     private readonly dataMode: DataModeService | null = null
   ) {
     this.restoreCachedSession();
+    if (typeof window !== 'undefined') this.ngZone.runOutsideAngular(() => {
+      this.activityEvents.forEach(event => window.addEventListener(event, this.onActivity, { passive: true }));
+      window.addEventListener('focus', this.onResume);
+      window.addEventListener('storage', this.onStorage);
+      document.addEventListener('visibilitychange', this.onResume);
+    });
     this.sessionReadyPromise = this.ngZone.runOutsideAngular(() => this.initializeFirebaseSession());
   }
 
   async login(payload: LoginPayload): Promise<SessionUser> {
     try {
+      await this.sessionReadyPromise;
       const auth = await this.getAuth();
       this.storageMode = payload.remember ? 'local' : 'session';
       await setPersistence(auth, payload.remember ? browserLocalPersistence : browserSessionPersistence);
+      this.sessionClosed = false;
       const credential = await signInWithEmailAndPassword(auth, payload.email.trim().toLowerCase(), payload.password);
       const token = await getIdToken(credential.user, true);
       const user = await this.fetchCurrentUser(token);
+      this.lastActivityAt = Date.now();
+      this.sessionExpired.set(false);
       this.setSession(user, token, this.storageMode);
       return user;
     } catch (error) {
@@ -118,12 +161,14 @@ export class AuthService {
   }
 
   async register(payload: RegisterPayload): Promise<SessionUser> {
+    await this.sessionReadyPromise;
     const auth = await this.getAuth();
     await setPersistence(auth, browserLocalPersistence);
     this.storageMode = 'local';
 
     let credential: Awaited<ReturnType<typeof createUserWithEmailAndPassword>> | null = null;
     try {
+      this.sessionClosed = false;
       credential = await createUserWithEmailAndPassword(auth, payload.email.trim().toLowerCase(), payload.password);
       const token = await getIdToken(credential.user, true);
       const user = await this.createProfile(payload, token);
@@ -194,16 +239,25 @@ export class AuthService {
   async sendVerificationEmail(): Promise<void> {
     const auth = await this.getAuth();
     if (!auth.currentUser) throw new Error('Inicia sesión para verificar tu correo.');
-    await reload(auth.currentUser);
-    if (!auth.currentUser.emailVerified) await sendEmailVerification(auth.currentUser);
+    const user = auth.currentUser;
+    const generation = this.sessionGeneration;
+    await reload(user);
+    if (generation !== this.sessionGeneration || auth.currentUser !== user) throw new Error('Inicia sesión nuevamente.');
+    this.emailVerifiedState.set(user.emailVerified);
+    if (!user.emailVerified) await sendEmailVerification(user);
   }
 
   async refreshEmailVerification(): Promise<boolean> {
     const auth = await this.getAuth();
     if (!auth.currentUser) return false;
-    await reload(auth.currentUser);
-    await this.refreshCurrentUser();
-    return auth.currentUser?.emailVerified === true;
+    const user = auth.currentUser;
+    const generation = this.sessionGeneration;
+    await reload(user);
+    if (generation !== this.sessionGeneration || auth.currentUser !== user) return false;
+    const changed = this.emailVerifiedState() !== user.emailVerified;
+    this.emailVerifiedState.set(user.emailVerified);
+    if (changed && user.emailVerified) await this.refreshCurrentUser();
+    return user.emailVerified === true;
   }
 
   async confirmPassword(password: string): Promise<void> {
@@ -214,6 +268,34 @@ export class AuthService {
     this.tokenState.set(token);
   }
 
+  async changePassword(currentPassword: string, newPassword: string): Promise<boolean> {
+    if (!STRONG_PASSWORD_PATTERN.test(newPassword)) {
+      throw new Error('Usa entre 12 y 128 caracteres, con mayúscula, minúscula, número y símbolo.');
+    }
+    if (currentPassword === newPassword) throw new Error('La nueva contraseña debe ser diferente de la actual.');
+    try {
+      await this.confirmPassword(currentPassword);
+      const auth = await this.getAuth();
+      if (!auth.currentUser) throw new Error('Inicia sesión nuevamente.');
+      await updatePassword(auth.currentUser, newPassword);
+      // Credential changes invalidate older tokens. Keep the current session
+      // only when Firebase supplies a fresh token; the password is already
+      // changed if this refresh fails, so never report the operation as failed.
+      try {
+        const token = await getIdToken(auth.currentUser, true);
+        this.tokenState.set(token);
+        const current = this.currentUserState();
+        if (current) this.persistSession(current, token);
+        return true;
+      } catch {
+        this.clearSession();
+        return false;
+      }
+    } catch (error) {
+      throw new Error(this.firebaseErrorMessage(error, 'No fue posible cambiar la contraseña. Intenta nuevamente.'));
+    }
+  }
+
   private clearQuotationDrafts(): void {
     if (typeof window === 'undefined') return;
     Object.keys(window.localStorage).filter(key => key.startsWith('cotizapp-project-draft:') || key === 'construcomparador-project-draft')
@@ -222,20 +304,23 @@ export class AuthService {
 
   async logout(): Promise<void> {
     this.clearQuotationDrafts();
+    this.clearSession();
     try {
       const auth = await this.getAuth();
       await signOut(auth);
     } catch {
       // Clear the local session even if Firebase is temporarily unavailable.
     }
-    this.clearSession();
   }
 
   async refreshCurrentUser(): Promise<SessionUser | null> {
+    if (this.sessionClosed) return null;
+    const generation = this.sessionGeneration;
     const auth = await this.getAuth();
     if (!auth.currentUser) return null;
     const token = await getIdToken(auth.currentUser, true);
     const user = await this.fetchCurrentUser(token);
+    if (generation !== this.sessionGeneration || this.sessionClosed) return null;
     this.setSession(user, token, this.storageMode);
     return user;
   }
@@ -264,23 +349,26 @@ export class AuthService {
 
   async verifiedUser(): Promise<SessionUser | null> {
     await this.sessionReadyPromise;
-    const token = this.tokenState();
+    if (this.sessionClosed) return null;
+    this.readSharedActivity();
+    if (this.isIdleExpired()) { await this.expireIdleSession(); return null; }
     const current = this.currentUserState();
-    if (!this.sessionVerifiedState() || !token || !current) return null;
-
-    if (Date.now() - this.sessionVerifiedAt < 5_000) return current;
+    if (this.sessionVerifiedState() && Date.now() - this.sessionVerifiedAt < 5_000) return current;
     if (this.sessionVerificationPromise) return this.sessionVerificationPromise;
-
-    this.sessionVerificationPromise = this.fetchCurrentUser(token)
-      .then((user) => {
-        this.currentUserState.set(user);
-        this.sessionVerifiedState.set(true);
-        this.sessionVerifiedAt = Date.now();
-        this.persistSession(user, token);
+    const generation = this.sessionGeneration;
+    this.sessionVerificationPromise = (async () => {
+        const auth = await this.getAuth();
+        await auth.authStateReady();
+        if (!auth.currentUser) return null;
+        const token = await getIdToken(auth.currentUser);
+        const user = await this.fetchCurrentUser(token);
+        if (generation !== this.sessionGeneration) return null;
+        if (this.isIdleExpired()) { await this.expireIdleSession(); return null; }
+        this.setSession(user, token, this.storageMode);
         return user;
-      })
-      .catch(() => {
-        this.clearSession();
+      })()
+      .catch((error) => {
+        if (generation === this.sessionGeneration) this.handleSessionError(error);
         return null;
       })
       .finally(() => {
@@ -396,26 +484,36 @@ export class AuthService {
 
   private async getAuth(): Promise<Auth> {
     if (!this.firebaseAuth) this.firebaseAuth = await getFirebaseAuthInstance();
+    this.firebaseAuth.languageCode = 'es';
     return this.firebaseAuth;
   }
 
   private async initializeFirebaseSession(): Promise<void> {
+    // Firebase browser persistence cannot be restored during server rendering.
+    if (typeof window === 'undefined') return;
     try {
       const auth = await this.getAuth();
+      await auth.authStateReady();
       await new Promise<void>((resolve) => {
         let initialSessionResolved = false;
-        onIdTokenChanged(auth, async (firebaseUser) => {
+        this.unsubscribeAuth = onIdTokenChanged(auth, async (firebaseUser) => {
+          const generation = this.sessionGeneration;
           try {
             if (!firebaseUser) {
               this.ngZone.run(() => this.clearSession());
               return;
             }
-
+            if (this.sessionClosed) return;
+            this.ngZone.run(() => this.emailVerifiedState.set(firebaseUser.emailVerified));
+            this.readSharedActivity();
+            if (this.isIdleExpired()) { await this.expireIdleSession(); return; }
             const token = await getIdToken(firebaseUser);
             const user = await this.fetchCurrentUser(token);
+            if (generation !== this.sessionGeneration || auth.currentUser?.uid !== firebaseUser.uid) return;
+            if (this.isIdleExpired()) { await this.expireIdleSession(); return; }
             this.ngZone.run(() => this.setSession(user, token, this.storageMode));
-          } catch {
-            this.ngZone.run(() => this.clearSession());
+          } catch (error) {
+            if (generation === this.sessionGeneration) this.ngZone.run(() => this.handleSessionError(error));
           } finally {
             if (!initialSessionResolved) {
               initialSessionResolved = true;
@@ -424,8 +522,8 @@ export class AuthService {
           }
         });
       });
-    } catch {
-      this.ngZone.run(() => this.clearSession());
+    } catch (error) {
+      this.ngZone.run(() => this.handleSessionError(error));
     }
   }
 
@@ -438,11 +536,13 @@ export class AuthService {
     if (!raw) return;
 
     try {
-      const cached = JSON.parse(raw) as { user: SessionUser; token: string };
+      const cached = JSON.parse(raw) as { user: SessionUser; token: string; lastActivityAt?: number };
       if (cached?.user?.email && cached?.token) {
         this.dataMode?.setAccount(cached.user.id, cached.user.role);
         this.currentUserState.set(cached.user);
         this.tokenState.set(cached.token);
+        this.lastActivityAt = cached.lastActivityAt || Date.now();
+        this.readSharedActivity();
       }
     } catch {
       this.clearCachedSession();
@@ -450,6 +550,10 @@ export class AuthService {
   }
 
   private setSession(user: SessionUser, token: string, mode: StorageMode): void {
+    this.readSharedActivity();
+    if (this.currentUserState()?.id !== user.id || !this.lastActivityAt) this.lastActivityAt = Date.now();
+    this.sessionClosed = false;
+    this.sessionExpired.set(false);
     this.dataMode?.setAccount(user.id, user.role);
     this.storageMode = mode;
     this.currentUserState.set(user);
@@ -457,11 +561,13 @@ export class AuthService {
     this.sessionVerifiedState.set(true);
     this.sessionVerifiedAt = Date.now();
     this.persistSession(user, token);
+    this.writeActivity();
+    this.scheduleIdleCheck();
   }
 
   private persistSession(user: SessionUser, token: string): void {
     if (typeof window === 'undefined') return;
-    const payload = JSON.stringify({ user, token });
+    const payload = JSON.stringify({ user, token, lastActivityAt: this.lastActivityAt });
     if (this.storageMode === 'session') {
       window.sessionStorage.setItem(this.sessionStorageKey, payload);
       window.localStorage.removeItem(this.sessionStorageKey);
@@ -472,8 +578,15 @@ export class AuthService {
   }
 
   private clearSession(): void {
+    this.sessionGeneration++;
+    this.sessionClosed = true;
+    if (this.idleTimer) clearTimeout(this.idleTimer);
+    if (this.retryTimer) clearTimeout(this.retryTimer);
+    this.idleTimer = this.retryTimer = null;
+    this.lastActivityAt = 0;
     this.dataMode?.setAccount('', '');
     this.currentUserState.set(null);
+    this.emailVerifiedState.set(false);
     this.tokenState.set(null);
     this.sessionVerifiedState.set(false);
     this.sessionVerifiedAt = 0;
@@ -485,6 +598,69 @@ export class AuthService {
     if (typeof window === 'undefined') return;
     window.localStorage.removeItem(this.sessionStorageKey);
     window.sessionStorage.removeItem(this.sessionStorageKey);
+  }
+
+  private readSharedActivity(): void {
+    if (typeof window === 'undefined') return;
+    try {
+      const activity = JSON.parse(window.localStorage.getItem(this.activityStorageKey) || 'null');
+      if (activity?.userId === this.currentUserState()?.id && Number.isFinite(activity?.at) && activity.at <= Date.now()) {
+        this.lastActivityAt = Math.max(this.lastActivityAt, activity.at);
+      }
+    } catch { /* The current tab still tracks inactivity when storage is unavailable. */ }
+  }
+
+  private writeActivity(): void {
+    if (typeof window === 'undefined' || !this.currentUserState()) return;
+    try {
+      window.localStorage.setItem(this.activityStorageKey, JSON.stringify({ userId: this.currentUserState()!.id, at: this.lastActivityAt }));
+    } catch { /* Storage is optional for tracking activity in this tab. */ }
+  }
+
+  private isIdleExpired(): boolean {
+    return this.lastActivityAt > 0 && Date.now() - this.lastActivityAt >= SESSION_IDLE_TIMEOUT_MS;
+  }
+
+  private scheduleIdleCheck(): void {
+    if (typeof window === 'undefined' || !this.currentUserState()) return;
+    if (this.idleTimer) clearTimeout(this.idleTimer);
+    this.ngZone.runOutsideAngular(() => {
+      this.idleTimer = setTimeout(this.onResume, Math.max(1, SESSION_IDLE_TIMEOUT_MS - (Date.now() - this.lastActivityAt)));
+    });
+  }
+
+  private async expireIdleSession(): Promise<void> {
+    this.ngZone.run(() => this.sessionExpired.set(true));
+    await this.logout();
+  }
+
+  private handleSessionError(error: unknown): void {
+    const code = (error as { code?: string })?.code || '';
+    if (error instanceof ProfileCompletionRequiredError ||
+        (error instanceof Error && error.message === LOGIN_SUPPORT_ERROR_MESSAGE) ||
+        (error instanceof HttpErrorResponse && [401, 403].includes(error.status)) ||
+        ['auth/user-disabled', 'auth/user-token-expired', 'auth/invalid-user-token'].includes(code)) {
+      this.clearSession();
+      return;
+    }
+    // A temporary network/API failure must not delete Firebase's persisted login.
+    if (typeof window !== 'undefined' && !this.retryTimer) this.ngZone.runOutsideAngular(() => {
+      this.retryTimer = setTimeout(() => {
+        this.retryTimer = null;
+        void this.ngZone.run(() => this.verifiedUser());
+      }, 5_000);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribeAuth?.();
+    if (this.idleTimer) clearTimeout(this.idleTimer);
+    if (this.retryTimer) clearTimeout(this.retryTimer);
+    if (typeof window === 'undefined') return;
+    this.activityEvents.forEach(event => window.removeEventListener(event, this.onActivity));
+    window.removeEventListener('focus', this.onResume);
+    window.removeEventListener('storage', this.onStorage);
+    document.removeEventListener('visibilitychange', this.onResume);
   }
 
   private requireToken(): string {

@@ -108,3 +108,9 @@ h2 {
     padding-inline: var(--space-4);
   }
 }
+
+.dialog--danger {
+  border: 2px solid #dc2626;
+  .dialog-header { background: #fef2f2; }
+  h2, .eyebrow { color: #991b1b; }
+}

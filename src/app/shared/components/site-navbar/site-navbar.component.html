@@ -115,6 +115,7 @@
       <fa-icon class="drawer-chevron" [icon]="faChevronRight" aria-hidden="true" />
     </a>
 
+    <a *ngIf="isLogged" routerLink="/cuenta/cambiar-contrasena" (click)="closeMenu()">Cambiar contraseña</a>
     <section class="drawer-categories">
       <button type="button" class="drawer-section-toggle" (click)="toggleCategories()" [attr.aria-expanded]="categoriesOpen">
         <fa-icon class="drawer-grid-icon" [icon]="faCategories" aria-hidden="true" />

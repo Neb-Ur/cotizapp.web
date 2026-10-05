@@ -215,18 +215,20 @@
             </div>
           </div>
           <div class="product-meta">
-            <span class="price-label">Desde</span>
-            <p class="price-range">{{ formatCurrency(row.minPrice) }}</p>
+            <ng-container *ngIf="row.storeCount > 0; else noProductOffers">
+              <span class="price-label">Desde</span>
+              <p class="price-range">{{ formatCurrency(row.minPrice) }}</p>
+            </ng-container>
+            <ng-template #noProductOffers>
+              <span class="price-label">Sin ofertas disponibles</span>
+            </ng-template>
           </div>
         </a>
       </div>
 
       <ng-template #emptyProducts>
         <ng-container *ngIf="!isPublicCatalogRefreshing && !dataLoadError">
-          <p class="cards-empty" *ngIf="!nearbyEnabled">No encontramos productos para la búsqueda actual.</p>
-          <p class="cards-empty" *ngIf="nearbyEnabled">
-            No encontramos ferreterías con estos productos dentro de {{ nearbyRadiusKm }} km. Prueba aumentando el radio o viendo todas las ferreterías.
-          </p>
+          <p class="cards-empty">No encontramos productos en nuestro catálogo para esta búsqueda.</p>
         </ng-container>
       </ng-template>
 

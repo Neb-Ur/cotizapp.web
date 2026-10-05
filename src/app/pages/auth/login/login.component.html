@@ -42,7 +42,7 @@
 
       <div class="field">
         <label for="login-password">Contraseña</label>
-        <input id="login-password" type="password" formControlName="password" placeholder="Tu contraseña" autocomplete="current-password" [disabled]="isSubmitting" [attr.aria-invalid]="hasError('password')" aria-describedby="login-password-error" />
+        <app-password-field><input #passwordInput id="login-password" type="password" formControlName="password" placeholder="Tu contraseña" autocomplete="current-password" [disabled]="isSubmitting" [attr.aria-invalid]="hasError('password')" aria-describedby="login-password-error" /></app-password-field>
         <small id="login-password-error" *ngIf="hasError('password')">Ingresa tu contraseña.</small>
       </div>
 
@@ -54,6 +54,7 @@
         <a routerLink="/recuperar-clave" class="forgot-link" [class.is-disabled]="isSubmitting">Olvidé mi contraseña</a>
       </div>
 
+      <p class="legal-help">Tu sesión se mantiene mientras usas CotizApp y se cierra después de 30 minutos sin actividad o cuando eliges cerrar sesión.</p>
       <p class="legal-help">Usamos tus credenciales únicamente para autenticar y proteger tu cuenta. Firebase administra la contraseña. Consulta la <a routerLink="/privacidad">Política de privacidad</a>.</p>
 
       <button class="btn btn-primary btn-full" type="submit" [disabled]="isSubmitting">

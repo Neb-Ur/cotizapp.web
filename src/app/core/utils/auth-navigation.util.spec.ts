@@ -6,6 +6,10 @@ const maestro = { role: 'maestro' } as SessionUser;
 const ferreteria = { role: 'ferreteria' } as SessionUser;
 
 describe('auth navigation', () => {
+  it('sends a store with pending acceptance to its home even when the original destination was a long account page', () => {
+    expect(resolvePostAuthUrl({ ...ferreteria, legalAcceptanceRequired: true }, '/cuenta/privacidad-datos', '/dashboard/ferreteria')).toBe('/dashboard/ferreteria');
+    expect(resolvePostAuthUrl({ ...ferreteria, storeAgreementStatus: 'pendiente' }, '/cuenta/contrato-ferreteria', '/dashboard/ferreteria')).toBe('/dashboard/ferreteria');
+  });
   it('keeps a local product return URL with its quotation intent', () => {
     const returnUrl = '/producto?product=Adhesivo%20PVC&crearCotizacion=1&cantidad=3';
     expect(sanitizeReturnUrl(returnUrl)).toBe(returnUrl);

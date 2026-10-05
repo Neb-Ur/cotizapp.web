@@ -14,6 +14,7 @@ import {
 } from '@angular/core';
 
 let modalId = 0;
+const pageLocks = new WeakMap<Document, number>();
 
 @Component({
   selector: 'app-ui-modal',
@@ -27,6 +28,7 @@ export class UiModalComponent implements OnChanges, OnDestroy {
   @Input() title = 'Detalle';
   @Input() eyebrow = '';
   @Input() size: 'sm' | 'md' | 'lg' = 'md';
+  @Input() tone: 'default' | 'danger' = 'default';
   @Input() closeDisabled = false;
   @Input() closeOnBackdrop = true;
 
@@ -36,6 +38,7 @@ export class UiModalComponent implements OnChanges, OnDestroy {
 
   protected readonly titleId = `ui-modal-title-${++modalId}`;
   private previouslyFocused: HTMLElement | null = null;
+  private holdsPageLock = false;
 
   constructor(@Inject(DOCUMENT) private readonly document: Document) {}
 
@@ -44,6 +47,10 @@ export class UiModalComponent implements OnChanges, OnDestroy {
 
     if (this.open) {
       this.previouslyFocused = this.document.activeElement as HTMLElement | null;
+      if (!this.holdsPageLock) {
+        pageLocks.set(this.document, (pageLocks.get(this.document) || 0) + 1);
+        this.holdsPageLock = true;
+      }
       this.document.body.classList.add('modal-open');
       setTimeout(() => this.dialog?.nativeElement.focus());
       return;
@@ -93,7 +100,11 @@ export class UiModalComponent implements OnChanges, OnDestroy {
   }
 
   private restorePageState(): void {
-    this.document.body.classList.remove('modal-open');
+    if (!this.holdsPageLock) return;
+    this.holdsPageLock = false;
+    const remaining = Math.max(0, (pageLocks.get(this.document) || 0) - 1);
+    pageLocks.set(this.document, remaining);
+    if (!remaining) this.document.body.classList.remove('modal-open');
     if (this.previouslyFocused?.isConnected) this.previouslyFocused.focus();
     this.previouslyFocused = null;
   }

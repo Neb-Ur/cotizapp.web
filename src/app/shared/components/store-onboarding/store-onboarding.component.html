@@ -1,0 +1,43 @@
+<app-ui-modal [open]="acceptanceOpen" title="Antes de comenzar" eyebrow="Bienvenido a CotizApp" size="sm"
+  [closeOnBackdrop]="false" [closeDisabled]="saving" (closed)="reject()">
+  <p *ngIf="loading" role="status">Cargando condiciones…</p>
+  <ng-container *ngIf="overview && !loading">
+    <p>Para usar la cuenta de <strong>{{ overview.storeName }}</strong>, confirma las siguientes condiciones:</p>
+    <fieldset [disabled]="saving || !overview.canAccept">
+      <legend class="visually-hidden">Aceptaciones obligatorias</legend>
+      <label><input type="checkbox" [(ngModel)]="checks.termsAccepted" /><span>Acepto los <a href="/terminos-condiciones" target="_blank" rel="noopener noreferrer">términos y condiciones</a> (v{{ overview.termsVersion }}).</span></label>
+      <label><input type="checkbox" [(ngModel)]="checks.privacyAcknowledged" /><span>He leído la <a href="/privacidad" target="_blank" rel="noopener noreferrer">política de privacidad</a> (v{{ overview.privacyVersion }}).</span></label>
+      <label><input type="checkbox" [(ngModel)]="checks.ageConfirmed" /><span>Confirmo que tengo 18 años o más.</span></label>
+      <label><input type="checkbox" [(ngModel)]="checks.agreementAccepted" /><span>Acepto el <a href="/cuenta/contrato-ferreteria" target="_blank" rel="noopener noreferrer">acuerdo comercial de ferreterías</a> (v{{ overview.agreementVersion }}).</span></label>
+      <label><input type="checkbox" [(ngModel)]="checks.authorityConfirmed" /><span>Tengo autorización para representar a esta ferretería.</span></label>
+      <label><input type="checkbox" [(ngModel)]="checks.catalogCommitmentConfirmed" /><span>Me comprometo a mantener precios finales con IVA, stock y condiciones actualizados y a publicar contenido autorizado.</span></label>
+    </fieldset>
+  </ng-container>
+  <p class="error" *ngIf="error" role="alert">{{ error }}</p>
+  <div class="actions">
+    <button type="button" class="primary" *ngIf="overview && !loading" [disabled]="!acceptanceReady || saving" (click)="accept()">{{ saving ? 'Guardando…' : 'Aceptar y continuar' }}</button>
+    <button type="button" class="primary" *ngIf="!overview && !loading" (click)="load()">Reintentar</button>
+    <button type="button" class="secondary" [disabled]="saving" (click)="reject()">No acepto, cerrar sesión</button>
+  </div>
+</app-ui-modal>
+
+<div class="verification-banner" *ngIf="needsVerification" role="status">
+  <span><strong>Verifica tu correo electrónico.</strong> Revisa el enlace enviado a {{ auth.currentUser()?.email }}.</span>
+  <button type="button" [disabled]="sending" (click)="verificationOpen = true">Verificar correo</button>
+</div>
+
+<app-ui-modal [open]="verificationOpen && needsVerification" title="Verifica tu correo" eyebrow="Acción pendiente" size="sm" tone="danger"
+  [closeDisabled]="sending" (closed)="verificationOpen = false">
+  <p>Debes verificar <strong>{{ auth.currentUser()?.email }}</strong>. Te enviaremos un enlace para confirmar que el correo te pertenece.</p>
+  <p class="error" *ngIf="verificationError" role="alert">{{ verificationError }}</p>
+  <div class="actions">
+    <button type="button" class="danger" [disabled]="sending" (click)="sendVerification()">{{ sending ? 'Enviando…' : 'Verificar correo' }}</button>
+    <button type="button" class="secondary" [disabled]="sending" (click)="checkVerification()">Ya verifiqué mi correo</button>
+  </div>
+</app-ui-modal>
+
+<app-ui-modal [open]="sentOpen && needsVerification" title="Enlace enviado" eyebrow="Revisa tu correo" size="sm" (closed)="sentOpen = false">
+  <p>Enviamos un enlace de verificación a <strong>{{ auth.currentUser()?.email }}</strong>.</p>
+  <p>Abre el correo y pulsa el enlace. Revisa también spam o correo no deseado. La alerta desaparecerá cuando se confirme la verificación.</p>
+  <div class="actions"><button type="button" class="primary" (click)="sentOpen = false">Entendido</button></div>
+</app-ui-modal>

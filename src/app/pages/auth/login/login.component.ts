@@ -1,3 +1,4 @@
+import { PasswordFieldComponent } from '../../../shared/components/password-field/password-field.component';
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -14,7 +15,7 @@ import { UiLoaderComponent } from '../../../shared/components/ui-loader/ui-loade
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandMarkComponent, UiLoaderComponent],
+  imports: [PasswordFieldComponent, CommonModule, ReactiveFormsModule, RouterLink, BrandMarkComponent, UiLoaderComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
@@ -37,6 +38,9 @@ export class LoginComponent {
     private readonly router: Router
   ) {
     this.returnUrl = sanitizeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl'));
+    if (this.route.snapshot.queryParamMap.get('reason') === 'inactivity') {
+      this.errorMessage = 'Tu sesión se cerró después de 30 minutos sin actividad. Inicia sesión nuevamente.';
+    }
   }
 
   protected get authQueryParams(): Record<string, string> | null {

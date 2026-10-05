@@ -26,7 +26,12 @@ export class ContactoComponent implements OnInit {
     phone: [''],
     commune: [''],
     message: ['', [Validators.required, Validators.minLength(8)]],
-    website: ['']
+    website: [''],
+    termsAccepted: [false],
+    privacyAcknowledged: [false],
+    ageConfirmed: [false],
+    authorityConfirmed: [false],
+    accuracyConfirmed: [false]
   });
 
   constructor(
@@ -47,6 +52,7 @@ export class ContactoComponent implements OnInit {
   }
 
   protected async submit(): Promise<void> {
+    if (this.isSubmitting) return;
     this.sent = false;
     this.errorMessage = '';
     if (this.form.invalid) {
@@ -59,7 +65,13 @@ export class ContactoComponent implements OnInit {
       const response = await fetch(`${API_BASE_URL}/solicitudes-contacto`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(this.form.getRawValue())
+        body: JSON.stringify({
+          ...this.form.getRawValue(),
+          ...(this.isStoreRequest ? {
+            termsVersion: this.legalIdentity.termsVersion,
+            privacyVersion: this.legalIdentity.privacyPolicyVersion
+          } : {})
+        })
       });
       const payload = await response.json() as { error?: { message?: string } };
       if (!response.ok) throw new Error(payload.error?.message || 'No se pudo enviar la solicitud.');
@@ -67,7 +79,9 @@ export class ContactoComponent implements OnInit {
       const type = this.form.controls.type.value;
       this.sent = true;
       this.form.reset({
-        name: '', email: '', type, businessName: '', phone: '', commune: '', message: '', website: ''
+        name: '', email: '', type, businessName: '', phone: '', commune: '', message: '', website: '',
+        termsAccepted: false, privacyAcknowledged: false, ageConfirmed: false,
+        authorityConfirmed: false, accuracyConfirmed: false
       });
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : 'No se pudo enviar la solicitud.';
@@ -81,6 +95,15 @@ export class ContactoComponent implements OnInit {
     return control.invalid && (control.touched || control.dirty);
   }
 
+  protected get hasAcceptanceError(): boolean {
+    return this.isStoreRequest && this.form.touched && this.acceptanceControls.some(control => control.invalid);
+  }
+
+  private get acceptanceControls() {
+    return [this.form.controls.termsAccepted, this.form.controls.privacyAcknowledged,
+      this.form.controls.ageConfirmed, this.form.controls.authorityConfirmed, this.form.controls.accuracyConfirmed];
+  }
+
   private syncStoreValidators(): void {
     const validators = this.isStoreRequest ? [Validators.required, Validators.minLength(2)] : [];
     this.form.controls.businessName.setValidators(validators);
@@ -89,5 +112,10 @@ export class ContactoComponent implements OnInit {
     this.form.controls.businessName.updateValueAndValidity({ emitEvent: false });
     this.form.controls.phone.updateValueAndValidity({ emitEvent: false });
     this.form.controls.commune.updateValueAndValidity({ emitEvent: false });
+    for (const control of this.acceptanceControls) {
+      control.setValidators(this.isStoreRequest ? [Validators.requiredTrue] : []);
+      control.reset(false, { emitEvent: false });
+      control.updateValueAndValidity({ emitEvent: false });
+    }
   }
 }

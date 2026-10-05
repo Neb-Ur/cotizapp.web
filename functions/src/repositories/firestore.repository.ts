@@ -1,18 +1,17 @@
-import { profileBelongsToMode, catalogProductForMode } from '../lib/data-mode.js';
+import { profileBelongsToMode } from '../lib/data-mode.js';
 import { randomUUID } from 'node:crypto';
 import { db } from '../lib/firebase.js';
 export async function rows(collectionName: string): Promise<any[]> {
   const snapshot = await db.collection(collectionName).get();
   return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-    .filter(item => collectionName !== 'usuarios' || profileBelongsToMode(item))
-    .map(item => collectionName === 'productosMaestro' ? catalogProductForMode(item) : item);
+    .filter(item => collectionName !== 'usuarios' || profileBelongsToMode(item));
 }
 
 export async function row(collectionName: string, id: string): Promise<any | null> {
   const snapshot = await db.collection(collectionName).doc(id).get();
   const value = snapshot.exists ? { id: snapshot.id, ...snapshot.data() } : null;
   if (!value || (collectionName === 'usuarios' && !profileBelongsToMode(value))) return null;
-  return collectionName === 'productosMaestro' ? catalogProductForMode(value) : value;
+  return value;
 }
 
 export async function createRow(collectionName: string, payload: Record<string, unknown>, id = randomUUID()): Promise<any> {

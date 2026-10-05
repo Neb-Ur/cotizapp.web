@@ -16,7 +16,6 @@ La generación mediante inteligencia artificial no autoriza por sí sola el uso 
 |---|---|---|---|---|---|---|
 | `src/assets/home-hero-construction.webp` | Imagen hero | Generada por IA | OpenAI ImageGen; términos vigentes al momento de generación | No se observan logotipos o marcas identificables | Historial del proyecto y archivo fuente | Aprobado para uso referencial |
 | `src/assets/cotizapp-mark.svg` | Marca propia | Diseño propio de CotizApp | Titularidad por formalizar a nombre de la futura sociedad | No | Historial del repositorio | Uso interno; revisar cesión al constituir sociedad |
-| `functions/scripts/assets/catalog/*.webp` | Imágenes referenciales de catálogo demo | Generadas por IA | OpenAI ImageGen; términos vigentes al momento de generación | No se deben publicar activos con marcas identificables | Referencia `SEED-AI-ASSET:<archivo>` almacenada por el seed | Aprobado solo con metadatos de procedencia |
 
 ## Campos obligatorios por contenido de catálogo
 

@@ -155,11 +155,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          if [[ "${{ github.event_name }}" == "push" && "${{ contains(github.event.head_commit.message, '[seed-firestore]') }}" == "true" ]]; then
-            echo "Seed-only push: skipping Firebase deploy; proceeding directly to Auth + Firestore data seed."
-            exit 0
-          fi
-
           if [[ "${{ github.event_name }}" == "push" && "${{ contains(github.event.head_commit.message, '[hosting-only]') }}" == "true" ]]; then
             DEPLOY_TARGETS="hosting"
             echo "Hosting-only push: deploying only Hosting."
@@ -172,21 +167,6 @@ jobs:
           fi
 
           npx --yes firebase-tools@15.32.1 deploy             --only "$DEPLOY_TARGETS"             --project "$FIREBASE_PROJECT_ID"             --non-interactive
-
-      - name: Create Firebase Auth demo users and seed Firestore
-        env:
-          DEMO_PASSWORD: ${{ secrets.DEMO_PASSWORD }}
-        if: github.event_name == 'push' && contains(github.event.head_commit.message, '[seed-firestore]')
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ "${FIREBASE_AUTH_MODE}" != "adc" ]]; then
-            echo "::error::La carga de Firestore requiere credenciales ADC."
-            exit 1
-          fi
-
-          : "${DEMO_PASSWORD:?Configura el secreto DEMO_PASSWORD para ejecutar el seed}"
-          node functions/scripts/seed-firestore.mjs
 
       - name: Smoke test production
         run: node scripts/smoke-production.mjs
