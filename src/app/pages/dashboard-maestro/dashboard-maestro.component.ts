@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faArrowDownWideShort, faChevronDown, faLocationDot, faSliders, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { Subscription } from 'rxjs';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import { FamilyProductRow, ProjectSummary, SearchProximity, SessionUser, TaxonomyOption } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
@@ -41,7 +42,7 @@ interface MaestroProfileDraft {
   templateUrl: './dashboard-maestro.component.html',
   styleUrl: './dashboard-maestro.component.scss'
 })
-export class DashboardMaestroComponent implements OnInit {
+export class DashboardMaestroComponent implements OnInit, OnDestroy {
   private sectionLoadError = '';
   protected get dataLoadError(): string { return this.sectionLoadError || this.apiService.loadError(); }
   protected async retryDataLoad(): Promise<void> {
@@ -71,6 +72,7 @@ export class DashboardMaestroComponent implements OnInit {
   protected selectedSubcategoryId = '';
   protected selectedFamilyId = '';
   protected productRows: FamilyProductRow[] = [];
+  protected totalProducts = 0;
   protected pageSize = 20;
   protected currentPage = 1;
   protected readonly pageSizeOptions = [10, 20, 50];
@@ -102,6 +104,9 @@ export class DashboardMaestroComponent implements OnInit {
   protected isMobileMenuVisible = false;
   private readonly loadedSections = new Set<MaestroSection>();
   private lastQuerySearch = '';
+  private searchReady = false;
+  private searchRequestId = 0;
+  private querySubscription?: Subscription;
   private productSearchTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
@@ -127,7 +132,7 @@ export class DashboardMaestroComponent implements OnInit {
       this.nearbyMessage = `Mostrando ferreterias a hasta ${this.nearbyRadiusKm} km de tu ubicacion.`;
     }
 
-    this.route.queryParamMap.subscribe((params) => {
+    this.querySubscription = this.route.queryParamMap.subscribe((params) => {
       const requestedQuery = params.get('q') || '';
       if (requestedQuery !== this.lastQuerySearch) {
         this.lastQuerySearch = requestedQuery;
@@ -183,18 +188,18 @@ export class DashboardMaestroComponent implements OnInit {
   }
 
   protected get categoryOptions(): TaxonomyOption[] {
-    return this.apiService.getCategoryOptions(!!this.user);
+    return this.apiService.getCategoryOptions(false);
   }
 
   protected get subcategoryOptions(): TaxonomyOption[] {
     return this.selectedCategoryId
-      ? this.apiService.getSubcategoryOptions(this.selectedCategoryId, !!this.user)
+      ? this.apiService.getSubcategoryOptions(this.selectedCategoryId, false)
       : [];
   }
 
   protected get familyOptions(): TaxonomyOption[] {
     return this.selectedSubcategoryId
-      ? this.apiService.getFamilyOptions(this.selectedSubcategoryId, !!this.user)
+      ? this.apiService.getFamilyOptions(this.selectedSubcategoryId, false)
       : [];
   }
 
@@ -215,20 +220,19 @@ export class DashboardMaestroComponent implements OnInit {
   }
 
   protected get totalPages(): number {
-    return Math.max(1, Math.ceil(this.productRows.length / this.pageSize));
+    return Math.max(1, Math.ceil(this.totalProducts / this.pageSize));
   }
 
   protected get paginatedProductRows(): FamilyProductRow[] {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.productRows.slice(start, start + this.pageSize);
+    return this.productRows;
   }
 
   protected get pageStart(): number {
-    return this.productRows.length === 0 ? 0 : ((this.currentPage - 1) * this.pageSize) + 1;
+    return this.totalProducts === 0 ? 0 : ((this.currentPage - 1) * this.pageSize) + 1;
   }
 
   protected get pageEnd(): number {
-    return Math.min(this.currentPage * this.pageSize, this.productRows.length);
+    return Math.min(this.currentPage * this.pageSize, this.totalProducts);
   }
 
   protected get pageNumbers(): number[] {
@@ -378,6 +382,8 @@ export class DashboardMaestroComponent implements OnInit {
 
   protected onProductSearchChange(): void {
     this.currentPage = 1;
+    // Ignore in-flight results as soon as the input changes, before debounce.
+    this.searchRequestId++;
     if (this.productSearchTimer) {
       clearTimeout(this.productSearchTimer);
     }
@@ -390,7 +396,7 @@ export class DashboardMaestroComponent implements OnInit {
   protected onProductSortChange(value: string): void {
     this.productSort = value;
     this.currentPage = 1;
-    this.sortProductRows();
+    this.refreshProductRows();
   }
 
   protected clearCategoryFilter(): void {
@@ -433,6 +439,7 @@ export class DashboardMaestroComponent implements OnInit {
   protected onProductsPageChange(event: PaginatorState): void {
     this.pageSize = event.rows ?? this.pageSize;
     this.currentPage = (event.page ?? 0) + 1;
+    this.refreshProductRows();
   }
 
   protected selectProductCard(event: Event, productName: string): void {
@@ -580,28 +587,9 @@ export class DashboardMaestroComponent implements OnInit {
     this.isSectionLoading = true;
     try {
       if (section === 'buscar') {
-        if (currentUser) {
-          await this.apiService.refreshMaestroSearchSection(force);
-          this.refreshProductRows();
-        } else {
-          this.isPublicCatalogRefreshing = true;
-
-          // The service restores browser cache before its first await, so cached
-          // products can render immediately while the network refresh continues.
-          const initialLoad = this.apiService.refreshPublicCatalogSection(force);
-          this.refreshProductRows();
-
-          void initialLoad
-            .then(() => {
-              this.refreshProductRows();
-              return this.apiService.refreshPublicCatalogEnhancements(force);
-            })
-            .then(() => this.refreshProductRows())
-            .catch(() => undefined)
-            .finally(() => {
-              this.isPublicCatalogRefreshing = false;
-            });
-        }
+        await this.apiService.refreshSearchTaxonomy(force);
+        this.searchReady = true;
+        if (!await this.fetchProductPage()) return;
       }
 
       if (currentUser && (section === 'inicio' || section === 'cotizaciones' || section === 'historial')) {
@@ -625,41 +613,46 @@ export class DashboardMaestroComponent implements OnInit {
   }
 
   private refreshProductRows(): void {
-    this.syncTaxonomySearchLabels();
-    const query = this.tableProductSearch.trim();
-    const autoLoad = !!this.user;
-    const hasTaxonomyFilter = !!(this.selectedCategoryId || this.selectedSubcategoryId || this.selectedFamilyId);
-    const rows = hasTaxonomyFilter
-      ? this.apiService.getFamilyProductRows(this.selectedFamilyId, query, this.currentProximity, autoLoad)
-      : this.apiService.getFamilyProductRows('', query, this.currentProximity, autoLoad);
+    if (!this.searchReady) return;
+    void this.fetchProductPage();
+  }
 
-    if (hasTaxonomyFilter) {
-      const allowedProducts = new Set(this.apiService.getProductOptions({
+  private async fetchProductPage(): Promise<boolean> {
+    if (this.productSearchTimer) {
+      clearTimeout(this.productSearchTimer);
+      this.productSearchTimer = null;
+    }
+    const requestId = ++this.searchRequestId;
+    this.syncTaxonomySearchLabels();
+    this.isPublicCatalogRefreshing = true;
+    this.sectionLoadError = '';
+    try {
+      const result = await this.apiService.searchProductPage({
+        query: this.tableProductSearch.trim(),
         categoryId: this.selectedCategoryId,
         subcategoryId: this.selectedSubcategoryId,
         familyId: this.selectedFamilyId
-      }, this.currentProximity, autoLoad));
-      this.productRows = rows.filter((row) => allowedProducts.has(row.productName));
-    } else {
-      this.productRows = rows;
+      }, this.currentPage, this.pageSize, this.productSort, this.currentProximity);
+      if (requestId !== this.searchRequestId) return false;
+      this.productRows = result.items;
+      this.totalProducts = result.total;
+      this.currentPage = result.page;
+      this.pageSize = result.size;
+      return true;
+    } catch (error) {
+      if (requestId !== this.searchRequestId) return false;
+      this.sectionLoadError = error instanceof Error ? error.message : 'No se pudieron cargar los productos. Intenta nuevamente.';
+      this.loadedSections.delete('buscar');
+      return false;
+    } finally {
+      if (requestId === this.searchRequestId) this.isPublicCatalogRefreshing = false;
     }
-
-    this.sortProductRows();
-    this.currentPage = Math.min(this.currentPage, this.totalPages);
   }
 
-  private sortProductRows(): void {
-    const rows = [...this.productRows];
-    if (this.productSort === 'relevance') {
-      rows.sort((a, b) => b.storeCount - a.storeCount || a.minPrice - b.minPrice);
-    } else if (this.productSort === 'price-asc') {
-      rows.sort((a, b) => a.minPrice - b.minPrice);
-    } else if (this.productSort === 'price-desc') {
-      rows.sort((a, b) => b.minPrice - a.minPrice);
-    } else if (this.productSort === 'stores') {
-      rows.sort((a, b) => b.storeCount - a.storeCount || a.minPrice - b.minPrice);
-    }
-    this.productRows = rows;
+  ngOnDestroy(): void {
+    this.querySubscription?.unsubscribe();
+    if (this.productSearchTimer) clearTimeout(this.productSearchTimer);
+    this.searchRequestId++;
   }
 
   private hydrateProfileDraft(): void {

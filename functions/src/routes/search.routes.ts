@@ -3,12 +3,39 @@ import { Router } from 'express';
 import { fail, ok } from '../lib/http.js';
 import { getPublicCatalogSnapshot } from '../lib/public-catalog-cache.js';
 import { COLLECTIONS } from '../lib/collections.js';
-import { normalizeText, numberValue } from '../lib/values.js';
+import { normalizeText, numberValue, normalizeProjectProximity } from '../lib/values.js';
+import { paginateProductSearch, type ProductSearchOptions } from '../domain/product-search.js';
 import { rows, row } from '../repositories/firestore.repository.js';
 import { buildSearchRows } from '../services/catalog-search.service.js';
 export const searchRouter = Router();
 
 searchRouter.get('/busqueda', async (req, res) => {
+  // Opt-in product pages preserve the legacy array response used by quotation
+  // and catalog consumers, while the search screen downloads only one page.
+  if (req.query['vista'] === 'productos') {
+    const page = Number(req.query['page'] ?? 1);
+    const size = Number(req.query['size'] ?? 20);
+    const sort = String(req.query['sort'] ?? 'relevance');
+    if (!Number.isSafeInteger(page) || page < 1 || !Number.isSafeInteger(size) || size < 1 || size > 50
+      || !['relevance', 'price-asc', 'price-desc', 'stores'].includes(sort)) {
+      return fail(res, 'SEARCH_INVALID_PAGE', 'Página, tamaño u orden de búsqueda inválidos.');
+    }
+    const hasProximity = ['latitude', 'longitude', 'radiusKm'].some(key => req.query[key] !== undefined);
+    const proximity = hasProximity ? normalizeProjectProximity(req.query) : null;
+    if (hasProximity && !proximity) {
+      return fail(res, 'SEARCH_INVALID_PROXIMITY', 'La ubicación o el radio de búsqueda no son válidos.');
+    }
+    const result = paginateProductSearch(await getPublicCatalogSnapshot(), {
+      query: normalizeText(req.query['query']),
+      categoryId: normalizeText(req.query['categoriaId']),
+      subcategoryId: normalizeText(req.query['subcategoriaId']),
+      familyId: normalizeText(req.query['familiaId']),
+      proximity: proximity || undefined,
+      sort: sort as ProductSearchOptions['sort'], page, size
+    });
+    res.set('Cache-Control', 'no-store');
+    return ok(res, result);
+  }
   const q = normalizeText(req.query['query']).toLowerCase();
   const categoryId = normalizeText(req.query['categoriaId']);
   const subcategoryId = normalizeText(req.query['subcategoriaId']);

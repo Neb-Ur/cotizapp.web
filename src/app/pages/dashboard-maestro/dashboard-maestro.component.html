@@ -144,7 +144,7 @@
           <div>
             <span>Acotar por</span>
             <h2>Filtros</h2>
-            <p>{{ productRows.length }} productos encontrados</p>
+            <p>{{ totalProducts }} productos encontrados</p>
           </div>
           <div class="filters-heading-actions">
             <button type="button" class="clear-filters-button" (click)="clearCategoryFilter()" [disabled]="taxonomyFilterCount === 0">Limpiar</button>
@@ -191,12 +191,13 @@
       <div class="results-heading">
         <div>
           <span>Resultados</span>
-          <h2>{{ productRows.length }} productos encontrados</h2>
+          <h2>{{ totalProducts }} productos encontrados</h2>
         </div>
         <p *ngIf="productRows.length > 0">Ordenados por disponibilidad y precio.</p>
       </div>
 
-      <div class="product-cards" *ngIf="productRows.length > 0; else emptyProducts">
+      <p class="cards-empty" role="status" *ngIf="isPublicCatalogRefreshing">Actualizando productos disponibles...</p>
+      <div [attr.aria-busy]="isPublicCatalogRefreshing" class="product-cards" *ngIf="productRows.length > 0; else emptyProducts">
         <a
           class="product-card"
           *ngFor="let row of paginatedProductRows"
@@ -221,7 +222,6 @@
       </div>
 
       <ng-template #emptyProducts>
-        <p class="cards-empty" *ngIf="isPublicCatalogRefreshing">Actualizando productos disponibles...</p>
         <ng-container *ngIf="!isPublicCatalogRefreshing && !dataLoadError">
           <p class="cards-empty" *ngIf="!nearbyEnabled">No encontramos productos para la búsqueda actual.</p>
           <p class="cards-empty" *ngIf="nearbyEnabled">
@@ -235,7 +235,7 @@
         styleClass="cotizapp-paginator"
         [first]="(currentPage - 1) * pageSize"
         [rows]="pageSize"
-        [totalRecords]="productRows.length"
+        [totalRecords]="totalProducts"
         [rowsPerPageOptions]="pageSizeOptions"
         [showCurrentPageReport]="true"
         currentPageReportTemplate="{first}–{last} de {totalRecords}"

@@ -15,10 +15,14 @@ describe('quotation draft privacy when the authentication service is unavailable
   it(`clears current and legacy drafts during ${action}, even when Firebase fails`, async () => {
    const auth = new AuthService({} as HttpClient, {run:(work:()=>unknown)=>work(),runOutsideAngular:(work:()=>unknown)=>work()} as NgZone);
    localStorage.setItem('cotizapp-project-draft:user', 'private-address');
+   localStorage.setItem('cotizapp-project-draft:real:first', 'real-private-address');
+   localStorage.setItem('cotizapp-project-draft:demo:second', 'demo-private-address');
    localStorage.setItem('construcomparador-project-draft', 'legacy-address');
    localStorage.setItem('unrelated-setting', 'keep');
    await auth[action]();
    expect(localStorage.getItem('cotizapp-project-draft:user')).toBeNull();
+   expect(localStorage.getItem('cotizapp-project-draft:real:first')).toBeNull();
+   expect(localStorage.getItem('cotizapp-project-draft:demo:second')).toBeNull();
    expect(localStorage.getItem('construcomparador-project-draft')).toBeNull();
    expect(localStorage.getItem('unrelated-setting')).toBe('keep');
    expect(auth.currentUser()).toBeNull();

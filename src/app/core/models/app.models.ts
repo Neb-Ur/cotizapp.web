@@ -246,6 +246,7 @@ export interface FamilyTemplate {
 }
 
 export interface FamilyProductRow {
+  productoMaestroId?: string;
   productName: string;
   imageUrl: string;
   minPrice: number;
@@ -255,6 +256,15 @@ export interface FamilyProductRow {
   productType: string;
   sellers: string[];
   nearestDistanceKm?: number;
+}
+
+export interface ProductSearchPage {
+  items: FamilyProductRow[];
+  page: number;
+  size: number;
+  total: number;
+  totalPages: number;
+  version: string;
 }
 
 export interface ProductStoreOfferRow {

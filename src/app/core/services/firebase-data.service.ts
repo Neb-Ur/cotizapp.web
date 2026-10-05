@@ -13,6 +13,7 @@ import {
   ContactRequest,
   ContactRequestStatus,
   FamilyProductRow,
+  ProductSearchPage,
   FamilySpecField,
   FamilyTemplate,
   ProductDetailView,
@@ -194,6 +195,22 @@ export class FirebaseDataService {
       this.ensureSearchRowsLoaded(force),
       this.ensureMasterCatalogLoaded(force)
     ]);
+  }
+
+  async refreshSearchTaxonomy(force = false): Promise<void> {
+    await this.ensureBasicTaxonomyLoaded(force);
+  }
+
+  async searchProductPage(filters: SearchFilters, page: number, size: number, sort: string, proximity?: SearchProximity): Promise<ProductSearchPage> {
+    try {
+      return await this.apiClient.get<ProductSearchPage>('/busqueda', false, {
+        vista: 'productos', query: filters.query,
+        categoriaId: filters.categoryId, subcategoriaId: filters.subcategoryId, familiaId: filters.familyId,
+        page, size, sort, latitude: proximity?.latitude, longitude: proximity?.longitude, radiusKm: proximity?.radiusKm
+      });
+    } catch (error) {
+      throw this.normalizeError(error, 'No se pudieron cargar los productos. Intenta nuevamente.');
+    }
   }
 
   async refreshPublicCatalogSection(force = false): Promise<void> {

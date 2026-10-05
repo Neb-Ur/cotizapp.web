@@ -1,199 +1,176 @@
 # Estado de CotizApp — 4 de octubre de 2026
 
-> Esta es la auditoría inicial del commit `8d414a8`. Las correcciones posteriores están documentadas en [correcciones importantes](fixes-important-2026-10-04.md).
+> Informe actualizado al código del commit `82b8569` y los cambios locales de búsqueda paginada, con las correcciones posteriores a la auditoría inicial de `8d414a8` y la separación demo/real. Las verificaciones locales y las observaciones históricas de producción se identifican por separado. No se ha desplegado esta entrega.
 
 ## Dictamen
 
-**La aplicación tiene una base técnica funcional, pero todavía no está lista para una operación comercial con datos reales.** El sitio público carga, las pruebas actuales pasan y el SEO básico está implementado. Hay un riesgo crítico de privacidad, errores en búsqueda/catálogo/cotización y tareas operativas pendientes.
+**Los hallazgos críticos y los errores principales de la auditoría están corregidos en el código y sus regresiones locales pasan.** La última validación registra **61 pruebas frontend y 50 backend aprobadas**, además de compilación de producción y comprobaciones en Chrome. La funcionalidad existente se conserva en los recorridos revisados; esto no acredita el 100% de los flujos autenticados en producción.
 
-En producción se observan **60 productos maestros, todos identificados como demostración, y 0 ofertas activas**. `/buscar` muestra 0 resultados y la sección de destacados de inicio queda vacía. Es un piloto navegable; actualmente no permite comparar precios reales ni comprobar el recorrido de compra/cotización con ferreterías reales.
+La aplicación incorpora `DEMO=true|false`, con valor predeterminado **false**, para iniciar con negocio real vacío y mantener disponibles los datos demo. El administrador es compartido y puede alternar ambos entornos con el botón **Demo**. El catálogo genérico y los catálogos de referencia se comparten; maestros como usuarios, ferreterías y registros de negocio se separan.
 
-Revisión del código en commit `8d414a8` y del sitio `https://cotizapp-d71c8.web.app`. No se modificaron funcionalidades ni se realizaron escrituras de negocio en producción. Las reproducciones de errores del backend usaron exclusivamente datos simulados en memoria.
+**Antes de abrir comercialmente quedan pendientes el despliegue, la validación autenticada con Firebase, la configuración operativa/legal y la incorporación de ofertas reales autorizadas.** También sigue pendiente mejorar rendimiento móvil y resolver deuda de escalabilidad y SEO. Un catálogo real sin ofertas al iniciar es ahora una condición prevista, no un error de carga.
 
-## Qué se verificó
+La auditoría inicial de `https://cotizapp-d71c8.web.app` observó **60 productos maestros demo y cero ofertas activas**. Esa observación es anterior a las correcciones y no constituye una comprobación del estado actual del servicio publicado. No se ha realizado una nueva medición de producción en esta actualización.
+
+Detalle de implementación: [correcciones importantes](fixes-important-2026-10-04.md) y [configuración demo/real](demo-real.md).
+
+## Última validación del código
 
 | Verificación | Resultado |
 |---|---|
-| Pruebas frontend | 41 aprobadas, 12 archivos |
-| Pruebas backend | 15 aprobadas; compilación TypeScript aprobada |
-| Compilación Angular de producción | Aprobada; nueve rutas prerenderizadas; tres advertencias de presupuesto CSS |
-| Smoke de producción | Aprobado: catálogo, ficha API/HTML, canonical, demo noindex, 404, cuenta privada noindex |
-| `npm audit`, frontend y Functions | 0 vulnerabilidades conocidas reportadas en ambos lockfiles |
-| Navegador Chrome, escritorio | Inicio, búsqueda, ficha, login, registro, recuperación y 404 sin errores JavaScript ni imágenes rotas en la muestra |
-| Navegador Chrome, móvil 390 px | Inicio, búsqueda, ficha y login sin desbordamiento horizontal |
-| API caída, simulada en navegador | Confirmado: búsqueda presenta “No encontramos productos” en lugar de informar el error |
-| Búsqueda por URL en producción | Confirmado: `/buscar?q=cemento` deja el campo vacío |
-| Reproducciones aisladas | Correo no verificado/exportación; sucursales homónimas; aprobación sin oferta; reposición que sigue inactiva |
+| Pruebas frontend | 61 aprobadas en 18 archivos |
+| Pruebas backend | 50 aprobadas, sin fallos ni pruebas omitidas |
+| TypeScript frontend y Functions | Compilación aprobada |
+| Compilación Angular de producción | Aprobada; nueve rutas prerenderizadas |
+| Presupuesto CSS | Tres advertencias pendientes: admin 20,39 kB, maestro 19,93 kB y ferretería 20,41 kB; límite de aviso 17 kB |
+| Contratos de API existentes | Se conservan método, orden, autenticación y middlewares de las rutas revisadas |
+| Chrome local, escritorio y móvil | Seis rutas públicas revisadas en ambos tamaños, sin errores JavaScript ni desbordamientos horizontales |
+| Regresiones de negocio en navegador | Búsqueda con `q`, selección por ID de sucursal, selección antigua ambigua y error 503 con reintento comprobados |
+| Demo/real en navegador | Real vacío, demo con ofertas y mismo administrador alternando en ambos sentidos sin perder sesión; datos simulados |
+| Búsqueda paginada | Catálogo controlado de 135 productos, última página, total completo, filtros/orden global y carga de una sola página comprobados |
+| Aislamiento de datos | Pruebas de lectura/escritura, perfiles, autorización, caché y solicitudes concurrentes aprobadas |
+| Conflictos y formato | Sin archivos sin fusionar; comprobación de diferencias aprobada en la entrega de código |
 
-Las pruebas existentes no cubren todos los recorridos de negocio. Que pasen no elimina los hallazgos siguientes. `npm audit` tampoco constituye una auditoría de permisos o de lógica de aplicación.
+Las comprobaciones de backend usan dobles de Firestore/Auth en memoria. El navegador se comprobó con la compilación de producción y respuestas controladas; no se crearon cuentas ni registros de negocio en producción.
 
-## Hallazgos prioritarios
+En la auditoría inicial, `npm audit` informó cero vulnerabilidades conocidas en ambos lockfiles. No se repitió ese análisis en esta actualización documental y no sustituye una revisión de permisos o de lógica de negocio.
 
-### P0 — Exportación/eliminación pueden asociar datos de terceros por correo no verificado
+## Estado de los hallazgos iniciales
 
-**Confirmado en código y reproducido con datos simulados.** `requireAuth` valida el token, pero no exige `email_verified`; también deja pasar cuentas Firebase sin perfil. `/privacy/export` toma el correo de Firebase y `accountRows` incluye solicitudes de contacto, denuncias de propiedad intelectual y reclamos de precios por coincidencia de correo, sin acreditar su propiedad.
+“Corregido” describe el código y las comprobaciones locales; su puesta en servicio depende del despliegue conjunto.
 
-La reproducción aislada aceptó un token con `email_verified: false` y exportó una solicitud de contacto de otro registro que usaba ese correo. El mismo mecanismo se reutiliza en la eliminación: puede borrar solicitudes de contacto y minimizar denuncias/reclamos asociados por correo.
-
-**Impacto:** acceso indebido a registros privados y posible alteración de información ajena cuando una cuenta se registra con un correo que todavía no tenía cuenta Firebase. No se intentó explotar esta condición en producción; debe verificarse también la configuración real de registro de Firebase.
-
-**Acción:** exigir propiedad verificada del correo antes de operaciones que vinculen datos por email; asociar registros a UID o a un mecanismo verificado de reclamación; exigir autenticación reciente para eliminación. La ausencia de perfil debe tratarse explícitamente.
-
-Evidencia: `functions/src/lib/auth.ts:34`, `functions/src/routes/privacy.routes.ts:106`, `functions/src/routes/privacy.routes.ts:126`, `functions/src/services/account-data.service.ts:49`.
-
-### P1 — La búsqueda desde inicio no aplica el texto ingresado
-
-**Confirmado en código y navegador de producción.** Inicio navega a `/buscar?q=...`, pero `DashboardMaestroComponent` nunca lee `q` para inicializar `tableProductSearch`. El usuario llega a una búsqueda sin su filtro.
-
-**Acción:** aplicar el parámetro al inicializar y al cambiar la URL; comprobar también enlaces compartidos y navegación atrás.
-
-Evidencia: `src/app/pages/home/home.component.ts:63`, `src/app/pages/dashboard-maestro/dashboard-maestro.component.ts:122`.
-
-### P1 — El optimizador mezcla sucursales que tienen el mismo nombre
-
-**Confirmado con reproducción aislada.** La alternativa “todo en una tienda” agrupa por `storeName`, no por `storeId`. Dos sucursales llamadas “Ferretería Central”, cada una con un material distinto, aparecen como una única tienda capaz de cubrir toda la cotización. La selección en la ficha también identifica tiendas por nombre.
-
-**Impacto:** estrategia de compra imposible en una sola sucursal, cantidades de ferreterías incorrectas y selección ambigua.
-
-**Acción:** usar IDs de tienda/sucursal en optimización, selección, persistencia, conteos y PDF; conservar el nombre solo para mostrarlo.
-
-Evidencia: `functions/src/domain/quotation.ts:21`, `functions/src/domain/quotation.ts:35`, `src/app/pages/producto-detalle/producto-detalle.component.ts:177`.
-
-### P1 — La importación puede vincular automáticamente un producto equivocado
-
-**Confirmado por revisión de código; pendiente de prueba completa con un catálogo controlado.** Si la fila no coincide con un producto existente, `suggestMatches` permite coincidencias por fragmentos de nombre o marca; cualquier sugerencia con puntuación positiva puede ser elegida. `importCatalogBatch` toma la primera y crea/actualiza la oferta sin exigir coincidencia exacta ni confirmación.
-
-**Impacto:** precio y stock de una presentación, tamaño o marca pueden publicarse sobre otra ficha. El contador de “posible_match” existe, pero esta rama informa “subido”.
-
-**Acción:** vincular automáticamente solo coincidencias inequívocas; enviar candidatos ambiguos a revisión antes de publicar.
-
-Evidencia: `src/app/core/services/firebase-data.service.ts:978`, `src/app/core/services/firebase-data.service.ts:1005`, `src/app/core/services/firebase-data.service.ts:2112`.
-
-### P1 — Aprobar una solicitud no incorpora el producto al catálogo de la ferretería
-
-**Confirmado en frontend/backend y reproducido con datos simulados.** El endpoint de resolución solo cambia estado y producto sugerido de la solicitud. No crea la oferta en `productosFerreteria`; el frontend tampoco la crea, pero anuncia “Solicitud aprobada y aplicada correctamente”.
-
-**Impacto:** la ferretería sigue sin el producto solicitado, aunque administración lo ve aprobado. Precio y cantidad de referencia no se aplican a una oferta.
-
-**Acción:** definir y ejecutar transaccionalmente la incorporación de la oferta al aprobar, con validación del maestro y control de duplicados; o cambiar expresamente el flujo/mensaje para requerir un paso posterior.
-
-Evidencia: `functions/src/routes/product-requests.routes.ts:41`, `src/app/core/services/firebase-data.service.ts:1057`, `src/app/pages/dashboard-admin-validaciones/dashboard-admin-validaciones.component.ts:1702`.
-
-### P1 — Reponer una oferta retirada no la vuelve a activar
-
-**Confirmado con reproducción aislada.** `retiro_preventivo` pone `activo:false`. Después, `repuesto` pone `publicado:true`, pero conserva `activo:false`; el constructor del catálogo público sigue excluyéndola.
-
-**Acción:** guardar y restaurar el estado anterior de publicación/actividad, sin reactivar ofertas que ya estaban inactivas por otra causa.
-
-Evidencia: `functions/src/routes/intellectual-property.routes.ts:143`, `functions/src/services/catalog-search.service.ts:31`.
-
-### P1 — Errores de carga se presentan como ausencia de datos
-
-**Confirmado en código y con fallo de API simulado en Chrome.** Cargadores de búsqueda, proyectos, catálogo propio y solicitudes capturan errores sin propagarlos. Algunas promesas quedan guardadas como si la carga hubiera terminado correctamente. La interfaz puede mostrar 0 resultados/ninguna cotización y no reintentar hasta una carga forzada.
-
-**Impacto:** una caída o un error de permisos se confunde con pérdida de información. La prueba con respuestas 503 mostró “No encontramos productos para la búsqueda actual”.
-
-**Acción:** distinguir vacío, carga y error; permitir reintento y descartar promesas fallidas. Mantener datos previos solo con un aviso de que no pudieron actualizarse.
-
-Evidencia: `src/app/core/services/firebase-data.service.ts:1724`, `src/app/core/services/firebase-data.service.ts:1791`, `src/app/core/services/firebase-data.service.ts:1811`.
-
-## Otros problemas y deuda técnica
-
-| Prioridad | Hallazgo | Evidencia y acción |
+| Prioridad original | Hallazgo | Estado actual |
 |---|---|---|
-| P2 | Importación inicial pierde identificadores/opciones de la fila | La rama de vinculación pasa solo precio y stock. El helper genera SKU desde el maestro y fuerza `isPublished:true`; no conserva el SKU/identificador de la fila ni respeta la opción de publicación en esta rama. Revisar `firebase-data.service.ts:668`, `:691`, `:1005`. |
-| P2 | Registro permite sobrescribir un perfil existente | `/auth/register` escribe con `merge:true` sin rechazar perfiles existentes; cambia rol, estado y fecha. No permite convertirse en admin, pero puede alterar un perfil ya establecido. Separar creación, recuperación y edición. `auth.routes.ts:13`, `:51`. |
-| P2 | Borrador compartido entre cuentas del mismo navegador | La clave `construcomparador-project-draft` no incluye UID; logout no la borra y eliminación limpia claves con prefijo `cotizapp`, que no incluye esta. Puede conservar dirección de obra y materiales para el siguiente usuario. `proyecto-detalle.component.ts:31`, `:456`; `auth.service.ts`, métodos logout y clearAfterAccountDeletion. |
-| P2 | Ficha técnica pierde valores válidos | `valorTexto || valorNumero || valorOpcion || valorBooleano || ''` convierte `0` y `false` en vacío; además muestra el ID de la definición como etiqueta. Usar valores nulos explícitos y resolver etiquetas de atributos. `firebase-data.service.ts:1419`. |
-| P2 | Búsqueda puede ocultar productos al crecer | Sin filtro taxonómico se limita a 100 productos antes de paginar. La búsqueda/paginación también se hace sobre el catálogo completo descargado. Añadir paginación real y búsquedas del servidor; evitar que el usuario vea un total artificialmente reducido. `dashboard-maestro.component.ts:610`. |
-| P2 | Importaciones masivas compiten con límites de API | Cada fila produce solicitudes individuales y recargas de catálogo; el límite de escritura es 60/minuto por IP e instancia. No se observa control de ritmo/reintento de 429 en este importador. Medir con archivos de 100/500 filas y diseñar lotes con progreso y recuperación. `firebase-data.service.ts:782`; `functions/src/lib/rate-limit.ts`. |
-| P2 | Riesgo de duplicados y actualizaciones parciales | Vincular oferta hace “buscar si existe” y luego crear fuera de una transacción. Actualizar perfil escribe datos antes de validar todas las coordenadas. Separar validación de persistencia y proteger unicidad/concurrencia. `store-catalog.routes.ts:57`; `auth.routes.ts:95`. |
-| P2 | URLs de producto no tienen identificador estable | El slug se deriva solo del nombre, elimina acentos y se trunca a 120 caracteres. Nombres distintos pueden producir el mismo slug; renombrar cambia URL sin redirección histórica. Usar ID estable y política de redirección. No se confirmó colisión entre los 60 productos actuales. `product-url.util.ts:1`; `public-pages.routes.ts:6`. |
-| P3 | Documentación desactualizada | README aún dice Angular 17; dependencias usan Angular 21. Promete cotizaciones sin límites, mientras interfaz/backend permiten 2. `docs/code-architecture.md` menciona MockApiService y flags de Karma anteriores. Alinear documentación y alcance real. |
+| P0 | Exportar/eliminar registros de terceros por correo no verificado | **Corregido.** Los registros por UID mantienen su asociación; los anónimos por correo requieren que Firebase acredite ese mismo correo verificado. Los fallos de Auth se propagan. La eliminación exige autenticación de los últimos cinco minutos. |
+| P1 | Búsqueda desde inicio ignora `q` | **Corregido.** Se aplica y actualiza el parámetro, reiniciando la paginación. |
+| P1 | Optimizador mezcla sucursales homónimas | **Corregido.** Selección, optimización y cotizaciones usan IDs. Las selecciones antiguas solo se recuperan si son inequívocas; una selección ambigua no cambia silenciosamente de tienda. |
+| P1 | Importación vincula productos por coincidencias aproximadas | **Corregido.** Solo coincidencias exactas e inequívocas permiten vinculación automática; el resto requiere revisión. |
+| P1 | Aprobar una solicitud no crea la oferta | **Corregido.** Una transacción crea o reutiliza la oferta y enlaza la solicitud; repetir la aprobación no duplica ni sobrescribe ofertas existentes. |
+| P1 | Reponer una oferta mantiene `activo:false` | **Corregido.** Se restaura el estado anterior. Los retiros históricos sin estado guardado mantienen la reposición activa como compatibilidad. |
+| P1 | Fallos de carga se muestran como ausencia de datos | **Corregido.** Hay error visible y reintento, sin presentar un fallo como catálogo vacío. |
+| P2 | CSV pierde SKU, identificadores y opciones | **Corregido.** Se conservan SKU, código de barras, stock cero y elección de publicación. |
+| P2 | Registro sobrescribe perfiles existentes | **Corregido.** Se rechaza el registro repetido sin alterar rol, estado ni datos anteriores. |
+| P2 | Borrador compartido entre cuentas | **Corregido.** Claves por UID y entorno; limpieza al salir/eliminar, incluyendo la clave histórica. |
+| P2 | Ficha técnica pierde `0` y `false` o muestra IDs | **Corregido.** Valores preservados y etiquetas legibles en el detalle API. |
+| P2 | Búsqueda corta el catálogo a 100 productos | **Corregido.** La pantalla solicita páginas al servidor con búsqueda, filtros, ordenamiento y cercanía; recibe el total completo, sin descargar el catálogo entero. Pruebas con 135 productos y respuesta antigua descartada al cambiar la búsqueda. |
+| P2 | Duplicados concurrentes y actualización parcial de perfiles | **Corregido.** Vinculación protegida por transacción y coordenadas validadas antes de confirmar el lote. |
+| Operativo | Eliminación informa éxito pese a un fallo de Firebase Auth | **Corregido.** Solo se tolera que el usuario ya no exista; otros errores no generan comprobante de éxito. La eliminación entre servicios no es atómica y puede requerir reintento. |
+
+## Separación demo y real
+
+```dotenv
+DEMO=false
+```
+
+La variable se configura en Functions; admite únicamente `true` o `false`. El frontend consulta `/api/config` antes de iniciar. Si no puede obtener la configuración, muestra un error en lugar de seleccionar un entorno implícitamente.
+
+| Aspecto | Comportamiento |
+|---|---|
+| `DEMO=true` | Entorno público y cuentas de negocio usan datos demo históricos |
+| `DEMO=false` | Entorno real; no copia usuarios de negocio, ferreterías, ofertas ni cotizaciones demo |
+| Referencias compartidas | Categorías, subcategorías, familias, productos maestros, atributos, ciudades y comunas |
+| Catálogo genérico | Las fichas del seed se presentan como referencias genéricas en real; no generan precios ni stock |
+| Identidad | Firebase Auth y `usuarios` compartidos; perfiles de negocio con `dataMode`, históricos sin campo considerados demo |
+| Negocio | Colecciones históricas para demo y prefijo `real_` para registros reales |
+| Administrador | Misma cuenta en ambos entornos; botón Demo activado selecciona demo y desactivado real |
+| Alcance del botón | Preferencia por administrador/navegador; no cambia la variable del servidor ni el entorno de otros usuarios |
+| Autorización | Solo admin autorizado puede seleccionar entorno por cabecera; cuentas de negocio no acceden al entorno contrario |
+| Caché y borradores | Separados por entorno; respuestas con selección administrativa protegidas frente a caché pública |
+| Requisitos comerciales | Real conserva contratos, activación, vigencia y stock; demo admite ofertas sin contrato comercial real |
+| SEO demo | Aviso visible y protección noindex para fichas/API demo |
+
+No se borran ni migran los registros históricos. Las colecciones reales se crean al registrar datos reales; la variable no ejecuta el seed ni crea cuentas. Las cuentas Firebase deshabilitadas continúan deshabilitadas. Los cambios administrativos al catálogo central sí afectan a ambos entornos por ser compartido.
+
+## Funcionalidades y límites de validación
+
+| Área | Estado actual |
+|---|---|
+| Sitio público e información | Navegación comprobada en la muestra de rutas; pendientes operativos del contenido legal |
+| Catálogo/comparador | Implementado; búsqueda y paginación de servidor corregidas, aislamiento demo/real comprobado; necesita ofertas reales para validar precios comerciales |
+| Registro/login/recuperación | Integración implementada y protección de perfiles corregida; falta recorrido con correo controlado y configuración Firebase real |
+| Cotizaciones y optimización | Regresiones aprobadas, sucursales por ID; máximo dos cotizaciones guardadas |
+| Historial | Cotizaciones guardadas con precios recalculados; no conserva un presupuesto original inmutable |
+| PDF/compartir | Implementado y con pruebas básicas; PDF largo y entrega nativa Android/iOS pendientes |
+| Ubicación/cercanía | Implementada; faltan permisos en dispositivos y coordenadas comerciales reales |
+| Catálogo ferretería/CSV | Coincidencias y opciones corregidas; falta recuperación/progreso ante límites de importación masiva |
+| Solicitudes de productos | Aprobación transaccional con incorporación de oferta y protección frente a duplicados |
+| Administración/moderación | Reposición corregida; administrador compartido con selector Demo |
+| Métricas ferretería | Vistas/selecciones agregadas; no representan ventas ni visitas únicas y admiten repetición de eventos |
+| Privacidad/denuncias | Correcciones de identidad y autenticación reciente comprobadas localmente; pendientes configuración externa y recorrido real |
+| Contacto/soporte | Guarda solicitudes para gestión administrativa; sin envío automático de email observado; WhatsApp deshabilitado |
+| Pagos, checkout, ERP y chat | Fuera del alcance del MVP; su ausencia no se considera bug |
 
 ## SEO
 
-**La base está bien, pero eso no significa que el catálogo ya tenga potencial de tráfico comercial.**
+La auditoría inicial de producción comprobó títulos, canonical y H1 de nueve rutas estáticas; `robots.txt`, sitemap de nueve URLs, fichas demo noindex, páginas privadas con cabecera noindex y respuestas 404 para rutas/productos inexistentes. Es evidencia histórica, anterior a esta entrega.
 
-Comprobado en producción:
+Correcciones locales aplicadas:
 
-- Las nueve rutas estáticas revisadas responden 200, tienen título específico, canonical y un H1.
-- `robots.txt` y `sitemap.xml` responden correctamente. El sitemap contiene nueve URLs estáticas.
-- Las fichas demo responden 200 con nombre, canonical, contenido inicial y `noindex`. Que no aparezcan en sitemap es coherente con su estado de demostración.
-- Productos y rutas inexistentes devuelven HTTP 404; páginas privadas llevan `X-Robots-Tag: noindex, nofollow`.
-- La ficha real está preparada para generar JSON-LD Product/AggregateOffer, pero no se pudo validar una oferta real porque hay cero ofertas públicas.
+- `/auth` redirige a login; `/producto?product=...` redirige a la ficha conservando parámetros y, sin producto, al buscador. Las rutas antiguas tienen protección noindex.
+- Las vistas previas de producto usan su imagen, en lugar de la imagen genérica de inicio.
+- La selección demo incorpora protección noindex y el catálogo real se mantiene separado.
 
 Pendientes:
 
-1. `/auth` y `/producto` entregan inicialmente el HTML de inicio, con título/canonical de inicio e `index, follow`, sin cabecera noindex. Angular luego cambia la página. `/auth` debería redirigir coherentemente a login; la ruta legacy de producto requiere una política definida para URLs vacías y URLs con query.
-2. Login, registro y páginas privadas también entregan inicialmente contenido de inicio. La cabecera noindex las protege, pero conviene alinear HTML inicial y metadatos con la ruta en lugar de depender del navegador.
-3. La ficha servida por Functions tiene metadatos/schema más reducidos que el frontend; usa la imagen genérica de inicio. Unificar generación para que las vistas previas tengan imagen y datos del producto.
-4. El sitemap deriva productos de ofertas: un maestro real sin ofertas no entra en él aunque su ficha sea indexable. Definir si esas fichas deben indexarse; evitar decisiones implícitas.
-5. No se verificaron Search Console, cobertura real de Google, posiciones, backlinks ni Core Web Vitals de usuarios reales. Lighthouse no mide esos resultados.
+1. Alinear HTML inicial y metadatos de login, registro y rutas privadas; la protección noindex no sustituye esa coherencia.
+2. Unificar la amplitud de schema/metadatos entre Functions y frontend. Product/AggregateOffer requiere validación con ofertas reales.
+3. Definir si los maestros reales sin ofertas deben indexarse: hoy el sitemap deriva productos de ofertas, mientras una ficha sin ofertas puede ser indexable.
+4. Incorporar un identificador estable y redirecciones históricas para slugs. Los nombres pueden colisionar o cambiar la URL al renombrarse.
+5. Verificar Search Console, cobertura y resultados reales después del despliegue. No se han medido posiciones, backlinks ni Core Web Vitals de usuarios reales.
 
 ## Rendimiento y accesibilidad
 
-Medición de **Lighthouse 12.8.2, móvil simulado, inicio de producción**, 4 de octubre de 2026:
+**La siguiente medición corresponde exclusivamente a la auditoría inicial de producción. No se ha repetido Lighthouse tras las correcciones.** Lighthouse 12.8.2, móvil simulado, inicio, 4 de octubre de 2026:
 
-| Categoría | Puntaje |
+| Categoría | Puntaje histórico |
 |---|---:|
 | Rendimiento | 60/100 |
 | Accesibilidad | 91/100 |
 | Buenas prácticas | 100/100 |
 | SEO básico automático | 100/100 |
 
-FCP 1,9 s; **LCP 5,5 s**; bloqueo total 490 ms; CLS 0,046; tiempo interactivo 8,6 s. Es una sola medición de laboratorio, con red/CPU simuladas; no representa un percentil de usuarios reales ni una garantía de velocidad.
+FCP 1,9 s; LCP 5,5 s; bloqueo total 490 ms; CLS 0,046; tiempo interactivo 8,6 s. Una medición de laboratorio no representa un percentil de usuarios reales.
 
-El elemento LCP es la imagen principal. Lighthouse también señaló entrega de imágenes no adaptada al tamaño móvil, trabajo de JavaScript, carga de fuentes y falta de compresión en la respuesta del catálogo público. Priorizar imagen móvil/srcset, fuentes, menos trabajo al inicio y compresión/paginación de API.
+Quedan pendientes imagen principal adaptada a móvil, fuentes, trabajo de JavaScript al inicio, compresión de API, optimización de los consumidores que aún usan snapshots completos y reducción del CSS de los paneles. No se atribuye una mejora de puntuación a las correcciones sin volver a medir.
 
-Problemas de accesibilidad comprobados: el botón de búsqueda de inicio pierde su nombre accesible en móvil al ocultar la etiqueta, y textos del bloque de beneficios y el enlace “Solicitar acceso” tienen contraste insuficiente. Añadir nombre accesible explícito y ajustar colores. Revisar también teclado y lector de pantalla en paneles privados; la prueba pública no los certifica.
+Se corrigieron el nombre accesible del botón de búsqueda móvil y el contraste del bloque de beneficios. Sigue pendiente comprobar/corregir el contraste de “Solicitar acceso” y revisar teclado/lector de pantalla en paneles privados. La ausencia de desbordamientos en la muestra no certifica accesibilidad completa.
 
-La compilación de producción de esta revisión dejó avisos de presupuesto de estilos en los tres paneles; el bundle inicial fue aproximadamente 888 kB sin comprimir. No son errores de compilación, pero respaldan la necesidad de trabajar rendimiento.
+## Deuda técnica y operación pendientes
 
-## Funcionalidades: implementación y límites de validación
-
-| Área | Estado |
-|---|---|
-| Sitio público, navegación, páginas informativas | Funciona en las rutas revisadas |
-| Catálogo/comparador | Implementado; vacío de ofertas reales en producción; búsqueda desde inicio tiene bug |
-| Registro/login/recuperación | Pantallas y conexión Firebase presentes; recorrido real con correo controlado pendiente; propiedad del correo no se exige en operaciones sensibles |
-| Cotizaciones y optimización | Implementadas, pruebas unitarias aprobadas; bug de sucursales homónimas; máximo 2 guardadas |
-| Historial | Lista de cotizaciones guardadas con precios recalculados; no es un historial inmutable del presupuesto original |
-| Exportación PDF/compartir | Implementada; pruebas cubren casos básicos/cancelación; entrega nativa Android/iOS y PDF largo pendientes de validación real |
-| Ubicación/cercanía | Implementada; permisos/dispositivos y coordenadas comerciales reales pendientes |
-| Catálogo ferretería/importación | Implementado; coincidencias ambiguas e identificadores requieren corrección |
-| Solicitudes de nuevos productos | Registro y revisión presentes; aprobación no completa la incorporación de oferta |
-| Administración/moderación | Implementada; reposición de oferta tiene bug |
-| Métricas ferretería | Contadores de vistas/selecciones, no ventas ni visitas únicas; eventos públicos pueden repetirse, no constituyen analítica robusta |
-| Privacidad y denuncias | Amplia implementación, pero el hallazgo P0 impide darla por segura |
-| Contacto/soporte | Guarda solicitudes para gestión en admin; no se observa envío automático de email; WhatsApp deshabilitado |
-| Pagos/suscripciones, checkout, ERP, chat | Fuera del MVP; su ausencia no es un bug |
-
-## Operación y seguridad que requieren revisión de configuración
-
-- Completar identidad del operador, RUT, domicilio y representante. La configuración y el footer público siguen mostrando datos pendientes y “no usar en producción”. Verificar que los buzones de soporte/legal/privacidad existan y se atiendan. Este informe no certifica cumplimiento jurídico.
-- MFA admin: el backend lo exige solo si `REQUIRE_ADMIN_MFA=true`. No se encontró flujo de enrolamiento/desafío MFA en el frontend revisado. Antes de activarlo, comprobar ambos extremos con una cuenta controlada; no se verificó el valor desplegado de la variable.
-- Confirmar cuentas demo deshabilitadas/revocadas en Firebase Auth. El bloqueo de acceso API existe y sus pruebas pasan, pero esto no acredita la configuración de todas las cuentas.
-- Confirmar reglas Firestore realmente desplegadas. El archivo local niega acceso directo del navegador; el despliegue estándar no publica reglas/indexes automáticamente.
-- Backups/restauración, IAM, alertas, presupuesto, retención y seguimiento de solicitudes tienen documentación, pero no se verificó su ejecución en consola. La matriz declara expresamente gestión manual y ausencia de borrado automático general.
-- El rate limit vive en memoria por instancia; no es un límite global distribuido. Las métricas públicas agregadas son manipulables por repetición de eventos y deben interpretarse con ese límite.
-- `deleteAccountData` ignora cualquier error de eliminación en Firebase Auth, no solo “usuario no existe”: puede informar éxito aunque la cuenta de autenticación sobreviva. Registrar y tratar errores/reintentos explícitamente.
-- Hay múltiples lecturas completas de colecciones y listados sin paginación. El endpoint de usuarios además consulta ferreterías por cada perfil. Revisar costo y latencia con datos de volumen real.
+| Prioridad | Pendiente | Acción requerida |
+|---|---|---|
+| Antes de apertura | Despliegue de esta entrega | Publicar frontend, Functions, Hosting y nuevos triggers de caché conjuntamente, con `DEMO=false` para negocio real |
+| Antes de apertura | Identidad legal y canales | Completar operador, RUT, domicilio y representante; retirar textos provisionales y verificar buzones atendidos |
+| Antes de apertura | Recorrido Firebase real | Probar roles, verificación de correo, recuperación, autenticación reciente, aislamiento y eliminación con cuentas controladas |
+| Antes de apertura | Reglas y permisos | Confirmar reglas Firestore desplegadas e IAM; el archivo local niega acceso directo y el despliegue estándar no publica reglas/indexes automáticamente |
+| Antes de apertura | MFA administrativo | Verificar `REQUIRE_ADMIN_MFA` y flujo de enrolamiento/desafío antes de exigirlo; no se comprobó la configuración desplegada |
+| Antes de apertura | Respaldos y seguimiento | Verificar restauración, alertas, presupuesto, retención y gestión manual de solicitudes; la documentación no acredita ejecución |
+| P2 | Importaciones masivas | Controlar ritmo y recuperación ante 429; probar lotes de 100/500 filas con progreso |
+| P2 | Escalabilidad de consultas | Optimizar la materialización/lectura del snapshot público en servidor y los listados restantes; evitar consultas de ferreterías por cada perfil. La búsqueda ya pagina hacia el navegador, pero sigue agregando sobre el snapshot en servidor |
+| P2 | Rate limit y métricas | El límite es por instancia en memoria; evaluar control distribuido y protección de eventos repetidos según volumen |
+| P2 | Rendimiento, accesibilidad y SEO | Resolver los pendientes detallados y volver a medir el servicio desplegado |
+| P3 | Documentación general | Actualizar README Angular 17 frente a Angular 21, promesa de cotizaciones ilimitadas frente al límite de dos y referencias antiguas a MockApiService/Karma |
 
 ## Orden recomendado
 
-1. Cerrar P0 de privacidad y añadir pruebas de autorización por identidad verificada.
-2. Corregir búsqueda `q`, identificación por sucursal, aprobación/reposición e importación ambigua.
-3. Hacer visibles errores de red y recuperar cargas fallidas.
-4. Probar el recorrido completo con un maestro, administración y dos ferreterías controladas: contrato, activación, carga, modificación, búsqueda, cotización, PDF, logout y privacidad.
-5. Incorporar ofertas reales autorizadas y completar identidad/canales de operación antes de abrir comercialmente.
-6. Mejorar rendimiento móvil/accesibilidad y alinear SEO inicial de rutas legacy/privadas.
-7. Validar backups, MFA, permisos, monitoreo y retención; actualizar documentación.
+1. Preparar configuración real, identidad legal, canales, permisos y respaldo; desplegar conjuntamente las piezas de esta entrega.
+2. Verificar con cuentas controladas el flujo completo de maestro, administrador y dos ferreterías: contratos, activación, carga, modificación, búsqueda, cotización, PDF y privacidad.
+3. Comprobar en el entorno desplegado que real inicia vacío, demo conserva sus datos y el administrador alterna sin filtraciones entre entornos.
+4. Incorporar ofertas reales autorizadas y contrastar precios/stock antes de abrir comercialmente.
+5. Medir nuevamente rendimiento/accesibilidad, comprobar SEO/indexación y priorizar importación masiva y escalabilidad según el volumen esperado.
 
-## Alcance y evidencia de la revisión
+## Alcance y evidencia
 
-Se revisaron frontend, routers/backend, optimizador, importación, privacidad, moderación, caché, hosting y CI/CD. Se probaron rutas públicas por HTTP y navegador y se ejecutaron pruebas/dependency audit. Las comprobaciones no sustituyen E2E autenticado, una auditoría completa de seguridad o pruebas de carga.
+Este documento consolida la auditoría inicial y las validaciones posteriores; su actualización no ejecuta una nueva auditoría de producción. Las pruebas locales cubren los comportamientos señalados y regresiones existentes, sin garantizar todos los flujos, la configuración externa ni carga comercial real.
 
-No se crearon cuentas reales, aceptaron contratos, enviaron formularios ni alteraron datos de producción. No se verificaron emails de recuperación/soporte, permisos Firebase/IAM, backups, facturación, servicios de correo o MFA desplegado. Sin ofertas reales no se pudieron contrastar comercialmente precios/stock ni calcular ahorro real.
+No se han desplegado estas correcciones ni creado cuentas, aceptado contratos, enviado formularios o alterado datos de negocio en producción. No se verificaron en consola correos, MFA, IAM, respaldos, facturación o retención. Sin ofertas reales no se contrastaron comercialmente precios/stock ni ahorro.
 
-Evidencia temporal local: `/tmp/cotizapp-audit/` contiene capturas, respuestas públicas, resultados de navegador y `lighthouse-home.json`. Los comandos de reproducción de backend reemplazaron Firestore/Auth por dobles de prueba en memoria, sin llamadas de datos reales.
+Comandos de validación utilizados: `npm test -- --watch=false`, `npm --prefix functions test`, `npm run build`, `npm --prefix functions run build` y `npx tsc --noEmit -p tsconfig.app.json`.
+
+Evidencias temporales locales:
+
+- Auditoría inicial y Lighthouse histórico: `/tmp/cotizapp-audit/`.
+- Últimas pruebas y build: `/tmp/cotizapp-three-findings-frontend.log`, `/tmp/cotizapp-three-findings-backend.log` y `/tmp/cotizapp-three-findings-build.log`.
+- Navegador, regresiones y alternancia demo/real: `/tmp/cotizapp-fixes-browser.json`, `/tmp/cotizapp-data-mode-browser.json` y `/tmp/cotizapp-three-findings-browser.json`.
+
+Los archivos de `/tmp` son evidencia temporal y no forman parte del repositorio.
