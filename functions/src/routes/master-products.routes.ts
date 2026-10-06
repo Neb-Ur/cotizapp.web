@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Request, type Response } from 'express';
 import { db } from '../lib/firebase.js';
 import { requireAuth, requireRole } from '../lib/auth.js';
 import { fail, ok } from '../lib/http.js';
@@ -64,7 +64,7 @@ masterProductsRouter.get('/productos-maestro', async (req, res) => {
   return ok(res, data);
 });
 
-masterProductsRouter.get('/productos-maestro/paginado', async (req, res) => {
+const listMasterPage = async (req: Request, res: Response) => {
   const q = normalizeText(req.query['query']).toLowerCase();
   const categoryId = normalizeText(req.query['categoriaId']);
   const subcategoryId = normalizeText(req.query['subcategoriaId']);
@@ -73,7 +73,7 @@ masterProductsRouter.get('/productos-maestro/paginado', async (req, res) => {
   const page = Math.max(1, Math.floor(numberValue(req.query['page'], 1)));
   const size = Math.min(100, Math.max(1, Math.floor(numberValue(req.query['size'], 25))));
   const all = (await rows(COLLECTIONS.masterProducts))
-    .filter((item) => item.estado !== 'inactivo')
+    .filter((item) => req.authRole === 'admin' || item.estado !== 'inactivo')
     .filter((item) => !excluded.has(item.id))
     .filter((item) => !q || normalizeText(item.nombre).toLowerCase().includes(q) || normalizeText(item.marca).toLowerCase().includes(q) || normalizeText(item.codigoBarras).toLowerCase().includes(q))
     .filter((item) => !categoryId || item.categoriaId === categoryId)
@@ -85,14 +85,19 @@ masterProductsRouter.get('/productos-maestro/paginado', async (req, res) => {
   const safePage = Math.min(page, totalPages);
   const items = all.slice((safePage - 1) * size, safePage * size);
   return ok(res, { items, page: safePage, size, total, totalPages });
-});
+};
 
-masterProductsRouter.get('/productos-maestro/:id', async (req, res) => {
+masterProductsRouter.get('/admin/productos-maestro/paginado', requireAuth, requireRole('admin'), listMasterPage);
+masterProductsRouter.get('/productos-maestro/paginado', listMasterPage);
+
+const masterDetail = async (req: Request, res: Response) => {
   const product = await row(COLLECTIONS.masterProducts, req.params.id);
-  if (!product) return fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro.', 404);
+  if (!product || (product.estado === 'inactivo' && req.authRole !== 'admin')) return fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro.', 404);
   const atributos = (await rows(COLLECTIONS.masterAttributes)).filter((item) => item.productoMaestroId === product.id);
   return ok(res, { ...product, atributos });
-});
+};
+masterProductsRouter.get('/admin/productos-maestro/:id', requireAuth, requireRole('admin'), masterDetail);
+masterProductsRouter.get('/productos-maestro/:id', masterDetail);
 
 masterProductsRouter.post('/productos-maestro', requireAuth, requireRole('admin'), async (req, res) => {
   const nombre = normalizeText(req.body?.nombre);
@@ -106,6 +111,9 @@ masterProductsRouter.post('/productos-maestro', requireAuth, requireRole('admin'
     subcategoriaId: normalizeText(req.body?.subcategoriaId),
     familiaId: normalizeText(req.body?.familiaId),
     nombre,
+    tipoProducto: normalizeText(req.body?.tipoProducto),
+    unidadVenta: normalizeText(req.body?.unidadVenta),
+    presentacion: normalizeText(req.body?.presentacion),
     marca: normalizeText(req.body?.marca) || 'Sin marca',
     codigoBarras: normalizeText(req.body?.codigoBarras),
     descripcionCorta: normalizeText(req.body?.descripcionCorta),
@@ -131,7 +139,7 @@ masterProductsRouter.patch('/productos-maestro/:id', requireAuth, requireRole('a
   if (contentRights === null) return fail(res, 'PRODUCT_CONTENT_RIGHTS_REQUIRED', 'Registra la fuente o autorización de las descripciones y fichas del producto.', 400);
   const allowed = [
     'categoriaId', 'subcategoriaId', 'familiaId', 'nombre', 'marca', 'codigoBarras',
-    'descripcionCorta', 'descripcionLarga', 'imagenPrincipalUrl', 'galeriaJson', 'estado'
+    'descripcionCorta', 'descripcionLarga', 'imagenPrincipalUrl', 'galeriaJson', 'estado', 'tipoProducto', 'unidadVenta', 'presentacion'
   ];
   const patch: Record<string, unknown> = { ...imageRights, ...contentRights, actualizadoEn: nowIso() };
   allowed.forEach((key) => { if (req.body?.[key] !== undefined) patch[key] = req.body[key]; });

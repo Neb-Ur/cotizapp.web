@@ -15,7 +15,7 @@ describe('AppComponent', () => {
       providers: [
         provideRouter([]),
         { provide: DataModeService, useValue: { mode: signal('real') } },
-        { provide: AuthService, useValue: { currentUser: () => null, sessionExpired } }
+        { provide: AuthService, useValue: { currentUser: () => null, isLoggedIn: () => false, sessionExpired } }
       ]
     }).compileComponents();
   });

@@ -1,0 +1,372 @@
+[
+  {
+    "id": "ejemplo-001",
+    "name": "Placa Volcanita RH BR",
+    "suggestedFamily": "Placas de yeso cartón",
+    "brandObserved": "Volcán",
+    "observedAttributes": {
+      "espesorMm": 12.5,
+      "anchoMm": 1200,
+      "largoMm": 2400,
+      "superficieDeclaradaM2": 2.88
+    },
+    "sourceRef": "S12",
+    "sourceUrl": "https://tienda.volcan.cl/products/5000598-volcanita-rh-br-125-x-12-x-24",
+    "consultedAt": "2026-10-05",
+    "evidenceMode": "extracto indexado; apertura directa fallida",
+    "status": "referencia_observada_pendiente_validacion",
+    "missingBeforePublication": "Presentación vendida, código comercial y ficha técnica vigente.",
+    "price": null,
+    "stock": null,
+    "gtin": null
+  },
+  {
+    "id": "ejemplo-002",
+    "name": "MDF TRUPAN 15 mm",
+    "suggestedFamily": "MDF",
+    "brandObserved": "Arauco",
+    "observedAttributes": {
+      "espesorMm": 15,
+      "anchoMm": 1520,
+      "largoMm": 2440
+    },
+    "sourceRef": "S13",
+    "sourceUrl": "https://new.arauco.com/chile/ayuda-para-tus-proyectos/optimizador-de-corte/",
+    "consultedAt": "2026-10-05",
+    "evidenceMode": "extracto indexado; apertura directa fallida",
+    "status": "referencia_observada_pendiente_validacion",
+    "missingBeforePublication": "SKU/GTIN, grado exacto y presentación.",
+    "price": null,
+    "stock": null,
+    "gtin": null
+  },
+  {
+    "id": "ejemplo-003",
+    "name": "ARAUCOPLY Master mueblería 18 mm",
+    "suggestedFamily": "Terciados",
+    "brandObserved": "Arauco",
+    "observedAttributes": {
+      "espesorMm": 18,
+      "anchoMm": 1220,
+      "largoMm": 2440
+    },
+    "sourceRef": "S13",
+    "sourceUrl": "https://new.arauco.com/chile/ayuda-para-tus-proyectos/optimizador-de-corte/",
+    "consultedAt": "2026-10-05",
+    "evidenceMode": "extracto indexado; apertura directa fallida",
+    "status": "referencia_observada_pendiente_validacion",
+    "missingBeforePublication": "Revisar familia: la línea mueblería no acredita uso estructural; grado y SKU pendientes.",
+    "price": null,
+    "stock": null,
+    "gtin": null
+  },
+  {
+    "id": "ejemplo-004",
+    "name": "Sikaflex-1A gris",
+    "suggestedFamily": "Selladores y espumas",
+    "brandObserved": "Sika",
+    "observedAttributes": {
+      "baseQuimica": "poliuretano",
+      "componentes": 1,
+      "contenidoUnipackMl": 600,
+      "unipacksPorCaja": 20
+    },
+    "sourceRef": "S14",
+    "sourceUrl": "https://chl.sika.com/es/construccion/sellado-y-pegadoelastico/selladores-para-pisos/sikaflex-1a.html",
+    "consultedAt": "2026-10-05",
+    "evidenceMode": "lectura directa",
+    "status": "referencia_observada_pendiente_validacion",
+    "missingBeforePublication": "Confirmar oferta por unipack o por caja; SKU/GTIN y versión de hoja técnica.",
+    "price": null,
+    "stock": null,
+    "gtin": null
+  },
+  {
+    "id": "ejemplo-005",
+    "name": "Bloque de hormigón liso",
+    "suggestedFamily": "Ladrillos y bloques",
+    "brandObserved": "Bottai",
+    "observedAttributes": {
+      "dimensionesDeclaradasCm": "19 × 19 × 39"
+    },
+    "sourceRef": "S04",
+    "sourceUrl": "https://www.easy.cl/materiales-de-construccion/ladrillos-bloques-y-pastelones/bloques",
+    "consultedAt": "2026-10-05",
+    "evidenceMode": "extracto indexado; sitio limita apertura directa",
+    "status": "referencia_observada_pendiente_validacion",
+    "missingBeforePublication": "Orientación largo/ancho/alto, resistencia, peso, SKU y uso estructural.",
+    "price": null,
+    "stock": null,
+    "gtin": null
+  },
+  {
+    "id": "ejemplo-006",
+    "name": "Tablero OSB 11,1 mm",
+    "suggestedFamily": "OSB",
+    "brandObserved": null,
+    "observedAttributes": {
+      "espesorMm": 11.1,
+      "anchoMm": 1220,
+      "largoMm": 2440
+    },
+    "sourceRef": "S07",
+    "sourceUrl": "https://www.easy.cl/materiales-de-construccion/maderas-y-tableros/tableros",
+    "consultedAt": "2026-10-05",
+    "evidenceMode": "extracto indexado",
+    "status": "referencia_observada_pendiente_validacion",
+    "missingBeforePublication": "Marca real, grado, SKU/GTIN y aptitud estructural; familia provisional.",
+    "price": null,
+    "stock": null,
+    "gtin": null
+  },
+  {
+    "id": "ejemplo-007",
+    "name": "MDF Durolac blanco",
+    "suggestedFamily": "MDF",
+    "brandObserved": "Arauco",
+    "observedAttributes": {
+      "espesorMm": 2.8,
+      "anchoMm": 1520,
+      "largoMm": 2440,
+      "color": "blanco"
+    },
+    "sourceRef": "S07",
+    "sourceUrl": "https://www.easy.cl/materiales-de-construccion/maderas-y-tableros/tableros",
+    "consultedAt": "2026-10-05",
+    "evidenceMode": "extracto indexado",
+    "status": "referencia_observada_pendiente_validacion",
+    "missingBeforePublication": "Código de diseño, SKU/GTIN y caras revestidas.",
+    "price": null,
+    "stock": null,
+    "gtin": null
+  },
+  {
+    "id": "ejemplo-008",
+    "name": "Tablero OLB 8 mm",
+    "suggestedFamily": "OLB",
+    "brandObserved": "Masisa",
+    "observedAttributes": {
+      "espesorMm": 8,
+      "anchoMm": 1220,
+      "largoMm": 2440
+    },
+    "sourceRef": "S07",
+    "sourceUrl": "https://www.easy.cl/materiales-de-construccion/maderas-y-tableros/tableros",
+    "consultedAt": "2026-10-05",
+    "evidenceMode": "extracto indexado",
+    "status": "referencia_observada_pendiente_validacion",
+    "missingBeforePublication": "Grado y aptitud estructural; revisar familia antes de aprobar.",
+    "price": null,
+    "stock": null,
+    "gtin": null
+  },
+  {
+    "id": "ejemplo-009",
+    "name": "Tapacanto encolado blanco",
+    "suggestedFamily": "Molduras y tapacantos",
+    "brandObserved": "Rehau",
+    "observedAttributes": {
+      "anchoMm": 21,
+      "largoM": 10,
+      "color": "blanco"
+    },
+    "sourceRef": "S07",
+    "sourceUrl": "https://www.easy.cl/materiales-de-construccion/maderas-y-tableros/tableros",
+    "consultedAt": "2026-10-05",
+    "evidenceMode": "extracto indexado",
+    "status": "referencia_observada_pendiente_validacion",
+    "missingBeforePublication": "Material, espesor, SKU/GTIN y unidad vendida.",
+    "price": null,
+    "stock": null,
+    "gtin": null
+  },
+  {
+    "id": "ejemplo-010",
+    "name": "Porcelanato concreto 60 × 60",
+    "suggestedFamily": "Cerámicas porcelanatos y piedras",
+    "brandObserved": "Baldara",
+    "observedAttributes": {
+      "anchoMm": 600,
+      "largoMm": 600,
+      "areaCajaM2": 1.44,
+      "codigoRetailer": "1102919"
+    },
+    "sourceRef": "S16",
+    "sourceUrl": "https://www.easy.cl/porcelanato-piso-muro-60x60-cm-concreto-144-m2-baldara-1102919/p",
+    "consultedAt": "2026-10-05",
+    "evidenceMode": "extracto indexado",
+    "status": "referencia_observada_pendiente_validacion",
+    "missingBeforePublication": "Espesor, acabado, rectificado, GTIN y resistencia documentada.",
+    "price": null,
+    "stock": null,
+    "gtin": null
+  },
+  {
+    "id": "ejemplo-011",
+    "name": "Gres porcelanato Forest Roble",
+    "suggestedFamily": "Cerámicas porcelanatos y piedras",
+    "brandObserved": "Cañuelas",
+    "observedAttributes": {
+      "anchoMm": 200,
+      "largoMm": 1200,
+      "areaCajaM2": 1.19,
+      "codigoRetailer": "1203478"
+    },
+    "sourceRef": "S17",
+    "sourceUrl": "https://www.easy.cl/gres-porcelanato-forest-roble-20x120-cm-119-m2-1203478/p",
+    "consultedAt": "2026-10-05",
+    "evidenceMode": "extracto indexado",
+    "status": "referencia_observada_pendiente_validacion",
+    "missingBeforePublication": "Piezas por caja, acabado, espesor y GTIN.",
+    "price": null,
+    "stock": null,
+    "gtin": null
+  },
+  {
+    "id": "ejemplo-012",
+    "name": "Taladro percutor atornillador GSB 183-LI",
+    "suggestedFamily": "Perforación y atornillado",
+    "brandObserved": null,
+    "observedAttributes": {
+      "modelo": "GSB 183-LI",
+      "tensionV": 18,
+      "mandrilMm": 13,
+      "codigoRetailer": "1432830"
+    },
+    "sourceRef": "S18",
+    "sourceUrl": "https://www.easy.cl/taladro-percutor-atornillador-13-mm-18v-gsb-183-li-1432830/p",
+    "consultedAt": "2026-10-05",
+    "evidenceMode": "extracto indexado",
+    "status": "referencia_observada_pendiente_validacion",
+    "missingBeforePublication": "Marca y kit exacto en ficha vigente; baterías/cargador, GTIN y código fabricante.",
+    "price": null,
+    "stock": null,
+    "gtin": null
+  },
+  {
+    "id": "ejemplo-013",
+    "name": "Tubo PPR PN16",
+    "suggestedFamily": "Tuberías para agua",
+    "brandObserved": "Hoffens",
+    "observedAttributes": {
+      "diametroNominalMm": 20,
+      "largoM": 3,
+      "PN": "PN16",
+      "vendedorObservado": "Imperial"
+    },
+    "sourceRef": "S03",
+    "sourceUrl": "https://www.sodimac.cl/sodimac-cl/b/tubos-ppr",
+    "consultedAt": "2026-10-05",
+    "evidenceMode": "extracto indexado",
+    "status": "referencia_observada_pendiente_validacion",
+    "missingBeforePublication": "SKU/GTIN, espesor, serie y temperatura de referencia del PN.",
+    "price": null,
+    "stock": null,
+    "gtin": null
+  },
+  {
+    "id": "ejemplo-014",
+    "name": "Cable libre de halógeno negro",
+    "suggestedFamily": "Cables y alambres eléctricos",
+    "brandObserved": "Nexans",
+    "observedAttributes": {
+      "seccionMm2": 6,
+      "conductores": 1,
+      "largoM": 100,
+      "color": "negro"
+    },
+    "sourceRef": "S15",
+    "sourceUrl": "https://www.sodimac.cl/sodimac-cl/lista/CATG36440/Cable-libre-de-halogeno",
+    "consultedAt": "2026-10-05",
+    "evidenceMode": "extracto indexado",
+    "status": "referencia_observada_pendiente_validacion",
+    "missingBeforePublication": "Modelo, tensión, clase conductor, certificación, SKU/GTIN y presentación.",
+    "price": null,
+    "stock": null,
+    "gtin": null
+  },
+  {
+    "id": "ejemplo-015",
+    "name": "Plancha acanalada zinc aluminio AZ-150",
+    "suggestedFamily": "Planchas de cubierta metálicas",
+    "brandObserved": "Cintac",
+    "observedAttributes": {
+      "espesorMm": 0.35,
+      "anchoTotalMm": 851,
+      "largoMm": 3660,
+      "recubrimientoDeclarado": "AZ-150"
+    },
+    "sourceRef": "S09",
+    "sourceUrl": "https://www.construmart.cl/materiales-de-construccion",
+    "consultedAt": "2026-10-05",
+    "evidenceMode": "página de listado consultada",
+    "status": "referencia_observada_pendiente_validacion",
+    "missingBeforePublication": "Ancho útil, SKU/GTIN, tolerancia y ficha técnica.",
+    "price": null,
+    "stock": null,
+    "gtin": null
+  },
+  {
+    "id": "ejemplo-016",
+    "name": "Teja Asturias negra",
+    "suggestedFamily": "Planchas de cubierta metálicas",
+    "brandObserved": "Inppa",
+    "observedAttributes": {
+      "espesorMm": 0.4,
+      "anchoTotalMm": 1010,
+      "largoMm": 3660,
+      "color": "negro"
+    },
+    "sourceRef": "S09",
+    "sourceUrl": "https://www.construmart.cl/materiales-de-construccion",
+    "consultedAt": "2026-10-05",
+    "evidenceMode": "página de listado consultada",
+    "status": "referencia_observada_pendiente_validacion",
+    "missingBeforePublication": "Cobertura útil, código fabricante y sistema de montaje documentado.",
+    "price": null,
+    "stock": null,
+    "gtin": null
+  },
+  {
+    "id": "ejemplo-017",
+    "name": "Aislante Fisiterm",
+    "suggestedFamily": "Aislantes térmicos y acústicos",
+    "brandObserved": "Feltrex",
+    "observedAttributes": {
+      "anchoM": 2.4,
+      "largoM": 15,
+      "areaDeclaradaM2": 36
+    },
+    "sourceRef": "S09",
+    "sourceUrl": "https://www.construmart.cl/materiales-de-construccion",
+    "consultedAt": "2026-10-05",
+    "evidenceMode": "página de listado consultada",
+    "status": "referencia_observada_pendiente_validacion",
+    "missingBeforePublication": "Espesor, densidad, resistencia térmica, composición y SKU.",
+    "price": null,
+    "stock": null,
+    "gtin": null
+  },
+  {
+    "id": "ejemplo-018",
+    "name": "Lana de vidrio R122",
+    "suggestedFamily": "Aislantes térmicos y acústicos",
+    "brandObserved": "Volcán",
+    "observedAttributes": {
+      "espesorMm": 50,
+      "anchoM": 1.2,
+      "largoM": 24,
+      "areaDeclaradaM2": 28.8,
+      "denominacionComercial": "R122"
+    },
+    "sourceRef": "S09",
+    "sourceUrl": "https://www.construmart.cl/materiales-de-construccion",
+    "consultedAt": "2026-10-05",
+    "evidenceMode": "página de listado consultada",
+    "status": "referencia_observada_pendiente_validacion",
+    "missingBeforePublication": "Resistencia térmica y unidad en ficha; R122 no se convierte automáticamente a valor R.",
+    "price": null,
+    "stock": null,
+    "gtin": null
+  }
+]

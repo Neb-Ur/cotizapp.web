@@ -1,14 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { CookieConsentService } from '../../../core/services/cookie-consent.service';
 import { UiModalComponent } from '../ui-modal/ui-modal.component';
 
 @Component({
   selector: 'app-cookie-consent',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, UiModalComponent],
+  imports: [CommonModule, FormsModule, UiModalComponent],
   templateUrl: './cookie-consent.component.html',
   styleUrl: './cookie-consent.component.scss'
 })

@@ -64,3 +64,60 @@ describe('catalog import and loading regressions', () => {
   expect(service.loadError()).toBe('');
  });
 });
+
+describe('master catalog variants without images', () => {
+ it('loads drafts through the authenticated administrator endpoint and preserves variant fields', async () => {
+  const {service,api}=fixture();
+  api.get.mockResolvedValueOnce({items:[{...master,estado:'inactivo',tipoProducto:'MDF desnudo',unidadVenta:'Placa',presentacion:'1 placa'}],total:1,page:1,size:20,totalPages:1} as any);
+  const result=await service.getAdminMasterCatalogPage({});
+  expect(api.get).toHaveBeenCalledWith('/admin/productos-maestro/paginado',true,expect.any(Object));
+  expect(result.items[0]).toMatchObject({isPublished:false,productType:'MDF desnudo',unitLabel:'Placa',packagingLabel:'1 placa',imageUrl:'',gallery:[]});
+ });
+ it('persists product type, sale unit, presentation and draft state independently from descriptions', async () => {
+  const {service,writes}=fixture();
+  await service.createMasterCatalogProduct({name:'MDF negro 18 mm',productType:'MDF desnudo',unitLabel:'Placa',packagingLabel:'1 placa',isPublished:false,imageUrl:'',gallery:[]},false);
+  expect(writes[0].body).toMatchObject({tipoProducto:'MDF desnudo',unidadVenta:'Placa',presentacion:'1 placa',estado:'inactivo',imagenPrincipalUrl:'',galeriaJson:[]});
+ });
+});
+
+it('shows active catalog bases in home suggestions even when no store offers exist', () => {
+ const {service}=fixture();
+ (service as any).masterCatalog.push({id:'base',name:'Tablero MDF desnudo',familyId:'mdf',isPublished:true,brand:'Por especificar',productType:'Tablero MDF desnudo',imageUrl:''});
+ const rows=service.getPopularProductRows('MDF',6,undefined,false);
+ expect(rows).toHaveLength(1);
+ expect(rows[0]).toMatchObject({productName:'Tablero MDF desnudo',storeCount:0,minPrice:0,maxPrice:0,sellers:[],imageUrl:''});
+ expect(service.getFamilyProductRows('other','',undefined,false)).toHaveLength(0);
+});
+
+it('loads detail directly by slug without downloading all master products, offers or taxonomy', async () => {
+ const {service,api}=fixture();
+ const detail=await service.loadProductDetail(undefined,'cemento-gris-25-kg');
+ expect(detail?.productName).toBe(master.nombre);
+ expect(api.get.mock.calls.map(call=>call[0])).toEqual(['/productos/detalle']);
+ expect(api.get).toHaveBeenCalledWith('/productos/detalle',false,{producto:undefined,slug:'cemento-gris-25-kg'});
+ await service.loadProductDetail(undefined,'cemento-gris-25-kg');
+ expect(api.get).toHaveBeenCalledTimes(1);
+});
+
+
+it('persists only the sheet across service instances and requests offers independently', async () => {
+ const key='cotizapp-product-sheet-v1:real:cemento-gris-25-kg';
+ localStorage.removeItem(key);
+ try {
+  const first=fixture();
+  const sheet=await first.service.loadProductSheet(undefined,'cemento-gris-25-kg');
+  expect(sheet?.stores).toEqual([]);
+  expect(JSON.parse(localStorage.getItem(key)!).raw.stores).toBeUndefined();
+  const second=fixture();
+  const cached=await second.service.loadProductSheet(undefined,'cemento-gris-25-kg');
+  expect(second.api.get).not.toHaveBeenCalled();
+  await second.service.loadProductOffers(cached!);
+  await second.service.loadProductOffers(cached!);
+  expect(second.api.get).toHaveBeenCalledTimes(2);
+  expect(second.api.get).toHaveBeenCalledWith('/productos/detalle',false,{slug:'cemento-gris-25-kg',vista:'ofertas'});
+  const stored=JSON.parse(localStorage.getItem(key)!);stored.savedAt=Date.now()-3_600_001;
+  localStorage.setItem(key,JSON.stringify(stored));
+  await second.service.loadProductSheet(undefined,'cemento-gris-25-kg');
+  expect(second.api.get).toHaveBeenLastCalledWith('/productos/detalle',false,{producto:undefined,slug:'cemento-gris-25-kg',vista:'ficha'});
+ } finally { localStorage.removeItem(key); }
+});

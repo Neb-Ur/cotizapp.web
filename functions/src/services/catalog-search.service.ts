@@ -44,8 +44,8 @@ export async function buildSearchRows(): Promise<SearchRow[]> {
 
       const price = numberValue(offer.precio);
       if (price <= 0) return null;
-      const declaredMeasurementUnit = ['kg', 'l', 'm', 'm2', 'unidad'].includes(offer.unidadMedidaPrecio)
-        ? offer.unidadMedidaPrecio as 'kg' | 'l' | 'm' | 'm2' | 'unidad'
+      const declaredMeasurementUnit = ['kg', 'l', 'm', 'm2', 'm3', 'unidad'].includes(offer.unidadMedidaPrecio)
+        ? offer.unidadMedidaPrecio as 'kg' | 'l' | 'm' | 'm2' | 'm3' | 'unidad'
         : null;
       const declaredMeasurementQuantity = numberValue(offer.cantidadMedida, 0) > 0
         ? numberValue(offer.cantidadMedida)

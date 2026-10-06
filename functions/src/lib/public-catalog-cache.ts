@@ -98,11 +98,15 @@ async function materializeSnapshot(): Promise<PublicCatalogSnapshot> {
       subcategoriaId: item.subcategoriaId,
       familiaId: item.familiaId,
       nombre: item.nombre,
+      tipoProducto: item.tipoProducto || '',
+      unidadVenta: item.unidadVenta || '',
+      presentacion: item.presentacion || '',
       marca: item.marca || 'Sin marca',
       descripcionCorta: item.descripcionCorta || '',
       descripcionLarga: item.descripcionLarga || '',
       imagenPrincipalUrl: item.imagenPrincipalUrl || '',
       galeriaJson: Array.isArray(item.galeriaJson) ? item.galeriaJson : [],
+      catalogoNivel: item.catalogoNivel || 'producto_comercial',
       estado: item.estado || 'activo'
     }))
     .sort((a, b) => normalizeText(a.nombre).localeCompare(normalizeText(b.nombre)));

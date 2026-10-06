@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faArrowDownWideShort, faChevronDown, faLocationDot, faSliders, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { Subscription } from 'rxjs';
@@ -38,7 +38,7 @@ interface MaestroProfileDraft {
 @Component({
   selector: 'app-dashboard-maestro',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, FontAwesomeModule, PaginatorModule, DashboardMenuComponent, UiLoaderComponent],
+  imports: [CommonModule, FormsModule, FontAwesomeModule, PaginatorModule, DashboardMenuComponent, UiLoaderComponent],
   templateUrl: './dashboard-maestro.component.html',
   styleUrl: './dashboard-maestro.component.scss'
 })
@@ -443,10 +443,11 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
   }
 
   protected selectProductCard(event: Event, productName: string): void {
-    if (this.isPickingProductForProject) {
-      event.preventDefault();
-      this.addProductToProject(productName);
-    }
+    const click = event as MouseEvent;
+    if (click.ctrlKey || click.metaKey || click.shiftKey || click.altKey || (click.button !== undefined && click.button !== 0)) return;
+    event.preventDefault();
+    if (this.isPickingProductForProject) this.addProductToProject(productName);
+    else void this.router.navigateByUrl(productPath(productName));
   }
 
   protected productUrl(productName: string): string {

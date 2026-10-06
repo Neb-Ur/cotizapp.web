@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { NgZone } from '@angular/core';
 import { reload, sendEmailVerification, sendPasswordResetEmail, type Auth } from 'firebase/auth';
 import { AuthService } from './auth.service';
+import { PrivacyCenterComponent } from '../../pages/privacy-center/privacy-center.component';
 
 describe('account email language and recipients', () => {
   beforeEach(() => {
@@ -42,5 +43,42 @@ describe('account email language and recipients', () => {
     const { service } = fixture(true);
     await service.sendVerificationEmail();
     expect(sendEmailVerification).not.toHaveBeenCalled();
+  });
+});
+
+
+describe('mandatory legal acceptance', () => {
+  function fixture() {
+    const user = { id: 'user', role: 'maestro', email: 'user@example.test' };
+    const auth = { currentUser: vi.fn().mockReturnValue(user), refreshCurrentUser: vi.fn().mockResolvedValue(user), dashboardRouteForUser: vi.fn().mockReturnValue('/dashboard/maestro'), logout: vi.fn().mockResolvedValue(undefined) };
+    const privacy = { acceptCurrentLegalDocuments: vi.fn().mockResolvedValue({ legalAcceptanceRequired: false }) };
+    const router = { navigateByUrl: vi.fn().mockResolvedValue(true) };
+    const component = new PrivacyCenterComponent(auth as any, {} as any, privacy as any, router as any, document) as any;
+    component.overview = { legalAcceptanceRequired: true };
+    return { component, auth, privacy, router };
+  }
+  it('keeps the acceptance blocking until all three declarations are checked, then returns to the dashboard', async () => {
+    const { component, privacy, router } = fixture();
+    await component.acceptLegalDocuments();
+    expect(privacy.acceptCurrentLegalDocuments).not.toHaveBeenCalled();
+    component.legalTermsAccepted = component.legalPrivacyAcknowledged = component.legalAgeConfirmed = true;
+    await component.acceptLegalDocuments();
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/dashboard/maestro');
+    expect(component.overview.legalAcceptanceRequired).toBe(false);
+  });
+  it('keeps the modal pending if saving fails', async () => {
+    const { component, privacy, router } = fixture();
+    component.legalTermsAccepted = component.legalPrivacyAcknowledged = component.legalAgeConfirmed = true;
+    privacy.acceptCurrentLegalDocuments.mockRejectedValue(new Error('offline'));
+    await component.acceptLegalDocuments();
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
+    expect(component.overview.legalAcceptanceRequired).toBe(true);
+    expect(component.error).toBeTruthy();
+  });
+  it('closes the session on rejection', async () => {
+    const { component, auth, router } = fixture();
+    await component.rejectLegalDocuments();
+    expect(auth.logout).toHaveBeenCalledOnce();
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/login');
   });
 });

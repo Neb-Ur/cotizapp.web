@@ -73,6 +73,12 @@ export class HomeComponent implements OnInit {
     void this.router.navigate(['/buscar'], { queryParams: { categoria: category.id } });
   }
 
+  protected openProductCard(event: MouseEvent, product: FamilyProductRow): void {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button !== 0) return;
+    event.preventDefault();
+    this.openProduct(product);
+  }
+
   protected productUrl(productName: string): string {
     return productPath(productName);
   }

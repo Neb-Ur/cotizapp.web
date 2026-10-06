@@ -1,4 +1,28 @@
-<main class="privacy-center">
+<app-ui-modal [open]="!!overview?.legalAcceptanceRequired && !overview?.processingBlocked" title="Antes de continuar" size="sm"
+  [closeOnBackdrop]="false" [closeDisabled]="busyAction === 'legal'" (closed)="rejectLegalDocuments()">
+  <ng-container *ngIf="overview">
+    <label class="check-row">
+      <input type="checkbox" [(ngModel)]="legalTermsAccepted" />
+      <span>Acepto los <a routerLink="/terminos-condiciones" target="_blank" rel="noopener noreferrer">Términos y condiciones</a>, versión {{ overview.currentVersions.terms }}.</span>
+    </label>
+    <label class="check-row">
+      <input type="checkbox" [(ngModel)]="legalPrivacyAcknowledged" />
+      <span>He leído y autorizo el tratamiento de mis datos para operar mi cuenta y cotizaciones o catálogo, conforme a la <a routerLink="/privacidad" target="_blank" rel="noopener noreferrer">Política de privacidad</a>, versión {{ overview.currentVersions.privacy }}. Esta autorización no incluye publicidad ni otras finalidades.</span>
+    </label>
+    <label class="check-row">
+      <input type="checkbox" [(ngModel)]="legalAgeConfirmed" />
+      <span>Declaro que tengo 18 años o más.</span>
+    </label>
+  </ng-container>
+  <p *ngIf="error" class="status-message status-message--error" role="alert">{{ error }}</p>
+  <div class="legal-modal-actions">
+    <button type="button" class="primary" [disabled]="legalAcceptanceIncomplete || busyAction === 'legal'" (click)="acceptLegalDocuments()">
+      {{ busyAction === 'legal' ? 'Registrando…' : 'Confirmar y continuar' }}
+    </button>
+    <button type="button" class="secondary" [disabled]="busyAction === 'legal'" (click)="rejectLegalDocuments()">No acepto, cerrar sesión</button>
+  </div>
+</app-ui-modal>
+<main class="privacy-center" [hidden]="!!overview?.legalAcceptanceRequired && !overview?.processingBlocked" [attr.inert]="overview?.legalAcceptanceRequired && !overview?.processingBlocked ? '' : null" [attr.aria-hidden]="overview?.legalAcceptanceRequired && !overview?.processingBlocked ? 'true' : null">
   <header class="topbar">
     <a class="brand" routerLink="/" aria-label="CotizApp, ir al inicio">
       <span class="brand-mark">C</span>
@@ -36,26 +60,6 @@
 
     <div class="content-grid" *ngIf="!loading && overview">
       <div class="main-column">
-        <section class="panel legal-update" *ngIf="overview.legalAcceptanceRequired">
-          <span class="panel-kicker">Acción requerida</span>
-          <h2>Revisa los documentos legales vigentes</h2>
-          <p>Hubo una actualización material o tu cuenta es anterior al registro de versiones. Debes confirmar cada punto antes de volver al panel.</p>
-          <label class="check-row">
-            <input type="checkbox" [(ngModel)]="legalTermsAccepted" />
-            <span>Acepto los <a routerLink="/terminos-condiciones" target="_blank">Términos y condiciones</a>, versión {{ overview.currentVersions.terms }}.</span>
-          </label>
-          <label class="check-row">
-            <input type="checkbox" [(ngModel)]="legalPrivacyAcknowledged" />
-            <span>He leído y autorizo el tratamiento de mis datos para operar mi cuenta y cotizaciones o catálogo, conforme a la <a routerLink="/privacidad" target="_blank">Política de privacidad</a>, versión {{ overview.currentVersions.privacy }}. Esta autorización no incluye publicidad ni otras finalidades.</span>
-          </label>
-          <label class="check-row">
-            <input type="checkbox" [(ngModel)]="legalAgeConfirmed" />
-            <span>Declaro que tengo 18 años o más.</span>
-          </label>
-          <button type="button" class="primary" [disabled]="legalAcceptanceIncomplete || busyAction === 'legal'" (click)="acceptLegalDocuments()">
-            {{ busyAction === 'legal' ? 'Registrando…' : 'Confirmar y continuar' }}
-          </button>
-        </section>
 
         <section class="panel block-alert" *ngIf="overview.processingBlocked">
           <span class="panel-kicker">Tratamiento bloqueado</span>

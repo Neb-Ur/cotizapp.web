@@ -1,6 +1,7 @@
 <p *ngIf="loadError" role="alert">{{ loadError }}</p>
 <main class="detail-page">
-  <article class="detail-card detail-loading" *ngIf="isLoading" aria-live="polite" aria-label="Cargando producto">
+  @if (isLoading) {
+  <article class="detail-card detail-loading" aria-live="polite" aria-label="Cargando producto">
     <div class="loading-line loading-line-short"></div>
     <section class="hero-grid">
       <div class="loading-image"></div>
@@ -15,7 +16,7 @@
     <span class="sr-only">Cargando información del producto…</span>
   </article>
 
-  <ng-container *ngIf="!isLoading">
+  } @else {
   <article class="detail-card" *ngIf="detail as product; else noData">
     <nav class="breadcrumb" aria-label="Ruta de navegación">
       <a routerLink="/">Inicio</a>
@@ -57,7 +58,7 @@
           <p><strong>Fuente:</strong> precios informados por cada ferretería. CotizApp no vende ni reserva productos. La compra se realiza directamente con la ferretería.</p>
         </section>
 
-        <p class="product-unavailable-alert" *ngIf="displayStores.length === 0 && !loadError" role="alert">
+        <p class="product-unavailable-alert" *ngIf="displayStores.length === 0 && !loadError && !offersLoading && !offersError" role="alert">
           <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
           <span>{{ nearbyEnabled && product.stores.length > 0
             ? 'No hay ferreterías con este producto dentro de ' + nearbyRadiusKm + ' km.'
@@ -65,8 +66,10 @@
         </p>
         <section class="quick-stores">
           <h3>Precios por ferretería</h3>
-          <p class="quick-stores-hint" *ngIf="!nearbyEnabled">{{ displayStores.length }} ferretería(s) con oferta activa.</p>
-          <p class="quick-stores-hint" *ngIf="nearbyEnabled">
+          <p *ngIf="offersLoading" role="status" aria-live="polite">Cargando precios de las ferreterías…</p>
+          <p *ngIf="offersError" role="alert">{{ offersError }} <button type="button" (click)="retryOffers()">Reintentar</button></p>
+          <p class="quick-stores-hint" *ngIf="!nearbyEnabled && !offersLoading && !offersError">{{ displayStores.length }} ferretería(s) con oferta activa.</p>
+          <p class="quick-stores-hint" *ngIf="nearbyEnabled && !offersLoading && !offersError">
             {{ displayStores.length }} ferretería(s) dentro de {{ nearbyRadiusKm }} km.
           </p>
 
@@ -308,7 +311,7 @@
       </div>
     </section>
   </article>
-  </ng-container>
+  }
 
   <ng-template #noData>
     <article class="detail-card">
@@ -354,8 +357,6 @@
             [disabled]="isCreatingQuotation"
           />
         </label>
-
-        <p class="quotation-privacy">El nombre y la dirección opcional se guardarán en tu cuenta para administrar esta cotización. Evita incluir datos sensibles o información de terceros sin autorización. Consulta la <a routerLink="/privacidad">Política de privacidad</a>.</p>
 
         <p class="quotation-error" *ngIf="createQuotationError" role="alert">
           {{ createQuotationError }}

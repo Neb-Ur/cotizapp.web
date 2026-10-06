@@ -1,13 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { API_BASE_URL } from '../../../core/config/api.config';
 
 @Component({
   selector: 'app-unsubscribe',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './unsubscribe.component.html',
   styleUrl: './unsubscribe.component.scss'
 })

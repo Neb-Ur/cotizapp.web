@@ -62,7 +62,16 @@
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "server": false,
+              "ssr": false,
+              "prerender": false,
+              "fileReplacements": [
+                {
+                  "replace": "src/app/core/config/rendering.config.ts",
+                  "with": "src/app/core/config/rendering.config.development.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -94,7 +103,9 @@
           "options": {
             "tsConfig": "tsconfig.spec.json",
             "runner": "vitest",
-            "setupFiles": ["src/firebase-test-setup.ts"],
+            "setupFiles": [
+              "src/firebase-test-setup.ts"
+            ],
             "buildTarget": "::development"
           }
         }

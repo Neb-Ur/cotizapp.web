@@ -65,11 +65,6 @@
         </small>
       </fieldset>
 
-      <p class="field--full legal-help">
-        Usaremos tus datos para crear y proteger la cuenta, guardar cotizaciones y prestar el servicio. El teléfono y la comuna son opcionales para cuentas de maestro. Consulta finalidades, conservación y derechos en la
-        <a routerLink="/privacidad" target="_blank">Política de privacidad</a>.
-      </p>
-
       <div class="field--full form-actions">
         <button class="btn btn-primary btn-full" type="submit" [disabled]="isSubmitting">
           {{ isSubmitting ? (isCompletingProfile ? 'Guardando perfil...' : 'Creando cuenta...') : (isCompletingProfile ? 'Completar cuenta' : 'Crear cuenta') }}

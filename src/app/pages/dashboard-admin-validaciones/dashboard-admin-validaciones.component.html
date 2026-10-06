@@ -564,6 +564,7 @@
                 <td>
                   <strong>{{ product.name }}</strong>
                   <p>{{ product.brand }}</p>
+                  <span class="taxonomy-type-chip">{{ product.isPublished ? 'Disponible' : 'Borrador pendiente' }}</span>
                 </td>
                 <td>{{ product.barcode || '-' }}</td>
                 <td>
@@ -573,6 +574,7 @@
                 <td class="actions store-actions">
                   <button pButton type="button" icon="pi pi-eye" [rounded]="true" [text]="true" severity="info" class="store-action-button" (click)="openMasterProductView(product)" aria-label="Ver detalle" title="Ver detalle"></button>
                   <button pButton type="button" icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" class="store-action-button" (click)="openMasterProductEdit(product)" aria-label="Editar producto" title="Editar producto"></button>
+                  <button pButton type="button" icon="pi pi-copy" [rounded]="true" [text]="true" severity="secondary" class="store-action-button" (click)="openMasterProductVariant(product)" aria-label="Crear variante" title="Crear variante"></button>
                   <button pButton type="button" icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" class="store-action-button" (click)="deleteMasterProduct(product)" aria-label="Eliminar producto" title="Eliminar producto"></button>
                 </td>
               </tr>
@@ -1134,6 +1136,10 @@
               <input type="text" [(ngModel)]="masterDetailDraft.barcode" [disabled]="masterDetailReadonly" />
             </label>
             <label>
+              <input type="checkbox" [(ngModel)]="masterDetailDraft.isPublished" [disabled]="masterDetailReadonly" />
+              Visible en el catálogo
+            </label>
+            <label>
               Tipo producto
               <input type="text" [(ngModel)]="masterDetailDraft.productType" [disabled]="masterDetailReadonly" />
             </label>
@@ -1235,15 +1241,15 @@
             <div class="request-detail-form">
               <ng-container *ngFor="let attribute of masterAttributeDrafts">
                 <label *ngIf="attribute.type === 'text'">
-                  {{ attribute.label }}
+                  {{ attribute.label }}{{ attribute.required ? ' *' : '' }}
                   <input type="text" [(ngModel)]="attribute.valueText" [disabled]="masterDetailReadonly" />
                 </label>
                 <label *ngIf="attribute.type === 'number'">
-                  {{ attribute.label }}
+                  {{ attribute.label }}{{ attribute.required ? ' *' : '' }}
                   <input type="number" [(ngModel)]="attribute.valueNumber" [disabled]="masterDetailReadonly" />
                 </label>
                 <label *ngIf="attribute.type === 'select'">
-                  {{ attribute.label }}
+                  {{ attribute.label }}{{ attribute.required ? ' *' : '' }}
                   <select [(ngModel)]="attribute.valueOption" [disabled]="masterDetailReadonly">
                     <option value="">Selecciona</option>
                     <option *ngFor="let option of attribute.options" [value]="option">{{ option }}</option>
@@ -1251,7 +1257,7 @@
                 </label>
                 <label *ngIf="attribute.type === 'boolean'" class="checkbox-line">
                   <input type="checkbox" [ngModel]="attribute.valueBoolean === true" (ngModelChange)="attribute.valueBoolean = $event" [disabled]="masterDetailReadonly" />
-                  {{ attribute.label }}
+                  {{ attribute.label }}{{ attribute.required ? ' *' : '' }}
                 </label>
               </ng-container>
             </div>
@@ -1386,15 +1392,15 @@
             <div class="request-detail-form">
               <ng-container *ngFor="let attribute of masterAttributeDrafts">
                 <label *ngIf="attribute.type === 'text'">
-                  {{ attribute.label }}
+                  {{ attribute.label }}{{ attribute.required ? ' *' : '' }}
                   <input type="text" [(ngModel)]="attribute.valueText" />
                 </label>
                 <label *ngIf="attribute.type === 'number'">
-                  {{ attribute.label }}
+                  {{ attribute.label }}{{ attribute.required ? ' *' : '' }}
                   <input type="number" [(ngModel)]="attribute.valueNumber" />
                 </label>
                 <label *ngIf="attribute.type === 'select'">
-                  {{ attribute.label }}
+                  {{ attribute.label }}{{ attribute.required ? ' *' : '' }}
                   <select [(ngModel)]="attribute.valueOption">
                     <option value="">Selecciona</option>
                     <option *ngFor="let option of attribute.options" [value]="option">{{ option }}</option>
@@ -1402,7 +1408,7 @@
                 </label>
                 <label *ngIf="attribute.type === 'boolean'" class="checkbox-line">
                   <input type="checkbox" [ngModel]="attribute.valueBoolean === true" (ngModelChange)="attribute.valueBoolean = $event" />
-                  {{ attribute.label }}
+                  {{ attribute.label }}{{ attribute.required ? ' *' : '' }}
                 </label>
               </ng-container>
             </div>

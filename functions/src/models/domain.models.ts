@@ -37,7 +37,7 @@ export type SearchRow = {
   validUntil: string | null;
   offerConditions: string;
   sponsored: boolean;
-  measurementUnit: 'kg' | 'l' | 'm' | 'm2' | 'unidad' | null;
+  measurementUnit: 'kg' | 'l' | 'm' | 'm2' | 'm3' | 'unidad' | null;
   measurementQuantity: number | null;
   pricePerMeasurement: number | null;
   measurementSource: 'store_reported' | 'catalog_presentation' | null;

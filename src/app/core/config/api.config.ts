@@ -1,4 +1,6 @@
 const DEFAULT_API_BASE_URL = '/api';
+// Node SSR cannot resolve a relative browser URL through the development proxy.
+const SERVER_API_BASE_URL = 'https://cotizapp-d71c8.web.app/api';
 
 declare global {
   interface Window {
@@ -15,7 +17,7 @@ function normalizeUrl(url: string): string {
 
 function resolveApiBaseUrl(): string {
   if (typeof window === 'undefined') {
-    return DEFAULT_API_BASE_URL;
+    return SERVER_API_BASE_URL;
   }
 
   const raw = window.__APP_CONFIG__?.apiBaseUrl || window.__APP_API_BASE_URL__;

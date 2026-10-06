@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { getProductSheet } from '../lib/product-sheet-cache.js';
+import { db } from '../lib/firebase.js';
 import { fail, ok } from '../lib/http.js';
 import { getPublicCatalogSnapshot } from '../lib/public-catalog-cache.js';
 import { COLLECTIONS } from '../lib/collections.js';
@@ -104,14 +106,29 @@ searchRouter.get('/productos/populares', async (req, res) => {
 
 searchRouter.get('/productos/detalle', async (req, res) => {
   const name = normalizeText(req.query['producto']).toLowerCase();
-  const searchRows = ((await getPublicCatalogSnapshot()).searchRows).filter((item) => item.productName.toLowerCase() === name);
-  const product = searchRows.length
-    ? await row(COLLECTIONS.masterProducts, searchRows[0].productoMaestroId)
-    : (await getPublicCatalogSnapshot()).products.find((item) => normalizeText(item.nombre).toLowerCase() === name);
+  const requestedSlug = normalizeText(req.query['slug']);
+  if (req.query['vista'] === 'ficha') {
+    const sheet = await getProductSheet(name, requestedSlug);
+    if (!sheet) return fail(res, 'PRODUCTO_NOT_FOUND', 'No se encontro el producto solicitado.', 404);
+    return ok(res, sheet);
+  }
+  const snapshot = await getPublicCatalogSnapshot();
+  const slug = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 120);
+  const product = snapshot.products.find(item => requestedSlug
+    ? slug(String(item.nombre)) === requestedSlug
+    : normalizeText(item.nombre).toLowerCase() === name);
   if (!product) return fail(res, 'PRODUCTO_NOT_FOUND', 'No se encontro el producto solicitado.', 404);
-  const [attributeRows, definitions] = await Promise.all([rows(COLLECTIONS.masterAttributes), rows(COLLECTIONS.familyDefinitions)]);
-  const attributes = attributeRows.filter((item) => item.productoMaestroId === product.id)
-    .map(item => ({ ...item, etiqueta: definitions.find(definition => definition.id === item.definicionAtributoId)?.etiqueta || item.definicionAtributoId }));
+  const searchRows = snapshot.searchRows.filter(item => item.productoMaestroId === product.id);
+  const offersOnly = req.query['vista'] === 'ofertas';
+  const [attributeSnapshot, definitionSnapshot] = offersOnly ? [{ docs: [] }, { docs: [] }] : await Promise.all([
+    db.collection(COLLECTIONS.masterAttributes).where('productoMaestroId', '==', product.id).get(),
+    db.collection(COLLECTIONS.familyDefinitions).where('familiaId', '==', product.familiaId).get()
+  ]);
+  const definitions = new Map(definitionSnapshot.docs.map(doc => [doc.id, doc.data()]));
+  const attributes = attributeSnapshot.docs.map(doc => {
+    const item = doc.data();
+    return { id: doc.id, ...item, etiqueta: definitions.get(item['definicionAtributoId'])?.['etiqueta'] || item['definicionAtributoId'] };
+  });
   const stores = searchRows.map((item) => ({
     storeName: item.storeName,
     storeId: item.storeId,
@@ -140,8 +157,15 @@ searchRouter.get('/productos/detalle', async (req, res) => {
     sku: item.sku,
     productoFerreteriaId: item.productoFerreteriaId
   })).sort((a, b) => Number(b.comparisonEligible) - Number(a.comparisonEligible) || a.price - b.price);
+  if (offersOnly) return ok(res, {
+    stores, minPrice: stores.length ? Math.min(...stores.map(item => item.price)) : 0,
+    maxPrice: stores.length ? Math.max(...stores.map(item => item.price)) : 0
+  });
   return ok(res, {
     productoMaestro: product,
+    categoryName: snapshot.taxonomy.categories.find(item => item.id === product.categoriaId)?.nombre || 'Sin categoria',
+    subcategoryName: snapshot.taxonomy.subcategories.find(item => item.id === product.subcategoriaId)?.nombre || 'Sin subcategoria',
+    familyName: snapshot.taxonomy.families.find(item => item.id === product.familiaId)?.nombre || 'Sin familia',
     atributosProducto: attributes,
     stores,
     minPrice: stores.length ? Math.min(...stores.map((item) => item.price)) : 0,

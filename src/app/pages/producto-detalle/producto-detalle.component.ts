@@ -1,8 +1,8 @@
-import { CommonModule, Location } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { CommonModule, Location, isPlatformBrowser } from '@angular/common';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { combineLatest } from 'rxjs';
+import { combineLatest, Subscription } from 'rxjs';
 import { ProductDetailView, ProductStoreOfferRow, ProjectSummary, SessionUser } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
 import { FirebaseDataService } from '../../core/services/firebase-data.service';
@@ -23,7 +23,13 @@ import {
   templateUrl: './producto-detalle.component.html',
   styleUrl: './producto-detalle.component.scss'
 })
-export class ProductoDetalleComponent implements OnInit {
+export class ProductoDetalleComponent implements OnInit, OnDestroy {
+  private readonly platformId = inject(PLATFORM_ID);
+  protected offersLoading = true;
+  protected offersError = '';
+  private readonly changeDetector = inject(ChangeDetectorRef);
+  private routeSubscription?: Subscription;
+  private loadGeneration = 0;
   protected detail: ProductDetailView | null = null;
   protected isLoading = true;
   protected loadError = '';
@@ -62,9 +68,13 @@ export class ProductoDetalleComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    combineLatest([this.route.paramMap, this.route.queryParamMap]).subscribe(async ([routeParams, params]) => {
+    this.routeSubscription = combineLatest([this.route.paramMap, this.route.queryParamMap]).subscribe(async ([routeParams, params]) => {
+      const generation = ++this.loadGeneration;
       this.isLoading = true;
       this.loadError = '';
+      this.offersLoading = true;
+      this.offersError = '';
+      this.displayStores = [];
       this.detail = null;
       const legacyProductName = params.get('product') || '';
       let productName = legacyProductName;
@@ -76,13 +86,16 @@ export class ProductoDetalleComponent implements OnInit {
       this.nearbyRadiusKm = nearbyPreference?.radiusKm || 10;
 
       try {
-        productName ||= await this.apiService.resolveProductNameBySlug(routeParams.get('slug') || '');
         const currentUser = this.user;
         if (currentUser) {
-          await this.apiService.refreshMaestroData(currentUser.id);
+          void this.apiService.refreshMaestroProjectsSection(currentUser.id)
+            .then(() => { if (generation === this.loadGeneration) { this.loadProjects(); this.changeDetector.markForCheck(); } })
+            .catch(() => undefined);
         }
 
-        this.detail = routeParams.get('slug') && !productName ? null : await this.apiService.loadProductDetail(productName);
+        const detail = await this.apiService.loadProductSheet(productName || undefined, routeParams.get('slug') || undefined);
+        if (generation !== this.loadGeneration) return;
+        this.detail = detail;
 
         if (this.detail) {
           this.seoService.updateProduct(this.detail);
@@ -100,25 +113,14 @@ export class ProductoDetalleComponent implements OnInit {
         this.openExtraSectionIds.clear();
         this.loadProjects();
         this.displayStores = this.buildDisplayStores(this.detail?.stores || []);
-        for (const store of this.displayStores) {
-          if (store.offerId && !this.recordedViews.has(store.offerId)) {
-            this.recordedViews.add(store.offerId);
-            void this.apiService.recordOfferEvent(store.offerId, 'view');
-          }
-        }
 
         const requestedQuantity = Math.floor(Number(params.get('cantidad')));
         if (Number.isFinite(requestedQuantity) && requestedQuantity > 0) {
           this.selectedQuantity = requestedQuantity;
         }
 
-        const requestedStore = params.get('ferreteria') || '';
-        const requestedStoreId = params.get('ferreteriaId');
-        const matches = this.displayStores.filter(store => requestedStoreId
-          ? store.storeId === requestedStoreId : store.storeName === requestedStore);
-        if (matches.length === 1) {
-          this.selectedStoreName = matches[0].storeName;
-          this.selectedStoreId = this.storeSelectionId(matches[0]);
+        if (detail && isPlatformBrowser(this.platformId)) {
+          void this.refreshOffers(detail, generation, params.get('ferreteria') || '', params.get('ferreteriaId'));
         }
 
         if (
@@ -131,11 +133,55 @@ export class ProductoDetalleComponent implements OnInit {
           this.clearCreateQuotationIntent();
         }
       } catch (error) {
+        if (generation !== this.loadGeneration) return;
         this.loadError = error instanceof Error ? error.message : 'No fue posible cargar el producto. Intenta nuevamente.';
       } finally {
-        this.isLoading = false;
+        if (generation === this.loadGeneration) {
+          this.isLoading = false;
+          this.changeDetector.markForCheck();
+        }
       }
     });
+  }
+
+  protected retryOffers(): void {
+    if (this.detail) void this.refreshOffers(this.detail, this.loadGeneration);
+  }
+
+  private async refreshOffers(sheet: ProductDetailView, generation: number, requestedStore = '', requestedStoreId: string | null = null): Promise<void> {
+    this.offersLoading = true;
+    this.offersError = '';
+    try {
+      const detail = await this.apiService.loadProductOffers(sheet);
+      if (generation !== this.loadGeneration) return;
+      this.detail = detail;
+      this.displayStores = this.buildDisplayStores(detail.stores);
+      this.seoService.updateProduct(detail);
+      const matches = this.displayStores.filter(store => requestedStoreId
+        ? store.storeId === requestedStoreId : store.storeName === requestedStore);
+      if (matches.length === 1) {
+        this.selectedStoreName = matches[0].storeName;
+        this.selectedStoreId = this.storeSelectionId(matches[0]);
+      }
+      for (const store of this.displayStores) {
+        if (store.offerId && !this.recordedViews.has(store.offerId)) {
+          this.recordedViews.add(store.offerId);
+          void this.apiService.recordOfferEvent(store.offerId, 'view');
+        }
+      }
+    } catch {
+      if (generation === this.loadGeneration) this.offersError = 'No fue posible cargar los precios. Intenta nuevamente.';
+    } finally {
+      if (generation === this.loadGeneration) {
+        this.offersLoading = false;
+        this.changeDetector.markForCheck();
+      }
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.loadGeneration++;
+    this.routeSubscription?.unsubscribe();
   }
 
   protected get user(): SessionUser | null {
@@ -390,6 +436,7 @@ export class ProductoDetalleComponent implements OnInit {
       l: 'litro',
       m: 'metro',
       m2: 'm²',
+      m3: 'm³',
       unidad: 'unidad'
     };
     return unit ? labels[unit] || unit : '';

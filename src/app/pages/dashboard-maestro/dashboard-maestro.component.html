@@ -201,7 +201,7 @@
         <a
           class="product-card"
           *ngFor="let row of paginatedProductRows"
-          [routerLink]="productUrl(row.productName)"
+          [href]="productUrl(row.productName)"
           (click)="selectProductCard($event, row.productName)"
           [attr.aria-label]="(isPickingProductForProject ? 'Agregar ' : 'Ver precios de ') + row.productName"
         >

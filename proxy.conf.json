@@ -1,11 +1,11 @@
 {
-  "/api": {
+  "/api/**": {
     "target": "https://cotizapp-d71c8.web.app",
     "secure": true,
     "changeOrigin": true,
     "logLevel": "warn"
   },
-  "/__/firebase": {
+  "/__/firebase/**": {
     "target": "https://cotizapp-d71c8.web.app",
     "secure": true,
     "changeOrigin": true,

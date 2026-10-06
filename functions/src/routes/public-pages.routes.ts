@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { readFileSync } from 'node:fs';
-import { getPublicCatalogSnapshot } from '../lib/public-catalog-cache.js';
+import { getProductSheet } from '../lib/product-sheet-cache.js';
 export const publicPagesRouter = Router();
 const SITE_URL = 'https://cotizapp-d71c8.web.app';
 const slug = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0,120);
@@ -20,8 +20,7 @@ publicPagesRouter.get('/producto', async (req, res, next) => {
     const query = new URLSearchParams(req.originalUrl.split('?')[1] || '');
     const name = query.get('product') || '';
     if (!name) return res.redirect(302, '/buscar');
-    const snapshot = await getPublicCatalogSnapshot();
-    const product = snapshot.products.find(item => String(item.nombre).trim().toLowerCase() === name.trim().toLowerCase());
+    const product = (await getProductSheet(name.trim().toLowerCase(), ''))?.productoMaestro;
     if (!product) return res.status(404).type('html').send(page('Producto no encontrado | CotizApp', 'Este producto no existe.', req.path, '<main><h1>Producto no encontrado</h1><a href="/buscar">Buscar materiales</a></main>'));
     query.delete('product');
     return res.redirect(302, `/productos/${slug(String(product.nombre))}${query.size ? `?${query}` : ''}`);
@@ -29,13 +28,12 @@ publicPagesRouter.get('/producto', async (req, res, next) => {
 });
 publicPagesRouter.get('/productos/:slug', async (req, res, next) => {
   try {
-    const snapshot = await getPublicCatalogSnapshot();
-    const product = snapshot.products.find(item => slug(String(item.nombre)) === req.params.slug);
+    const sheet = await getProductSheet('', String(req.params.slug));
+    const product = sheet?.productoMaestro;
     if (!product) return res.status(404).type('html').send(page('Producto no encontrado | CotizApp', 'Este producto no existe.', req.path, '<main><h1>Producto no encontrado</h1><a href="/buscar">Buscar materiales</a></main>'));
-    const offers = snapshot.searchRows.filter(item => item.productoMaestroId === product.id && item.price > 0);
-    const description = `Compara ${product.nombre} en ${offers.length} ferreterías. Precios finales con IVA incluido, informados por cada ferretería.`;
-    const schema = { '@context':'https://schema.org', '@type':'Product', name:product.nombre, description, ...(offers.length ? { offers: { '@type':'AggregateOffer', priceCurrency:'CLP', lowPrice:Math.min(...offers.map(o=>o.price)), highPrice:Math.max(...offers.map(o=>o.price)), offerCount:offers.length } } : {}) };
-    const body = `<main><a href="/buscar">Buscar materiales</a><h1>${escape(product.nombre)}</h1><p>${escape(product.descripcionCorta)}</p><p>${escape(description)}</p>${offers.length ? `<table><thead><tr><th>Ferretería</th><th>Precio final (IVA incluido)</th><th>Stock</th></tr></thead><tbody>${offers.map(o=>`<tr><td>${escape(o.storeName)}</td><td>${escape(o.price)} CLP</td><td>${escape(o.stock)}</td></tr>`).join('')}</tbody></table>` : '<p role="alert" style="color:#991b1b;background:#fef2f2;border:1px solid #b91c1c;padding:1rem;border-radius:8px">No hay ferreterías con este producto.</p>'}<p>Stock y precio sujetos a confirmación directa con la ferretería. Despacho no incluido.</p></main>`;
+    const description = product.descripcionCorta || `Consulta las características de ${product.nombre} y compara ofertas informadas por las ferreterías en CotizApp.`;
+    const schema = { '@context':'https://schema.org', '@type':'Product', name:product.nombre, description };
+    const body = `<main><a href="/buscar">Buscar materiales</a><h1>${escape(product.nombre)}</h1><p>${escape(description)}</p><p>${escape(sheet.categoryName)} · ${escape(sheet.subcategoryName)} · ${escape(sheet.familyName)}</p><dl>${sheet.atributosProducto.map((attribute: any) => `<dt>${escape(attribute.etiqueta)}</dt><dd>${escape(attribute.valorTexto ?? attribute.valorNumero ?? attribute.valorOpcion ?? attribute.valorBooleano ?? '')}</dd>`).join('')}</dl><p role="status">Cargando precios de las ferreterías…</p><noscript>Activa JavaScript para consultar las ofertas vigentes de las ferreterías.</noscript></main>`;
     res.set('Cache-Control','public, max-age=0, s-maxage=30, must-revalidate');
     return res.type('html').send(page(`${product.nombre}: precios en ferreterías | CotizApp`, description, req.path, body, schema, String(product.imagenPrincipalUrl || '')));
   } catch(error) { return next(error); }

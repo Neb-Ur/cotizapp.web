@@ -20,7 +20,7 @@ export function pricePerMeasurement(priceValue: unknown, quantityValue: unknown)
 }
 
 export function inferMeasurementFromLabel(value: unknown): {
-  unit: 'kg' | 'l' | 'm' | 'm2' | 'unidad';
+  unit: 'kg' | 'l' | 'm' | 'm2' | 'm3' | 'unidad';
   quantity: number;
 } | null {
   const label = normalizeText(value);

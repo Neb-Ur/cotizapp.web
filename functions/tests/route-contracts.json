@@ -337,9 +337,21 @@
   },
   {
     "method": "get",
+    "path": "/admin/productos-maestro/paginado",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "get",
     "path": "/productos-maestro/paginado",
     "auth": false,
     "middlewareCount": 1
+  },
+  {
+    "method": "get",
+    "path": "/admin/productos-maestro/:id",
+    "auth": true,
+    "middlewareCount": 3
   },
   {
     "method": "get",

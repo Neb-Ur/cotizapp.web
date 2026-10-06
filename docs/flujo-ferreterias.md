@@ -1,6 +1,6 @@
 # Primer ingreso de ferreterías
 
-Las cuentas creadas por administración ingresan a `/dashboard/ferreteria`, sección Inicio. Las aceptaciones pendientes se solicitan en un modal de seis casillas, inicialmente desmarcadas: términos, privacidad, mayoría de edad, acuerdo comercial, representación autorizada y compromiso de catálogo. No se solicitan nuevamente datos de identificación. Los documentos completos se pueden abrir voluntariamente desde sus enlaces; después siguen disponibles en el menú, en «Contrato comercial» y «Privacidad y datos».
+Las cuentas creadas por administración ingresan a `/dashboard/ferreteria`, sección Inicio. Las aceptaciones pendientes se solicitan en un modal de seis casillas, inicialmente desmarcadas: términos, privacidad, mayoría de edad, acuerdo comercial, representación autorizada y compromiso de catálogo. No se solicitan nuevamente datos de identificación. Los documentos completos se pueden abrir voluntariamente desde sus enlaces; después siguen disponibles en el menú «Información legal» del footer, en «Contrato comercial y comprobante» y «Privacidad y datos de mi cuenta».
 
 El fondo del panel permanece inerte y no carga el catálogo ni métricas hasta confirmar las aceptaciones. «No acepto, cerrar sesión», la X, Escape o abandonar el panel antes de aceptar cierran la sesión. No se registra aceptación al rechazar. Un fallo de carga o guardado mantiene el modal; no habilita el panel.
 
@@ -9,3 +9,5 @@ El fondo del panel permanece inerte y no carga el catálogo ni métricas hasta c
 Después de aceptar aparece un modal rojo para verificar el correo si Firebase aún lo indica como no verificado. «Verificar correo» envía el enlace mediante Firebase y solo tras confirmar el envío aparece «Enlace enviado». Cerrar estos avisos permite seguir usando el panel, con un recordatorio rojo hasta verificar. La comprobación se repite cada 15 segundos con la pestaña visible, al volver a la ventana o con «Ya verifiqué mi correo». Al confirmar Firebase la verificación, desaparecen los avisos y se detiene la comprobación. Una cuenta con documentos aceptados y correo verificado no vuelve a mostrar los modales al ingresar.
 
 Pruebas: `npm test -- --watch=false`, `npm --prefix functions test` y `npm run build`. Las pruebas no envían correos reales ni aceptan acuerdos en producción.
+
+La navegación legal se concentra en el footer global. Los formularios operativos conservan las casillas de aceptación y sus enlaces breves, sin bloques explicativos legales ni accesos legales en el menú lateral. Las demás cuentas con versiones legales pendientes usan también un modal de casillas antes de volver a su panel; el centro completo de privacidad se consulta desde el footer.

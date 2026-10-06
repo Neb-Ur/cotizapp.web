@@ -54,6 +54,7 @@ import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.c
 type AdminSection = 'ferreterias' | 'productos' | 'solicitudes' | 'contacto' | 'precios' | 'propiedad' | 'privacidad' | 'gobierno' | 'usuarios';
 
 interface MasterProductDraft {
+  isPublished: boolean;
   masterProductId: string;
   name: string;
   barcode: string;
@@ -924,6 +925,16 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     await this.loadMasterProductDetail(product);
   }
 
+  protected async openMasterProductVariant(product: CatalogProduct): Promise<void> {
+    await this.openMasterProductEdit(product);
+    this.selectedMasterProduct = null;
+    this.masterDetailDraft.masterProductId = '';
+    this.masterDetailDraft.name = '';
+    this.masterDetailDraft.barcode = '';
+    this.masterDetailDraft.isPublished = false;
+    this.notice = 'Nueva variante: completa el nombre comercial y revisa color, medidas, acabado y presentación.';
+  }
+
   protected async openMasterProductCreate(): Promise<void> {
     await this.ensureMasterDefinitionsLoaded();
     const firstCategoryId = this.masterCategoryFilter || this.selectedTaxCategoryId || this.categoryOptions[0]?.id || '';
@@ -984,6 +995,18 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       this.error = 'Debes seleccionar categoria, subcategoria y familia.';
       return;
     }
+    if (this.masterDetailDraft.isPublished && this.selectedMasterProduct?.catalogLevel !== 'tipo_base') {
+      const missing = this.masterAttributeDrafts.filter(attribute => attribute.required && (
+        attribute.type === 'text' ? !attribute.valueText.trim()
+          : attribute.type === 'select' ? !attribute.valueOption
+          : attribute.type === 'number' ? attribute.valueNumber === null
+          : attribute.valueBoolean === null
+      ));
+      if (missing.length) {
+        this.error = `Completa las características obligatorias: ${missing.map(attribute => attribute.label).join(', ')}.`;
+        return;
+      }
+    }
     const featureBullets = this.parseMultiline(this.masterDetailDraft.featureBulletsText);
     const gallery = this.parseGallery(this.masterDetailDraft.galleryText);
     const descriptionText = this.masterDetailDraft.descriptionText.trim();
@@ -998,6 +1021,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
 
     try {
       const payload = {
+        isPublished: this.masterDetailDraft.isPublished,
         name,
         barcode: this.masterDetailDraft.barcode,
         brand,
@@ -1887,6 +1911,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
 
   private createEmptyMasterProductDraft(): MasterProductDraft {
     return {
+      isPublished: false,
       masterProductId: '',
       name: '',
       barcode: '',
@@ -1976,6 +2001,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     const palletUnits = this.extractTechnicalNumericValue(product.technicalSheet, 'unidades por pallet');
 
     return {
+      isPublished: product.isPublished,
       masterProductId: product.masterProductId || product.id,
       name: product.name,
       barcode: product.barcode || '',

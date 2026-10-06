@@ -9,7 +9,7 @@ import { canAccessOwner, requireStoreWriteAccess } from '../lib/ownership.js';
 import { requireCurrentStoreAgreement } from '../services/store-agreement.service.js';
 export const storeCatalogRouter = Router();
 
-const measurementUnits = ['kg', 'l', 'm', 'm2', 'unidad'];
+const measurementUnits = ['kg', 'l', 'm', 'm2', 'm3', 'unidad'];
 
 function optionalOfferDate(value: unknown): string | null {
   const text = normalizeText(value);
@@ -58,7 +58,7 @@ storeCatalogRouter.post('/ferreterias/:storeId/catalogo', requireAuth, requireRo
   if (!(await requireCurrentStoreAgreement(req, res, req.params.storeId))) return;
   const masterId = normalizeText(req.body?.productoMaestroId);
   const product = await row(COLLECTIONS.masterProducts, masterId);
-  if (!product) return fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro indicado.', 404);
+  if (!product || product.estado === 'inactivo') return fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro indicado.', 404);
   const offerPayload = {
     ferreteriaId: req.params.storeId,
     productoMaestroId: masterId,

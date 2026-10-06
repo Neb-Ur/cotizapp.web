@@ -46,8 +46,8 @@
                   <span>{{ product.productType }}</span>
                 </div>
                 <div class="suggestion-price">
-                  <span>Desde</span>
-                  <strong>{{ formatCurrency(product.minPrice) }}</strong>
+                  <ng-container *ngIf="product.storeCount > 0; else noSuggestionOffers"><span>Desde</span><strong>{{ formatCurrency(product.minPrice) }}</strong></ng-container>
+                  <ng-template #noSuggestionOffers><span>Sin ofertas disponibles</span></ng-template>
                 </div>
                 <i class="pi pi-angle-right" aria-hidden="true"></i>
               </div>
@@ -73,9 +73,9 @@
   <section class="catalog-section" aria-labelledby="featured-products-title">
     <div class="section-heading">
       <div>
-        <span>Lo más buscado en CotizApp</span>
-        <h2 id="featured-products-title">Productos con más opciones</h2>
-        <p>Compara precios en múltiples ferreterías y elige la mejor opción para tu proyecto.</p>
+        <span>Catálogo de CotizApp</span>
+        <h2 id="featured-products-title">Productos y materiales</h2>
+        <p>Explora el catálogo base y compara precios cuando existan ofertas de ferreterías.</p>
       </div>
       <a routerLink="/buscar">Ver más productos <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
     </div>
@@ -90,19 +90,22 @@
 
     <p class="catalog-message" *ngIf="catalogError && featuredProducts.length === 0">{{ catalogError }}</p>
 
+    <p class="catalog-message" *ngIf="!catalogLoading && !catalogError && featuredProducts.length === 0">No hay productos disponibles en el catálogo.</p>
+
     <div class="home-product-grid" *ngIf="featuredProducts.length > 0">
-      <a class="home-product-card" *ngFor="let product of featuredProducts | slice:0:4" [routerLink]="productUrl(product.productName)">
+      <a class="home-product-card" *ngFor="let product of featuredProducts | slice:0:4" [href]="productUrl(product.productName)" (click)="openProductCard($event, product)">
         <span class="home-product-image">
           <img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.productName" width="360" height="240" loading="lazy" decoding="async" />
           <img *ngIf="!product.imageUrl" class="fallback" src="assets/cotizapp-mark.svg" alt="" width="180" height="180" loading="lazy" />
         </span>
-        <span class="home-product-meta">{{ product.brand }} · {{ product.productType }}</span>
+        <span class="home-product-meta">{{ product.brand === 'Por especificar' ? 'Producto base' : product.brand }} · {{ product.productType }}</span>
         <span class="home-product-name">{{ product.productName }}</span>
         <span class="home-product-pricing">
-          <span><small>Desde</small><strong>{{ formatCurrency(product.minPrice) }}</strong></span>
+          <span *ngIf="product.storeCount > 0; else noHomeOffers"><small>Desde</small><strong>{{ formatCurrency(product.minPrice) }}</strong></span>
+          <ng-template #noHomeOffers><span>Sin ofertas disponibles</span></ng-template>
           <span class="compare-link" aria-hidden="true"><i class="pi pi-arrow-right"></i></span>
         </span>
-        <span class="home-product-stores"><i class="pi pi-shop" aria-hidden="true"></i> {{ product.storeCount }} {{ product.storeCount === 1 ? 'ferretería' : 'ferreterías' }}</span>
+        <span class="home-product-stores" *ngIf="product.storeCount > 0"><i class="pi pi-shop" aria-hidden="true"></i> {{ product.storeCount }} {{ product.storeCount === 1 ? 'ferretería' : 'ferreterías' }}</span>
       </a>
     </div>
   </section>

@@ -1,8 +1,9 @@
+import { HYDRATION_ENABLED } from './core/config/rendering.config';
 import { DataModeService } from './core/services/data-mode.service';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
 import { ApplicationConfig, provideZoneChangeDetection, provideAppInitializer, inject } from '@angular/core';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
@@ -18,7 +19,7 @@ export const appConfig: ApplicationConfig = {
       scrollPositionRestoration: 'enabled',
       anchorScrolling: 'enabled'
     })),
-    provideHttpClient(),
-    provideAnimationsAsync(), provideClientHydration()
+    provideHttpClient(withFetch()),
+    provideAnimationsAsync(), ...(HYDRATION_ENABLED ? [provideClientHydration()] : [])
   ]
 };

@@ -292,7 +292,7 @@ export interface ProductStoreOfferRow {
   validUntil?: string | null;
   offerConditions: string;
   sponsored: boolean;
-  measurementUnit?: 'kg' | 'l' | 'm' | 'm2' | 'unidad' | null;
+  measurementUnit?: 'kg' | 'l' | 'm' | 'm2' | 'm3' | 'unidad' | null;
   measurementQuantity?: number | null;
   pricePerMeasurement?: number | null;
   measurementSource?: 'store_reported' | 'catalog_presentation' | null;
@@ -409,6 +409,7 @@ export interface ProjectComparisonStrategy {
 }
 
 export interface CatalogProduct {
+  catalogLevel?: 'tipo_base' | 'producto_comercial';
   id: string;
   masterProductId?: string;
   name: string;
@@ -437,7 +438,7 @@ export interface CatalogProduct {
   includesVat?: boolean;
   validUntil?: string;
   offerConditions?: string;
-  measurementUnit?: 'kg' | 'l' | 'm' | 'm2' | 'unidad' | '';
+  measurementUnit?: 'kg' | 'l' | 'm' | 'm2' | 'm3' | 'unidad' | '';
   measurementQuantity?: number | null;
   imageRights?: {
     sourceType: 'ai_generated' | 'manufacturer_authorized' | 'store_authorized' | 'licensed_stock' | 'original' | 'other' | '';

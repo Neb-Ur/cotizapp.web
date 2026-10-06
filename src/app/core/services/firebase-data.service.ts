@@ -62,6 +62,11 @@ interface ProductoMaestroApi {
   descripcionLarga?: string;
   imagenPrincipalUrl?: string;
   galeriaJson?: string[];
+  estado?: string;
+  catalogoNivel?: 'tipo_base' | 'producto_comercial';
+  tipoProducto?: string;
+  unidadVenta?: string;
+  presentacion?: string;
   origenImagen?: NonNullable<CatalogProduct['imageRights']>['sourceType'];
   proveedorImagen?: string;
   terminosFuenteUrl?: string;
@@ -152,6 +157,7 @@ export class FirebaseDataService {
   private readonly quotationCache = new Map<string, ProjectQuotationView>();
   private readonly searchRows: SearchRowExtended[] = [];
   private readonly productDetailLoadedAt = new Map<string, number>();
+  private readonly productDetailRequests = new Map<string, Promise<ProductDetailView | null>>();
   private readonly productDetailByName = new Map<string, ProductDetailView>();
 
   private readonly projectsByOwner = new Map<string, ProjectSummary[]>();
@@ -507,7 +513,7 @@ export class FirebaseDataService {
     total: number;
     totalPages: number;
   }> {
-    const raw = await this.apiClient.get<PaginatedMasterCatalogApi>('/productos-maestro/paginado', false, {
+    const raw = await this.apiClient.get<PaginatedMasterCatalogApi>('/admin/productos-maestro/paginado', true, {
       query: payload.query?.trim() || undefined,
       categoriaId: payload.categoryId || undefined,
       subcategoriaId: payload.subcategoryId || undefined,
@@ -529,13 +535,18 @@ export class FirebaseDataService {
     product: CatalogProduct | null;
     attributes: any[];
   }> {
-    const raw = await this.apiClient.get<any>(`/productos-maestro/${masterProductId}`);
+    const raw = await this.apiClient.get<any>(`/admin/productos-maestro/${masterProductId}`, true);
     const product = this.mapMasterProduct({
       id: raw.id,
       categoriaId: raw.categoriaId,
       subcategoriaId: raw.subcategoriaId,
       familiaId: raw.familiaId,
       nombre: raw.nombre,
+      estado: raw.estado,
+      catalogoNivel: raw.catalogoNivel,
+      tipoProducto: raw.tipoProducto,
+      unidadVenta: raw.unidadVenta,
+      presentacion: raw.presentacion,
       marca: raw.marca,
       codigoBarras: raw.codigoBarras,
       descripcionCorta: raw.descripcionCorta,
@@ -571,6 +582,10 @@ export class FirebaseDataService {
   }, refreshCache = true): Promise<CatalogProduct> {
     const created = await this.apiClient.post<any>('/productos-maestro', {
       nombre: payload.name,
+      tipoProducto: payload.productType,
+      unidadVenta: payload.unitLabel,
+      presentacion: payload.packagingLabel,
+      estado: payload.isPublished === false ? 'inactivo' : 'activo',
       marca: payload.brand,
       codigoBarras: payload.barcode,
       categoriaId: payload.categoryId,
@@ -603,6 +618,10 @@ export class FirebaseDataService {
   }, refreshCache = true): Promise<CatalogProduct | null> {
     const payload = {
       nombre: patch.name,
+      tipoProducto: patch.productType,
+      unidadVenta: patch.unitLabel,
+      presentacion: patch.packagingLabel,
+      estado: patch.isPublished === undefined ? undefined : patch.isPublished ? 'activo' : 'inactivo',
       marca: patch.brand,
       codigoBarras: patch.barcode,
       categoriaId: patch.categoryId,
@@ -1370,6 +1389,17 @@ export class FirebaseDataService {
         byProduct.set(row.productName, current);
       });
 
+    // The master catalog exists independently of store offers.
+    for (const master of this.masterCatalog) {
+      if (!master.isPublished || (familyId && master.familyId !== familyId)
+        || (query && !master.name.toLowerCase().includes(query)) || byProduct.has(master.name)) continue;
+      byProduct.set(master.name, {
+        productName: master.name, minPrice: 0, maxPrice: 0,
+        sellers: new Set<string>(), storeIds: new Set<string>(),
+        brand: master.brand, productType: master.productType, imageUrl: master.imageUrl
+      });
+    }
+
     return Array.from(byProduct.values())
       .map((item) => ({
         ...item,
@@ -1418,28 +1448,44 @@ export class FirebaseDataService {
     return this.apiClient.get(`/ferreterias/propietario/${ownerId}/metricas`, true);
   }
 
-  async loadProductDetail(productName?: string): Promise<ProductDetailView | null> {
-    await Promise.all([
-      this.ensureBasicTaxonomyLoaded(),
-      this.ensureSearchRowsLoaded(),
-      this.ensureMasterCatalogLoaded()
-    ]);
+  async loadProductDetail(productName?: string, slug?: string): Promise<ProductDetailView | null> {
+    const requestKey = slug ? `slug:${slug}` : (productName || '').trim().toLowerCase();
+    const existing = this.productDetailRequests.get(requestKey);
+    if (existing) return existing;
+    const request = this.fetchProductDetail(productName, slug);
+    this.productDetailRequests.set(requestKey, request);
+    try { return await request; } finally { this.productDetailRequests.delete(requestKey); }
+  }
 
-    const selectedName = productName?.trim() || this.searchRows[0]?.productName || this.masterCatalog[0]?.name || '';
-    if (!selectedName) {
-      return null;
-    }
-
-    const key = selectedName.toLowerCase();
+  private async fetchProductDetail(productName?: string, slug?: string): Promise<ProductDetailView | null> {
+    if (!productName?.trim() && !slug) await this.ensureMasterCatalogLoaded();
+    const selectedName = productName?.trim() || (!slug ? this.masterCatalog[0]?.name : '') || '';
+    if (!selectedName && !slug) return null;
+    const key = slug ? `slug:${slug}` : selectedName.toLowerCase();
     if (this.productDetailByName.has(key) && Date.now() - (this.productDetailLoadedAt.get(key) || 0) < 60_000) {
       return this.productDetailByName.get(key) || null;
     }
 
     try {
       const raw = await this.apiClient.get<any>('/productos/detalle', false, {
-        producto: selectedName
+        producto: selectedName || undefined,
+        slug: slug || undefined
       });
 
+      const detail = this.mapProductDetail(raw);
+
+      this.productDetailLoadedAt.set(key, Date.now());
+      this.productDetailByName.set(key, detail);
+      this.productDetailByName.set(detail.productName.toLowerCase(), detail);
+      this.productDetailLoadedAt.set(detail.productName.toLowerCase(), Date.now());
+      return detail;
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 404) return null;
+      throw this.normalizeError(error, 'No fue posible cargar el producto. Intenta nuevamente.');
+    }
+  }
+
+  private mapProductDetail(raw: any): ProductDetailView {
       const master = raw.productoMaestro;
       const stores: ProductStoreOfferRow[] = (raw.stores || []).map((store: any) => ({
         offerId: store.productoFerreteriaId || '',
@@ -1469,25 +1515,25 @@ export class FirebaseDataService {
         source: store.source || 'Informado por la ferretería'
       }));
 
-      const detail: ProductDetailView = {
+      return {
         productoMaestroId: master.id,
         productName: master.nombre,
-        imageUrl: master.imagenPrincipalUrl || 'https://via.placeholder.com/600x420?text=Producto',
+        imageUrl: master.imagenPrincipalUrl || '',
         gallery: Array.isArray(master.galeriaJson) && master.galeriaJson.length > 0
           ? master.galeriaJson
-          : [master.imagenPrincipalUrl || 'https://via.placeholder.com/600x420?text=Producto'],
+          : (master.imagenPrincipalUrl ? [master.imagenPrincipalUrl] : []),
         imageDisclosure: master.origenImagen === 'ai_generated'
           ? 'Imagen referencial generada con inteligencia artificial. Verifica presentación y características con la ferretería.'
           : '',
         sku: raw.stores?.[0]?.sku || '',
         unitLabel: 'Unidad',
-        packagingLabel: 'Unidad',
+        packagingLabel: master.presentacion || 'Unidad',
         stock: stores.reduce((acc, item) => acc + item.stock, 0),
         brand: master.marca || 'Sin marca',
-        productType: master.descripcionCorta || 'Producto ferretero',
-        categoryName: this.categories.find((item) => item.id === master.categoriaId)?.name || 'Sin categoria',
-        subcategoryName: this.subcategories.find((item) => item.id === master.subcategoriaId)?.name || 'Sin subcategoria',
-        familyName: this.families.find((item) => item.id === master.familiaId)?.name || 'Sin familia',
+        productType: master.tipoProducto || master.descripcionCorta || 'Producto ferretero',
+        categoryName: raw.categoryName || this.categories.find((item) => item.id === master.categoriaId)?.name || 'Sin categoria',
+        subcategoryName: raw.subcategoryName || this.subcategories.find((item) => item.id === master.subcategoriaId)?.name || 'Sin subcategoria',
+        familyName: raw.familyName || this.families.find((item) => item.id === master.familiaId)?.name || 'Sin familia',
         description: master.descripcionLarga || master.descripcionCorta || '',
         shortDescription: master.descripcionCorta || '',
         featureBullets: [master.descripcionCorta || ''],
@@ -1504,13 +1550,43 @@ export class FirebaseDataService {
           || 'Menor precio final unitario con IVA incluido, informado para la misma ficha de producto, con oferta activa y vigente. El patrocinio no altera el orden. El despacho no está incluido.'
       };
 
-      this.productDetailLoadedAt.set(key, Date.now());
-      this.productDetailByName.set(key, detail);
-      return detail;
+  }
+
+  async loadProductSheet(productName?: string, slug?: string): Promise<ProductDetailView | null> {
+    const key = `cotizapp-product-sheet-v1:${this.dataMode?.mode() || 'real'}:${slug || productSlug(productName || '')}`;
+    if (typeof localStorage !== 'undefined') {
+      try {
+        const cached = JSON.parse(localStorage.getItem(key) || 'null');
+        if (cached?.raw?.productoMaestro?.id && Date.now() - cached.savedAt < 3_600_000) {
+          return this.mapProductDetail(cached.raw);
+        }
+      } catch { /* Storage is optional. */ }
+    }
+    try {
+      const raw = await this.apiClient.get<any>('/productos/detalle', false, {
+        producto: productName || undefined, slug: slug || undefined, vista: 'ficha'
+      });
+      // Persist only the sheet. Prices, stock and store contacts are never persisted here.
+      const sheet = { productoMaestro: raw.productoMaestro, categoryName: raw.categoryName,
+        subcategoryName: raw.subcategoryName, familyName: raw.familyName, atributosProducto: raw.atributosProducto };
+      if (typeof localStorage !== 'undefined') {
+        try { localStorage.setItem(key, JSON.stringify({ savedAt: Date.now(), raw: sheet })); }
+        catch { /* Storage is optional. */ }
+      }
+      return this.mapProductDetail(sheet);
     } catch (error) {
       if (error instanceof HttpErrorResponse && error.status === 404) return null;
       throw this.normalizeError(error, 'No fue posible cargar el producto. Intenta nuevamente.');
     }
+  }
+
+  async loadProductOffers(sheet: ProductDetailView): Promise<ProductDetailView> {
+    const raw = await this.apiClient.get<any>('/productos/detalle', false, {
+      slug: productSlug(sheet.productName), vista: 'ofertas'
+    });
+    const offers = this.mapProductDetail({ ...raw, productoMaestro: { id: sheet.productoMaestroId, nombre: sheet.productName } });
+    return { ...sheet, stores: offers.stores, minPrice: offers.minPrice, maxPrice: offers.maxPrice,
+      sku: offers.sku, stock: offers.stock };
   }
 
   getProductDetail(productName?: string): ProductDetailView | null {
@@ -1964,20 +2040,21 @@ export class FirebaseDataService {
     return {
       id: product.id,
       masterProductId: product.id,
+      catalogLevel: product.catalogoNivel,
       name: product.nombre,
       barcode: product.codigoBarras || '',
       categoryId: product.categoriaId,
       subcategoryId: product.subcategoriaId,
       familyId: product.familiaId,
       brand: product.marca || 'Sin marca',
-      productType: product.descripcionCorta || 'Producto ferretero',
-      unitLabel: 'Unidad',
-      packagingLabel: 'Unidad',
+      productType: product.tipoProducto || product.descripcionCorta || 'Producto ferretero',
+      unitLabel: product.unidadVenta || 'Unidad',
+      packagingLabel: product.presentacion || 'Unidad',
       price: minPrice,
       stock: 0,
       sku: '',
-      imageUrl: product.imagenPrincipalUrl || 'https://via.placeholder.com/600x420?text=Producto',
-      isPublished: true,
+      imageUrl: product.imagenPrincipalUrl || '',
+      isPublished: product.estado !== 'inactivo',
       shortDescription: product.descripcionCorta || '',
       descriptionBlocks: product.descripcionLarga ? [{ text: product.descripcionLarga }] : [],
       featureBullets: product.descripcionCorta ? [product.descripcionCorta] : [],
@@ -1985,7 +2062,7 @@ export class FirebaseDataService {
       extraSections: [],
       gallery: Array.isArray(product.galeriaJson) && product.galeriaJson.length > 0
         ? product.galeriaJson
-        : [product.imagenPrincipalUrl || 'https://via.placeholder.com/600x420?text=Producto'],
+        : (product.imagenPrincipalUrl ? [product.imagenPrincipalUrl] : []),
       specValues: {},
       templateVersion: 1,
       imageRights: {
@@ -2018,13 +2095,13 @@ export class FirebaseDataService {
       subcategoryId: master.subcategoriaId,
       familyId: master.familiaId,
       brand: master.marca || 'Sin marca',
-      productType: master.descripcionCorta || 'Producto ferretero',
-      unitLabel: 'Unidad',
-      packagingLabel: 'Unidad',
+      productType: master.tipoProducto || master.descripcionCorta || 'Producto ferretero',
+      unitLabel: master.unidadVenta || 'Unidad',
+      packagingLabel: master.presentacion || 'Unidad',
       price: Number(row.precio) || 0,
       stock: Number(row.stock) || 0,
       sku: row.skuFerreteria || '',
-      imageUrl: master.imagenPrincipalUrl || 'https://via.placeholder.com/600x420?text=Producto',
+      imageUrl: master.imagenPrincipalUrl || '',
       isPublished: Boolean(row.publicado),
       shortDescription: master.descripcionCorta || '',
       descriptionBlocks: master.descripcionLarga ? [{ text: master.descripcionLarga }] : [],
@@ -2033,7 +2110,7 @@ export class FirebaseDataService {
       extraSections: [],
       gallery: Array.isArray(master.galeriaJson) && master.galeriaJson.length > 0
         ? master.galeriaJson
-        : [master.imagenPrincipalUrl || 'https://via.placeholder.com/600x420?text=Producto'],
+        : (master.imagenPrincipalUrl ? [master.imagenPrincipalUrl] : []),
       specValues: {},
       templateVersion: 1,
       updatedAt: row.actualizadoEn || row.creadoEn || undefined,
@@ -2125,6 +2202,7 @@ export class FirebaseDataService {
       label: item.etiqueta,
       type: this.mapFieldType(item.tipoDato),
       required: Boolean(item.esObligatorio),
+      unitLabel: item.unidad || undefined,
       options: Array.isArray(item.opcionesJson) ? item.opcionesJson : undefined,
       placeholder: item.tipoDato === 'numero' ? 'Ingresa valor numerico' : 'Ingresa valor'
     })).sort((a, b) => {

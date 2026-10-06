@@ -45,7 +45,7 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
       minPrice: 0,
       maxPrice: 0,
       brand: product.marca || 'Sin marca',
-      productType: product.descripcionCorta || 'Producto ferretero',
+      productType: product.tipoProducto || product.descripcionCorta || 'Producto ferretero',
       sellers: new Set<string>(),
       storeIds: new Set<string>()
     });

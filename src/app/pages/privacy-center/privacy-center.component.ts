@@ -8,6 +8,7 @@ import { PrivacyOverview, PrivacyRequestType, SessionUser } from '../../core/mod
 import { AuthService } from '../../core/services/auth.service';
 import { CookieConsentService } from '../../core/services/cookie-consent.service';
 import { AccountDeletionReceipt, PrivacyDataService } from '../../core/services/privacy-data.service';
+import { UiModalComponent } from '../../shared/components/ui-modal/ui-modal.component';
 
 interface ProfileDraft {
   displayName: string;
@@ -21,7 +22,7 @@ interface ProfileDraft {
 @Component({
   selector: 'app-privacy-center',
   standalone: true,
-  imports: [PasswordFieldComponent, CommonModule, FormsModule, RouterLink],
+  imports: [PasswordFieldComponent, CommonModule, FormsModule, RouterLink, UiModalComponent],
   templateUrl: './privacy-center.component.html',
   styleUrl: './privacy-center.component.scss'
 })
@@ -93,7 +94,15 @@ export class PrivacyCenterComponent implements OnInit {
       this.overview = await this.privacyData.acceptCurrentLegalDocuments(this.marketingConsent, this.overview!.currentVersions);
       await this.auth.refreshCurrentUser();
       this.notice = 'Aceptación registrada con versión, fecha, hora y cuenta asociada.';
+      await this.router.navigateByUrl(this.auth.dashboardRouteForUser(this.user));
     });
+  }
+
+  protected async rejectLegalDocuments(): Promise<void> {
+    if (this.busyAction === 'legal') return;
+    const logout = this.auth.logout();
+    await this.router.navigateByUrl('/login');
+    await logout;
   }
 
   protected async saveProfile(): Promise<void> {

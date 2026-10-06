@@ -69,18 +69,6 @@
           </svg>
           <span><strong>Editar perfil</strong><small>Datos y ubicación</small></span>
         </button>
-        <button type="button" (click)="goToPrivacyCenter()">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M12 2 4 5v6c0 5.1 3.4 9.7 8 11 4.6-1.3 8-5.9 8-11V5l-8-3Zm0 2.1L18 6.3V11c0 4-2.5 7.6-6 8.9C8.5 18.6 6 15 6 11V6.3l6-2.2Zm0 3.4a2.5 2.5 0 0 0-1 4.8V16h2v-3.7a2.5 2.5 0 0 0-1-4.8Z" />
-          </svg>
-          <span><strong>Privacidad y datos</strong><small>Derechos y consentimientos</small></span>
-        </button>
-        <button type="button" (click)="goToStoreAgreement()">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M6 2h9l5 5v15H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 2H6v16h12V8h-4V4Zm-5 8h6v2H9v-2Zm0 4h6v2H9v-2Z" />
-          </svg>
-          <span><strong>Contrato comercial</strong><small>Versión y comprobante</small></span>
-        </button>
       </nav>
 
       <div class="sidebar-summary">
@@ -398,7 +386,7 @@
           <select [(ngModel)]="catalogEditDraft.measurementUnit" [disabled]="catalogEditSaving">
             <option value="">No aplica / no informada</option>
             <option value="kg">Kilogramo</option><option value="l">Litro</option>
-            <option value="m">Metro</option><option value="m2">Metro cuadrado</option>
+            <option value="m">Metro</option><option value="m2">Metro cuadrado</option><option value="m3">Metro cúbico</option>
             <option value="unidad">Unidad</option>
           </select>
         </label>

@@ -1,0 +1,128 @@
+[
+  {
+    "id": "S01",
+    "title": "Sodimac · Construcción",
+    "url": "https://www.sodimac.cl/sodimac-cl/lista/CATG10005/Construccion",
+    "evidenceMode": "extracto indexado; apertura completa limitada por tamaño",
+    "note": "Referencia de navegación de construcción; no se levantó el catálogo completo."
+  },
+  {
+    "id": "S02",
+    "title": "Sodimac · Catálogo gasfitería y electricidad",
+    "url": "https://www.sodimac.cl/sodimac-cl/content/catalogo-proyectos-gasfiteria-electricidad",
+    "evidenceMode": "extracto indexado",
+    "note": "Separa conducción por materiales/sistemas y fijaciones por tipo."
+  },
+  {
+    "id": "S03",
+    "title": "Sodimac · Tubos PPR",
+    "url": "https://www.sodimac.cl/sodimac-cl/b/tubos-ppr",
+    "evidenceMode": "extracto indexado",
+    "note": "Distinguir vendedor de marketplace de la tienda que aloja la ficha."
+  },
+  {
+    "id": "S04",
+    "title": "Easy · Bloques",
+    "url": "https://www.easy.cl/materiales-de-construccion/ladrillos-bloques-y-pastelones/bloques",
+    "evidenceMode": "extracto indexado; sitio limita apertura directa",
+    "note": "Ruta materiales → ladrillos/bloques/pastelones → bloques."
+  },
+  {
+    "id": "S05",
+    "title": "Easy · Aislación térmica",
+    "url": "https://www.easy.cl/materiales-de-construccion/aislacion/termico",
+    "evidenceMode": "extracto indexado",
+    "note": "Filtros observados: tipo, peso, marca, material, espesor y uso."
+  },
+  {
+    "id": "S06",
+    "title": "Easy · Tornillos",
+    "url": "https://www.easy.cl/ferreteria-y-gasfiteria/fijaciones-y-adhesivos/tornillos/tornillos-y-soberbios",
+    "evidenceMode": "extracto indexado",
+    "note": "Ruta más profunda que los tres niveles actuales de CotizApp; filtros por medida/material/uso."
+  },
+  {
+    "id": "S07",
+    "title": "Easy · Tableros",
+    "url": "https://www.easy.cl/materiales-de-construccion/maderas-y-tableros/tableros",
+    "evidenceMode": "extracto indexado",
+    "note": "Agrupa tableros por material y formato; requiere revisar clasificación de productos mezclados."
+  },
+  {
+    "id": "S08",
+    "title": "Easy · Pisos y pinturas",
+    "url": "https://www.easy.cl/catalogo-pisos-y-pinturas",
+    "evidenceMode": "extracto indexado",
+    "note": "Separa revestimientos de adhesivos y fragües."
+  },
+  {
+    "id": "S09",
+    "title": "Construmart · Materiales de construcción",
+    "url": "https://www.construmart.cl/materiales-de-construccion",
+    "evidenceMode": "página de listado consultada",
+    "note": "Familias de obra y filtros por aplicación/marca; algunas ofertas anónimas muestran valores incompletos."
+  },
+  {
+    "id": "S10",
+    "title": "Construmart · Catálogo principal",
+    "url": "https://www.construmart.cl/",
+    "evidenceMode": "lectura directa",
+    "note": "Cobertura de madera, materiales, herramientas y terminaciones."
+  },
+  {
+    "id": "S11",
+    "title": "Volcán · Volcanita RH 12,5 mm",
+    "url": "https://volcan.cl/productos/volcanita-rh-espesor-12-5-mm/",
+    "evidenceMode": "extracto indexado",
+    "note": "Fabricante: tipo y espesor, enlaces de documentación técnica."
+  },
+  {
+    "id": "S12",
+    "title": "Volcán · RH BR 12,5 × 1,2 × 2,4",
+    "url": "https://tienda.volcan.cl/products/5000598-volcanita-rh-br-125-x-12-x-24",
+    "evidenceMode": "extracto indexado; apertura directa fallida",
+    "note": "Formato declarado; no se descargaron imágenes ni documentos."
+  },
+  {
+    "id": "S13",
+    "title": "Arauco Chile · Optimizador de corte",
+    "url": "https://new.arauco.com/chile/ayuda-para-tus-proyectos/optimizador-de-corte/",
+    "evidenceMode": "extracto indexado; apertura directa fallida",
+    "note": "Ejemplos de formatos MDF y terciados; catálogo de selección, no oferta de tienda."
+  },
+  {
+    "id": "S14",
+    "title": "Sika Chile · Sikaflex-1A",
+    "url": "https://chl.sika.com/es/construccion/sellado-y-pegadoelastico/selladores-para-pisos/sikaflex-1a.html",
+    "evidenceMode": "lectura directa",
+    "note": "Fabricante local: base química y presentación; no trasladar variantes de otros países."
+  },
+  {
+    "id": "S15",
+    "title": "Sodimac · Cable libre de halógeno",
+    "url": "https://www.sodimac.cl/sodimac-cl/lista/CATG36440/Cable-libre-de-halogeno",
+    "evidenceMode": "extracto indexado",
+    "note": "Ejemplo de sección, longitud y marca; modelo técnico todavía pendiente."
+  },
+  {
+    "id": "S16",
+    "title": "Easy · Porcelanato Baldara",
+    "url": "https://www.easy.cl/porcelanato-piso-muro-60x60-cm-concreto-144-m2-baldara-1102919/p",
+    "evidenceMode": "extracto indexado",
+    "note": "Formato y cobertura por caja."
+  },
+  {
+    "id": "S17",
+    "title": "Easy · Gres Forest Roble",
+    "url": "https://www.easy.cl/gres-porcelanato-forest-roble-20x120-cm-119-m2-1203478/p",
+    "evidenceMode": "extracto indexado",
+    "note": "Cobertura declarada: no inferir piezas por caja a partir de valores redondeados."
+  },
+  {
+    "id": "S18",
+    "title": "Easy · GSB 183-LI",
+    "url": "https://www.easy.cl/taladro-percutor-atornillador-13-mm-18v-gsb-183-li-1432830/p",
+    "evidenceMode": "extracto indexado",
+    "note": "Mandril y tensión; contenido del kit pendiente de confirmar."
+  }
+]

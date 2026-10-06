@@ -672,14 +672,6 @@ export class DashboardFerreteriaComponent implements OnInit {
     this.router.navigateByUrl('/');
   }
 
-  protected goToPrivacyCenter(): void {
-    void this.router.navigate(['/cuenta/privacidad-datos']);
-  }
-
-  protected goToStoreAgreement(): void {
-    void this.router.navigate(['/cuenta/contrato-ferreteria']);
-  }
-
   private async initializeDashboard(): Promise<void> {
     try {
       await this.ensureSectionData(this.currentSection, true);

@@ -53,3 +53,22 @@ describe('server-paginated product search',()=>{
     expect(api.searchProductPage.mock.calls[1].slice(1,4)).toEqual([1,50,'price-asc']);
   });
 });
+
+describe('product card navigation',()=>{
+ it('opens details through the router while retaining the anchor as fallback',()=>{
+  const {component}=fixture();component.router.navigateByUrl=vi.fn();
+  const event=new MouseEvent('click',{cancelable:true,button:0});
+  component.selectProductCard(event,'Abrazadera metálica');
+  expect(event.defaultPrevented).toBe(true);
+  expect(component.router.navigateByUrl).toHaveBeenCalledWith('/productos/abrazadera-metalica');
+ });
+ it('lets modified clicks open a separate tab and preserves quotation selection',()=>{
+  const {component}=fixture();component.router.navigateByUrl=vi.fn();component.router.navigate=vi.fn();
+  const modified=new MouseEvent('click',{cancelable:true,button:0,ctrlKey:true});
+  component.selectProductCard(modified,'Abrazadera metálica');
+  expect(modified.defaultPrevented).toBe(false);expect(component.router.navigateByUrl).not.toHaveBeenCalled();
+  component.projectTarget='nuevo';
+  component.selectProductCard(new MouseEvent('click',{cancelable:true,button:0}),'Abrazadera metálica');
+  expect(component.router.navigate).toHaveBeenCalledWith(['/dashboard/maestro/cotizaciones/nuevo'],expect.objectContaining({queryParams:expect.objectContaining({addProduct:'Abrazadera metálica'})}));
+ });
+});
