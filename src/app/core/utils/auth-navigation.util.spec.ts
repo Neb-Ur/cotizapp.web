@@ -31,3 +31,14 @@ describe('auth navigation', () => {
     )).toBe('/dashboard/ferreteria');
   });
 });
+
+it('always starts a store on its dashboard, retaining normal public return URLs for maestros',()=>{
+ expect(resolvePostAuthUrl({...ferreteria,storeAgreementStatus:'vigente'},'/productos/cemento','/dashboard/ferreteria')).toBe('/dashboard/ferreteria');
+ expect(resolvePostAuthUrl(maestro,'/productos/cemento','/')).toBe('/productos/cemento');
+});
+it('preserves the product and modal intent through a mandatory legal update',()=>{
+ const product='/productos/cemento?crearCotizacion=1&cantidad=3&ferreteriaId=store';
+ const destination=resolvePostAuthUrl({...maestro,legalAcceptanceRequired:true},product,'/');
+ expect(destination).toContain('/cuenta/privacidad-datos?');
+ expect(new URL(destination,'https://findi.test').searchParams.get('returnUrl')).toBe(product);
+});

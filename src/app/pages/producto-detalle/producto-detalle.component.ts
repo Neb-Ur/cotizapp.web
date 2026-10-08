@@ -1,3 +1,5 @@
+import { productSlug } from '../../core/utils/product-url.util';
+import { QuotationSelectionService } from '../../core/services/quotation-selection.service';
 import { CommonModule, Location, isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -24,6 +26,9 @@ import {
   styleUrl: './producto-detalle.component.scss'
 })
 export class ProductoDetalleComponent implements OnInit, OnDestroy {
+  protected catalogPath(kind:string,name:string):string {return `/${kind}/${productSlug(name)}`;}
+  private readonly quotationSelection = inject(QuotationSelectionService);
+  protected isAddingToQuotation = false;
   private readonly platformId = inject(PLATFORM_ID);
   protected offersLoading = true;
   protected offersError = '';
@@ -124,7 +129,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
         }
 
         if (
-          currentUser
+          detail && currentUser
           && params.get('crearCotizacion') === '1'
           && !this.handledCreateQuotationIntent
         ) {
@@ -158,7 +163,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
       this.displayStores = this.buildDisplayStores(detail.stores);
       this.seoService.updateProduct(detail);
       const matches = this.displayStores.filter(store => requestedStoreId
-        ? store.storeId === requestedStoreId : store.storeName === requestedStore);
+        ? this.storeSelectionId(store) === requestedStoreId : store.storeName === requestedStore);
       if (matches.length === 1) {
         this.selectedStoreName = matches[0].storeName;
         this.selectedStoreId = this.storeSelectionId(matches[0]);
@@ -216,8 +221,11 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
     return this.displayStores.find((store) => this.storeSelectionId(store) === this.selectedStoreId) || null;
   }
 
+  protected get selectedQuotationName(): string { return this.projects.find(project => project.id === this.selectedProjectId)?.name || ''; }
+  protected get canUseQuotations(): boolean { const session = this.authService.currentUser(); return !session || session.role === 'maestro'; }
+
   protected get canShowAddToQuotation(): boolean {
-    return !!this.selectedStore && !!this.selectedProjectId && this.selectedQuantity > 0 && !this.exceedsSelectedStock;
+    return !!this.user && !!this.selectedStore && !!this.selectedProjectId && this.selectedQuantity > 0 && !this.exceedsSelectedStock;
   }
 
   protected get selectedTotal(): number {
@@ -295,10 +303,12 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
     }
 
     this.selectedProjectId = projectId;
+    if (this.user) this.quotationSelection.select(this.user.id, projectId);
     this.quoteFeedback = '';
   }
 
   protected openCreateQuotationModal(): void {
+    if (!this.user) { this.goToLoginFromQuotationModal(); return; }
     this.newQuotationName = '';
     this.newQuotationAddress = '';
     this.createQuotationError = '';
@@ -312,6 +322,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   }
 
   protected async createQuotation(): Promise<void> {
+    if (this.isCreatingQuotation) return;
     const currentUser = this.user;
     const name = this.newQuotationName.trim();
 
@@ -336,37 +347,21 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
         this.newQuotationAddress
       );
       this.projects = [...this.apiService.getProjects(currentUser.id)];
+      if (!this.projects.some(project => project.id === created.id)) this.projects = [...this.projects, created];
       this.selectedProjectId = created.id;
+      this.quotationSelection.select(currentUser.id, created.id);
       this.isCreateQuotationModalOpen = false;
-
-      if (this.selectedStore && this.detail && !this.exceedsSelectedStock) {
-        const updated = await this.apiService.addItemToProject(currentUser.id, created.id, {
-          productName: this.detail.productName,
-          productoMaestroId: this.detail.productoMaestroId,
-          storeId: this.selectedStore?.storeId,
-          storeName: this.selectedStore?.storeName,
-          productoFerreteriaId: this.selectedStore?.offerId,
-          quantity: this.selectedQuantity
-        });
-
-        if (updated) {
-          this.quoteFeedback = `Cotización "${created.name}" creada con ${this.selectedQuantity} ${this.quantityLabel.toLowerCase()} agregada(s).`;
-        } else {
-          this.quoteFeedback = `Cotización "${created.name}" creada, pero no fue posible agregar el producto. Presiona "Agregar a cotización" para intentarlo nuevamente.`;
-        }
-      } else {
-        this.quoteFeedback = `Cotización "${created.name}" creada. Selecciona una ferretería y presiona "Agregar a cotización" para incluir el producto.`;
-      }
+      this.quoteFeedback = `Cotización “${created.name}” creada y seleccionada. Usa “Agregar a cotización seleccionada” para incluir este producto.`;
     } catch (error) {
       this.createQuotationError = error instanceof Error
         ? error.message
         : 'No se pudo crear la cotizacion.';
     } finally {
-      this.isCreatingQuotation = false;
+      this.isCreatingQuotation = false; this.changeDetector.markForCheck();
     }
   }
 
-  protected goToLoginFromQuotationModal(): void {
+  protected goToLoginFromQuotationModal(existingAccount = false): void {
     const returnUrl = this.router.serializeUrl(this.router.createUrlTree([], {
       relativeTo: this.route,
       queryParams: {
@@ -378,7 +373,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
       queryParamsHandling: 'merge'
     }));
 
-    void this.router.navigate(['/login'], {
+    void this.router.navigate([existingAccount ? '/login' : '/registro'], {
       queryParams: { returnUrl }
     });
   }
@@ -400,20 +395,17 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   }
 
   protected async addToQuotation(): Promise<void> {
-    if (!this.user || !this.detail || !this.selectedProjectId || !this.canShowAddToQuotation) return;
-
-    const updated = await this.apiService.addItemToProject(this.user.id, this.selectedProjectId, {
-      productName: this.detail.productName,
-          productoMaestroId: this.detail.productoMaestroId,
-          storeId: this.selectedStore?.storeId,
-          storeName: this.selectedStore?.storeName,
-          productoFerreteriaId: this.selectedStore?.offerId,
-      quantity: this.selectedQuantity
-    });
-
-    this.quoteFeedback = updated
-      ? `Agregado a "${updated.name}": ${this.selectedQuantity} ${this.quantityLabel.toLowerCase()}.`
-      : 'No se pudo agregar el producto a la cotizacion.';
+    if (this.isAddingToQuotation || !this.user || !this.detail || !this.selectedProjectId || !this.canShowAddToQuotation) return;
+    this.isAddingToQuotation = true; this.quoteFeedback = ''; this.changeDetector.markForCheck();
+    try {
+      const updated = await this.apiService.addItemToProject(this.user.id, this.selectedProjectId, {
+        productName: this.detail.productName, productoMaestroId: this.detail.productoMaestroId,
+        storeId: this.selectedStore?.storeId, storeName: this.selectedStore?.storeName,
+        productoFerreteriaId: this.selectedStore?.offerId, quantity: this.selectedQuantity
+      });
+      this.quoteFeedback = updated ? `Agregado a “${updated.name}”: ${this.selectedQuantity} ${this.quantityLabel.toLowerCase()}.` : 'No se pudo agregar el producto a la cotización.';
+    } catch (error) { this.quoteFeedback = error instanceof Error ? error.message : 'No se pudo agregar el producto. Intenta nuevamente.'; }
+    finally { this.isAddingToQuotation = false; this.changeDetector.markForCheck(); }
   }
 
   protected backToSearch(): void {
@@ -472,6 +464,11 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   private loadProjects(): void {
     const currentUser = this.user;
     this.projects = currentUser ? this.apiService.getProjects(currentUser.id) : [];
+    if (currentUser) {
+      const candidate = this.selectedProjectId || this.quotationSelection.read(currentUser.id);
+      this.selectedProjectId = this.projects.some(project => project.id === candidate) ? candidate : '';
+      if (this.projects.length && candidate && !this.selectedProjectId) this.quotationSelection.select(currentUser.id, '');
+    }
   }
 
   private clearCreateQuotationIntent(): void {

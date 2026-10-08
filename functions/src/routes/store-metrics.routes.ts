@@ -22,3 +22,11 @@ storeMetricsRouter.get('/ferreterias/propietario/:ownerId/metricas', requireAuth
  const metrics = await Promise.all(stores.docs.map(doc=>db.collection(COLLECTIONS.storeMetrics).doc(doc.id).get()));
  return ok(res,metrics.reduce((total,doc)=>({ views:total.views + Number(doc.data()?.['views'] || 0), selections:total.selections + Number(doc.data()?.['selections'] || 0) }),{ views:0,selections:0 }));
 });
+
+storeMetricsRouter.get('/ferreterias/propietario/:ownerId/dashboard', requireAuth, requireRole('ferreteria','admin'), async(req,res)=>{
+ if (!canAccessOwner(req,req.params.ownerId)) return fail(res,'AUTH_FORBIDDEN','No tienes acceso.',403);
+ const stores = await db.collection(COLLECTIONS.stores).where('usuarioDuenoId','==',req.params.ownerId).get();
+ const snapshots = await Promise.all(stores.docs.map(doc=>db.collection(COLLECTIONS.storeDailyAnalytics).doc(doc.id).get()));
+ res.set('Cache-Control','private, no-store');
+ return ok(res,{reports: snapshots.filter(doc=>doc.exists).map(doc=>({storeId:doc.id,...doc.data()})), schedule:{hour:'02:00',timeZone:'America/Santiago'}});
+});

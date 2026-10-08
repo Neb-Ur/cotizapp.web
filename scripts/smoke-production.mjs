@@ -21,6 +21,20 @@ if(name) {
  assert.match(page.body,/<h1>/); assert.match(page.body, /application\/ld\+json/); assert.ok(page.body.includes(name));
  assert.ok(page.body.includes(`href="${base}/productos/${slug}"`));
 }
+const sitemap = await get(`/sitemap.xml?v=${probeVersion}`);
+assert.equal(sitemap.status,200);
+const active = catalog.products.filter(p=>p.estado!=='inactivo');
+for(const product of active) {
+ const slug=product.nombre.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,120);
+ assert.ok(sitemap.body.includes(`/productos/${slug}</loc>`), `Missing sitemap product ${product.nombre}`);
+}
+for(const kind of ['categorias','familias','marcas']) {
+ const url=[...sitemap.body.matchAll(/<loc>(.*?)<\/loc>/g)].map(match=>match[1]).find(url=>url.includes(`/${kind}/`));
+ if(!url)continue;
+ const response=await get(new URL(url).pathname+`?v=${probeVersion}`);
+ assert.equal(response.status,200);assert.match(response.body,/CollectionPage/);assert.match(response.body,/<h1>/);assert.match(response.body,/href="\/productos\//);assert.ok(response.body.includes(`rel="canonical" href="${url}"`));
+ const absent=await get(`/${kind}/no-existe-qa-seo`);assert.equal(absent.status,404);assert.match(absent.body,/noindex/);
+}
 for (const path of ['/productos/no-existe-qa-cotizapp-404','/ruta-inexistente-qa-cotizapp-404']) {
  const response = await get(path); assert.equal(response.status,404); assert.match(response.body,/noindex/);
 }

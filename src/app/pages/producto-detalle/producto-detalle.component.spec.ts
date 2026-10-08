@@ -68,3 +68,34 @@ describe('product detail loading',()=>{
  });
 
 });
+
+describe('product quotation workflow',()=>{
+ afterEach(()=>TestBed.resetTestingModule());
+ it('preserves product, selected store and quantity when a guest creates a quotation',async()=>{
+  const {component}=await setup();const router=TestBed.inject(Router) as any;
+  router.createUrlTree=vi.fn(()=>({}));router.serializeUrl=vi.fn(()=>'/productos/abrazadera-metalica?crearCotizacion=1&ferreteriaId=s&cantidad=3');
+  component.selectedStoreName='Tienda';component.selectedStoreId='s';component.selectedQuantity=3;
+  component.openCreateQuotationModal();
+  expect(component.isCreateQuotationModalOpen).toBe(false);
+  expect(router.createUrlTree).toHaveBeenCalledWith([],expect.objectContaining({queryParams:expect.objectContaining({crearCotizacion:'1',ferreteriaId:'s',cantidad:3})}));
+  expect(router.navigate).toHaveBeenCalledWith(['/registro'],expect.objectContaining({queryParams:expect.objectContaining({returnUrl:expect.stringContaining('crearCotizacion=1')})}));
+ });
+ it('creates and selects the quotation in a modal without adding the product twice',async()=>{
+  const {component,api}=await setup();const auth=TestBed.inject(AuthService) as any;auth.currentUser=()=>({id:'owner',role:'maestro'});
+  Object.assign(api,{saveProject:vi.fn(async()=>({id:'q',name:'Mi obra'})),addItemToProject:vi.fn()});
+  component.openCreateQuotationModal();component.newQuotationName='Mi obra';await component.createQuotation();
+  expect(component.selectedProjectId).toBe('q');expect(component.isCreateQuotationModalOpen).toBe(false);
+  expect((api as any).saveProject).toHaveBeenCalledWith('owner','Mi obra',[],'');expect((api as any).addItemToProject).not.toHaveBeenCalled();
+  expect(component.selectedQuotationName).toBe('Mi obra');
+ });
+ it('adds once to the selected quotation, showing loading and preserving the store attribution',async()=>{
+  const {component,api}=await setup();const auth=TestBed.inject(AuthService) as any;auth.currentUser=()=>({id:'owner',role:'maestro'});
+  let finish!:(value:any)=>void;Object.assign(api,{addItemToProject:vi.fn(()=>new Promise(resolve=>finish=resolve))});
+  component.detail={...detail,productoMaestroId:'p'};component.selectedProjectId='q';component.selectedStoreId='s';component.selectedQuantity=2;
+  component.displayStores=[{storeId:'s',storeName:'Tienda',offerId:'offer',price:1000,stock:5}];
+  const adding=component.addToQuotation();expect(component.isAddingToQuotation).toBe(true);await component.addToQuotation();
+  expect((api as any).addItemToProject).toHaveBeenCalledOnce();
+  expect((api as any).addItemToProject).toHaveBeenCalledWith('owner','q',expect.objectContaining({productoMaestroId:'p',storeId:'s',productoFerreteriaId:'offer',quantity:2}));
+  finish({name:'Mi obra'});await adding;expect(component.isAddingToQuotation).toBe(false);
+ });
+});

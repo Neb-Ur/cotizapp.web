@@ -5,10 +5,6 @@
     <button type="button" (click)="retryDataLoad()">Reintentar carga</button>
   </div>
   <header class="store-header">
-    <button *ngIf="isMobileViewport" type="button" class="menu-toggle menu-icon" (click)="toggleMobileMenu()" aria-label="Abrir menu">
-      <span></span><span></span><span></span>
-    </button>
-
     <div class="store-photo" aria-hidden="true">
       <svg viewBox="0 0 24 24" focusable="false">
         <path d="M3 9.2 5.1 4h13.8L21 9.2V11a3 3 0 0 1-1 2.2V21h-7v-6h-2v6H4v-7.8A3 3 0 0 1 3 11V9.2Zm3.5-3.1L5.3 9h13.4l-1.2-2.9h-11ZM6 14v5h3v-6h6v6h3v-5.1a3 3 0 0 1-2.5-1.1 3 3 0 0 1-5 0A3 3 0 0 1 6 14Z" />
@@ -29,55 +25,9 @@
       {{ user?.accountStatus === 'activo' ? 'Cuenta activa' : 'Activación pendiente' }}
     </span>
 
-    <button type="button" class="logout-button" (click)="logout()">
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5v-2H5V5h5V3Zm7.6 4.6L16.2 9l2 2H9v2h9.2l-2 2 1.4 1.4L22 12l-4.4-4.4Z" />
-      </svg>
-      <span>Cerrar sesión</span>
-    </button>
   </header>
 
-  <button type="button" class="mobile-overlay" *ngIf="isMobileViewport && isMobileMenuVisible" (click)="closeMobileMenu()" aria-label="Cerrar menú"></button>
-
-  <p *ngIf="metrics" role="status">Ofertas vistas: {{ metrics.views }} · Selecciones de ferretería: {{ metrics.selections }}. Conteos acumulados desde la activación de las métricas; no equivalen a ventas ni visitantes únicos.</p>
   <div class="dashboard-shell">
-    <aside class="sidebar" [class.mobile-open]="isMobileViewport && isMobileMenuVisible">
-      <div class="sidebar-head">
-        <div>
-          <span>Navegación</span>
-          <strong>Mi negocio</strong>
-        </div>
-        <button *ngIf="isMobileViewport" type="button" class="sidebar-close" (click)="closeMobileMenu()" aria-label="Cerrar menú">×</button>
-      </div>
-
-      <nav aria-label="Secciones del panel">
-        <button type="button" [class.active]="currentSection === 'inicio'" (click)="setSection('inicio')">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="m12 3-9 7v11h7v-6h4v6h7V10l-9-7Zm7 16h-3v-6H8v6H5v-8l7-5.4 7 5.4v8Z" />
-          </svg>
-          <span><strong>Inicio</strong><small>Resumen del negocio</small></span>
-        </button>
-        <button type="button" [class.active]="currentSection === 'catalogo'" (click)="setSection('catalogo')">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M4 3h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm0 10h7a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2Zm11 0h5a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-5v-8Z" />
-          </svg>
-          <span><strong>Mantener catálogo</strong><small>Precios, stock y productos</small></span>
-        </button>
-        <button type="button" [class.active]="currentSection === 'perfil'" (click)="setSection('perfil')">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0-2a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm0 4c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6Zm-6.8 6c.5-2.2 3.3-4 6.8-4s6.3 1.8 6.8 4H5.2Z" />
-          </svg>
-          <span><strong>Editar perfil</strong><small>Datos y ubicación</small></span>
-        </button>
-      </nav>
-
-      <div class="sidebar-summary">
-        <span>{{ totalProducts }}</span>
-        <p>productos publicados</p>
-        <small>{{ outOfStock }} sin stock</small>
-      </div>
-    </aside>
-
     <section class="content">
 
     <article class="panel panel--pending" *ngIf="user && user.accountStatus && user.accountStatus !== 'activo'">
@@ -89,36 +39,34 @@
       <app-ui-loader [label]="isInitialLoading ? 'Cargando ferretería...' : 'Cargando sección...'" />
     </article>
 
-    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'inicio'">
-      <div class="projects-topbar">
-        <div>
-          <span class="store-kicker">Resumen</span>
-          <h3>Hola, {{ user?.businessName || user?.displayName }}</h3>
-          <p class="helper-text">Revisa rápidamente el estado de tu catálogo.</p>
+    <article class="store-overview" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'inicio'">
+      <div class="overview-heading"><div><span class="store-kicker">Tu negocio en Findi</span><h2>Convierte interés en oportunidades</h2><p>Descubre qué buscan los maestros y mantén tus ofertas listas para su próxima cotización.</p></div><button type="button" (click)="openAddProducts('buscar')"><i class="pi pi-plus" aria-hidden="true"></i> Agregar productos</button></div>
+      <p class="error-text" *ngIf="dashboardError" role="alert">{{ dashboardError }} <button type="button" (click)="retryDataLoad()">Reintentar</button></p>
+      <ng-container *ngIf="dailyReport as report; else awaitingDailyReport">
+        <div class="daily-update"><i class="pi pi-clock" aria-hidden="true"></i><span>Actualizado {{ formatReportDate(report.computedAt) }} · Un corte diario a las 02:00, hora de Chile</span></div>
+        <div class="business-kpis">
+          <section class="business-kpi business-kpi--primary"><span><i class="pi pi-wallet" aria-hidden="true"></i> Monto en cotizaciones activas</span><strong>{{ formatCurrency(report.activeQuotedAmount) }}</strong><small>Valor referencial con IVA · {{ report.activeQuotationCount }} cotizaciones</small></section>
+          <section class="business-kpi"><span><i class="pi pi-file" aria-hidden="true"></i> Cotizaciones con tus productos</span><strong>{{ report.quotationCount }}</strong><small>Entre las cotizaciones guardadas en Findi</small></section>
+          <section class="business-kpi"><span><i class="pi pi-box" aria-hidden="true"></i> Unidades cotizadas</span><strong>{{ report.quotedUnits | number }}</strong><small>{{ report.quotedProducts }} productos diferentes · {{ report.quotedLines }} líneas</small></section>
+          <section class="business-kpi"><span><i class="pi pi-chart-line" aria-hidden="true"></i> Cotizaciones nuevas · 7 días</span><strong>{{ report.recentQuotationCount }}</strong><small *ngIf="quoteTrend !== null">{{ quoteTrend! > 0 ? '+' : '' }}{{ quoteTrend }}% frente a los 7 días anteriores</small><small *ngIf="quoteTrend === null">{{ report.previousQuotationCount ? 'Comparación semanal' : 'Aún sin base para comparar' }}</small></section>
         </div>
-        <button type="button" (click)="setSection('catalogo')">Ir al catálogo</button>
-      </div>
-
-      <div class="metrics-kpi-grid">
-        <section class="kpi-card">
-          <h4>Productos publicados</h4>
-          <p>{{ totalProducts }}</p>
-        </section>
-        <section class="kpi-card">
-          <h4>Productos sin stock</h4>
-          <p>{{ outOfStock }}</p>
-        </section>
-        <section class="kpi-card">
-          <h4>Última actualización</h4>
-          <p>{{ lastCatalogUpdate ? (lastCatalogUpdate | date:'dd/MM/yyyy') : 'Sin datos' }}</p>
-        </section>
-      </div>
-
-      <h3 class="top-title">Acciones rápidas</h3>
-      <div class="form-actions">
-        <button type="button" (click)="openAddProducts('buscar')">Agregar productos</button>
-        <button type="button" class="ghost" (click)="goToExcelImport()">Actualizar por Excel</button>
-      </div>
+        <div class="business-insights">
+          <section class="insight-card"><div class="insight-title"><div><span class="store-kicker">Demanda de tu catálogo</span><h3>Productos más cotizados</h3></div><i class="pi pi-chart-bar" aria-hidden="true"></i></div>
+            <div class="table-wrap" *ngIf="report.topProducts.length; else noQuotedProducts"><table><thead><tr><th>Producto</th><th>Cotizaciones</th><th>Unidades</th><th>Monto activo</th></tr></thead><tbody><tr *ngFor="let product of report.topProducts"><td>{{ product.name }}<small class="demand-stock" *ngIf="product.stock === 0">Sin stock informado</small></td><td>{{ product.quotationCount }}</td><td>{{ product.units }}</td><td>{{ formatCurrency(product.activeAmount) }}</td></tr></tbody></table></div>
+            <ng-template #noQuotedProducts><div class="insight-empty"><i class="pi pi-box" aria-hidden="true"></i><h4>Tu próxima oportunidad empieza con un buen catálogo</h4><p>Aún no aparecen productos tuyos en cotizaciones guardadas. Publica ofertas con precio y stock vigentes para participar.</p><button type="button" (click)="openAddProducts('buscar')">Publicar más productos</button></div></ng-template>
+          </section>
+          <section class="insight-card"><span class="store-kicker">Dónde actuar hoy</span><h3>Cuida tus oportunidades</h3>
+            <div class="opportunity-row"><i class="pi pi-box" aria-hidden="true"></i><div><strong>{{ report.catalog.published }} productos publicados</strong><p>{{ report.catalog.inStock }} con stock · {{ report.quotedProducts }} productos diferentes aparecen en cotizaciones.</p></div></div>
+            <div class="opportunity-row"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><div><strong>{{ report.catalog.outOfStock }} productos sin stock</strong><p>{{ stockOpportunities.length ? stockOpportunities.length + ' de los productos más cotizados necesitan reposición.' : 'Actualizar stock ayuda a que tus ofertas puedan ser seleccionadas.' }}</p></div></div>
+            <div class="opportunity-row"><i class="pi pi-calendar" aria-hidden="true"></i><div><strong>{{ report.catalog.stalePrices }} precios por revisar</strong><p>No se han actualizado en 30 días o no tienen fecha de actualización.</p></div></div>
+            <button type="button" class="secondary" (click)="setSection('catalogo')">Revisar precios y stock</button>
+          </section>
+        </div>
+        <div class="engagement-summary"><section><i class="pi pi-eye" aria-hidden="true"></i><strong>{{ report.views | number }}</strong><span>Visualizaciones de ofertas</span></section><section><i class="pi pi-check-circle" aria-hidden="true"></i><strong>{{ report.selections | number }}</strong><span>Selecciones de ferretería</span></section><p>Conteos acumulados al último corte; no equivalen a visitantes únicos ni ventas.</p></div>
+        <p class="metrics-methodology">Cotizaciones activas: con productos y actividad en los últimos {{ report.activeWindowDays }} días. Los montos usan las ofertas disponibles al corte, incluyen IVA y no incluyen despacho. No representan compras ni ingresos. Cada producto se atribuye a la ferretería seleccionada o a la oferta que usa la cotización; no a todas las tiendas que lo venden.</p>
+      </ng-container>
+      <ng-template #awaitingDailyReport><div class="insight-card insight-empty" *ngIf="!dashboardError"><i class="pi pi-chart-bar" aria-hidden="true"></i><h3>Estamos preparando tu primer resumen</h3><p>Se calculará en el próximo corte nocturno. Mientras tanto, prepara tus precios y stock para aparecer en las cotizaciones.</p><button type="button" (click)="setSection('catalogo')">Preparar mi catálogo</button></div></ng-template>
+      <div class="overview-actions"><button type="button" class="secondary" (click)="goToExcelImport()"><i class="pi pi-upload" aria-hidden="true"></i> Actualizar por Excel</button><button type="button" class="secondary" (click)="setSection('perfil')"><i class="pi pi-user" aria-hidden="true"></i> Completar mi perfil</button></div>
     </article>
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'catalogo' && catalogView === 'maintain'">

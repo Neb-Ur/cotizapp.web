@@ -117,3 +117,5 @@ export {
   publicCacheOnFamilyWrite,
   publicCacheOnUserWrite
 } from './triggers/public-catalog-cache.triggers.js';
+
+export { refreshStoreDailyAnalytics } from './jobs/store-daily-analytics.job.js';

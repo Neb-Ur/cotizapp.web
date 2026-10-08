@@ -1,8 +1,9 @@
+import { sanitizeReturnUrl } from '../../core/utils/auth-navigation.util';
 import { PasswordFieldComponent } from '../../shared/components/password-field/password-field.component';
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, Optional, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { PrivacyOverview, PrivacyRequestType, SessionUser } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
@@ -59,7 +60,8 @@ export class PrivacyCenterComponent implements OnInit {
     protected readonly cookies: CookieConsentService,
     private readonly privacyData: PrivacyDataService,
     private readonly router: Router,
-    @Inject(DOCUMENT) private readonly document: Document
+    @Inject(DOCUMENT) private readonly document: Document,
+    @Optional() @Inject(ActivatedRoute) private readonly route: ActivatedRoute | null = null
   ) {}
 
   ngOnInit(): void {
@@ -94,7 +96,7 @@ export class PrivacyCenterComponent implements OnInit {
       this.overview = await this.privacyData.acceptCurrentLegalDocuments(this.marketingConsent, this.overview!.currentVersions);
       await this.auth.refreshCurrentUser();
       this.notice = 'Aceptación registrada con versión, fecha, hora y cuenta asociada.';
-      await this.router.navigateByUrl(this.auth.dashboardRouteForUser(this.user));
+      await this.router.navigateByUrl(sanitizeReturnUrl(this.route?.snapshot.queryParamMap.get('returnUrl')) || this.auth.dashboardRouteForUser(this.user));
     });
   }
 

@@ -1,3 +1,4 @@
+import { productSlug } from '../../core/utils/product-url.util';
 import { categoryIcon } from '../../core/utils/category-icon.util';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
@@ -41,8 +42,9 @@ export class HomeComponent implements OnInit {
     void this.router.navigateByUrl(productPath(product.productName));
   }
 
+  protected categoryPath(name:string):string {return `/categorias/${productSlug(name)}`;}
   protected openCategory(category: HomeCategory): void {
-    void this.router.navigate(['/buscar'], { queryParams: { categoria: category.id } });
+    void this.router.navigateByUrl(this.categoryPath(category.name));
   }
 
   protected openProductCard(event: MouseEvent, product: FamilyProductRow): void {

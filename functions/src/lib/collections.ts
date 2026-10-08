@@ -27,6 +27,8 @@ const names = {
   governanceEvidence: 'evidenciasGobiernoDatos',
   publicCache: 'cachePublico',
   storeMetrics: 'storeMetrics',
+  storeDailyAnalytics: 'storeDailyAnalytics',
+  analyticsJobs: 'analyticsJobs',
   projectOwnerLocks: 'projectOwnerLocks'
 } as const;
 

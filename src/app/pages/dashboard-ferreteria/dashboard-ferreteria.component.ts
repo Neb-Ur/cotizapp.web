@@ -1,8 +1,10 @@
+import { StoreDailyAnalytics } from '../../core/models/app.models';
+import { Subscription } from 'rxjs';
 import { WriteFeedbackService } from '../../core/services/write-feedback.service';
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import {
   CatalogImportOutcome,
@@ -48,7 +50,7 @@ interface MasterCatalogSelectionDraft {
   templateUrl: './dashboard-ferreteria.component.html',
   styleUrl: './dashboard-ferreteria.component.scss'
 })
-export class DashboardFerreteriaComponent implements OnInit {
+export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   private sectionLoadError = '';
   protected get dataLoadError(): string { return this.sectionLoadError || this.apiService.loadError(); }
   protected async retryDataLoad(): Promise<void> {
@@ -146,22 +148,45 @@ export class DashboardFerreteriaComponent implements OnInit {
   constructor(
     private readonly authService: AuthService,
     private readonly apiService: FirebaseDataService,
-    private readonly router: Router
-,
+    private readonly router: Router,
+    private readonly route: ActivatedRoute,
+    private readonly changeDetector: ChangeDetectorRef,
     private readonly writeFeedback: WriteFeedbackService = new WriteFeedbackService()
   ) {}
 
-  protected metrics: { views: number; selections: number } | null = null;
+  protected dailyReport: StoreDailyAnalytics | null = null;
+  protected dashboardError = '';
+  private querySubscription?: Subscription;
   protected onboardingReady = false;
   ngOnInit(): void {
     this.syncViewportState();
     this.syncProfileDraftFromUser();
+    this.querySubscription = this.route.queryParamMap.subscribe(params => {
+      const section = params.get('section');
+      const requested = section === 'catalogo' || section === 'perfil' ? section : 'inicio';
+      const action = params.get('accion');
+      const mode = action === 'archivo' ? 'archivo' : 'buscar';
+      const view = requested === 'catalogo' && (action === 'agregar' || action === 'archivo') ? 'add' : 'maintain';
+      const changed = this.currentSection !== requested || this.catalogView !== view || this.uploadMode !== mode;
+      this.currentSection = requested; this.catalogView = view; this.uploadMode = mode;
+      if (this.onboardingReady && changed) void this.ensureSectionData(requested, view === 'add');
+    });
+  }
+  ngOnDestroy(): void { this.querySubscription?.unsubscribe(); }
+  protected formatReportDate(value: string): string { return new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',dateStyle:'short',timeStyle:'short'}).format(new Date(value)); }
+  protected get quoteTrend(): number | null {
+    return this.dailyReport?.previousQuotationCount ? Math.round((this.dailyReport.recentQuotationCount / this.dailyReport.previousQuotationCount - 1) * 100) : null;
+  }
+  protected get quotedCoverage(): number {
+    return this.dailyReport?.catalog.published ? Math.min(100,Math.round(this.dailyReport.quotedProducts / this.dailyReport.catalog.published * 100)) : 0;
+  }
+  protected get stockOpportunities(): StoreDailyAnalytics['topProducts'] {
+    return this.dailyReport?.topProducts.filter(product => product.stock === 0) || [];
   }
 
   protected finishOnboarding(): void {
     if (this.onboardingReady) return;
     this.onboardingReady = true;
-    if (this.user) void this.apiService.loadStoreMetrics(this.user.id).then(metrics => this.metrics = metrics).catch(() => this.metrics = null);
     void this.initializeDashboard();
   }
 
@@ -235,10 +260,11 @@ export class DashboardFerreteriaComponent implements OnInit {
       this.catalogView = 'maintain';
     }
     this.closeMobileMenu();
+    void this.router.navigate([], {relativeTo:this.route,queryParams:{section,accion:null}});
     void this.ensureSectionData(section);
   }
 
-  protected setUploadMode(mode: CatalogUploadMode): void {
+  protected setUploadMode(mode: CatalogUploadMode, load = true): void {
     this.uploadMode = mode;
     this.relationError = '';
     this.relationNotice = '';
@@ -246,19 +272,21 @@ export class DashboardFerreteriaComponent implements OnInit {
     this.csvNotice = '';
     this.requestError = '';
     this.requestNotice = '';
-    if (mode === 'buscar') void this.loadMasterCatalog();
+    if (mode === 'buscar' && load) void this.loadMasterCatalog();
   }
 
   protected openAddProducts(mode: CatalogUploadMode = 'buscar'): void {
     this.currentSection = 'catalogo';
     this.catalogView = 'add';
-    this.setUploadMode(mode);
+    this.setUploadMode(mode, false);
+    void this.router.navigate([], {relativeTo:this.route,queryParams:{section:'catalogo',accion:mode === 'archivo' ? 'archivo' : 'agregar'}});
     this.closeMobileMenu();
     void this.ensureSectionData('catalogo', true);
   }
 
   protected closeAddProducts(): void {
     this.catalogView = 'maintain';
+    void this.router.navigate([], {relativeTo:this.route,queryParams:{section:'catalogo'}});
   }
 
   protected goToExcelImport(): void {
@@ -697,7 +725,15 @@ export class DashboardFerreteriaComponent implements OnInit {
 
     this.isSectionLoading = true;
     try {
-      if (section === 'inicio' || section === 'catalogo') {
+      if (section === 'inicio') {
+        this.dashboardError = '';
+        try {
+          const result = await this.apiService.loadStoreDailyDashboard(currentUser.id);
+          this.dailyReport = result.reports.find(report => report.storeId === currentUser.ferreteriaId) || result.reports[0] || null;
+          this.totalProducts = this.dailyReport?.catalog.published || 0; this.outOfStock = this.dailyReport?.catalog.outOfStock || 0;
+        } catch { this.dashboardError = 'No pudimos cargar el resumen diario. Puedes seguir gestionando tu catálogo.'; }
+      }
+      if (section === 'catalogo') {
         await this.apiService.refreshFerreteriaCatalogSection(currentUser.id, force);
         this.catalog = this.apiService.getCatalog(currentUser.id);
         this.refreshSummary();
@@ -715,7 +751,7 @@ export class DashboardFerreteriaComponent implements OnInit {
       this.sectionLoadError = error instanceof Error ? error.message : 'No se pudo cargar esta sección. Intenta nuevamente.';
       this.loadedSections.delete(section);
     } finally {
-      this.isSectionLoading = false;
+      this.isSectionLoading = false; this.changeDetector.markForCheck();
     }
   }
 

@@ -1,3 +1,4 @@
+import { seoProductSlug } from '../domain/catalog-seo.js';
 import { Router } from 'express';
 import { getProductSheet } from '../lib/product-sheet-cache.js';
 import { db } from '../lib/firebase.js';
@@ -117,7 +118,7 @@ searchRouter.get('/productos/detalle', async (req, res) => {
   const snapshot = await getPublicCatalogSnapshot();
   const slug = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 120);
   const product = snapshot.products.find(item => requestedSlug
-    ? slug(String(item.nombre)) === requestedSlug
+    ? seoProductSlug(item,snapshot.products) === requestedSlug
     : normalizeText(item.nombre).toLowerCase() === name);
   if (!product) return fail(res, 'PRODUCTO_NOT_FOUND', 'No se encontro el producto solicitado.', 404);
   const searchRows = snapshot.searchRows.filter(item => item.productoMaestroId === product.id);
@@ -164,7 +165,7 @@ searchRouter.get('/productos/detalle', async (req, res) => {
     maxPrice: stores.length ? Math.max(...stores.map(item => item.price)) : 0
   });
   return ok(res, {
-    productoMaestro: product,
+    productoMaestro: {...product,seoPath:`/productos/${seoProductSlug(product,snapshot.products)}`},
     categoryName: snapshot.taxonomy.categories.find(item => item.id === product.categoriaId)?.nombre || 'Sin categoria',
     subcategoryName: snapshot.taxonomy.subcategories.find(item => item.id === product.subcategoriaId)?.nombre || 'Sin subcategoria',
     familyName: snapshot.taxonomy.families.find(item => item.id === product.familiaId)?.nombre || 'Sin familia',

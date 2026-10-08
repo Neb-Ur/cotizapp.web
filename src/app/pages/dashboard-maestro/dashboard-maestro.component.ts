@@ -1,6 +1,8 @@
+import type { CatalogLandingView } from '../catalog-landing/catalog-landing.component';
+import { RouterLink } from '@angular/router';
 import { WriteFeedbackService } from '../../core/services/write-feedback.service';
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -38,11 +40,12 @@ interface MaestroProfileDraft {
 @Component({
   selector: 'app-dashboard-maestro',
   standalone: true,
-  imports: [CommonModule, FormsModule, FontAwesomeModule, PaginatorModule, UiLoaderComponent],
+  imports: [CommonModule, RouterLink, FormsModule, FontAwesomeModule, PaginatorModule, UiLoaderComponent],
   templateUrl: './dashboard-maestro.component.html',
   styleUrl: './dashboard-maestro.component.scss'
 })
 export class DashboardMaestroComponent implements OnInit, OnDestroy {
+  @Input() landing?: CatalogLandingView;
   private sectionLoadError = '';
   protected get dataLoadError(): string { return this.sectionLoadError || this.apiService.loadError(); }
   protected async retryDataLoad(): Promise<void> {
@@ -120,7 +123,14 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
     private readonly writeFeedback: WriteFeedbackService = new WriteFeedbackService()
   ) {}
 
+  private destroyed = false;
   ngOnInit(): void {
+    // Embedded collection views are created during a render; start signal writes after it.
+    if (this.landing) { queueMicrotask(() => { if (!this.destroyed) this.startDashboard(); }); return; }
+    this.startDashboard();
+  }
+
+  private startDashboard(): void {
     this.syncViewportState();
     if (!this.user || this.route.snapshot.data['publicCatalog']) {
       this.currentSection = 'buscar';
@@ -148,11 +158,11 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
       if (this.isValidSection(requested) && (this.user || requested === 'buscar')) {
         this.currentSection = requested;
       }
-      const requestedBrand = params.get('marca') || '';
-      const requestedBrandId = params.get('marcaId') || '';
-      const requestedCategory = params.get('categoria') || '';
-      const requestedSubcategory = params.get('subcategoria') || '';
-      const requestedFamily = params.get('familia') || '';
+      const requestedBrand = params.get('marca') || this.landing?.filters['marca'] || '';
+      const requestedBrandId = params.get('marcaId') || this.landing?.filters['marcaId'] || '';
+      const requestedCategory = params.get('categoria') || this.landing?.filters['categoria'] || '';
+      const requestedSubcategory = params.get('subcategoria') || this.landing?.filters['subcategoria'] || '';
+      const requestedFamily = params.get('familia') || this.landing?.filters['familia'] || '';
       if (
         requestedBrand !== this.selectedBrand || requestedBrandId !== this.selectedBrandId
         || requestedCategory !== this.selectedCategoryId
@@ -459,16 +469,16 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
     this.refreshProductRows();
   }
 
-  protected selectProductCard(event: Event, productName: string): void {
+  protected selectProductCard(event: Event, productName: string, seoPath?:string): void {
     const click = event as MouseEvent;
     if (click.ctrlKey || click.metaKey || click.shiftKey || click.altKey || (click.button !== undefined && click.button !== 0)) return;
     event.preventDefault();
     if (this.isPickingProductForProject) this.addProductToProject(productName);
-    else void this.router.navigateByUrl(productPath(productName));
+    else void this.router.navigateByUrl(seoPath || productPath(productName));
   }
 
-  protected productUrl(productName: string): string {
-    return productPath(productName);
+  protected productUrl(productName: string, seoPath?:string): string {
+    return seoPath || productPath(productName);
   }
 
   protected addProductToProject(productName: string): void {
@@ -636,6 +646,13 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
 
   private refreshProductRows(): void {
     if (!this.searchReady) return;
+    if (this.landing) {
+      const selected:Record<string,string> = {familia:this.selectedFamilyId,categoria:this.selectedCategoryId,subcategoria:this.selectedSubcategoryId,marca:this.selectedBrand,marcaId:this.selectedBrandId};
+      if (Object.entries(this.landing.filters).some(([key,value])=>value && selected[key]!==value)) {
+        void this.router.navigate(['/buscar'],{queryParams:{...selected,q:this.tableProductSearch || undefined,projectTarget:this.projectTarget || undefined}});
+        return;
+      }
+    }
     void this.fetchProductPage();
   }
 
@@ -674,6 +691,7 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     this.querySubscription?.unsubscribe();
     if (this.productSearchTimer) clearTimeout(this.productSearchTimer);
     this.searchRequestId++;

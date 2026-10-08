@@ -96,7 +96,7 @@ export class SeoService {
   }
 
   updateProduct(product: ProductDetailView): void {
-    const path = productPath(product.productName);
+    const path = product.seoPath || productPath(product.productName);
     const description = this.productDescription(product);
     const image = this.validImage(product.imageUrl) ? product.imageUrl : undefined;
     const page: SeoPage = {
@@ -114,7 +114,7 @@ export class SeoService {
         image: image ? [image] : undefined,
         description,
         sku: product.sku || undefined,
-        brand: product.brand ? { '@type': 'Brand', name: product.brand } : undefined,
+        brand: product.brand && !['por especificar','sin marca','generico','sin especificar'].includes(product.brand.toLowerCase()) ? { '@type': 'Brand', name: product.brand } : undefined,
         category: [product.categoryName, product.subcategoryName, product.familyName].filter(Boolean).join(' > '),
         offers: product.stores.length > 0 ? {
           '@type': 'AggregateOffer',
@@ -135,6 +135,13 @@ export class SeoService {
     });
   }
 
+  updateCollection(page: {title:string;description:string;path:string;name:string}): void {
+    this.applyPage({...page,index:true},page.path);
+    this.setStructuredData({'@context':'https://schema.org','@graph':[
+      {'@type':'CollectionPage',name:page.name,description:page.description,url:`${SITE_URL}${page.path}`},
+      {'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Inicio',item:SITE_URL},{'@type':'ListItem',position:2,name:page.name,item:`${SITE_URL}${page.path}`}]}]});
+  }
+
   markProductNotFound(): void {
     this.applyPage({
       title: 'Producto no encontrado | Findi',
@@ -153,6 +160,7 @@ export class SeoService {
 
     this.applyPage(page, path, 'website', undefined, isPrivate);
     this.removeStructuredData();
+    if(path === '/') this.setStructuredData({'@context':'https://schema.org','@type':'WebSite',name:'Findi',url:SITE_URL,description:DEFAULT_PAGE.description});
   }
 
   private applyPage(
@@ -200,7 +208,7 @@ export class SeoService {
 
   private productDescription(product: ProductDetailView): string {
     const source = product.shortDescription || product.description || product.productType;
-    const comparison = `Compara precios de ${product.productName} en ${product.stores.length} ferretería${product.stores.length === 1 ? '' : 's'} de Chile.`;
+    const comparison = product.stores.length ? `Compara precios de ${product.productName} en ${product.stores.length} ferretería${product.stores.length === 1 ? '' : 's'} de Chile.` : `Consulta las características de ${product.productName} y las ofertas de ferreterías de Chile cuando estén disponibles.`;
     const text = source?.trim() ? `${source.trim()} ${comparison}` : comparison;
     return text.length > 160 ? `${text.slice(0, 157).trimEnd()}...` : text;
   }
@@ -214,7 +222,7 @@ export class SeoService {
     const script = this.document.createElement('script');
     script.id = STRUCTURED_DATA_ID;
     script.type = 'application/ld+json';
-    script.textContent = JSON.stringify(value).replace(/</g, '\\u003c');
+    script.textContent = JSON.stringify(value).replace(/</g, '\u003c');
     this.document.head.appendChild(script);
   }
 

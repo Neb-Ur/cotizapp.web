@@ -55,8 +55,9 @@
 
     <article class="panel" *ngIf="currentSection === 'buscar' && (!user || (!isInitialLoading && !isSectionLoading))">
       <section class="search-primary" aria-labelledby="product-search-label">
-        <div class="public-search-main"><h1 id="product-search-label">{{ tableProductSearch ? 'Resultados para “' + tableProductSearch + '”' : 'Productos y materiales' }}</h1></div>
-        <p>Explora el catálogo y compara las ofertas disponibles. Usa los filtros para acotar tu búsqueda.</p>
+        <div class="public-search-main"><h1 id="product-search-label">{{ tableProductSearch ? 'Resultados para “' + tableProductSearch + '”' : (landing?.name || 'Productos y materiales') }}</h1></div>
+        <p>{{ landing?.description || 'Explora el catálogo y compara las ofertas disponibles. Usa los filtros para acotar tu búsqueda.' }}</p>
+        <nav *ngIf="landing" aria-label="Secciones relacionadas" class="catalog-related-links"><a routerLink="/buscar">Todos los productos</a><a *ngFor="let link of landing.related" [routerLink]="link.path">{{ link.name }}</a></nav>
       </section>
 
       <div class="catalog-results-layout">
@@ -185,8 +186,8 @@
         <a
           class="product-card"
           *ngFor="let row of paginatedProductRows"
-          [href]="productUrl(row.productName)"
-          (click)="selectProductCard($event, row.productName)"
+          [href]="productUrl(row.productName,row.seoPath)"
+          (click)="selectProductCard($event, row.productName,row.seoPath)"
           [attr.aria-label]="(isPickingProductForProject ? 'Agregar ' : 'Ver precios de ') + row.productName"
         >
           <div class="product-main">

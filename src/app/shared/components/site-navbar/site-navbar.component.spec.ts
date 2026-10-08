@@ -8,7 +8,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { FirebaseDataService } from '../../../core/services/firebase-data.service';
 
 async function setup() {
-  const data = { acceptCatalogSearchVersion:vi.fn(), getCategoryOptions:()=>[], getSubcategoryOptions:()=>[], getFamilyOptions:()=>[], searchProductPage:vi.fn() };
+  const data = { refreshSearchTaxonomy:vi.fn(async()=>{}), acceptCatalogSearchVersion:vi.fn(), getCategoryOptions:()=>[], getSubcategoryOptions:()=>[], getFamilyOptions:()=>[], searchProductPage:vi.fn() };
   const index={ready:signal(true),version:signal('v1'),loading:signal(false),error:signal(''),ensureReady:vi.fn(async()=>{}),search:vi.fn(()=>[] as any[])};
   await TestBed.configureTestingModule({ imports:[SiteNavbarComponent], providers:[provideRouter([]),
     {provide:FirebaseDataService,useValue:data},
@@ -83,4 +83,15 @@ describe('header navigation and search',()=>{
     document.body.style.overflow='hidden';fixture.destroy();
     expect(document.body.style.overflow).toBe('hidden');document.body.style.overflow='';
   });
+});
+
+it('replaces public search with store navigation in the dashboard and restores Home with a return button',async()=>{
+ const {fixture,component,router}=await setup();const auth=TestBed.inject(AuthService) as any;
+ auth.currentUser=()=>({role:'ferreteria'});auth.isLoggedIn=()=>true;auth.dashboardRouteForUser=()=>'/dashboard/ferreteria';
+ const url=vi.spyOn(router,'url','get').mockReturnValue('/dashboard/ferreteria');fixture.detectChanges();
+ expect(fixture.nativeElement.querySelector('.navbar-search')).toBeNull();
+ expect(fixture.nativeElement.querySelectorAll('.store-header-links a')).toHaveLength(5);
+ expect(fixture.nativeElement.textContent).toContain('Ir a inicio');
+ url.mockReturnValue('/');fixture.detectChanges();
+ expect(fixture.nativeElement.querySelector('.navbar-search')).not.toBeNull();expect(fixture.nativeElement.textContent).toContain('Ir a dashboard');
 });

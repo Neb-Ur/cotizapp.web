@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
-export const legalAcceptanceGuard: CanActivateFn = () => {
+export const legalAcceptanceGuard: CanActivateFn = (_route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
@@ -12,7 +12,8 @@ export const legalAcceptanceGuard: CanActivateFn = () => {
     if (user.legalAcceptanceRequired || user.privacyProcessingBlocked) {
       return router.createUrlTree(['/cuenta/privacidad-datos'], {
         queryParams: {
-          reason: user.privacyProcessingBlocked ? 'blocked' : 'legal-update'
+          reason: user.privacyProcessingBlocked ? 'blocked' : 'legal-update',
+          returnUrl: state.url
         }
       });
     }

@@ -1,3 +1,4 @@
+import { seoProductSlug } from './catalog-seo.js';
 import { brandIdentity } from './brand-identity.js';
 import type { PublicCatalogSnapshot } from '../lib/public-catalog-cache.js';
 import type { ProjectProximity } from '../models/domain.models.js';
@@ -26,6 +27,7 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
   const subcategories = new Map(snapshot.taxonomy.subcategories.map(item => [item.id, item.nombre]));
   const families = new Map(snapshot.taxonomy.families.map(item => [item.id, item.nombre]));
   const grouped = new Map<string, {
+    seoPath:string;
     productoMaestroId: string;
     productName: string;
     imageUrl: string;
@@ -49,6 +51,7 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
     if (options.subcategoryId && product.subcategoriaId !== options.subcategoryId) continue;
     if (options.familyId && product.familiaId !== options.familyId) continue;
     grouped.set(product.id, {
+      seoPath:`/productos/${seoProductSlug(product,snapshot.products)}`,
       productoMaestroId: product.id,
       productName: name,
       imageUrl: product.imagenPrincipalUrl && !product.imagenPrincipalUrl.includes('via.placeholder.com')

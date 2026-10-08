@@ -72,3 +72,12 @@ describe('product card navigation',()=>{
   expect(component.router.navigate).toHaveBeenCalledWith(['/dashboard/maestro/cotizaciones/nuevo'],expect.objectContaining({queryParams:expect.objectContaining({addProduct:'Abrazadera metálica'})}));
  });
 });
+
+describe('collection filter context',()=>{
+ it('returns to public search when removing the defining family filter',()=>{
+  const {component}=fixture();component.router.navigate=vi.fn();component.searchReady=true;
+  component.landing={filters:{familia:'mdf'}};component.selectedFamilyId='mdf';
+  component.clearFamilyFilter();
+  expect(component.router.navigate).toHaveBeenCalledWith(['/buscar'],expect.objectContaining({queryParams:expect.objectContaining({familia:''})}));
+ });
+});

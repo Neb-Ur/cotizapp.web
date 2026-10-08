@@ -252,6 +252,7 @@ export interface FamilyTemplate {
 }
 
 export interface FamilyProductRow {
+  seoPath?:string;
   productoMaestroId?: string;
   productName: string;
   imageUrl: string;
@@ -319,6 +320,7 @@ export interface ProductExtraSection {
 }
 
 export interface ProductDetailView {
+  seoPath?:string;
   productoMaestroId?: string;
   productName: string;
   imageUrl: string;
@@ -604,4 +606,13 @@ export interface CatalogValidationRequest {
     decidedBy?: string;
     adminNote?: string;
   };
+}
+
+export interface StoreDailyAnalytics {
+  storeId: string; schema: number; computedAt: string; activeWindowDays: number;
+  quotationCount: number; quotedLines: number; quotedUnits: number; quotedProducts: number;
+  activeQuotationCount: number; activeQuotedUnits: number; activeQuotedAmount: number;
+  recentQuotationCount: number; previousQuotationCount: number; views: number; selections: number;
+  catalog: {total:number;published:number;inStock:number;outOfStock:number;stalePrices:number};
+  topProducts: Array<{productId:string;name:string;quotationCount:number;units:number;activeAmount:number;stock:number}>;
 }

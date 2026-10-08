@@ -1,3 +1,4 @@
+import { StoreDailyAnalytics } from '../models/app.models';
 import { DataModeService } from './data-mode.service';
 import { findExactMasterMatch } from '../utils/catalog-match.util';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -1469,6 +1470,10 @@ export class FirebaseDataService {
     try { await this.apiClient.post('/metricas/oferta', { offerId, event }, false); } catch { /* Metrics never block a purchase flow. */ }
   }
 
+  async loadStoreDailyDashboard(ownerId: string): Promise<{reports:StoreDailyAnalytics[]}> {
+    return this.apiClient.get(`/ferreterias/propietario/${ownerId}/dashboard`, true);
+  }
+
   async loadStoreMetrics(ownerId: string): Promise<{ views: number; selections: number }> {
     return this.apiClient.get(`/ferreterias/propietario/${ownerId}/metricas`, true);
   }
@@ -1541,6 +1546,7 @@ export class FirebaseDataService {
       }));
 
       return {
+        seoPath:master.seoPath,
         productoMaestroId: master.id,
         productName: master.nombre,
         imageUrl: master.imagenPrincipalUrl || '',
@@ -1621,7 +1627,7 @@ export class FirebaseDataService {
 
   async loadProductOffers(sheet: ProductDetailView): Promise<ProductDetailView> {
     const raw = await this.apiClient.get<any>('/productos/detalle', false, {
-      slug: productSlug(sheet.productName), vista: 'ofertas'
+      slug: sheet.seoPath?.split('/').pop() || productSlug(sheet.productName), vista: 'ofertas'
     });
     const offers = this.mapProductDetail({ ...raw, productoMaestro: { id: sheet.productoMaestroId, nombre: sheet.productName } });
     return { ...sheet, stores: offers.stores, minPrice: offers.minPrice, maxPrice: offers.maxPrice,

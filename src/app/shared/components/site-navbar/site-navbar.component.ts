@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CatalogSearchIndexService } from '../../../core/services/catalog-search-index.service';
 import { CatalogSuggestion, SuggestionGroup } from '../../../core/utils/catalog-search-index.util';
 import { Subscription } from 'rxjs';
-import { productPath } from '../../../core/utils/product-url.util';
+import { productSlug, productPath } from '../../../core/utils/product-url.util';
 import { Component, HostListener, OnDestroy, OnInit, ChangeDetectorRef, ElementRef, ViewChild, afterNextRender, effect } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -22,6 +22,7 @@ import { BrandMarkComponent } from '../brand-mark/brand-mark.component';
   styleUrl: './site-navbar.component.scss'
 })
 export class SiteNavbarComponent implements OnInit, OnDestroy {
+  protected catalogPath(kind:string,name:string):string {return `/${kind}/${productSlug(name)}`;}
   protected readonly categoryIcon = categoryIcon;
   protected searchValue = '';
   protected suggestionGroups: SuggestionGroup[] = [];
@@ -52,7 +53,7 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
     private readonly changeDetector: ChangeDetectorRef,
     protected readonly searchIndex: CatalogSearchIndexService
   ) {
-    afterNextRender(()=>{void this.searchIndex.ensureReady();});
+    afterNextRender(()=>{if (!this.isStoreDashboard) {void this.searchIndex.ensureReady();this.preloadTaxonomy();}});
     effect(()=>{const version=this.searchIndex.version();this.dataService.acceptCatalogSearchVersion(version);this.searchIndex.ready();this.updateSuggestions();});
   }
 
@@ -60,6 +61,7 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
     this.syncSearchFromRoute();
     this.navigationSubscription = this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
+        if(!this.isStoreDashboard) this.preloadTaxonomy();
         this.closeSearch();
         this.closeMenu();
         this.closeTaxonomy();
@@ -74,13 +76,29 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
     return this.searchOpen && suggestion ? this.optionId(suggestion) : null;
   }
   protected optionId(item:CatalogSuggestion):string { return `header-option-${item.kind}-${encodeURIComponent(item.id)}`; }
-  protected suggestionParams(item:CatalogSuggestion):Record<string,string>|undefined { return item.queryParams; }
-  protected suggestionUrl(item:CatalogSuggestion):string { return item.kind==='product'?productPath(item.name):'/buscar'; }
+  protected suggestionParams(item:CatalogSuggestion):Record<string,string>|undefined { return item.path ? undefined : item.queryParams; }
+  protected suggestionUrl(item:CatalogSuggestion):string { return item.path || (item.kind==='product'?productPath(item.name):'/buscar'); }
 
   protected updateSuggestions():void {
     this.activeSuggestion=-1;
     this.suggestionGroups=this.searchIndex.search(this.searchValue);
   }
+  protected readonly storeNavigation = [
+    {label:'Dashboard',icon:'pi pi-chart-bar',section:'inicio'},
+    {label:'Mi catálogo',icon:'pi pi-box',section:'catalogo'},
+    {label:'Agregar productos',icon:'pi pi-plus',section:'catalogo',accion:'agregar'},
+    {label:'Carga por Excel',icon:'pi pi-upload',section:'catalogo',accion:'archivo'},
+    {label:'Mi perfil',icon:'pi pi-user',section:'perfil'}
+  ];
+  protected get isFerreteria(): boolean { return this.authService.currentUser()?.role === 'ferreteria'; }
+  protected get isStoreDashboard(): boolean {
+    return this.isFerreteria && (this.router.url.startsWith('/dashboard/ferreteria') || this.router.url.startsWith('/cuenta/contrato-ferreteria'));
+  }
+  protected storeLinkActive(item: {section:string;accion?:string}): boolean {
+    const query = this.router.parseUrl(this.router.url).queryParams;
+    return this.router.url.startsWith('/dashboard/ferreteria') && (query['section'] || 'inicio') === item.section && (query['accion'] || '') === (item.accion || '');
+  }
+
   protected get returnUrl(): string { return this.router.url; }
   protected get isMaestro(): boolean { return this.authService.currentUser()?.role === 'maestro'; }
 
@@ -115,7 +133,8 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
   }
   protected chooseSuggestion(item:CatalogSuggestion):void {
     this.closeSearch();this.closeMenu();this.closeTaxonomy();
-    if(item.kind==='product') void this.router.navigateByUrl(productPath(item.name));
+    if(item.kind==='product') void this.router.navigateByUrl(item.path || productPath(item.name));
+    else if(item.path) void this.router.navigateByUrl(item.path);
     else void this.router.navigate(['/buscar'],{queryParams:item.queryParams});
   }
   protected submitSearch():void {
@@ -151,16 +170,18 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
     if (typeof window !== 'undefined' && window.innerWidth > 1000) this.closeMenu();
   }
 
+  private preloadTaxonomy():void {void this.dataService.refreshSearchTaxonomy().catch(()=>undefined).finally(()=>this.changeDetector.markForCheck());}
+
   protected get categories(): TaxonomyOption[] {
-    return this.dataService.getCategoryOptions();
+    return this.dataService.getCategoryOptions(false);
   }
 
   protected subcategoriesFor(categoryId: string): TaxonomyOption[] {
-    return this.dataService.getSubcategoryOptions(categoryId);
+    return this.dataService.getSubcategoryOptions(categoryId,false);
   }
 
   protected familiesFor(subcategoryId: string): TaxonomyOption[] {
-    return this.dataService.getFamilyOptions(subcategoryId);
+    return this.dataService.getFamilyOptions(subcategoryId,false);
   }
 
   protected get activeDesktopCategory(): TaxonomyOption | null {

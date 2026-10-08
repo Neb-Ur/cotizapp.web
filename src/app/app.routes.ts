@@ -46,6 +46,21 @@ export const routes: Routes = [
     redirectTo: 'dashboard/maestro/cotizaciones/:projectId',
     pathMatch: 'full'
   },
+  {
+    path: 'cuenta/contrato-ferreteria',
+    loadComponent: () => import('./pages/store-agreement/store-agreement.component').then((module) => module.StoreAgreementComponent),
+    canActivate: [authGuard, legalAcceptanceGuard, roleGuard],
+    data: { role: 'ferreteria' }
+  },
+  {
+    path: 'dashboard/ferreteria',
+    loadComponent: () => import('./pages/dashboard-ferreteria/dashboard-ferreteria.component').then((module) => module.DashboardFerreteriaComponent),
+    canActivate: [authGuard, legalAcceptanceGuard, roleGuard],
+    data: { role: 'ferreteria' }
+  },
+      { path: 'categorias/:slug', loadComponent: () => import('./pages/catalog-landing/catalog-landing.component').then(m=>m.CatalogLandingComponent), data: { publicCatalog:true, catalogKind:'categorias' } },
+      { path: 'familias/:slug', loadComponent: () => import('./pages/catalog-landing/catalog-landing.component').then(m=>m.CatalogLandingComponent), data: { publicCatalog:true, catalogKind:'familias' } },
+      { path: 'marcas/:slug', loadComponent: () => import('./pages/catalog-landing/catalog-landing.component').then(m=>m.CatalogLandingComponent), data: { publicCatalog:true, catalogKind:'marcas' } },
       { path: 'producto', loadComponent: () => import('./pages/producto-detalle/producto-detalle.component').then((module) => module.ProductoDetalleComponent) },
       { path: 'productos/:slug', loadComponent: () => import('./pages/producto-detalle/producto-detalle.component').then((module) => module.ProductoDetalleComponent) },
       { path: 'maestros', loadComponent: () => import('./pages/public/maestros/maestros.component').then((module) => module.MaestrosComponent) },
@@ -85,18 +100,6 @@ export const routes: Routes = [
     path: 'cuenta/cambiar-contrasena',
     loadComponent: () => import('./pages/auth/change-password/change-password.component').then((module) => module.ChangePasswordComponent),
     canActivate: [authGuard]
-  },
-  {
-    path: 'cuenta/contrato-ferreteria',
-    loadComponent: () => import('./pages/store-agreement/store-agreement.component').then((module) => module.StoreAgreementComponent),
-    canActivate: [authGuard, legalAcceptanceGuard, roleGuard],
-    data: { role: 'ferreteria' }
-  },
-  {
-    path: 'dashboard/ferreteria',
-    loadComponent: () => import('./pages/dashboard-ferreteria/dashboard-ferreteria.component').then((module) => module.DashboardFerreteriaComponent),
-    canActivate: [authGuard, legalAcceptanceGuard, roleGuard],
-    data: { role: 'ferreteria' }
   },
   {
     path: 'dashboard/admin',

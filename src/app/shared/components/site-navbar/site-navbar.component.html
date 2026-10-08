@@ -6,7 +6,7 @@
   aria-label="Cerrar menu"
 ></button>
 
-<header class="navbar">
+<header class="navbar" [class.navbar--store]="isStoreDashboard">
   <a class="brand" routerLink="/" aria-label="Findi · Ir al inicio" (click)="closeMenu()">
     <app-brand-mark />
     <span class="brand-wordmark" aria-hidden="true">find<span>ı</span></span>
@@ -14,6 +14,13 @@
   </a>
 
   <nav class="links" id="primary-navigation" [class.open]="menuOpen" aria-label="Navegacion principal">
+    <ng-container *ngIf="isStoreDashboard; else publicNavigation">
+      <nav class="store-header-links" aria-label="Mi ferretería">
+        <a *ngFor="let item of storeNavigation" routerLink="/dashboard/ferreteria" [queryParams]="{section:item.section,accion:item.accion}" [class.active]="storeLinkActive(item)" (click)="closeMenu()"><i [class]="item.icon" aria-hidden="true"></i>{{ item.label }}</a>
+      </nav>
+      <div class="store-header-actions"><a routerLink="/" class="nav-login" (click)="closeMenu()"><i class="pi pi-home" aria-hidden="true"></i> Ir a inicio</a><button type="button" class="btn btn-outline btn-sm" (click)="logout()">Salir</button></div>
+    </ng-container>
+    <ng-template #publicNavigation>
     <div class="desktop-taxonomy">
       <button type="button" class="taxonomy-trigger" (click)="toggleTaxonomy($event)" [attr.aria-expanded]="taxonomyOpen" aria-controls="desktop-taxonomy-menu">
         <fa-icon [icon]="faCategories" class="categories-icon" aria-hidden="true" /> Categorías
@@ -48,7 +55,7 @@
                 <span>Categoría</span>
                 <h3>{{ category.name }}</h3>
               </div>
-              <a routerLink="/buscar" [queryParams]="{ categoria: category.id }" (click)="closeTaxonomy()">Ver toda la categoría</a>
+              <a [routerLink]="catalogPath('categorias',category.name)" (click)="closeTaxonomy()">Ver toda la categoría</a>
             </div>
             <div class="taxonomy-subcategory-grid">
               <section class="taxonomy-subcategory-column" *ngFor="let subcategory of subcategoriesFor(category.id)">
@@ -58,8 +65,7 @@
                 <a
                   class="taxonomy-family"
                   *ngFor="let family of familiesFor(subcategory.id)"
-                  routerLink="/buscar"
-                  [queryParams]="{ categoria: category.id, subcategoria: subcategory.id, familia: family.id }"
+                  [routerLink]="catalogPath('familias',family.name)"
                   (click)="closeTaxonomy()"
                 >{{ family.name }}</a>
               </section>
@@ -113,9 +119,10 @@
           <a routerLink="/dashboard/maestro" [queryParams]="{section:'cotizaciones'}" class="account-nav-icon" (click)="closeMenu()" aria-label="Mis cotizaciones" title="Mis cotizaciones"><i class="pi pi-file" aria-hidden="true"></i></a>
           <a routerLink="/dashboard/maestro" [queryParams]="{section:'perfil'}" class="account-nav-icon" (click)="closeMenu()" aria-label="Mi perfil" title="Mi perfil"><i class="pi pi-user" aria-hidden="true"></i></a>
         </ng-container>
-        <ng-template #managementLink><a [routerLink]="dashboardUrl" class="nav-login" (click)="closeMenu()">Mi panel</a></ng-template>
+        <ng-template #managementLink><a [routerLink]="dashboardUrl" class="nav-login" (click)="closeMenu()">{{ isFerreteria ? 'Ir a dashboard' : 'Mi panel' }}</a></ng-template>
         <button type="button" class="btn btn-outline btn-sm" (click)="logout()">Salir</button>
       </div>
+    </ng-template>
     </ng-template>
   </nav>
 
@@ -133,6 +140,12 @@
   </div>
 
   <nav class="drawer-content">
+    <ng-container *ngIf="isStoreDashboard; else publicDrawer">
+      <a class="drawer-link" *ngFor="let item of storeNavigation" routerLink="/dashboard/ferreteria" [queryParams]="{section:item.section,accion:item.accion}" [class.active]="storeLinkActive(item)" (click)="closeMenu()"><i [class]="item.icon" aria-hidden="true"></i>{{ item.label }}</a>
+      <a class="drawer-link" routerLink="/" (click)="closeMenu()"><i class="pi pi-home" aria-hidden="true"></i> Ir a inicio</a>
+      <button type="button" class="drawer-link" (click)="logout()"><i class="pi pi-sign-out" aria-hidden="true"></i> Cerrar sesión</button>
+    </ng-container>
+    <ng-template #publicDrawer>
     <a *ngIf="!isLogged" class="drawer-login" routerLink="/login" [queryParams]="{returnUrl: returnUrl}" (click)="closeMenu()">
       <fa-icon class="drawer-item-icon" [icon]="faLogin" aria-hidden="true" />
       <span>Iniciar sesión</span>
@@ -140,7 +153,7 @@
     </a>
     <a *ngIf="isLogged" class="drawer-login" [routerLink]="isMaestro ? '/dashboard/maestro' : dashboardUrl" [queryParams]="isMaestro ? {section:'perfil'} : null" (click)="closeMenu()">
       <fa-icon class="drawer-item-icon" [icon]="faLogin" aria-hidden="true" />
-      <span>{{ isMaestro ? 'Mi perfil' : 'Mi panel' }}</span>
+      <span>{{ isMaestro ? 'Mi perfil' : (isFerreteria ? 'Ir a dashboard' : 'Mi panel') }}</span>
       <fa-icon class="drawer-chevron" [icon]="faChevronRight" aria-hidden="true" />
     </a>
 
@@ -163,15 +176,16 @@
             <fa-icon [icon]="faChevronRight" [class.expanded]="expandedMobileCategoryId === category.id" aria-hidden="true" />
           </button>
           <div class="drawer-category-detail" *ngIf="expandedMobileCategoryId === category.id">
-            <a class="drawer-view-all" routerLink="/buscar" [queryParams]="{ categoria: category.id }" (click)="closeMenu()">Ver toda la categoría</a>
+            <a class="drawer-view-all" [routerLink]="catalogPath('categorias',category.name)" (click)="closeMenu()">Ver toda la categoría</a>
             <section *ngFor="let subcategory of subcategoriesFor(category.id)">
               <a class="drawer-subcategory" routerLink="/buscar" [queryParams]="{ categoria: category.id, subcategoria: subcategory.id }" (click)="closeMenu()">{{ subcategory.name }}</a>
-              <a class="drawer-family" *ngFor="let family of familiesFor(subcategory.id)" routerLink="/buscar" [queryParams]="{ categoria: category.id, subcategoria: subcategory.id, familia: family.id }" (click)="closeMenu()">{{ family.name }}</a>
+              <a class="drawer-family" *ngFor="let family of familiesFor(subcategory.id)" [routerLink]="catalogPath('familias',family.name)" (click)="closeMenu()">{{ family.name }}</a>
             </section>
           </div>
         </section>
         <p *ngIf="categories.length === 0">Cargando categorías...</p>
       </div>
     </section>
+    </ng-template>
   </nav>
 </aside>

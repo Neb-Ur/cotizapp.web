@@ -88,6 +88,27 @@
         }
       },
       {
+        "source": "/categorias/**",
+        "function": {
+          "functionId": "api",
+          "region": "southamerica-west1"
+        }
+      },
+      {
+        "source": "/familias/**",
+        "function": {
+          "functionId": "api",
+          "region": "southamerica-west1"
+        }
+      },
+      {
+        "source": "/marcas/**",
+        "function": {
+          "functionId": "api",
+          "region": "southamerica-west1"
+        }
+      },
+      {
         "source": "/productos/**",
         "function": {
           "functionId": "api",

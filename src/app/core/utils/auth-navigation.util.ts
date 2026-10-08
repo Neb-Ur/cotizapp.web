@@ -20,8 +20,13 @@ export function resolvePostAuthUrl(
   requestedReturnUrl: string | null | undefined,
   dashboardUrl: string
 ): string {
-  if (user.role === 'ferreteria' && (user.legalAcceptanceRequired || user.storeAgreementStatus !== 'vigente')) return dashboardUrl;
+  if (user.role === 'ferreteria') return dashboardUrl;
   const returnUrl = sanitizeReturnUrl(requestedReturnUrl);
+  if (user.legalAcceptanceRequired || user.privacyProcessingBlocked) {
+    const query = new URLSearchParams({reason: user.privacyProcessingBlocked ? 'blocked' : 'legal-update'});
+    if (returnUrl) query.set('returnUrl', returnUrl);
+    return `/cuenta/privacidad-datos?${query}`;
+  }
   if (!returnUrl) return dashboardUrl;
 
   const parsed = new URL(returnUrl, APP_ORIGIN);
