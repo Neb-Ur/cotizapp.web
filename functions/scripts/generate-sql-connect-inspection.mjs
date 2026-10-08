@@ -8,6 +8,7 @@ const migration=migrationArg<0?'007-complete-console-inspection.sql':process.arg
 if(!/^\d{3}-[a-z0-9-]+\.sql$/.test(migration||''))throw new Error('Nombre de migración inválido.');
 const diagram=await readFile(new URL('docs/base-de-datos/diagrama-completo.mmd',root),'utf8');
 const labels=new Map([...diagram.matchAll(/\s+(\w+)\["([^"]+)"\] \{/g)].map(m=>[m[1],m[2]]));
+for(const [table,label] of Object.entries({countries:'Países',regions:'Regiones',provinces:'Provincias',communes:'Comunas',cities:'Ciudades y agrupaciones de formularios',city_communes:'Comunas de agrupaciones de ciudades',account_locations:'Ubicaciones de usuarios',store_locations:'Ubicaciones de ferreterías'}))labels.set(table,label);
 labels.set('issues','Incidencias de migración');
 labels.set('source_documents','Documentos de origen de migración');
 const camel=s=>s.replace(/_([a-z])/g,(_,c)=>c.toUpperCase());

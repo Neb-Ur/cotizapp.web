@@ -11,6 +11,13 @@ erDiagram
     text last_error_code "nullable"
     timestamptz backup_erasure_expected_by "nullable"
   }
+  account_locations["Ubicaciones de usuarios"] {
+    text user_id PK,FK "NOT NULL"
+    text region_code FK "nullable"
+    text commune_code FK "nullable"
+    text city_id FK "nullable"
+    timestamptz matched_at "NOT NULL"
+  }
   account_preferences["Preferencias de usuarios"] {
     text user_id PK,FK "NOT NULL"
     text primary_store_id FK "nullable"
@@ -84,6 +91,24 @@ erDiagram
     jsonb api_payload "nullable"
     bigint api_version "NOT NULL"
   }
+  cities["Ciudades y agrupaciones de formularios"] {
+    text id PK "NOT NULL"
+    text country_code FK "NOT NULL"
+    text name "NOT NULL"
+    text kind "NOT NULL"
+    text source_reference "NOT NULL"
+  }
+  city_communes["Comunas de agrupaciones de ciudades"] {
+    text city_id PK,FK "NOT NULL"
+    text commune_code PK,FK "NOT NULL"
+    text source_reference "NOT NULL"
+  }
+  communes["Comunas"] {
+    text code PK "NOT NULL"
+    text province_code FK "NOT NULL"
+    text name "NOT NULL"
+    text normalized_name "NOT NULL"
+  }
   consent_events["Registro de consentimientos"] {
     text id PK "NOT NULL"
     text user_id FK "NOT NULL"
@@ -130,6 +155,10 @@ erDiagram
     timestamptz reviewed_at "nullable"
     boolean legal_hold "NOT NULL"
     timestamptz retention_until "nullable"
+  }
+  countries["Países"] {
+    text code PK "NOT NULL"
+    text name "NOT NULL"
   }
   database_migration_state["Estado del cambio de base"] {
     text id PK "NOT NULL"
@@ -486,6 +515,11 @@ erDiagram
     text manufacturer_code "nullable"
     jsonb catalog_evidence "nullable"
   }
+  provinces["Provincias"] {
+    text code PK "NOT NULL"
+    text region_code FK "NOT NULL"
+    text name "NOT NULL"
+  }
   public_cache_artifacts["Datos públicos en caché"] {
     text key PK "NOT NULL"
     text scope FK "NOT NULL"
@@ -527,6 +561,13 @@ erDiagram
     timestamptz updated_at "nullable"
     jsonb api_payload "nullable"
     bigint api_version "NOT NULL"
+  }
+  regions["Regiones"] {
+    text code PK "NOT NULL"
+    text country_code FK "NOT NULL"
+    text name "NOT NULL"
+    text abbreviation "NOT NULL"
+    text source_reference "NOT NULL"
   }
   security_incidents["Incidentes de seguridad"] {
     text id PK "NOT NULL"
@@ -643,6 +684,13 @@ erDiagram
     timestamptz updated_at "nullable"
     jsonb api_payload "nullable"
     bigint api_version "NOT NULL"
+  }
+  store_locations["Ubicaciones de ferreterías"] {
+    text store_id PK,FK "NOT NULL"
+    text region_code FK "nullable"
+    text commune_code FK "nullable"
+    text city_id FK "nullable"
+    timestamptz matched_at "NOT NULL"
   }
   stores["Ferreterías"] {
     text id PK "NOT NULL"
@@ -811,3 +859,17 @@ erDiagram
   import_batches ||--o{ import_rows : "batch_id"
   offers o|..o{ import_rows : "resulting_offer_id"
   product_requests o|..o{ import_rows : "resulting_request_id"
+  countries ||..o{ regions : "country_code"
+  regions ||..o{ provinces : "region_code"
+  provinces ||..o{ communes : "province_code"
+  countries ||..o{ cities : "country_code"
+  cities ||--o{ city_communes : "city_id"
+  communes ||--o{ city_communes : "commune_code"
+  users ||--o| account_locations : "user_id"
+  regions o|..o{ account_locations : "region_code"
+  communes o|..o{ account_locations : "commune_code"
+  cities o|..o{ account_locations : "city_id"
+  stores ||--o| store_locations : "store_id"
+  regions o|..o{ store_locations : "region_code"
+  communes o|..o{ store_locations : "commune_code"
+  cities o|..o{ store_locations : "city_id"

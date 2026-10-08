@@ -34,11 +34,11 @@ Al recibir tráfico con `true`, la API cambia el control de migración de `verif
 
 La API utiliza el conector oficial de Cloud SQL para Node.js para operar directamente en PostgreSQL con consultas parametrizadas y transacciones. SQL Connect administra la conexión a esa misma base y dispone de un conector de inspección `findi-admin`. Sus operaciones llevan `NO_ACCESS`: solo se pueden ejecutar con privilegios administrativos. No se expone un segundo API público que permita eludir los permisos de Express.
 
-La pestaña **Esquema** de Firebase SQL Connect muestra los modelos GraphQL publicados, no descubre automáticamente todas las tablas PostgreSQL. Además de las dos vistas iniciales, se publican **52 modelos administrativos**, uno por cada tabla física: 49 de `findi`, 2 de `findi_migration` y el registro de migraciones SQL. Tienen nombres descriptivos en español y muestran las 627 columnas. Son vistas de lectura de los datos existentes, sin copiar tablas ni habilitar cambios directos que omitan las reglas de la API.
+La pestaña **Esquema** de Firebase SQL Connect muestra los modelos GraphQL publicados, no descubre automáticamente todas las tablas PostgreSQL. Además de las dos vistas iniciales, se publican **60 modelos administrativos**, uno por cada tabla física: 57 de `findi`, 2 de `findi_migration` y el registro de migraciones SQL. Tienen nombres descriptivos en español y muestran las 659 columnas. Son vistas de lectura de los datos existentes, sin copiar tablas ni habilitar cambios directos que omitan las reglas de la API.
 
 Cada modelo indica su tabla física en la descripción. El conector `findi-admin` contiene una consulta `Inspeccionar…` por modelo, con un límite de 20 filas y `NO_ACCESS`. Incluyen información privada y requieren privilegios administrativos de consola o Admin SDK. El navegador de la aplicación no puede ejecutarlas. Las relaciones reales se consultan en el [diagrama completo](diagrama-completo.md); SQL Connect no permite referencias entre estas vistas.
 
-Para regenerar estos modelos tras añadir una tabla, ejecutar `node functions/scripts/generate-sql-connect-inspection.mjs` con credenciales administrativas. El generador describe la base real y escribe el esquema GraphQL, consultas y manifiesto. La migración 007 aplicada es inmutable: para futuras ampliaciones, usar `--migration 008-complete-console-inspection.sql`, revisar el SQL y añadirlo al listado del bootstrap antes de ejecutarlo. El generador rechaza sobrescribir una migración existente con contenido distinto.
+Para regenerar estos modelos tras añadir una tabla, ejecutar `node functions/scripts/generate-sql-connect-inspection.mjs` con credenciales administrativas. El generador describe la base real y escribe el esquema GraphQL, consultas y manifiesto. La migración 007 aplicada es inmutable: para futuras ampliaciones, usar `--migration 011-complete-console-inspection.sql`, revisar el SQL y añadirlo al listado del bootstrap antes de ejecutarlo. El generador rechaza sobrescribir una migración existente con contenido distinto.
 
 El esquema SQL sigue siendo la fuente de restricciones. Las migraciones SQL controlan sus tablas; el esquema GraphQL usa vistas y validación `COMPATIBLE`, sin transferir el esquema de negocio ni eliminar tablas existentes.
 
@@ -98,7 +98,9 @@ Las pruebas del backend cubren los flujos existentes. Las pruebas SQL usan Postg
 - 108 pruebas del backend aprobadas.
 - PostgreSQL real: integridad del catálogo, rol sin privilegios de superusuario, creación de tablas denegada y comprobación concurrente del límite de cotizaciones. Las escrituras de validación se revirtieron.
 - API utilizando el repositorio SQL: configuración, catálogo público y sitemap responden 200.
-- Conector administrativo SQL Connect: catálogo y las 52 consultas de inspección ejecutadas correctamente, con filas contrastadas contra PostgreSQL. Solicitud anónima rechazada con HTTP 403; el rol de consulta tiene lectura de las vistas, sin lectura directa de `findi.users` ni permiso de actualización.
+- Conector administrativo SQL Connect: catálogo y las 60 consultas de inspección ejecutadas correctamente, con filas contrastadas contra PostgreSQL. Solicitud anónima rechazada con HTTP 403; el rol de consulta tiene lectura de las vistas, sin lectura directa de `findi.users` ni permiso de actualización.
 - Funciones de API, métricas nocturnas y réplica desplegadas; la web pública mantiene sus rutas, estilos y UX.
 
 Estas cantidades son el corte de conciliación, no límites del catálogo. La réplica admite cambios posteriores y la activación realiza la conciliación final bajo bloqueo.
+
+La carga de referencia añade la división territorial oficial de Chile y las agrupaciones de ciudades de los formularios; ver [estado de carga](estado-de-carga.md). Los vínculos territoriales de cuentas y ferreterías se actualizan automáticamente con los cambios de sus campos de ubicación.

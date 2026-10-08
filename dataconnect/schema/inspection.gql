@@ -15,6 +15,15 @@ type EliminacionDeCuentas @view(sql: "SELECT * FROM findi_inspection.account_del
   backupErasureExpectedBy: Timestamp @col(name: "backup_erasure_expected_by")
 }
 
+"""Ubicaciones de usuarios. Tabla física: findi.account_locations."""
+type UbicacionesDeUsuarios @view(sql: "SELECT * FROM findi_inspection.account_locations", plural: "inspeccionUbicacionesDeUsuarios") {
+  userId: String @col(name: "user_id")
+  regionCode: String @col(name: "region_code")
+  communeCode: String @col(name: "commune_code")
+  cityId: String @col(name: "city_id")
+  matchedAt: Timestamp @col(name: "matched_at")
+}
+
 """Preferencias de usuarios. Tabla física: findi.account_preferences."""
 type PreferenciasDeUsuarios @view(sql: "SELECT * FROM findi_inspection.account_preferences", plural: "inspeccionPreferenciasDeUsuarios") {
   userId: String @col(name: "user_id")
@@ -104,6 +113,30 @@ type Categorias @view(sql: "SELECT * FROM findi_inspection.categories", plural: 
   apiVersion: Int64 @col(name: "api_version")
 }
 
+"""Ciudades y agrupaciones de formularios. Tabla física: findi.cities."""
+type CiudadesYAgrupacionesDeFormularios @view(sql: "SELECT * FROM findi_inspection.cities", plural: "inspeccionCiudadesYAgrupacionesDeFormularios") {
+  id: String @col(name: "id")
+  countryCode: String @col(name: "country_code")
+  name: String @col(name: "name")
+  kind: String @col(name: "kind")
+  sourceReference: String @col(name: "source_reference")
+}
+
+"""Comunas de agrupaciones de ciudades. Tabla física: findi.city_communes."""
+type ComunasDeAgrupacionesDeCiudades @view(sql: "SELECT * FROM findi_inspection.city_communes", plural: "inspeccionComunasDeAgrupacionesDeCiudades") {
+  cityId: String @col(name: "city_id")
+  communeCode: String @col(name: "commune_code")
+  sourceReference: String @col(name: "source_reference")
+}
+
+"""Comunas. Tabla física: findi.communes."""
+type Comunas @view(sql: "SELECT * FROM findi_inspection.communes", plural: "inspeccionComunas") {
+  code: String @col(name: "code")
+  provinceCode: String @col(name: "province_code")
+  name: String @col(name: "name")
+  normalizedName: String @col(name: "normalized_name")
+}
+
 """Registro de consentimientos. Tabla física: findi.consent_events."""
 type RegistroDeConsentimientos @view(sql: "SELECT * FROM findi_inspection.consent_events", plural: "inspeccionRegistroDeConsentimientos") {
   id: String @col(name: "id")
@@ -155,6 +188,12 @@ type PermisosDeUsoDeContenido @view(sql: "SELECT * FROM findi_inspection.content
   reviewedAt: Timestamp @col(name: "reviewed_at")
   legalHold: Boolean @col(name: "legal_hold")
   retentionUntil: Timestamp @col(name: "retention_until")
+}
+
+"""Países. Tabla física: findi.countries."""
+type Paises @view(sql: "SELECT * FROM findi_inspection.countries", plural: "inspeccionPaises") {
+  code: String @col(name: "code")
+  name: String @col(name: "name")
 }
 
 """Estado del cambio de base. Tabla física: findi.database_migration_state."""
@@ -560,6 +599,13 @@ type ProductosDelCatalogoMaestro @view(sql: "SELECT * FROM findi_inspection.prod
   catalogEvidence: Any @col(name: "catalog_evidence")
 }
 
+"""Provincias. Tabla física: findi.provinces."""
+type Provincias @view(sql: "SELECT * FROM findi_inspection.provinces", plural: "inspeccionProvincias") {
+  code: String @col(name: "code")
+  regionCode: String @col(name: "region_code")
+  name: String @col(name: "name")
+}
+
 """Datos públicos en caché. Tabla física: findi.public_cache_artifacts."""
 type DatosPublicosEnCache @view(sql: "SELECT * FROM findi_inspection.public_cache_artifacts", plural: "inspeccionDatosPublicosEnCache") {
   key: String @col(name: "key")
@@ -606,6 +652,15 @@ type Cotizaciones @view(sql: "SELECT * FROM findi_inspection.quotations", plural
   updatedAt: Timestamp @col(name: "updated_at")
   apiPayload: Any @col(name: "api_payload")
   apiVersion: Int64 @col(name: "api_version")
+}
+
+"""Regiones. Tabla física: findi.regions."""
+type Regiones @view(sql: "SELECT * FROM findi_inspection.regions", plural: "inspeccionRegiones") {
+  code: String @col(name: "code")
+  countryCode: String @col(name: "country_code")
+  name: String @col(name: "name")
+  abbreviation: String @col(name: "abbreviation")
+  sourceReference: String @col(name: "source_reference")
 }
 
 """Incidentes de seguridad. Tabla física: findi.security_incidents."""
@@ -736,6 +791,15 @@ type ContadoresDeActividadDeFerreterias @view(sql: "SELECT * FROM findi_inspecti
   updatedAt: Timestamp @col(name: "updated_at")
   apiPayload: Any @col(name: "api_payload")
   apiVersion: Int64 @col(name: "api_version")
+}
+
+"""Ubicaciones de ferreterías. Tabla física: findi.store_locations."""
+type UbicacionesDeFerreterias @view(sql: "SELECT * FROM findi_inspection.store_locations", plural: "inspeccionUbicacionesDeFerreterias") {
+  storeId: String @col(name: "store_id")
+  regionCode: String @col(name: "region_code")
+  communeCode: String @col(name: "commune_code")
+  cityId: String @col(name: "city_id")
+  matchedAt: Timestamp @col(name: "matched_at")
 }
 
 """Ferreterías. Tabla física: findi.stores."""

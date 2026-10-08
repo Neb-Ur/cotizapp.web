@@ -13,7 +13,9 @@
     "deploy": "firebase deploy --only functions,firestore:rules",
     "test": "npm run build && node --test tests/*.test.mjs",
     "sql:bootstrap": "npm run build && node scripts/bootstrap-sql.mjs",
-    "sql:migrate": "npm run build && node scripts/migrate-firestore-to-sql.mjs"
+    "sql:migrate": "npm run build && node scripts/migrate-firestore-to-sql.mjs",
+    "sql:seed": "npm run build && node scripts/seed-sql-reference-data.mjs",
+    "sql:audit": "node scripts/audit-sql-data.mjs"
   },
   "dependencies": {
     "@google-cloud/cloud-sql-connector": "^1.12.0",

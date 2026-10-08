@@ -1,6 +1,6 @@
 # Diagrama completo de la base de datos Findi
 
-Generado a partir de las claves y columnas reales de [001-schema.sql](../../sql/findi/001-schema.sql) y [005-runtime-compatibility.sql](../../sql/findi/005-runtime-compatibility.sql). Incluye **49 tablas del esquema findi y 2 tablas temporales de findi_migration**, todas sus columnas y las 85 claves foráneas declaradas. El servidor ya admite este modelo; Firestore sigue activo mientras USE_SQL_DATABASE sea false.
+Generado a partir de las claves y columnas reales de [001-schema.sql](../../sql/findi/001-schema.sql) [005-runtime-compatibility.sql](../../sql/findi/005-runtime-compatibility.sql) y [008-location-reference-tables.sql](../../sql/findi/008-location-reference-tables.sql). Incluye **57 tablas del esquema findi y 2 tablas temporales de findi_migration**, todas sus columnas y las 99 claves foráneas declaradas. El servidor ya admite este modelo; Firestore sigue activo mientras USE_SQL_DATABASE sea false.
 
 Abre la vista previa Markdown para visualizarlo. El [archivo Mermaid independiente](diagrama-completo.mmd) permite ampliar y exportar el diagrama en un visor compatible. Al final hay vistas por área para explorar el mismo modelo con menos cruces.
 
@@ -29,6 +29,13 @@ erDiagram
     timestamptz requested_at "NOT NULL"
     text last_error_code "nullable"
     timestamptz backup_erasure_expected_by "nullable"
+  }
+  account_locations["Ubicaciones de usuarios"] {
+    text user_id PK,FK "NOT NULL"
+    text region_code FK "nullable"
+    text commune_code FK "nullable"
+    text city_id FK "nullable"
+    timestamptz matched_at "NOT NULL"
   }
   account_preferences["Preferencias de usuarios"] {
     text user_id PK,FK "NOT NULL"
@@ -103,6 +110,24 @@ erDiagram
     jsonb api_payload "nullable"
     bigint api_version "NOT NULL"
   }
+  cities["Ciudades y agrupaciones de formularios"] {
+    text id PK "NOT NULL"
+    text country_code FK "NOT NULL"
+    text name "NOT NULL"
+    text kind "NOT NULL"
+    text source_reference "NOT NULL"
+  }
+  city_communes["Comunas de agrupaciones de ciudades"] {
+    text city_id PK,FK "NOT NULL"
+    text commune_code PK,FK "NOT NULL"
+    text source_reference "NOT NULL"
+  }
+  communes["Comunas"] {
+    text code PK "NOT NULL"
+    text province_code FK "NOT NULL"
+    text name "NOT NULL"
+    text normalized_name "NOT NULL"
+  }
   consent_events["Registro de consentimientos"] {
     text id PK "NOT NULL"
     text user_id FK "NOT NULL"
@@ -149,6 +174,10 @@ erDiagram
     timestamptz reviewed_at "nullable"
     boolean legal_hold "NOT NULL"
     timestamptz retention_until "nullable"
+  }
+  countries["Países"] {
+    text code PK "NOT NULL"
+    text name "NOT NULL"
   }
   database_migration_state["Estado del cambio de base"] {
     text id PK "NOT NULL"
@@ -505,6 +534,11 @@ erDiagram
     text manufacturer_code "nullable"
     jsonb catalog_evidence "nullable"
   }
+  provinces["Provincias"] {
+    text code PK "NOT NULL"
+    text region_code FK "NOT NULL"
+    text name "NOT NULL"
+  }
   public_cache_artifacts["Datos públicos en caché"] {
     text key PK "NOT NULL"
     text scope FK "NOT NULL"
@@ -546,6 +580,13 @@ erDiagram
     timestamptz updated_at "nullable"
     jsonb api_payload "nullable"
     bigint api_version "NOT NULL"
+  }
+  regions["Regiones"] {
+    text code PK "NOT NULL"
+    text country_code FK "NOT NULL"
+    text name "NOT NULL"
+    text abbreviation "NOT NULL"
+    text source_reference "NOT NULL"
   }
   security_incidents["Incidentes de seguridad"] {
     text id PK "NOT NULL"
@@ -662,6 +703,13 @@ erDiagram
     timestamptz updated_at "nullable"
     jsonb api_payload "nullable"
     bigint api_version "NOT NULL"
+  }
+  store_locations["Ubicaciones de ferreterías"] {
+    text store_id PK,FK "NOT NULL"
+    text region_code FK "nullable"
+    text commune_code FK "nullable"
+    text city_id FK "nullable"
+    timestamptz matched_at "NOT NULL"
   }
   stores["Ferreterías"] {
     text id PK "NOT NULL"
@@ -830,6 +878,20 @@ erDiagram
   import_batches ||--o{ import_rows : "batch_id"
   offers o|..o{ import_rows : "resulting_offer_id"
   product_requests o|..o{ import_rows : "resulting_request_id"
+  countries ||..o{ regions : "country_code"
+  regions ||..o{ provinces : "region_code"
+  provinces ||..o{ communes : "province_code"
+  countries ||..o{ cities : "country_code"
+  cities ||--o{ city_communes : "city_id"
+  communes ||--o{ city_communes : "commune_code"
+  users ||--o| account_locations : "user_id"
+  regions o|..o{ account_locations : "region_code"
+  communes o|..o{ account_locations : "commune_code"
+  cities o|..o{ account_locations : "city_id"
+  stores ||--o| store_locations : "store_id"
+  regions o|..o{ store_locations : "region_code"
+  communes o|..o{ store_locations : "commune_code"
+  cities o|..o{ store_locations : "city_id"
 ```
 
 ## Cuentas, ferreterías y preferencias
@@ -1301,6 +1363,73 @@ erDiagram
   products ||--o| catalog_search_documents : "product_id"
 ```
 
+## Regiones, comunas y ubicaciones
+
+Vista de relaciones y claves; las columnas completas están en el modelo anterior. Solo se muestran las relaciones entre las tablas incluidas en esta vista.
+
+```mermaid
+erDiagram
+  direction LR
+  account_locations["Ubicaciones de usuarios"] {
+    text user_id PK,FK "NOT NULL"
+    text region_code FK "nullable"
+    text commune_code FK "nullable"
+    text city_id FK "nullable"
+  }
+  cities["Ciudades y agrupaciones de formularios"] {
+    text id PK "NOT NULL"
+    text country_code FK "NOT NULL"
+  }
+  city_communes["Comunas de agrupaciones de ciudades"] {
+    text city_id PK,FK "NOT NULL"
+    text commune_code PK,FK "NOT NULL"
+  }
+  communes["Comunas"] {
+    text code PK "NOT NULL"
+    text province_code FK "NOT NULL"
+  }
+  countries["Países"] {
+    text code PK "NOT NULL"
+  }
+  provinces["Provincias"] {
+    text code PK "NOT NULL"
+    text region_code FK "NOT NULL"
+  }
+  regions["Regiones"] {
+    text code PK "NOT NULL"
+    text country_code FK "NOT NULL"
+  }
+  store_locations["Ubicaciones de ferreterías"] {
+    text store_id PK,FK "NOT NULL"
+    text region_code FK "nullable"
+    text commune_code FK "nullable"
+    text city_id FK "nullable"
+  }
+  stores["Ferreterías"] {
+    text id PK "NOT NULL"
+    text owner_id FK "NOT NULL"
+    text ip_report_id FK "nullable"
+  }
+  users["Usuarios"] {
+    text id PK "NOT NULL"
+  }
+  users ||..o{ stores : "owner_id"
+  countries ||..o{ regions : "country_code"
+  regions ||..o{ provinces : "region_code"
+  provinces ||..o{ communes : "province_code"
+  countries ||..o{ cities : "country_code"
+  cities ||--o{ city_communes : "city_id"
+  communes ||--o{ city_communes : "commune_code"
+  users ||--o| account_locations : "user_id"
+  regions o|..o{ account_locations : "region_code"
+  communes o|..o{ account_locations : "commune_code"
+  cities o|..o{ account_locations : "city_id"
+  stores ||--o| store_locations : "store_id"
+  regions o|..o{ store_locations : "region_code"
+  communes o|..o{ store_locations : "commune_code"
+  cities o|..o{ store_locations : "city_id"
+```
+
 ## Control del cambio de base
 
 Vista de relaciones y claves; las columnas completas están en el modelo anterior. Solo se muestran las relaciones entre las tablas incluidas en esta vista.
@@ -1339,6 +1468,14 @@ Los nombres en español son las etiquetas del diagrama. El esquema SQL conserva 
 
 | Nombre en el diagrama | Tabla en SQL | Para qué sirve |
 | --- | --- | --- |
+| Países | `findi.countries` | Países del catálogo territorial. |
+| Regiones | `findi.regions` | Regiones oficiales con códigos CUT de SUBDERE. |
+| Provincias | `findi.provinces` | Provincias y su región oficial. |
+| Comunas | `findi.communes` | Comunas oficiales de Chile y su provincia. |
+| Ciudades y agrupaciones de formularios | `findi.cities` | Opciones existentes en la aplicación; no son límites urbanos oficiales. |
+| Comunas de agrupaciones de ciudades | `findi.city_communes` | Comunas que agrupa cada opción del formulario. |
+| Ubicaciones de usuarios | `findi.account_locations` | Referencias territoriales derivadas de los datos reales de cada cuenta. |
+| Ubicaciones de ferreterías | `findi.store_locations` | Referencias territoriales derivadas de los datos reales del local. |
 | Estado del cambio de base | `findi.database_migration_state` | Controla la conciliación y la base activa. |
 | Versiones de la réplica de Firestore | `findi.source_replication_versions` | Evita repetir o aplicar eventos antiguos de Firestore. |
 | Eliminación de cuentas | `findi.account_deletion_jobs` | Coordina la eliminación de la cuenta en PostgreSQL y Firebase Auth. |
@@ -1391,15 +1528,15 @@ Los nombres en español son las etiquetas del diagrama. El esquema SQL conserva 
 | Problemas de migración | `findi_migration.issues` | Conflictos detectados durante la conciliación; tabla temporal. |
 | Documentos originales para migración | `findi_migration.source_documents` | Datos originales para conciliar la migración; tabla temporal. |
 
-## Historial de instalación del esquema
+## Registro de migraciones SQL
 
-La herramienta de instalación mantiene además `public.findi_schema_migrations`, fuera del esquema de negocio. Registra qué archivos SQL se aplicaron y su huella; no almacena datos de usuarios.
+Además de las tablas de negocio y migración temporal, `public.findi_schema_migrations` registra la versión, hash y fecha de las migraciones aplicadas. No almacena información de usuarios ni pertenece al dominio comercial.
 
 ```mermaid
 erDiagram
-  findi_schema_migrations["Historial de migraciones SQL"] {
-    text version PK "Archivo SQL"
-    text sha256 "Huella del archivo aplicado"
-    timestamptz applied_at "Fecha de aplicación"
+  findi_schema_migrations["Migraciones del esquema SQL"] {
+    text version PK
+    text sha256
+    timestamptz applied_at
   }
 ```

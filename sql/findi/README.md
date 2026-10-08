@@ -1,6 +1,6 @@
 # DDL de referencia de Findi
 
-Diseño para PostgreSQL 17+. Los archivos 001–004 describen el modelo y sus validaciones. La implementación del servidor añade los archivos 005–007 y herramientas de migración; ver [activación y operación](../../docs/base-de-datos/activacion-postgresql.md).
+Diseño para PostgreSQL 17+. Los archivos 001–004 describen el modelo y sus validaciones. La implementación del servidor añade los archivos 005–010 y herramientas de migración; ver [activación y operación](../../docs/base-de-datos/activacion-postgresql.md).
 
 1. `001-schema.sql`: modelo relacional e integridad.
 2. `002-public-views.sql`: proyecciones públicas explícitas.
@@ -19,3 +19,9 @@ Modelo, correspondencias y migración: [documentación](../../docs/base-de-datos
 Diagrama de todas las tablas y columnas: [vista Markdown por áreas](../../docs/base-de-datos/diagrama-completo.md) y [archivo Mermaid independiente](../../docs/base-de-datos/diagrama-completo.mmd).
 
 Las pruebas del backend incluyen PGlite como dependencia de desarrollo. La copia real se concilia con Cloud SQL y el script `verify-sql-runtime.mjs` comprueba el rol del servidor, las restricciones y las consultas de la API en PostgreSQL.
+
+8. `008-location-reference-tables.sql`: regiones, provincias, comunas, agrupaciones de ciudades y vínculos de ubicaciones.
+9. `009-complete-location-inspection.sql`: inspección administrativa de las 60 tablas físicas.
+10. `010-maintain-location-links.sql`: sincroniza los vínculos territoriales al editar cuentas y ferreterías.
+
+La carga de referencia se ejecuta con `functions/scripts/seed-sql-reference-data.mjs`; ver [estado y fuentes de los datos](../../docs/base-de-datos/estado-de-carga.md).

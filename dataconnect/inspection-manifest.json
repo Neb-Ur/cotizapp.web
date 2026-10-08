@@ -7,6 +7,13 @@
     "columns": 9
   },
   {
+    "table": "findi.account_locations",
+    "model": "UbicacionesDeUsuarios",
+    "query": "InspeccionarUbicacionesDeUsuarios",
+    "root": "inspeccionUbicacionesDeUsuarios",
+    "columns": 5
+  },
+  {
     "table": "findi.account_preferences",
     "model": "PreferenciasDeUsuarios",
     "query": "InspeccionarPreferenciasDeUsuarios",
@@ -63,6 +70,27 @@
     "columns": 7
   },
   {
+    "table": "findi.cities",
+    "model": "CiudadesYAgrupacionesDeFormularios",
+    "query": "InspeccionarCiudadesYAgrupacionesDeFormularios",
+    "root": "inspeccionCiudadesYAgrupacionesDeFormularios",
+    "columns": 5
+  },
+  {
+    "table": "findi.city_communes",
+    "model": "ComunasDeAgrupacionesDeCiudades",
+    "query": "InspeccionarComunasDeAgrupacionesDeCiudades",
+    "root": "inspeccionComunasDeAgrupacionesDeCiudades",
+    "columns": 3
+  },
+  {
+    "table": "findi.communes",
+    "model": "Comunas",
+    "query": "InspeccionarComunas",
+    "root": "inspeccionComunas",
+    "columns": 4
+  },
+  {
     "table": "findi.consent_events",
     "model": "RegistroDeConsentimientos",
     "query": "InspeccionarRegistroDeConsentimientos",
@@ -82,6 +110,13 @@
     "query": "InspeccionarPermisosDeUsoDeContenido",
     "root": "inspeccionPermisosDeUsoDeContenido",
     "columns": 12
+  },
+  {
+    "table": "findi.countries",
+    "model": "Paises",
+    "query": "InspeccionarPaises",
+    "root": "inspeccionPaises",
+    "columns": 2
   },
   {
     "table": "findi.database_migration_state",
@@ -252,6 +287,13 @@
     "columns": 30
   },
   {
+    "table": "findi.provinces",
+    "model": "Provincias",
+    "query": "InspeccionarProvincias",
+    "root": "inspeccionProvincias",
+    "columns": 3
+  },
+  {
     "table": "findi.public_cache_artifacts",
     "model": "DatosPublicosEnCache",
     "query": "InspeccionarDatosPublicosEnCache",
@@ -271,6 +313,13 @@
     "query": "InspeccionarCotizaciones",
     "root": "inspeccionCotizaciones",
     "columns": 15
+  },
+  {
+    "table": "findi.regions",
+    "model": "Regiones",
+    "query": "InspeccionarRegiones",
+    "root": "inspeccionRegiones",
+    "columns": 5
   },
   {
     "table": "findi.security_incidents",
@@ -320,6 +369,13 @@
     "query": "InspeccionarContadoresDeActividadDeFerreterias",
     "root": "inspeccionContadoresDeActividadDeFerreterias",
     "columns": 6
+  },
+  {
+    "table": "findi.store_locations",
+    "model": "UbicacionesDeFerreterias",
+    "query": "InspeccionarUbicacionesDeFerreterias",
+    "root": "inspeccionUbicacionesDeFerreterias",
+    "columns": 5
   },
   {
     "table": "findi.stores",
