@@ -1,26 +1,27 @@
+@use './styles/findi-components';
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
 @import 'primeicons/primeicons.css';
 
 :root {
-  --ink-950: #0d141d;
-  --ink-900: #16212e;
-  --ink-800: #233244;
-  --ink-700: #38506a;
-  --ink-500: #667a92;
-  --ink-400: #8d9cb0;
-  --ink-200: #d7dee7;
-  --ink-100: #e7edf4;
-  --ink-50: #f4f7fb;
+  --ink-950: #111827;
+  --ink-900: #0f2d4a;
+  --ink-800: #183d5e;
+  --ink-700: #36536e;
+  --ink-500: #6b7280;
+  --ink-400: #757d89;
+  --ink-200: #dce2e9;
+  --ink-100: #e7ebf0;
+  --ink-50: #f3f5f8;
 
-  --sand-50: #fbf8f2;
-  --sand-100: #f3ede1;
-  --sand-200: #e6dcc7;
-  --sand-300: #d8c8aa;
+  --sand-50: #f3f5f8;
+  --sand-100: #edf1f6;
+  --sand-200: #dce2e9;
+  --sand-300: #c6cfda;
 
-  --orange: #d96d2c;
-  --orange-hover: #be5c1f;
-  --orange-light: #e69155;
-  --orange-muted: rgba(217, 109, 44, 0.13);
+  --orange: #ff7a00;
+  --orange-hover: #a94700;
+  --orange-light: #ff9838;
+  --orange-muted: rgba(255, 122, 0, 0.13);
   --emerald: #1d8f68;
   --emerald-hover: #147454;
   --emerald-light: #44b98b;
@@ -30,30 +31,30 @@
   --red: #d45555;
   --red-muted: rgba(212, 85, 85, 0.14);
 
-  --surface-0: rgba(255, 255, 255, 0.88);
-  --surface-1: #f7f3eb;
-  --surface-2: #efe6d9;
-  --surface-3: #e4d8c6;
+  --surface-0: #ffffff;
+  --surface-1: #f3f5f8;
+  --surface-2: #edf1f6;
+  --surface-3: #dce2e9;
   --surface-solid: #ffffff;
 
-  --border: rgba(22, 33, 46, 0.10);
-  --border-med: rgba(22, 33, 46, 0.16);
-  --border-strong: rgba(22, 33, 46, 0.26);
-  --border-soft: rgba(22, 33, 46, 0.10);
+  --border: rgba(15, 45, 74, 0.10);
+  --border-med: rgba(15, 45, 74, 0.16);
+  --border-strong: rgba(15, 45, 74, 0.26);
+  --border-soft: rgba(15, 45, 74, 0.10);
 
   --shadow-xs: 0 1px 2px rgba(12, 18, 26, 0.04);
-  --shadow-sm: 0 12px 24px rgba(12, 18, 26, 0.05);
-  --shadow-md: 0 18px 38px rgba(12, 18, 26, 0.08);
+  --shadow-sm: 0 4px 20px rgba(15, 45, 74, 0.045);
+  --shadow-md: 0 12px 32px rgba(15, 45, 74, 0.08);
   --shadow-lg: 0 28px 56px rgba(12, 18, 26, 0.11);
   --shadow-xl: 0 42px 90px rgba(12, 18, 26, 0.14);
   --shadow-dialog: 0 24px 70px rgba(15, 27, 45, 0.28);
   --overlay-backdrop: rgba(15, 27, 45, 0.58);
 
-  --r-xs: 4px;
-  --r-sm: 6px;
-  --r-md: 8px;
-  --r-lg: 8px;
-  --r-xl: 8px;
+  --r-xs: 6px;
+  --r-sm: 12px;
+  --r-md: 20px;
+  --r-lg: 24px;
+  --r-xl: 32px;
   --r-full: 9999px;
 
   --space-1: 0.25rem;
@@ -117,21 +118,13 @@ body {
   font-size: 16px;
   line-height: 1.6;
   color: var(--ink-900);
-  background: linear-gradient(180deg, #fbf8f2 0%, #f4f7fb 52%, #eef2f7 100%);
+  background: var(--ink-50);
   -webkit-tap-highlight-color: transparent;
   overflow-x: hidden;
 }
 
 body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(22, 33, 46, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(22, 33, 46, 0.03) 1px, transparent 1px);
-  background-size: 28px 28px;
-  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.25), transparent 55%);
+  content: none;
 }
 
 @media (max-width: 768px) {
@@ -148,8 +141,18 @@ a {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Space Grotesk', 'Manrope', sans-serif;
-  letter-spacing: 0;
+  font-family: 'Manrope', 'Segoe UI', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+button {
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--border-med);
+  border-radius: var(--r-sm);
+  background: var(--surface-solid);
+  color: var(--ink-900);
+  cursor: pointer;
 }
 
 button, input, select, textarea {
@@ -158,7 +161,7 @@ button, input, select, textarea {
 }
 
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 3px solid rgba(217, 109, 44, 0.42);
+  outline: 3px solid rgba(255, 122, 0, 0.42);
   outline-offset: 3px;
 }
 
@@ -344,21 +347,22 @@ button, a[role="button"], input[type="button"], input[type="submit"] {
 
 .btn-primary {
   background: var(--orange);
-  color: #fff;
-  box-shadow: 0 2px 5px rgba(190, 92, 31, 0.18);
+  color: var(--ink-900);
+  box-shadow: 0 2px 5px rgba(169, 71, 0, 0.18);
 }
 .btn-primary:hover {
   background: var(--orange-hover);
-  box-shadow: 0 3px 7px rgba(190, 92, 31, 0.24);
+  color: #fff;
+  box-shadow: 0 3px 7px rgba(169, 71, 0, 0.24);
 }
 
 .btn-secondary {
-  background: var(--emerald);
+  background: var(--ink-900);
   color: #fff;
   box-shadow: 0 2px 5px rgba(20, 116, 84, 0.16);
 }
 .btn-secondary:hover {
-  background: var(--emerald-hover);
+  background: var(--ink-800);
   box-shadow: 0 3px 7px rgba(20, 116, 84, 0.22);
 }
 
@@ -385,7 +389,7 @@ button, a[role="button"], input[type="button"], input[type="submit"] {
 .btn-dark {
   background: var(--ink-900);
   color: #fff;
-  box-shadow: 0 2px 5px rgba(22, 33, 46, 0.18);
+  box-shadow: 0 2px 5px rgba(15, 45, 74, 0.18);
 }
 .btn-dark:hover {
   background: var(--ink-800);
@@ -421,7 +425,7 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 3px solid rgba(10, 148, 168, 0.42);
+  outline: 3px solid rgba(255, 122, 0, 0.42);
   outline-offset: 2px;
 }
 
@@ -429,7 +433,7 @@ input,
 select,
 textarea {
   width: 100%;
-  border: 1px solid rgba(35, 50, 68, 0.14);
+  border: 1px solid rgba(24, 61, 94, 0.14);
   border-radius: var(--r-sm);
   padding: 0.85rem 1rem;
   background: rgba(255, 255, 255, 0.86);
@@ -463,8 +467,8 @@ textarea[aria-invalid='true'] {
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: rgba(10, 148, 168, 0.46);
-  box-shadow: 0 0 0 4px rgba(10, 148, 168, 0.10);
+  border-color: rgba(255, 122, 0, 0.46);
+  box-shadow: 0 0 0 4px rgba(255, 122, 0, 0.10);
   background: #fff;
 }
 
@@ -491,7 +495,7 @@ table {
 
 th,
 td {
-  border-bottom: 1px solid rgba(22, 33, 46, 0.08);
+  border-bottom: 1px solid rgba(15, 45, 74, 0.08);
 }
 
 th {
@@ -499,7 +503,7 @@ th {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--ink-500);
-  background: rgba(244, 247, 251, 0.92);
+  background: rgba(243, 245, 248, 0.92);
 }
 
 ::-webkit-scrollbar {

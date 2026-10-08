@@ -1,9 +1,9 @@
-:host { display: block; min-height: 100vh; color: var(--ink-900); background: #f4f6f8; }
+:host { display: block; min-height: 100vh; color: var(--ink-900); background: var(--ink-50); }
 * { box-sizing: border-box; }
 .topbar { height: 72px; padding: 0 max(1.25rem, calc((100vw - 1320px) / 2)); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-med); background: #fff; }
 .topbar a { color: var(--ink-700); text-decoration: none; font-weight: 750; }
 .brand { display: inline-flex; align-items: center; gap: .65rem; font-size: 1.15rem; }
-.brand-mark { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; background: var(--ink-900); color: #fff; box-shadow: inset -5px 0 var(--orange); }
+.brand-mark { width: 36px; height: 36px; display: grid; place-items: center; border-radius: var(--r-sm); background: var(--ink-900); color: #fff; box-shadow: inset -5px 0 var(--orange); }
 .hero { max-width: 1320px; margin: 0 auto; padding: 2.5rem 1.25rem 1.5rem; display: flex; justify-content: space-between; gap: 2rem; align-items: end; }
 .eyebrow { color: var(--orange-hover); font-size: .72rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
 h1 { margin: .35rem 0 .6rem; font-size: clamp(2rem, 4vw, 3.2rem); letter-spacing: -.05em; line-height: 1; }
@@ -40,7 +40,7 @@ input:focus { outline: none; border-color: var(--ink-700); box-shadow: 0 0 0 3px
 .check input { width: 1rem; height: 1rem; margin-top: .15rem; accent-color: var(--orange); }
 button { padding: .7rem .9rem; border-radius: var(--r-sm); font: inherit; font-weight: 800; cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .5; }
-.primary { width: 100%; border: 1px solid var(--orange); background: var(--orange); color: #fff; }
+.primary { width: 100%; border: 1px solid var(--orange); background: var(--orange); color: var(--ink-900); }
 .secondary { border: 1px solid var(--border-med); background: #fff; color: var(--ink-800); }
 .full { width: 100%; margin-top: .6rem; }
 .acceptance-card small { display: block; margin-top: .7rem; color: var(--ink-400); line-height: 1.45; }

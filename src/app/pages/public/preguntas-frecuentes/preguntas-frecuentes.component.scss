@@ -19,7 +19,7 @@
 }
 
 .hero {
-  background: linear-gradient(132deg, rgba(69, 43, 17, 0.95), rgba(128, 89, 34, 0.88));
+  background: linear-gradient(135deg, var(--ink-900), var(--ink-800));
   color: #fff;
 }
 
@@ -54,7 +54,7 @@ details {
   border: 1px solid var(--border-soft);
   border-radius: var(--r-md);
   padding: 0.65rem 0.75rem;
-  background: #f8fbff;
+  background: var(--ink-50);
 }
 
 summary {

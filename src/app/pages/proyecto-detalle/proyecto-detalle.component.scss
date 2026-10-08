@@ -97,7 +97,7 @@ select {
   border: 0;
   border-radius: var(--r-sm);
   background: var(--orange);
-  color: #fff;
+  color: var(--ink-900);
   padding: 0.54rem 0.7rem;
   font-weight: 700;
   cursor: pointer;
@@ -178,7 +178,7 @@ select {
   margin: 0.4rem 0 0;
   color: var(--slate-700);
   border: 1px solid #dce6f4;
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   background: #fff;
   padding: 0.45rem 0.55rem;
 }
@@ -249,7 +249,7 @@ td {
 
 button.danger.small {
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   background: #a32020;
   color: #fff;
   padding: 0.42rem 0.6rem;
@@ -321,7 +321,7 @@ tfoot .total-final td {
   padding: 0.85rem;
   border: 1px solid #dbe4ef;
   border-radius: var(--r-md);
-  background: #f8fbff;
+  background: var(--ink-50);
 }
 
 .quotation-nearby-copy {
@@ -434,7 +434,7 @@ tfoot .total-final td {
   padding: 0.85rem;
   border: 1px solid #dbe4ef;
   border-radius: var(--r-md);
-  background: #f8fbff;
+  background: var(--ink-50);
 }
 
 .same-store-option.applied {

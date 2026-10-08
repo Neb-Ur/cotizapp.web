@@ -82,11 +82,11 @@ export class StoreAgreementComponent implements OnInit {
     if (!this.overview) return;
     const agreement = this.overview;
     const lines = [
-      `ACUERDO DE PARTICIPACIÓN EN LA MARCHA BLANCA COTIZAPP — VERSIÓN ${agreement.version}`,
+      `ACUERDO DE PARTICIPACIÓN EN LA MARCHA BLANCA Findi — VERSIÓN ${agreement.version}`,
       `Vigente desde: ${agreement.effectiveDate}`,
       '',
       `Responsable: ${agreement.provider.legalName}${agreement.provider.taxId ? ` · RUT ${agreement.provider.taxId}` : ''}`,
-      'Contacto: formulario /contacto de CotizApp',
+      'Contacto: formulario /contacto de Findi',
       `Ferretería: ${agreement.store.legalName} · RUT ${agreement.store.taxId}`,
       `Sucursal: ${agreement.store.branchName} · ${agreement.store.address}, ${agreement.store.commune}`,
       '',

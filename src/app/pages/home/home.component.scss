@@ -21,7 +21,7 @@
   position: relative;
   overflow: hidden;
   width: 100%;
-  min-height: 540px;
+  min-height: 440px;
   padding: clamp(2.35rem, 3vw, 2.75rem) 0 1.2rem;
   border: 0;
   border-radius: 0;
@@ -35,7 +35,7 @@
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: linear-gradient(90deg, rgba(13, 26, 39, 0.98) 0%, rgba(13, 26, 39, 0.94) 35%, rgba(13, 26, 39, 0.48) 59%, rgba(13, 26, 39, 0.08) 100%);
+  background: linear-gradient(90deg, rgba(15, 45, 74, 0.98) 0%, rgba(15, 45, 74, 0.94) 35%, rgba(15, 45, 74, 0.48) 59%, rgba(15, 45, 74, 0.08) 100%);
   pointer-events: none;
 }
 
@@ -61,7 +61,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  color: var(--orange-light);
+  color: var(--orange);
   font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.09em;
@@ -83,7 +83,7 @@
 }
 
 .discovery-copy h1 em {
-  color: var(--orange-light);
+  color: var(--orange);
   font-style: normal;
 }
 
@@ -93,30 +93,6 @@
   color: rgba(255, 255, 255, 0.76);
   font-size: clamp(1rem, 1.6vw, 1.14rem);
   line-height: 1.55;
-}
-
-.home-search {
-  max-width: 760px;
-  margin: 1.7rem 0 0;
-  text-align: left;
-}
-
-.home-search > label {
-  display: block;
-  margin-bottom: 0.55rem;
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 0.82rem;
-  font-weight: 750;
-}
-
-.home-search-control {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.35rem;
-  padding: 0.35rem;
-  border-radius: var(--r-md);
-  background: #fff;
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
 }
 
 .quick-categories {
@@ -134,7 +110,7 @@
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: var(--r-md);
   color: rgba(255, 255, 255, 0.88);
-  background: rgba(17, 37, 52, 0.88);
+  background: rgba(15, 45, 74, 0.88);
   backdrop-filter: blur(10px);
   display: flex;
   flex-direction: column;
@@ -151,12 +127,12 @@
 .quick-categories button:hover,
 .quick-categories > a:hover {
   border-color: rgba(230, 145, 85, 0.55);
-  background: rgba(217, 109, 44, 0.14);
+  background: rgba(255, 122, 0, 0.14);
   transform: translateY(-2px);
 }
 
 .quick-categories i {
-  color: var(--orange-light);
+  color: var(--orange);
   font-size: 1.3rem;
 }
 
@@ -243,7 +219,7 @@
 }
 
 .home-product-card:hover {
-  border-color: rgba(217, 109, 44, 0.3);
+  border-color: rgba(255, 122, 0, 0.3);
   box-shadow: var(--shadow-md);
   transform: translateY(-4px);
 }
@@ -319,9 +295,9 @@
 .home-product-pricing {
   width: calc(100% - 2rem);
   margin-top: auto;
-  padding: 0.85rem 0 0;
+  padding: 0.85rem 0 1rem;
   display: flex;
-  align-items: end;
+  align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
 }
@@ -596,102 +572,6 @@
   font-size: 0.74rem;
 }
 
-:host ::ng-deep .home-autocomplete {
-  width: 100%;
-}
-
-:host ::ng-deep .home-autocomplete .p-autocomplete-input {
-  height: 56px;
-  padding: 0.75rem 1rem 0.75rem 1.2rem;
-  border: 0;
-  border-radius: var(--r-sm);
-  color: var(--ink-900);
-  background: #fff;
-  box-shadow: none;
-  font-size: 0.95rem;
-}
-
-:host ::ng-deep .home-autocomplete .p-autocomplete-input:focus {
-  box-shadow: inset 0 0 0 2px rgba(217, 109, 44, 0.26);
-}
-
-:host ::ng-deep .home-search-button.p-button {
-  min-width: 150px;
-  border: 0;
-  border-radius: var(--r-sm);
-  background: var(--orange);
-  font-weight: 800;
-  box-shadow: none;
-}
-
-:host ::ng-deep .home-search-button.p-button:hover {
-  background: var(--orange-hover);
-}
-
-:host ::ng-deep .home-autocomplete-panel {
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  box-shadow: var(--shadow-lg);
-}
-
-.search-suggestion {
-  width: min(760px, calc(100vw - 3rem));
-  padding: 0.35rem;
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) auto auto;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.suggestion-image {
-  width: 44px;
-  height: 44px;
-  padding: 0.25rem;
-  border-radius: var(--r-sm);
-  background: var(--ink-50);
-}
-
-.suggestion-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.suggestion-copy,
-.suggestion-price {
-  display: grid;
-  min-width: 0;
-}
-
-.suggestion-copy strong {
-  overflow: hidden;
-  color: var(--ink-900);
-  font-size: 0.83rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.suggestion-copy span,
-.suggestion-price span {
-  color: var(--ink-400);
-  font-size: 0.68rem;
-}
-
-.suggestion-price {
-  text-align: right;
-}
-
-.suggestion-price strong {
-  color: var(--ink-900);
-  font-size: 0.84rem;
-}
-
-.search-empty {
-  padding: 0.75rem;
-  color: var(--ink-500);
-  font-size: 0.8rem;
-}
-
 @media (max-width: 900px) {
   .quick-categories {
     grid-template-columns: repeat(3, 1fr);
@@ -751,7 +631,7 @@
   }
 
   .discovery-section::before {
-    background: linear-gradient(90deg, rgba(13, 26, 39, 0.98) 0%, rgba(13, 26, 39, 0.94) 72%, rgba(13, 26, 39, 0.84) 100%);
+    background: linear-gradient(90deg, rgba(15, 45, 74, 0.98) 0%, rgba(15, 45, 74, 0.94) 72%, rgba(15, 45, 74, 0.84) 100%);
   }
 
   .discovery-background {
@@ -764,28 +644,6 @@
 
   .discovery-copy h1 {
     font-size: clamp(2.05rem, 12vw, 3rem);
-  }
-
-  .home-search-control {
-    grid-template-columns: minmax(0, 1fr) 52px;
-    gap: 0.25rem;
-    padding: 0.3rem;
-  }
-
-  :host ::ng-deep .home-autocomplete .p-autocomplete-input {
-    height: 50px;
-    padding-inline: 0.8rem;
-    font-size: 0.85rem;
-  }
-
-  :host ::ng-deep .home-search-button.p-button {
-    min-width: 52px;
-    width: 52px;
-    padding: 0;
-  }
-
-  :host ::ng-deep .home-search-button .p-button-label {
-    display: none;
   }
 
   .quick-categories {
@@ -851,11 +709,10 @@
     width: 100%;
   }
 
-  .search-suggestion {
-    grid-template-columns: 40px minmax(0, 1fr) auto;
-  }
 
-  .suggestion-price {
-    display: none;
-  }
 }
+
+.home-product-pricing.with-offers { padding-bottom: 0; }
+.home-no-offers { color: var(--ink-500); font-size: 0.75rem; font-weight: 500; line-height: 1.4; }
+.compare-link { flex: 0 0 30px; width: 30px; height: 30px; justify-content: center; border-radius: 9px; background: var(--ink-50); }
+.compare-link i { font-size: 0.85rem; }

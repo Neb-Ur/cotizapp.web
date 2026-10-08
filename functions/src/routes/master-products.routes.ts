@@ -1,3 +1,5 @@
+import { invalidateStaticCatalog } from '../lib/product-sheet-cache.js';
+import { markPublicCatalogDirty } from '../lib/public-catalog-cache.js';
 import { Router, type Request, type Response } from 'express';
 import { db } from '../lib/firebase.js';
 import { requireAuth, requireRole } from '../lib/auth.js';
@@ -5,10 +7,20 @@ import { fail, ok } from '../lib/http.js';
 import { COLLECTIONS } from '../lib/collections.js';
 import { nowIso, normalizeText, numberValue } from '../lib/values.js';
 import { rows, row, createRow, patchRow, deleteRowsByIds } from '../repositories/firestore.repository.js';
+import { resolveProductBrand } from '../lib/brands.js';
 export const masterProductsRouter = Router();
 
 const validImageSources = ['ai_generated', 'manufacturer_authorized', 'store_authorized', 'licensed_stock', 'original', 'other'];
 const validContentSources = ['manufacturer_authorized', 'store_authorized', 'licensed', 'original', 'ai_assisted_original', 'public_domain', 'other'];
+
+function additionalFields(body: Record<string, unknown>): Record<string, unknown> {
+  const fields: Record<string, unknown> = {};
+  if (Array.isArray(body['caracteristicasDestacadas'])) fields['caracteristicasDestacadas'] = body['caracteristicasDestacadas'].map(value => normalizeText(value).slice(0, 500)).filter(Boolean).slice(0, 30);
+  for (const key of ['pesoLogisticoKg', 'volumenLogisticoM3', 'unidadesPorPallet']) {
+    if (body[key] !== undefined) fields[key] = body[key] === null ? null : Math.max(0, numberValue(body[key]));
+  }
+  return fields;
+}
 
 function imageRightsPayload(body: Record<string, any>, reviewerId: string | undefined): Record<string, unknown> | null {
   const imageUrl = normalizeText(body?.['imagenPrincipalUrl']);
@@ -48,6 +60,11 @@ function contentRightsPayload(body: Record<string, any>, reviewerId: string | un
     derechosContenidoRevisadosPor: reviewerId || null
   };
 }
+
+masterProductsRouter.get('/marcas', async (_req, res) => {
+  const brands = (await rows(COLLECTIONS.brands)).map(item => ({ id: item.id, nombre: item.nombre })).sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+  return ok(res, brands);
+});
 
 masterProductsRouter.get('/productos-maestro', async (req, res) => {
   const q = normalizeText(req.query['query']).toLowerCase();
@@ -114,7 +131,7 @@ masterProductsRouter.post('/productos-maestro', requireAuth, requireRole('admin'
     tipoProducto: normalizeText(req.body?.tipoProducto),
     unidadVenta: normalizeText(req.body?.unidadVenta),
     presentacion: normalizeText(req.body?.presentacion),
-    marca: normalizeText(req.body?.marca) || 'Sin marca',
+    ...await resolveProductBrand(req.body?.marca),
     codigoBarras: normalizeText(req.body?.codigoBarras),
     descripcionCorta: normalizeText(req.body?.descripcionCorta),
     descripcionLarga: normalizeText(req.body?.descripcionLarga),
@@ -122,9 +139,11 @@ masterProductsRouter.post('/productos-maestro', requireAuth, requireRole('admin'
     galeriaJson: Array.isArray(req.body?.galeriaJson) ? req.body.galeriaJson : [],
     ...imageRights,
     ...contentRights,
+    ...additionalFields(req.body || {}),
     estado: req.body?.estado === 'inactivo' ? 'inactivo' : 'activo',
     creadoEn: nowIso()
   });
+  await Promise.all([invalidateStaticCatalog(), markPublicCatalogDirty()]);
   return ok(res, created, 201);
 });
 
@@ -141,9 +160,11 @@ masterProductsRouter.patch('/productos-maestro/:id', requireAuth, requireRole('a
     'categoriaId', 'subcategoriaId', 'familiaId', 'nombre', 'marca', 'codigoBarras',
     'descripcionCorta', 'descripcionLarga', 'imagenPrincipalUrl', 'galeriaJson', 'estado', 'tipoProducto', 'unidadVenta', 'presentacion'
   ];
-  const patch: Record<string, unknown> = { ...imageRights, ...contentRights, actualizadoEn: nowIso() };
+  const patch: Record<string, unknown> = { ...imageRights, ...contentRights, ...additionalFields(req.body || {}), actualizadoEn: nowIso() };
   allowed.forEach((key) => { if (req.body?.[key] !== undefined) patch[key] = req.body[key]; });
+  Object.assign(patch, await resolveProductBrand(req.body?.marca !== undefined ? req.body.marca : current.marca));
   const updated = await patchRow(COLLECTIONS.masterProducts, req.params.id, patch);
+  if (updated) await Promise.all([invalidateStaticCatalog(), markPublicCatalogDirty()]);
   return updated ? ok(res, updated) : fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro.', 404);
 });
 
@@ -156,6 +177,7 @@ masterProductsRouter.put('/productos-maestro/:id/atributos', requireAuth, requir
   for (const item of Array.isArray(req.body) ? req.body : []) {
     result.push(await createRow(COLLECTIONS.masterAttributes, { productoMaestroId: req.params.id, ...item }));
   }
+  await invalidateStaticCatalog();
   return ok(res, result);
 });
 
@@ -163,6 +185,7 @@ masterProductsRouter.delete('/productos-maestro/:id', requireAuth, requireRole('
   await db.collection(COLLECTIONS.masterProducts).doc(req.params.id).delete();
   const attributes = (await rows(COLLECTIONS.masterAttributes)).filter((item) => item.productoMaestroId === req.params.id);
   await deleteRowsByIds(COLLECTIONS.masterAttributes, attributes.map((item) => item.id));
+  await Promise.all([invalidateStaticCatalog(), markPublicCatalogDirty()]);
   return ok(res, { deleted: true });
 });
 

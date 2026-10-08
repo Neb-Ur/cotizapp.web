@@ -212,7 +212,7 @@
 }
 
 .sidebar nav button.active {
-  border-color: rgba(217, 109, 44, 0.16);
+  border-color: rgba(255, 122, 0, 0.16);
   color: var(--ink-900);
   background: var(--sand-100);
   box-shadow: inset 3px 0 0 var(--orange);
@@ -321,7 +321,7 @@
 
 .menu-toggle {
   border: 1px solid var(--border-soft);
-  background: #f8fbff;
+  background: var(--ink-50);
   color: var(--navy-800);
   border-radius: var(--r-md);
   padding: 0.5rem 0.65rem;
@@ -394,7 +394,7 @@ button:not(.btn) {
   border: 0;
   border-radius: var(--r-sm);
   background: var(--orange);
-  color: #fff;
+  color: var(--ink-900);
   padding: 0.5rem 0.62rem;
   font-weight: 700;
   cursor: pointer;
@@ -439,7 +439,7 @@ button.ghost:hover {
   display: inline-grid;
   place-items: center;
   border: 1px solid #d9e2ef;
-  border-radius: 9px;
+  border-radius: var(--r-sm);
   padding: 0;
   background: #fff;
   color: var(--navy-800);
@@ -482,7 +482,7 @@ button.ghost:hover {
 
 .upload-mode-toggle button {
   border: 1px solid var(--border-soft);
-  background: #f8fbff;
+  background: var(--ink-50);
   color: var(--navy-800);
   border-radius: var(--r-md);
   padding: 0.5rem 0.7rem;
@@ -496,7 +496,7 @@ button.ghost:hover {
 .upload-search-card {
   border-radius: var(--r-md);
   border: 1px solid var(--border-soft);
-  background: #f8fbff;
+  background: var(--ink-50);
   padding: 0.8rem;
   display: grid;
   gap: 0.55rem;
@@ -806,7 +806,7 @@ textarea {
   border: 1px solid var(--border-soft);
   border-radius: var(--r-md);
   padding: 0.7rem;
-  background: #f8fbff;
+  background: var(--ink-50);
 }
 
 .kpi-card h4 {
@@ -890,7 +890,7 @@ textarea {
   border-radius: var(--r-md);
   padding: 0.65rem;
   color: var(--slate-700);
-  background: #f8fbff;
+  background: var(--ink-50);
 }
 
 .import-modal-content {
@@ -975,7 +975,7 @@ textarea {
   border: 1px solid var(--border-soft);
   border-radius: var(--r-md);
   padding: 0.5rem;
-  background: #f8fbff;
+  background: var(--ink-50);
 }
 
 .import-summary-grid h4 {

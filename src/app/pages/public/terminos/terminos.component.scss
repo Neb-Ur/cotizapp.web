@@ -11,6 +11,7 @@
 
 .hero,
 .content-card {
+  min-width: 0;
   border-radius: var(--r-md);
   border: 1px solid var(--border-soft);
   background: rgba(255, 255, 255, 0.94);
@@ -18,7 +19,7 @@
 }
 
 .hero {
-  background: linear-gradient(132deg, rgba(33, 49, 76, 0.95), rgba(58, 82, 121, 0.9));
+  background: linear-gradient(135deg, var(--ink-900), var(--ink-800));
   color: #fff;
 }
 

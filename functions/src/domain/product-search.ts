@@ -1,3 +1,4 @@
+import { brandIdentity } from './brand-identity.js';
 import type { PublicCatalogSnapshot } from '../lib/public-catalog-cache.js';
 import type { ProjectProximity } from '../models/domain.models.js';
 import { coordinateValue, geographicDistanceKm } from '../lib/values.js';
@@ -7,6 +8,8 @@ export type ProductSearchOptions = {
   categoryId?: string;
   subcategoryId?: string;
   familyId?: string;
+  brand?: string;
+  brandId?: string;
   proximity?: ProjectProximity;
   sort: 'relevance' | 'price-asc' | 'price-desc' | 'stores';
   page: number;
@@ -16,7 +19,12 @@ export type ProductSearchOptions = {
 // Search the shared master catalog, then attach the public offers available in
 // the selected data mode/radius. Products without offers remain discoverable.
 export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: ProductSearchOptions) {
-  const query = (options.query || '').trim().toLowerCase();
+  const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/(\d)([a-z])/g, '$1 $2').replace(/[^a-z0-9]+/g, ' ').trim();
+  const query = normalize(options.query || '');
+  const tokens = query.split(' ').filter(Boolean).map(word => word.length > 4 ? word.replace(/s$/, '') : word);
+  const categories = new Map(snapshot.taxonomy.categories.map(item => [item.id, item.nombre]));
+  const subcategories = new Map(snapshot.taxonomy.subcategories.map(item => [item.id, item.nombre]));
+  const families = new Map(snapshot.taxonomy.families.map(item => [item.id, item.nombre]));
   const grouped = new Map<string, {
     productoMaestroId: string;
     productName: string;
@@ -33,7 +41,10 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
   for (const product of snapshot.products) {
     if (product.estado === 'inactivo') continue;
     const name = String(product.nombre || '');
-    if (query && !name.toLowerCase().includes(query) && !String(product.marca || '').toLowerCase().includes(query)) continue;
+    const text = normalize([name, product.marca, product.tipoProducto, categories.get(product.categoriaId), subcategories.get(product.subcategoriaId), families.get(product.familiaId)].filter(Boolean).join(' '));
+    if (tokens.some(token => !text.includes(token))) continue;
+    if (options.brandId && (product.marcaId || brandIdentity(product.marca)?.id) !== options.brandId) continue;
+    if (!options.brandId && options.brand && normalize(String(product.marca || '')) !== normalize(options.brand)) continue;
     if (options.categoryId && product.categoriaId !== options.categoryId) continue;
     if (options.subcategoryId && product.subcategoriaId !== options.subcategoryId) continue;
     if (options.familyId && product.familiaId !== options.familyId) continue;

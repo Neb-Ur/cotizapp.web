@@ -1,4 +1,3 @@
-<p style="text-align:center">Cotización referencial: no constituye una compra, un pedido ni una reserva. Precios con IVA y stock informados por cada ferretería; confírmalos con el local antes de comprar.</p>
 <main class="project-detail-page">
   <header class="page-header">
     <button type="button" (click)="backToProjects()">{{ user ? 'Volver a mis cotizaciones' : 'Volver al buscador' }}</button>
@@ -13,11 +12,11 @@
   </header>
 
   <article class="detail-card">
-    <section class="editor-grid" [class.single]="isNewProject">
+    <section class="editor-grid" >
       <article class="editor-panel">
         <h2>Datos de la cotización</h2>
         <label>
-          Titulo
+          Nombre del proyecto
           <input [(ngModel)]="projectName" type="text" placeholder="Ej: Ampliacion quincho" />
         </label>
         <label>
@@ -61,8 +60,8 @@
         </p>
 
         <div class="actions">
-          <button type="button" (click)="saveProject()">
-            {{ !user ? 'Crear cuenta para guardar' : (isNewProject ? 'Guardar cotización' : 'Actualizar cotización') }}
+          <button type="button" (click)="saveProject()" [disabled]="isSaving">
+            <i *ngIf="isSaving" class="pi pi-spin pi-spinner" aria-hidden="true"></i>{{ isSaving ? 'Guardando…' : (!user ? 'Crear cuenta para guardar' : (isNewProject ? 'Guardar cotización' : 'Actualizar cotización')) }}
           </button>
           <button type="button" class="export" [disabled]="!hasQuotation" (click)="exportQuotation()">
             Exportar cotización PDF
@@ -112,7 +111,7 @@
           <h2>Detalle de cotización</h2>
           <p>Administra productos, cantidades y costo unitario.</p>
         </div>
-        <button type="button" class="secondary" (click)="goToSearchForProduct()">Agregar item</button>
+        <button type="button" class="secondary" (click)="goToSearchForProduct()">Agregar productos</button>
       </div>
       <div class="table-wrap" *ngIf="hasItemsInTable; else emptyQuotation">
         <table>
@@ -229,4 +228,5 @@
       <p class="saved" *ngIf="singleStoreNotice">{{ singleStoreNotice }}</p>
     </section>
   </article>
+  <p class="quotation-disclaimer">Cotización referencial: no constituye una compra, un pedido ni una reserva. Precios con IVA y stock informados por cada ferretería; confírmalos con el local antes de comprar.</p>
 </main>

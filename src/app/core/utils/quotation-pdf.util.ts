@@ -21,7 +21,7 @@ export function buildQuotationPdfFile(input: QuotationPdfInput): File {
 export async function shareQuotationPdf(input: QuotationPdfInput): Promise<'shared' | 'downloaded' | 'cancelled'> {
   const file = buildQuotationPdfFile(input);
   const shareData: ShareData = {
-    title: `Cotizacion - ${input.projectName || 'CotizApp'}`,
+    title: `Cotizacion - ${input.projectName || 'Findi'}`,
     text: `Cotizacion de materiales ${input.projectName ? `- ${input.projectName}` : ''}`,
     files: [file]
   };
@@ -95,13 +95,13 @@ function buildQuotationPdfLines(input: QuotationPdfInput, exportedAt: Date): str
   lines.push('Cotizacion referencial: stock y precios sujetos a confirmacion. Despacho no incluido.');
   lines.push('Esta cotizacion no constituye una compra, un pedido ni una reserva de productos.');
   lines.push('La compra se realiza directamente con cada ferreteria.');
-  lines.push('Documento generado por CotizApp.');
+  lines.push('Documento generado por Findi.');
 
   return lines.flatMap((line) => wrapLine(line, 95));
 }
 
 function buildPdfBlob(lines: string[]): Blob {
-  const pageChunks = chunkLines(lines, 50);
+  const pageChunks = chunkLines(lines, 44);
   const objects: string[] = [];
   const pageObjectIds: number[] = [];
 
@@ -113,9 +113,9 @@ function buildPdfBlob(lines: string[]): Blob {
     const contentObjectId = pageObjectId + 1;
     pageObjectIds.push(pageObjectId);
 
-    const pageContent = buildPdfPageContent(pageLines);
+    const pageContent = buildPdfPageContent(pageLines, index + 1, pageChunks.length);
     objects.push(
-      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 ${3 + (pageChunks.length * 2)} 0 R >> >> /Contents ${contentObjectId} 0 R >>`
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 ${3 + (pageChunks.length * 2)} 0 R /F2 ${4 + (pageChunks.length * 2)} 0 R >> >> /Contents ${contentObjectId} 0 R >>`
     );
     objects.push(`<< /Length ${pageContent.length} >>\nstream\n${pageContent}\nendstream`);
   });
@@ -123,9 +123,10 @@ function buildPdfBlob(lines: string[]): Blob {
   const fontObjectId = 3 + (pageChunks.length * 2);
   objects[1] = `<< /Type /Pages /Kids [${pageObjectIds.map((id) => `${id} 0 R`).join(' ')}] /Count ${pageObjectIds.length} >>`;
   objects.push('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
+  objects.push('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>');
 
   let documentContent = '%PDF-1.4\n';
-  const objectOffsets: number[] = new Array(fontObjectId + 1).fill(0);
+  const objectOffsets: number[] = new Array(fontObjectId + 2).fill(0);
 
   objects.forEach((objectValue, index) => {
     const objectId = index + 1;
@@ -145,17 +146,46 @@ function buildPdfBlob(lines: string[]): Blob {
   return new Blob([documentContent], { type: 'application/pdf' });
 }
 
-function buildPdfPageContent(lines: string[]): string {
-  const escapedLines = lines.map(escapePdfText);
-  const commands: string[] = ['BT', '/F1 11 Tf', '14 TL', '40 800 Td'];
+function buildPdfPageContent(lines: string[], pageNumber: number, pageCount: number): string {
+  const navy = '0.059 0.176 0.290';
+  const orange = '1 0.478 0';
+  const gray = '0.420 0.447 0.502';
+  const commands: string[] = [
+    'q', `${navy} rg`, roundedPdfRect(32, 754, 531, 64, 16), 'f',
+    // Vector Findi mark: F and magnifying glass, with no external images or fonts.
+    '1 1 1 RG 8 w 1 J', '48 767 m 48 786 l 48 795 53 799 61 799 c 75 799 l S',
+    `${orange} RG 4 w`, '66 789 m 71 789 75 785 75 780 c 75 775 71 771 66 771 c 61 771 57 775 57 780 c 57 785 61 789 66 789 c S',
+    '73 773 m 80 766 l S',
+    'BT /F2 26 Tf 1 1 1 rg 94 783 Td (findi) Tj ET',
+    'BT /F1 9 Tf 1 1 1 rg 95 767 Td (Encontrar. Comparar. Construir mejor.) Tj ET',
+    'Q'
+  ];
 
-  escapedLines.forEach((line, index) => {
-    if (index > 0) commands.push('T*');
-    commands.push(`(${line}) Tj`);
+  lines.forEach((line, index) => {
+    const y = 727 - index * 14;
+    const heading = ['COTIZACION DE MATERIALES', 'DETALLE DE ARTICULOS', 'RESUMEN DE COTIZACION', 'TOTALES POR FERRETERIA'].includes(line);
+    const total = line.startsWith('Total final (IVA incluido):');
+    if (total) commands.push('q 1 0.950 0.890 rg', roundedPdfRect(39, y - 5, 517, 20, 5), 'f Q');
+    commands.push(`BT /${heading || total ? 'F2' : 'F1'} ${heading ? 11 : 10} Tf ${heading || total ? navy : gray} rg 44 ${y} Td (${escapePdfText(line)}) Tj ET`);
   });
 
-  commands.push('ET');
+  commands.push(
+    'q 0.86 0.89 0.92 RG 0.5 w 40 60 m 555 60 l S Q',
+    `BT /F1 8 Tf ${gray} rg 44 42 Td (Findi - Cotizacion referencial. Compra directamente en la ferreteria.) Tj ET`,
+    `BT /F1 8 Tf ${gray} rg 485 42 Td (Pagina ${pageNumber} / ${pageCount}) Tj ET`
+  );
   return commands.join('\n');
+}
+
+function roundedPdfRect(x: number, y: number, width: number, height: number, radius: number): string {
+  const k = radius * 0.55228475;
+  const right = x + width;
+  const top = y + height;
+  return `${x + radius} ${y} m ${right - radius} ${y} l ` +
+    `${right - radius + k} ${y} ${right} ${y + radius - k} ${right} ${y + radius} c ` +
+    `${right} ${top - radius} l ${right} ${top - radius + k} ${right - radius + k} ${top} ${right - radius} ${top} c ` +
+    `${x + radius} ${top} l ${x + radius - k} ${top} ${x} ${top - radius + k} ${x} ${top - radius} c ` +
+    `${x} ${y + radius} l ${x} ${y + radius - k} ${x + radius - k} ${y} ${x + radius} ${y} c h`;
 }
 
 function escapePdfText(value: string): string {
@@ -204,10 +234,27 @@ function wrapLine(value: string, maxLength: number): string[] {
 
 function chunkLines(lines: string[], chunkSize: number): string[][] {
   const chunks: string[][] = [];
-  for (let index = 0; index < lines.length; index += chunkSize) {
-    chunks.push(lines.slice(index, index + chunkSize));
+  let page: string[] = [];
+  let block: string[] = [];
+  const appendBlock = () => {
+    if (!block.length) return;
+    if (page.length && page.length + block.length > chunkSize) {
+      chunks.push(page);
+      page = [];
+    }
+    while (block.length > chunkSize) {
+      chunks.push(block.splice(0, chunkSize));
+    }
+    page.push(...block);
+    block = [];
+  };
+  for (const line of lines) {
+    block.push(line);
+    if (!line) appendBlock();
   }
-  return chunks.length > 0 ? chunks : [[]];
+  appendBlock();
+  if (page.length) chunks.push(page);
+  return chunks.length ? chunks : [[]];
 }
 
 function formatCurrency(value: number): string {

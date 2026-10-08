@@ -4,3 +4,8 @@
 <app-site-footer></app-site-footer>
 <app-help-widget></app-help-widget>
 <app-cookie-consent></app-cookie-consent>
+
+@if (api.pending() > 0) {
+  <div class="write-progress" role="status" aria-live="polite"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Procesando solicitud…</div>
+  <div class="write-shield" aria-hidden="true"></div>
+}

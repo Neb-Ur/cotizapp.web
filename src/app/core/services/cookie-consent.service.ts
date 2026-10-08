@@ -16,6 +16,9 @@ export interface CookieConsentPreferences {
 @Injectable({ providedIn: 'root' })
 export class CookieConsentService {
   private readonly browser: boolean;
+  private initialized = false;
+  private readonly readyState = signal(false);
+  readonly ready = this.readyState.asReadonly();
   private readonly consentState = signal<CookieConsentPreferences | null>(null);
 
   readonly consent = computed(() => this.consentState());
@@ -28,7 +31,15 @@ export class CookieConsentService {
     @Inject(DOCUMENT) private readonly document: Document
   ) {
     this.browser = isPlatformBrowser(platformId);
-    this.consentState.set(this.readStoredConsent());
+  }
+
+  // Restore browser-only state after the initial render, keeping SSR and the
+  // first client render identical. A click made first must win over old storage.
+  initializeBrowserState(): void {
+    if (!this.browser || this.initialized) return;
+    this.initialized = true;
+    if (!this.hasDecision()) this.consentState.set(this.readStoredConsent());
+    this.readyState.set(true);
     this.syncBannerClass();
   }
 
@@ -60,14 +71,19 @@ export class CookieConsentService {
       updatedAt: new Date().toISOString()
     };
 
-    if (this.browser) {
-      window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, JSON.stringify(consent));
-      if (!consent.preferences) window.sessionStorage.removeItem('cotizapp-nearby-search');
-    }
-
+    // Respond immediately; unavailable or full storage must never trap the UI.
     this.consentState.set(consent);
     this.settingsOpen.set(false);
     this.syncBannerClass();
+
+    if (this.browser) {
+      try { window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, JSON.stringify(consent)); }
+      catch { /* Keep the decision for this page when persistence is unavailable. */ }
+      if (!consent.preferences) {
+        try { window.sessionStorage.removeItem('cotizapp-nearby-search'); }
+        catch { /* Optional storage may be blocked independently. */ }
+      }
+    }
   }
 
   private readStoredConsent(): CookieConsentPreferences | null {
@@ -90,7 +106,7 @@ export class CookieConsentService {
       }
       return value as CookieConsentPreferences;
     } catch {
-      window.localStorage.removeItem(COOKIE_CONSENT_STORAGE_KEY);
+      this.removeStoredItem(COOKIE_CONSENT_STORAGE_KEY);
       return null;
     }
   }
@@ -118,14 +134,19 @@ export class CookieConsentService {
       window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, JSON.stringify(migrated));
       return migrated;
     } catch {
-      window.localStorage.removeItem(LEGACY_COOKIE_CONSENT_STORAGE_KEY);
+      this.removeStoredItem(LEGACY_COOKIE_CONSENT_STORAGE_KEY);
       return null;
     }
   }
 
+  private removeStoredItem(key: string): void {
+    try { window.localStorage.removeItem(key); }
+    catch { /* Storage access itself can throw a SecurityError. */ }
+  }
+
   private syncBannerClass(): void {
     if (!this.browser) return;
-    this.document.body.classList.toggle('cookie-banner-open', !this.hasDecision());
+    this.document.body.classList.toggle('cookie-banner-open', this.ready() && !this.hasDecision());
   }
 }
 

@@ -1,3 +1,4 @@
+import { WriteFeedbackService } from './core/services/write-feedback.service';
 import { Component, effect, inject } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
@@ -14,6 +15,7 @@ import { SiteFooterComponent } from './shared/components/site-footer/site-footer
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
+  protected readonly api = inject(WriteFeedbackService);
   private readonly seoService = inject(SeoService);
 
   constructor() {

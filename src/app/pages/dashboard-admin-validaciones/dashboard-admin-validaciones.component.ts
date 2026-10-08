@@ -1,6 +1,8 @@
+import { WriteFeedbackService } from '../../core/services/write-feedback.service';
+import { CATEGORY_ICONS, categoryIcon } from '../../core/utils/category-icon.util';
 import { PasswordFieldComponent } from '../../shared/components/password-field/password-field.component';
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -102,7 +104,7 @@ interface AdminUserModalDraft {
   storeLongitude: number | null;
 }
 
-const STRONG_PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{12,128}$/;
+const STRONG_PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{6,128}$/;
 
 interface AdminDefinitionDraft {
   id: string | null;
@@ -194,8 +196,8 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     },
     {
       id: 'contacto',
-      label: 'Solicitudes de acceso',
-      description: 'Gestiona solicitudes comerciales de ferreterias y mensajes de contacto.'
+      label: 'Mensajes de contacto',
+      description: 'Consulta y responde los mensajes enviados desde Contacto. El acceso de ferreterías se solicita por WhatsApp.'
     },
     {
       id: 'precios',
@@ -279,6 +281,9 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   protected selectedTaxCategoryId = '';
   protected selectedTaxSubcategoryId = '';
   protected selectedTaxFamilyId = '';
+  protected readonly categoryIcon = categoryIcon;
+  protected readonly categoryIcons = CATEGORY_ICONS;
+  protected categoryDraftIcon = 'box';
   protected categoryDraftName = '';
   protected categoryEditingId: string | null = null;
   protected subcategoryDraftName = '';
@@ -297,6 +302,14 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   protected onboardingLoading = false;
   protected onboardingError = '';
   protected onboardingNotice = '';
+  protected storeProductEditorOpen = false;
+  protected storeProductSearch = '';
+  protected storeProductResults: CatalogProduct[] = [];
+  protected storeProductSearching = false;
+  protected storeProductSaving = false;
+  protected storeProductDraft = {masterProductId: '', price: 0, stock: 0, sku: '', isPublished: true};
+  protected storeProductError = '';
+  private storeProductSearchRequest = 0;
   protected selectedStoreCatalogLabel = '';
   protected selectedStoreCatalog: CatalogProduct[] = [];
   protected selectedStore: SessionUser | null = null;
@@ -343,8 +356,16 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     private readonly privacyDataService: PrivacyDataService,
     private readonly governanceDataService: GovernanceDataService,
     private readonly intellectualPropertyService: IntellectualPropertyService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly changeDetector: ChangeDetectorRef
+,
+    private readonly writeFeedback: WriteFeedbackService = new WriteFeedbackService()
   ) {}
+
+  protected masterDetailLoading = false;
+  protected masterDetailSaving = false;
+  private detailRequest = 0;
+  protected brandOptions:Array<{id:string;name:string}>=[];
 
   ngOnInit(): void {
     this.syncViewportState();
@@ -401,23 +422,25 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   }
 
   protected async setPriceReportStatus(report: PriceReport, status: Exclude<PriceReportStatus, 'recibido'>): Promise<void> {
-    this.notice = '';
-    this.error = '';
-    const resolution = (this.priceResolutionDrafts[report.id] || '').trim();
-    const correctedPrice = this.correctedPriceDrafts[report.id];
-    if (resolution.length < 10 || (status === 'corregido' && (correctedPrice === null || correctedPrice === undefined || correctedPrice < 0))) {
-      this.error = 'Registra un fundamento y, si corriges la oferta, el precio verificado.';
-      return;
-    }
-    try {
-      const updated = await this.apiService.updatePriceReportForAdmin(report.id, status, resolution, correctedPrice ?? undefined);
-      this.priceReports = this.priceReports.map((item) => item.id === updated.id ? updated : item);
-      this.notice = status === 'corregido'
-        ? 'Precio corregido; el valor anterior y el nuevo quedaron registrados en el historial.'
-        : 'Reclamo de precio actualizado.';
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'No fue posible actualizar el reclamo.';
-    }
+    await this.writeFeedback.run('dashboard-admin-validaciones:setPriceReportStatus', async () => {
+      this.notice = '';
+      this.error = '';
+      const resolution = (this.priceResolutionDrafts[report.id] || '').trim();
+      const correctedPrice = this.correctedPriceDrafts[report.id];
+      if (resolution.length < 10 || (status === 'corregido' && (correctedPrice === null || correctedPrice === undefined || correctedPrice < 0))) {
+        this.error = 'Registra un fundamento y, si corriges la oferta, el precio verificado.';
+        return;
+      }
+      try {
+        const updated = await this.apiService.updatePriceReportForAdmin(report.id, status, resolution, correctedPrice ?? undefined);
+        this.priceReports = this.priceReports.map((item) => item.id === updated.id ? updated : item);
+        this.notice = status === 'corregido'
+          ? 'Precio corregido; el valor anterior y el nuevo quedaron registrados en el historial.'
+          : 'Reclamo de precio actualizado.';
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'No fue posible actualizar el reclamo.';
+      }
+    });
   }
 
   protected ipRightLabel(value: IpReport['rightsType']): string {
@@ -425,23 +448,25 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   }
 
   protected async setIpReportStatus(report: IpReport, status: IpReportStatus): Promise<void> {
-    this.notice = '';
-    this.error = '';
-    const resolution = (this.ipResolutionDrafts[report.id] || '').trim();
-    const publicMessage = (this.ipPublicMessageDrafts[report.id] || '').trim();
-    if (resolution.length < 10 || publicMessage.length < 10) {
-      this.error = 'Registra el fundamento interno y un mensaje para el denunciante antes de cambiar el estado.';
-      return;
-    }
-    try {
-      const updated = await this.intellectualPropertyService.updateForAdmin(report.id, status, resolution, publicMessage);
-      this.ipReports = this.ipReports.map((item) => item.id === updated.id ? updated : item);
-      this.notice = status === 'retiro_preventivo' || status === 'retiro_definitivo'
-        ? 'Contenido retirado y denuncia actualizada.'
-        : 'Denuncia de propiedad intelectual actualizada.';
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'No fue posible actualizar la denuncia.';
-    }
+    await this.writeFeedback.run('dashboard-admin-validaciones:setIpReportStatus', async () => {
+      this.notice = '';
+      this.error = '';
+      const resolution = (this.ipResolutionDrafts[report.id] || '').trim();
+      const publicMessage = (this.ipPublicMessageDrafts[report.id] || '').trim();
+      if (resolution.length < 10 || publicMessage.length < 10) {
+        this.error = 'Registra el fundamento interno y un mensaje para el denunciante antes de cambiar el estado.';
+        return;
+      }
+      try {
+        const updated = await this.intellectualPropertyService.updateForAdmin(report.id, status, resolution, publicMessage);
+        this.ipReports = this.ipReports.map((item) => item.id === updated.id ? updated : item);
+        this.notice = status === 'retiro_preventivo' || status === 'retiro_definitivo'
+          ? 'Contenido retirado y denuncia actualizada.'
+          : 'Denuncia de propiedad intelectual actualizada.';
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'No fue posible actualizar la denuncia.';
+      }
+    });
   }
 
   protected privacyRequestLabel(type: string): string {
@@ -457,32 +482,36 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   }
 
   protected async setPrivacyRequestStatus(request: PrivacyRequest, status: PrivacyRequestStatus): Promise<void> {
-    this.notice = '';
-    this.error = '';
-    const resolution = (this.privacyResolutionDrafts[request.id] || '').trim();
-    if ((status === 'completada' || status === 'rechazada') && resolution.length < 10) {
-      this.error = 'Registra una respuesta fundada antes de cerrar la solicitud.';
-      return;
-    }
-    try {
-      const updated = await this.privacyDataService.updateRequestForAdmin(request.id, status, resolution);
-      this.privacyRequests = this.privacyRequests.map((item) => item.id === updated.id ? updated : item);
-      this.notice = 'Solicitud de derechos actualizada.';
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'No se pudo actualizar la solicitud.';
-    }
+    await this.writeFeedback.run('dashboard-admin-validaciones:setPrivacyRequestStatus', async () => {
+      this.notice = '';
+      this.error = '';
+      const resolution = (this.privacyResolutionDrafts[request.id] || '').trim();
+      if ((status === 'completada' || status === 'rechazada') && resolution.length < 10) {
+        this.error = 'Registra una respuesta fundada antes de cerrar la solicitud.';
+        return;
+      }
+      try {
+        const updated = await this.privacyDataService.updateRequestForAdmin(request.id, status, resolution);
+        this.privacyRequests = this.privacyRequests.map((item) => item.id === updated.id ? updated : item);
+        this.notice = 'Solicitud de derechos actualizada.';
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'No se pudo actualizar la solicitud.';
+      }
+    });
   }
 
   protected async setContactRequestStatus(request: ContactRequest, status: ContactRequestStatus): Promise<void> {
-    this.notice = '';
-    this.error = '';
-    try {
-      const updated = await this.apiService.updateContactRequestStatus(request.id, status);
-      this.contactRequests = this.contactRequests.map((item) => item.id === updated.id ? updated : item);
-      this.notice = 'Solicitud actualizada correctamente.';
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'No se pudo actualizar la solicitud.';
-    }
+    await this.writeFeedback.run('dashboard-admin-validaciones:setContactRequestStatus', async () => {
+      this.notice = '';
+      this.error = '';
+      try {
+        const updated = await this.apiService.updateContactRequestStatus(request.id, status);
+        this.contactRequests = this.contactRequests.map((item) => item.id === updated.id ? updated : item);
+        this.notice = 'Solicitud actualizada correctamente.';
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'No se pudo actualizar la solicitud.';
+      }
+    });
   }
 
   protected governanceEvidenceLabel(type: GovernanceEvidenceType): string {
@@ -498,56 +527,62 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   }
 
   protected async recordSecurityIncident(): Promise<void> {
-    this.notice = '';
-    this.error = '';
-    try {
-      await this.governanceDataService.createIncident({
-        title: this.incidentDraft.title,
-        description: this.incidentDraft.description,
-        severity: this.incidentDraft.severity,
-        detectedAt: this.incidentDraft.detectedAt,
-        systems: this.commaSeparatedValues(this.incidentDraft.systemsText),
-        dataCategories: this.commaSeparatedValues(this.incidentDraft.dataCategoriesText),
-        affectedPeopleEstimate: this.incidentDraft.affectedPeopleEstimate,
-        containmentActions: this.incidentDraft.containmentActions
-      });
-      this.incidentDraft = {
-        title: '', description: '', severity: 'media', detectedAt: '', systemsText: '',
-        dataCategoriesText: '', affectedPeopleEstimate: 0, containmentActions: ''
-      };
-      await this.loadGovernanceDashboard();
-      this.notice = 'Incidente registrado. Evalúa de inmediato si corresponde notificar a la Agencia y a los titulares.';
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'No fue posible registrar el incidente.';
-    }
+    await this.writeFeedback.run('dashboard-admin-validaciones:recordSecurityIncident', async () => {
+      this.notice = '';
+      this.error = '';
+      try {
+        await this.governanceDataService.createIncident({
+          title: this.incidentDraft.title,
+          description: this.incidentDraft.description,
+          severity: this.incidentDraft.severity,
+          detectedAt: this.incidentDraft.detectedAt,
+          systems: this.commaSeparatedValues(this.incidentDraft.systemsText),
+          dataCategories: this.commaSeparatedValues(this.incidentDraft.dataCategoriesText),
+          affectedPeopleEstimate: this.incidentDraft.affectedPeopleEstimate,
+          containmentActions: this.incidentDraft.containmentActions
+        });
+        this.incidentDraft = {
+          title: '', description: '', severity: 'media', detectedAt: '', systemsText: '',
+          dataCategoriesText: '', affectedPeopleEstimate: 0, containmentActions: ''
+        };
+        await this.loadGovernanceDashboard();
+        this.notice = 'Incidente registrado. Evalúa de inmediato si corresponde notificar a la Agencia y a los titulares.';
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'No fue posible registrar el incidente.';
+      }
+    });
   }
 
   protected async setIncidentStatus(incident: SecurityIncident, status: SecurityIncidentStatus): Promise<void> {
-    this.notice = '';
-    this.error = '';
-    try {
-      await this.governanceDataService.updateIncident(incident.id, status, incident.containmentActions || '');
-      await this.loadGovernanceDashboard();
-      this.notice = 'Estado del incidente actualizado y trazado.';
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'No fue posible actualizar el incidente.';
-    }
+    await this.writeFeedback.run('dashboard-admin-validaciones:setIncidentStatus', async () => {
+      this.notice = '';
+      this.error = '';
+      try {
+        await this.governanceDataService.updateIncident(incident.id, status, incident.containmentActions || '');
+        await this.loadGovernanceDashboard();
+        this.notice = 'Estado del incidente actualizado y trazado.';
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'No fue posible actualizar el incidente.';
+      }
+    });
   }
 
   protected async recordGovernanceEvidence(): Promise<void> {
-    this.notice = '';
-    this.error = '';
-    try {
-      await this.governanceDataService.createEvidence({ ...this.evidenceDraft });
-      this.evidenceDraft = {
-        type: 'revision_controles', outcome: 'conforme', title: '', owner: '',
-        performedAt: '', nextReviewAt: '', notes: '', evidenceUrl: ''
-      };
-      await this.loadGovernanceDashboard();
-      this.notice = 'Evidencia de cumplimiento registrada.';
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'No fue posible registrar la evidencia.';
-    }
+    await this.writeFeedback.run('dashboard-admin-validaciones:recordGovernanceEvidence', async () => {
+      this.notice = '';
+      this.error = '';
+      try {
+        await this.governanceDataService.createEvidence({ ...this.evidenceDraft });
+        this.evidenceDraft = {
+          type: 'revision_controles', outcome: 'conforme', title: '', owner: '',
+          performedAt: '', nextReviewAt: '', notes: '', evidenceUrl: ''
+        };
+        await this.loadGovernanceDashboard();
+        this.notice = 'Evidencia de cumplimiento registrada.';
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'No fue posible registrar la evidencia.';
+      }
+    });
   }
 
   protected get onboardingFerreterias(): SessionUser[] {
@@ -717,6 +752,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   protected editCategory(category: TaxonomyOption): void {
     this.categoryEditingId = category.id;
     this.categoryDraftName = category.name;
+    this.categoryDraftIcon = categoryIcon(category).replace('pi pi-', '');
   }
 
   protected editSubcategory(subcategory: TaxonomyOption): void {
@@ -762,167 +798,205 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   }
 
   protected async saveCategory(): Promise<void> {
-    if (!this.categoryDraftName.trim()) {
-      this.error = 'Ingresa un nombre de categoria.';
-      return;
-    }
+    await this.writeFeedback.run('dashboard-admin-validaciones:saveCategory', async () => {
+      if (!this.categoryDraftName.trim()) {
+        this.error = 'Ingresa un nombre de categoria.';
+        return;
+      }
 
-    try {
-      const category = this.categoryEditingId
-        ? await this.apiService.updateCategory(this.categoryEditingId, this.categoryDraftName)
-        : await this.apiService.createCategory(this.categoryDraftName);
-      this.selectedTaxCategoryId = category.id;
-      this.notice = this.categoryEditingId ? 'Categoria actualizada.' : 'Categoria creada.';
-      this.categoryDraftName = '';
-      this.categoryEditingId = null;
-      this.selectTaxCategory(this.selectedTaxCategoryId);
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'No fue posible guardar la categoria.';
-    }
+      try {
+        const category = this.categoryEditingId
+          ? await this.apiService.updateCategory(this.categoryEditingId, this.categoryDraftName, this.categoryDraftIcon)
+          : await this.apiService.createCategory(this.categoryDraftName, this.categoryDraftIcon);
+        this.selectedTaxCategoryId = category.id;
+        this.notice = this.categoryEditingId ? 'Categoria actualizada.' : 'Categoria creada.';
+        this.categoryDraftName = '';
+        this.categoryEditingId = null;
+        this.selectTaxCategory(this.selectedTaxCategoryId);
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'No fue posible guardar la categoria.';
+      }
+    });
   }
 
   protected async saveSubcategory(): Promise<void> {
-    if (!this.selectedTaxCategoryId || !this.subcategoryDraftName.trim()) {
-      this.error = 'Selecciona una categoria e ingresa un nombre para la subcategoria.';
-      return;
-    }
+    await this.writeFeedback.run('dashboard-admin-validaciones:saveSubcategory', async () => {
+      if (!this.selectedTaxCategoryId || !this.subcategoryDraftName.trim()) {
+        this.error = 'Selecciona una categoria e ingresa un nombre para la subcategoria.';
+        return;
+      }
 
-    try {
-      const subcategory = this.subcategoryEditingId
-        ? await this.apiService.updateSubcategory(this.subcategoryEditingId, this.selectedTaxCategoryId, this.subcategoryDraftName)
-        : await this.apiService.createSubcategory(this.selectedTaxCategoryId, this.subcategoryDraftName);
-      this.selectedTaxSubcategoryId = subcategory.id;
-      this.notice = this.subcategoryEditingId ? 'Subcategoria actualizada.' : 'Subcategoria creada.';
-      this.subcategoryDraftName = '';
-      this.subcategoryEditingId = null;
-      this.selectTaxSubcategory(this.selectedTaxSubcategoryId);
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'No fue posible guardar la subcategoria.';
-    }
+      try {
+        const subcategory = this.subcategoryEditingId
+          ? await this.apiService.updateSubcategory(this.subcategoryEditingId, this.selectedTaxCategoryId, this.subcategoryDraftName)
+          : await this.apiService.createSubcategory(this.selectedTaxCategoryId, this.subcategoryDraftName);
+        this.selectedTaxSubcategoryId = subcategory.id;
+        this.notice = this.subcategoryEditingId ? 'Subcategoria actualizada.' : 'Subcategoria creada.';
+        this.subcategoryDraftName = '';
+        this.subcategoryEditingId = null;
+        this.selectTaxSubcategory(this.selectedTaxSubcategoryId);
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'No fue posible guardar la subcategoria.';
+      }
+    });
   }
 
   protected async saveFamily(): Promise<void> {
-    if (!this.selectedTaxSubcategoryId || !this.familyDraftName.trim()) {
-      this.error = 'Selecciona una subcategoria e ingresa un nombre para la familia.';
-      return;
-    }
+    await this.writeFeedback.run('dashboard-admin-validaciones:saveFamily', async () => {
+      if (!this.selectedTaxSubcategoryId || !this.familyDraftName.trim()) {
+        this.error = 'Selecciona una subcategoria e ingresa un nombre para la familia.';
+        return;
+      }
 
-    try {
-      const family = this.familyEditingId
-        ? await this.apiService.updateFamily(this.familyEditingId, this.selectedTaxSubcategoryId, this.familyDraftName)
-        : await this.apiService.createFamily(this.selectedTaxSubcategoryId, this.familyDraftName);
-      this.selectedTaxFamilyId = family.id;
-      this.notice = this.familyEditingId ? 'Familia actualizada.' : 'Familia creada.';
-      this.familyDraftName = '';
-      this.familyEditingId = null;
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'No fue posible guardar la familia.';
-    }
+      try {
+        const family = this.familyEditingId
+          ? await this.apiService.updateFamily(this.familyEditingId, this.selectedTaxSubcategoryId, this.familyDraftName)
+          : await this.apiService.createFamily(this.selectedTaxSubcategoryId, this.familyDraftName);
+        this.selectedTaxFamilyId = family.id;
+        this.notice = this.familyEditingId ? 'Familia actualizada.' : 'Familia creada.';
+        this.familyDraftName = '';
+        this.familyEditingId = null;
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'No fue posible guardar la familia.';
+      }
+    });
   }
 
   protected async saveDefinition(): Promise<void> {
-    if (!this.selectedTaxFamilyId) {
-      this.error = 'Selecciona una familia para administrar atributos.';
-      return;
-    }
-    if (!this.definitionDraft.codigo.trim() || !this.definitionDraft.etiqueta.trim()) {
-      this.error = 'Codigo y etiqueta son obligatorios.';
-      return;
-    }
-
-    const payload = {
-      codigo: this.definitionDraft.codigo.trim(),
-      etiqueta: this.definitionDraft.etiqueta.trim(),
-      tipoDato: this.definitionDraft.tipoDato,
-      esFiltrable: this.definitionDraft.esFiltrable,
-      esObligatorio: this.definitionDraft.esObligatorio,
-      opcionesJson: this.parseMultiline(this.definitionDraft.opcionesTexto),
-      orden: this.definitionDraft.orden
-    };
-
-    try {
-      if (this.definitionDraft.id) {
-        await this.apiService.updateFamilyDefinition(this.selectedTaxFamilyId, this.definitionDraft.id, payload);
-        this.notice = 'Definicion actualizada.';
-      } else {
-        await this.apiService.createFamilyDefinition(this.selectedTaxFamilyId, payload);
-        this.notice = 'Definicion creada.';
+    await this.writeFeedback.run('dashboard-admin-validaciones:saveDefinition', async () => {
+      if (!this.selectedTaxFamilyId) {
+        this.error = 'Selecciona una familia para administrar atributos.';
+        return;
       }
-      this.resetDefinitionDraft();
-      this.syncMasterAttributeDrafts();
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'No fue posible guardar la definicion.';
-    }
+      if (!this.definitionDraft.codigo.trim() || !this.definitionDraft.etiqueta.trim()) {
+        this.error = 'Codigo y etiqueta son obligatorios.';
+        return;
+      }
+
+      const payload = {
+        codigo: this.definitionDraft.codigo.trim(),
+        etiqueta: this.definitionDraft.etiqueta.trim(),
+        tipoDato: this.definitionDraft.tipoDato,
+        esFiltrable: this.definitionDraft.esFiltrable,
+        esObligatorio: this.definitionDraft.esObligatorio,
+        opcionesJson: this.parseMultiline(this.definitionDraft.opcionesTexto),
+        orden: this.definitionDraft.orden
+      };
+
+      try {
+        if (this.definitionDraft.id) {
+          await this.apiService.updateFamilyDefinition(this.selectedTaxFamilyId, this.definitionDraft.id, payload);
+          this.notice = 'Definicion actualizada.';
+        } else {
+          await this.apiService.createFamilyDefinition(this.selectedTaxFamilyId, payload);
+          this.notice = 'Definicion creada.';
+        }
+        this.resetDefinitionDraft();
+        this.syncMasterAttributeDrafts();
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'No fue posible guardar la definicion.';
+      }
+    });
   }
 
   protected async deleteCategory(category: TaxonomyOption): Promise<void> {
-    try {
-      await this.apiService.deleteCategory(category.id);
-      if (this.selectedTaxCategoryId === category.id) {
-        this.selectedTaxCategoryId = '';
-        this.selectedTaxSubcategoryId = '';
-        this.selectedTaxFamilyId = '';
+    await this.writeFeedback.run('dashboard-admin-validaciones:deleteCategory', async () => {
+      try {
+        await this.apiService.deleteCategory(category.id);
+        if (this.selectedTaxCategoryId === category.id) {
+          this.selectedTaxCategoryId = '';
+          this.selectedTaxSubcategoryId = '';
+          this.selectedTaxFamilyId = '';
+        }
+        this.notice = 'Categoria eliminada.';
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'No fue posible eliminar la categoria.';
       }
-      this.notice = 'Categoria eliminada.';
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'No fue posible eliminar la categoria.';
-    }
+    });
   }
 
   protected async deleteSubcategory(subcategory: TaxonomyOption): Promise<void> {
-    try {
-      await this.apiService.deleteSubcategory(subcategory.id);
-      if (this.selectedTaxSubcategoryId === subcategory.id) {
-        this.selectedTaxSubcategoryId = '';
-        this.selectedTaxFamilyId = '';
+    await this.writeFeedback.run('dashboard-admin-validaciones:deleteSubcategory', async () => {
+      try {
+        await this.apiService.deleteSubcategory(subcategory.id);
+        if (this.selectedTaxSubcategoryId === subcategory.id) {
+          this.selectedTaxSubcategoryId = '';
+          this.selectedTaxFamilyId = '';
+        }
+        this.notice = 'Subcategoria eliminada.';
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'No fue posible eliminar la subcategoria.';
       }
-      this.notice = 'Subcategoria eliminada.';
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'No fue posible eliminar la subcategoria.';
-    }
+    });
   }
 
   protected async deleteFamily(family: TaxonomyOption): Promise<void> {
-    try {
-      await this.apiService.deleteFamily(family.id);
-      if (this.selectedTaxFamilyId === family.id) {
-        this.selectedTaxFamilyId = '';
+    await this.writeFeedback.run('dashboard-admin-validaciones:deleteFamily', async () => {
+      try {
+        await this.apiService.deleteFamily(family.id);
+        if (this.selectedTaxFamilyId === family.id) {
+          this.selectedTaxFamilyId = '';
+        }
+        this.notice = 'Familia eliminada.';
+        this.syncMasterAttributeDrafts();
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'No fue posible eliminar la familia.';
       }
-      this.notice = 'Familia eliminada.';
-      this.syncMasterAttributeDrafts();
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'No fue posible eliminar la familia.';
-    }
+    });
   }
 
   protected async deleteDefinition(definition: TaxonomyDefinitionApi): Promise<void> {
-    if (!this.selectedTaxFamilyId) {
-      return;
-    }
+    await this.writeFeedback.run('dashboard-admin-validaciones:deleteDefinition', async () => {
+      if (!this.selectedTaxFamilyId) {
+        return;
+      }
 
-    try {
-      await this.apiService.deleteFamilyDefinition(this.selectedTaxFamilyId, definition.id);
-      this.notice = 'Definicion eliminada.';
-      this.syncMasterAttributeDrafts();
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'No fue posible eliminar la definicion.';
-    }
+      try {
+        await this.apiService.deleteFamilyDefinition(this.selectedTaxFamilyId, definition.id);
+        this.notice = 'Definicion eliminada.';
+        this.syncMasterAttributeDrafts();
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'No fue posible eliminar la definicion.';
+      }
+    });
   }
 
   protected async openMasterProductView(product: CatalogProduct): Promise<void> {
-    await this.ensureMasterDefinitionsLoaded();
+    const request = ++this.detailRequest;
     this.selectedMasterProduct = product;
     this.masterDetailReadonly = true;
     this.masterDetailModalOpen = true;
-    await this.loadMasterProductDetail(product);
+    this.masterDetailLoading = true;
+    this.error = ''; this.notice = '';
+    this.changeDetector.detectChanges();
+    window.scrollTo({top: 0, behavior: 'instant'});
+    try {
+      await this.ensureMasterDefinitionsLoaded();
+      if (request === this.detailRequest) await this.loadMasterProductDetail(product, request);
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : 'No se pudo cargar la ficha. Vuelve a intentarlo.';
+    } finally {
+      if (request === this.detailRequest) { this.masterDetailLoading = false; this.changeDetector.detectChanges(); }
+    }
   }
 
   protected async openMasterProductEdit(product: CatalogProduct): Promise<void> {
-    await this.ensureMasterDefinitionsLoaded();
+    const request = ++this.detailRequest;
     this.selectedMasterProduct = product;
     this.masterDetailReadonly = false;
     this.masterDetailModalOpen = true;
-    await this.loadMasterProductDetail(product);
+    this.masterDetailLoading = true;
+    this.error = ''; this.notice = '';
+    this.changeDetector.detectChanges();
+    window.scrollTo({top: 0, behavior: 'instant'});
+    try {
+      await this.ensureMasterDefinitionsLoaded();
+      if (request === this.detailRequest) await this.loadMasterProductDetail(product, request);
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : 'No se pudo cargar la ficha. Vuelve a intentarlo.';
+    } finally {
+      if (request === this.detailRequest) { this.masterDetailLoading = false; this.changeDetector.detectChanges(); }
+    }
   }
 
   protected async openMasterProductVariant(product: CatalogProduct): Promise<void> {
@@ -936,7 +1010,9 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   }
 
   protected async openMasterProductCreate(): Promise<void> {
-    await this.ensureMasterDefinitionsLoaded();
+    this.masterDetailModalOpen = true; this.masterDetailReadonly = false; this.masterDetailLoading = true;
+    this.changeDetector.detectChanges();
+    try { await this.ensureMasterDefinitionsLoaded(); } catch (error) { this.error = 'No se pudo cargar la taxonomía.'; this.masterDetailModalOpen = false; return; } finally { this.masterDetailLoading = false; this.changeDetector.detectChanges(); }
     const firstCategoryId = this.masterCategoryFilter || this.selectedTaxCategoryId || this.categoryOptions[0]?.id || '';
     const subcategories = firstCategoryId ? this.apiService.getSubcategoryOptions(firstCategoryId) : this.apiService.getSubcategoryOptions();
     const firstSubcategoryId = this.masterSubcategoryFilter || this.selectedTaxSubcategoryId || subcategories[0]?.id || '';
@@ -956,6 +1032,8 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   }
 
   protected closeMasterProductModal(): void {
+    if (this.masterDetailSaving) return;
+    ++this.detailRequest; this.masterDetailLoading = false;
     this.masterDetailModalOpen = false;
     this.masterDetailReadonly = true;
     this.selectedMasterProduct = null;
@@ -981,93 +1059,99 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   }
 
   protected async saveMasterProduct(): Promise<void> {
-    if (this.masterDetailReadonly) {
-      return;
-    }
-
-    const name = this.masterDetailDraft.name.trim();
-    const brand = this.masterDetailDraft.brand.trim();
-    if (name.length < 3) {
-      this.error = 'El nombre del producto debe tener al menos 3 caracteres.';
-      return;
-    }
-    if (!this.masterDetailDraft.categoryId || !this.masterDetailDraft.subcategoryId || !this.masterDetailDraft.familyId) {
-      this.error = 'Debes seleccionar categoria, subcategoria y familia.';
-      return;
-    }
-    if (this.masterDetailDraft.isPublished && this.selectedMasterProduct?.catalogLevel !== 'tipo_base') {
-      const missing = this.masterAttributeDrafts.filter(attribute => attribute.required && (
-        attribute.type === 'text' ? !attribute.valueText.trim()
-          : attribute.type === 'select' ? !attribute.valueOption
-          : attribute.type === 'number' ? attribute.valueNumber === null
-          : attribute.valueBoolean === null
-      ));
-      if (missing.length) {
-        this.error = `Completa las características obligatorias: ${missing.map(attribute => attribute.label).join(', ')}.`;
-        return;
-      }
-    }
-    const featureBullets = this.parseMultiline(this.masterDetailDraft.featureBulletsText);
-    const gallery = this.parseGallery(this.masterDetailDraft.galleryText);
-    const descriptionText = this.masterDetailDraft.descriptionText.trim();
-    if ((this.masterDetailDraft.imageUrl.trim() || gallery.length > 0) && !this.validImageRightsDraft()) {
-      this.error = 'Completa la procedencia y respaldo de derechos de la imagen. Si contiene marcas de terceros, registra también su autorización.';
-      return;
-    }
-    if (!this.validContentRightsDraft()) {
-      this.error = 'Registra la fuente o autorización de la descripción y ficha técnica.';
-      return;
-    }
-
-    try {
-      const payload = {
-        isPublished: this.masterDetailDraft.isPublished,
-        name,
-        barcode: this.masterDetailDraft.barcode,
-        brand,
-        productType: this.masterDetailDraft.productType.trim() || 'Producto ferretero',
-        categoryId: this.masterDetailDraft.categoryId,
-        subcategoryId: this.masterDetailDraft.subcategoryId,
-        familyId: this.masterDetailDraft.familyId,
-        unitLabel: this.masterDetailDraft.unitLabel.trim() || 'Unidad',
-        packagingLabel: this.masterDetailDraft.packagingLabel.trim() || 'Unidad',
-        shortDescription: this.masterDetailDraft.shortDescription.trim() || descriptionText,
-        descriptionBlocks: descriptionText ? [{ text: descriptionText }] : undefined,
-        imageUrl: this.masterDetailDraft.imageUrl.trim(),
-        imageRights: this.serializeImageRightsDraft(),
-        contentRights: this.serializeContentRightsDraft(),
-        gallery,
-        featureBullets,
-        logisticsWeightKg: this.masterDetailDraft.logisticsWeightKg ?? undefined,
-        logisticsVolumeM3: this.masterDetailDraft.logisticsVolumeM3 ?? undefined,
-        logisticsPalletUnits: this.masterDetailDraft.logisticsPalletUnits ?? undefined,
-        descriptionText
-      };
-
-      const targetMasterId = this.selectedMasterProduct?.masterProductId || this.selectedMasterProduct?.id;
-      const updated = targetMasterId
-        ? await this.apiService.updateMasterCatalogProduct(targetMasterId, payload, false)
-        : await this.apiService.createMasterCatalogProduct(payload, false);
-
-      if (!updated) {
-        this.error = 'No fue posible guardar el producto maestro.';
+    await this.writeFeedback.run('dashboard-admin-validaciones:saveMasterProduct', async () => {
+      if (this.masterDetailReadonly || this.masterDetailLoading || this.masterDetailSaving) {
         return;
       }
 
-      await this.apiService.saveMasterProductAttributes(
-        updated.masterProductId || updated.id,
-        this.serializeMasterAttributeDrafts()
-      );
+      const name = this.masterDetailDraft.name.trim();
+      const brand = this.masterDetailDraft.brand.trim();
+      if (name.length < 3) {
+        this.error = 'El nombre del producto debe tener al menos 3 caracteres.';
+        return;
+      }
+      if (!this.masterDetailDraft.categoryId || !this.masterDetailDraft.subcategoryId || !this.masterDetailDraft.familyId) {
+        this.error = 'Debes seleccionar categoria, subcategoria y familia.';
+        return;
+      }
+      if (this.masterDetailDraft.isPublished && this.selectedMasterProduct?.catalogLevel !== 'tipo_base') {
+        const missing = this.masterAttributeDrafts.filter(attribute => attribute.required && (
+          attribute.type === 'text' ? !attribute.valueText.trim()
+            : attribute.type === 'select' ? !attribute.valueOption
+            : attribute.type === 'number' ? attribute.valueNumber === null
+            : attribute.valueBoolean === null
+        ));
+        if (missing.length) {
+          this.error = `Completa las características obligatorias: ${missing.map(attribute => attribute.label).join(', ')}.`;
+          return;
+        }
+      }
+      const featureBullets = this.parseMultiline(this.masterDetailDraft.featureBulletsText);
+      const gallery = this.parseGallery(this.masterDetailDraft.galleryText);
+      const descriptionText = this.masterDetailDraft.descriptionText.trim();
+      if ((this.masterDetailDraft.imageUrl.trim() || gallery.length > 0) && !this.validImageRightsDraft()) {
+        this.error = 'Completa la procedencia y respaldo de derechos de la imagen. Si contiene marcas de terceros, registra también su autorización.';
+        return;
+      }
+      if (!this.validContentRightsDraft()) {
+        this.error = 'Registra la fuente o autorización de la descripción y ficha técnica.';
+        return;
+      }
 
-      this.notice = targetMasterId
-        ? `Producto maestro ${updated.name} actualizado.`
-        : `Producto maestro ${updated.name} creado.`;
-      this.error = '';
-      this.closeMasterProductModal();
-      await this.loadAdminMasterCatalog(targetMasterId ? this.masterPage : 1);
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'No fue posible guardar el producto maestro.';
-    }
+      this.masterDetailSaving = true; this.error = ''; this.changeDetector.detectChanges();
+      try {
+        const payload = {
+          isPublished: this.masterDetailDraft.isPublished,
+          name,
+          barcode: this.masterDetailDraft.barcode,
+          brand,
+          productType: this.masterDetailDraft.productType.trim() || 'Producto ferretero',
+          categoryId: this.masterDetailDraft.categoryId,
+          subcategoryId: this.masterDetailDraft.subcategoryId,
+          familyId: this.masterDetailDraft.familyId,
+          unitLabel: this.masterDetailDraft.unitLabel.trim() || 'Unidad',
+          packagingLabel: this.masterDetailDraft.packagingLabel.trim() || 'Unidad',
+          shortDescription: this.masterDetailDraft.shortDescription.trim() || descriptionText,
+          descriptionBlocks: descriptionText ? [{ text: descriptionText }] : undefined,
+          imageUrl: this.masterDetailDraft.imageUrl.trim(),
+          imageRights: this.serializeImageRightsDraft(),
+          contentRights: this.serializeContentRightsDraft(),
+          gallery,
+          featureBullets,
+          logisticsWeightKg: this.masterDetailDraft.logisticsWeightKg,
+          logisticsVolumeM3: this.masterDetailDraft.logisticsVolumeM3,
+          logisticsPalletUnits: this.masterDetailDraft.logisticsPalletUnits,
+          descriptionText
+        };
+
+        const targetMasterId = this.selectedMasterProduct?.masterProductId || this.selectedMasterProduct?.id;
+        const updated = targetMasterId
+          ? await this.apiService.updateMasterCatalogProduct(targetMasterId, payload, false)
+          : await this.apiService.createMasterCatalogProduct(payload, false);
+
+        if (!updated) {
+          this.error = 'No fue posible guardar el producto maestro.';
+          return;
+        }
+
+        await this.apiService.saveMasterProductAttributes(
+          updated.masterProductId || updated.id,
+          this.serializeMasterAttributeDrafts()
+        );
+
+        this.notice = targetMasterId
+          ? `Producto maestro ${updated.name} actualizado.`
+          : `Producto maestro ${updated.name} creado.`;
+        this.error = '';
+        this.selectedMasterProduct = updated;
+        this.masterDetailDraft.masterProductId = updated.masterProductId || updated.id;
+        await this.loadAdminMasterCatalog(targetMasterId ? this.masterPage : 1);
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'No fue posible guardar el producto maestro.';
+      } finally {
+        this.masterDetailSaving = false; this.changeDetector.detectChanges();
+      }
+    });
   }
 
   protected openRequestCreationDetail(request: CatalogValidationRequest): void {
@@ -1087,74 +1171,78 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   }
 
   protected async createProductFromRequestDetail(): Promise<void> {
-    if (!this.selectedRequestForCreation) {
-      this.error = 'No hay solicitud seleccionada.';
-      return;
-    }
-
-    if (this.masterDetailDraft.name.trim().length < 3) {
-      this.error = 'Ingresa un nombre de producto valido (minimo 3 caracteres).';
-      return;
-    }
-
-    if (!this.masterDetailDraft.categoryId || !this.masterDetailDraft.subcategoryId || !this.masterDetailDraft.familyId) {
-      this.error = 'Debes seleccionar categoria, subcategoria y familia.';
-      return;
-    }
-    if ((this.masterDetailDraft.imageUrl.trim() || this.parseGallery(this.masterDetailDraft.galleryText).length > 0) && !this.validImageRightsDraft()) {
-      this.error = 'Completa la procedencia y respaldo de derechos de la imagen antes de crear la ficha.';
-      return;
-    }
-    if (!this.validContentRightsDraft()) {
-      this.error = 'Registra la fuente o autorización de la descripción y ficha técnica.';
-      return;
-    }
-
-    const request = this.selectedRequestForCreation;
-    await this.resolveValidation(
-      request,
-      'aprobar_nuevo',
-      undefined,
-      {
-        name: this.masterDetailDraft.name.trim(),
-        barcode: this.masterDetailDraft.barcode,
-        brand: this.masterDetailDraft.brand.trim() || 'Sin marca',
-        productType: this.masterDetailDraft.productType.trim() || 'Producto ferretero',
-        categoryId: this.masterDetailDraft.categoryId,
-        subcategoryId: this.masterDetailDraft.subcategoryId,
-        familyId: this.masterDetailDraft.familyId,
-        unitLabel: this.masterDetailDraft.unitLabel.trim() || 'Unidad',
-        packagingLabel: this.masterDetailDraft.packagingLabel.trim() || 'Unidad',
-        shortDescription: this.masterDetailDraft.shortDescription.trim(),
-        descriptionText: this.masterDetailDraft.descriptionText.trim(),
-        imageUrl: this.masterDetailDraft.imageUrl.trim(),
-        imageRights: this.serializeImageRightsDraft(),
-        contentRights: this.serializeContentRightsDraft(),
-        gallery: this.parseGallery(this.masterDetailDraft.galleryText),
-        featureBullets: this.parseMultiline(this.masterDetailDraft.featureBulletsText),
-        attributes: this.serializeMasterAttributeDrafts(),
-        logisticsWeightKg: this.masterDetailDraft.logisticsWeightKg ?? undefined,
-        logisticsVolumeM3: this.masterDetailDraft.logisticsVolumeM3 ?? undefined,
-        logisticsPalletUnits: this.masterDetailDraft.logisticsPalletUnits ?? undefined
+    await this.writeFeedback.run('dashboard-admin-validaciones:createProductFromRequestDetail', async () => {
+      if (!this.selectedRequestForCreation) {
+        this.error = 'No hay solicitud seleccionada.';
+        return;
       }
-    );
 
-    if (!this.error) {
-      this.closeRequestCreationModal();
-    }
+      if (this.masterDetailDraft.name.trim().length < 3) {
+        this.error = 'Ingresa un nombre de producto valido (minimo 3 caracteres).';
+        return;
+      }
+
+      if (!this.masterDetailDraft.categoryId || !this.masterDetailDraft.subcategoryId || !this.masterDetailDraft.familyId) {
+        this.error = 'Debes seleccionar categoria, subcategoria y familia.';
+        return;
+      }
+      if ((this.masterDetailDraft.imageUrl.trim() || this.parseGallery(this.masterDetailDraft.galleryText).length > 0) && !this.validImageRightsDraft()) {
+        this.error = 'Completa la procedencia y respaldo de derechos de la imagen antes de crear la ficha.';
+        return;
+      }
+      if (!this.validContentRightsDraft()) {
+        this.error = 'Registra la fuente o autorización de la descripción y ficha técnica.';
+        return;
+      }
+
+      const request = this.selectedRequestForCreation;
+      await this.resolveValidation(
+        request,
+        'aprobar_nuevo',
+        undefined,
+        {
+          name: this.masterDetailDraft.name.trim(),
+          barcode: this.masterDetailDraft.barcode,
+          brand: this.masterDetailDraft.brand.trim() || 'Sin marca',
+          productType: this.masterDetailDraft.productType.trim() || 'Producto ferretero',
+          categoryId: this.masterDetailDraft.categoryId,
+          subcategoryId: this.masterDetailDraft.subcategoryId,
+          familyId: this.masterDetailDraft.familyId,
+          unitLabel: this.masterDetailDraft.unitLabel.trim() || 'Unidad',
+          packagingLabel: this.masterDetailDraft.packagingLabel.trim() || 'Unidad',
+          shortDescription: this.masterDetailDraft.shortDescription.trim(),
+          descriptionText: this.masterDetailDraft.descriptionText.trim(),
+          imageUrl: this.masterDetailDraft.imageUrl.trim(),
+          imageRights: this.serializeImageRightsDraft(),
+          contentRights: this.serializeContentRightsDraft(),
+          gallery: this.parseGallery(this.masterDetailDraft.galleryText),
+          featureBullets: this.parseMultiline(this.masterDetailDraft.featureBulletsText),
+          attributes: this.serializeMasterAttributeDrafts(),
+          logisticsWeightKg: this.masterDetailDraft.logisticsWeightKg ?? undefined,
+          logisticsVolumeM3: this.masterDetailDraft.logisticsVolumeM3 ?? undefined,
+          logisticsPalletUnits: this.masterDetailDraft.logisticsPalletUnits ?? undefined
+        }
+      );
+
+      if (!this.error) {
+        this.closeRequestCreationModal();
+      }
+    });
   }
 
   protected async deleteMasterProduct(product: CatalogProduct): Promise<void> {
-    this.notice = '';
-    this.error = '';
+    await this.writeFeedback.run('dashboard-admin-validaciones:deleteMasterProduct', async () => {
+      this.notice = '';
+      this.error = '';
 
-    try {
-      await this.apiService.deleteMasterCatalogProduct(product.masterProductId || product.id, false);
-      await this.loadAdminMasterCatalog(this.masterPage);
-      this.notice = `Producto maestro ${product.name} eliminado.`;
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'No fue posible eliminar el producto maestro.';
-    }
+      try {
+        await this.apiService.deleteMasterCatalogProduct(product.masterProductId || product.id, false);
+        await this.loadAdminMasterCatalog(this.masterPage);
+        this.notice = `Producto maestro ${product.name} eliminado.`;
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'No fue posible eliminar el producto maestro.';
+      }
+    });
   }
 
   protected toggleMobileMenu(): void {
@@ -1175,20 +1263,26 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   }
 
   protected async resolveAsMatch(request: CatalogValidationRequest): Promise<void> {
-    const selected = this.selectedSuggestionByRequest[request.id] || request.suggestions[0]?.masterProductId;
-    if (!selected) {
-      this.error = 'Selecciona un match sugerido para aprobar.';
-      return;
-    }
-    await this.resolveValidation(request, 'aprobar_match', selected);
+    await this.writeFeedback.run('dashboard-admin-validaciones:resolveAsMatch', async () => {
+      const selected = this.selectedSuggestionByRequest[request.id] || request.suggestions[0]?.masterProductId;
+      if (!selected) {
+        this.error = 'Selecciona un match sugerido para aprobar.';
+        return;
+      }
+      await this.resolveValidation(request, 'aprobar_match', selected);
+    });
   }
 
   protected async resolveAsNew(request: CatalogValidationRequest): Promise<void> {
-    await this.resolveValidation(request, 'aprobar_nuevo');
+    await this.writeFeedback.run('dashboard-admin-validaciones:resolveAsNew', async () => {
+      await this.resolveValidation(request, 'aprobar_nuevo');
+    });
   }
 
   protected async rejectValidation(request: CatalogValidationRequest): Promise<void> {
-    await this.resolveValidation(request, 'rechazar');
+    await this.writeFeedback.run('dashboard-admin-validaciones:rejectValidation', async () => {
+      await this.resolveValidation(request, 'rechazar');
+    });
   }
 
   protected openUserView(user: SessionUser): void {
@@ -1216,99 +1310,105 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   }
 
   protected async saveUserModal(): Promise<void> {
-    this.notice = '';
-    this.error = '';
+    await this.writeFeedback.run('dashboard-admin-validaciones:saveUserModal', async () => {
+      this.notice = '';
+      this.error = '';
 
-    try {
-      if (this.userModalDraft.isNew) {
-        if (this.userModalDraft.role === 'ferreteria') {
-          this.error = 'Crea las ferreterías desde su sección para registrar también la ubicación del local.';
+      try {
+        if (this.userModalDraft.isNew) {
+          if (this.userModalDraft.role === 'ferreteria') {
+            this.error = 'Crea las ferreterías desde su sección para registrar también la ubicación del local.';
+            return;
+          }
+          if (!STRONG_PASSWORD_PATTERN.test(this.userModalDraft.password)) {
+            this.error = 'La contraseña debe tener 6 o más caracteres e incluir mayúscula, minúscula, número y símbolo.';
+            return;
+          }
+          const created = await this.authService.adminCreateUser({
+            role: this.userModalDraft.role,
+            name: this.userModalDraft.displayName.trim(),
+            email: this.userModalDraft.email.trim(),
+            password: this.userModalDraft.password,
+            phone: this.userModalDraft.phone.trim(),
+            city: this.userModalDraft.city.trim(),
+            commune: this.userModalDraft.commune.trim(),
+            address: this.userModalDraft.address.trim(),
+            accountStatus: this.userModalDraft.accountStatus,
+            businessName: this.userModalDraft.businessName.trim() || undefined,
+            rut: this.userModalDraft.rut.trim() || undefined
+          });
+
+          this.notice = `Usuario ${created.displayName} creado.`;
+          this.closeUserModal();
+          this.markUserDataStale();
+          await this.ensureSectionData(this.currentSection, true);
           return;
         }
-        if (!STRONG_PASSWORD_PATTERN.test(this.userModalDraft.password)) {
-          this.error = 'La contraseña debe tener 12 o más caracteres e incluir mayúscula, minúscula, número y símbolo.';
+
+        const user = this.users.find((item) => item.id === this.userModalDraft.id);
+        if (!user) {
+          this.error = 'No fue posible encontrar el usuario seleccionado.';
           return;
         }
-        const created = await this.authService.adminCreateUser({
+
+        const updated = await this.authService.adminUpdateUser(user.id, {
           role: this.userModalDraft.role,
-          name: this.userModalDraft.displayName.trim(),
-          email: this.userModalDraft.email.trim(),
-          password: this.userModalDraft.password,
+          accountStatus: this.userModalDraft.accountStatus,
+          displayName: this.userModalDraft.displayName.trim(),
           phone: this.userModalDraft.phone.trim(),
           city: this.userModalDraft.city.trim(),
           commune: this.userModalDraft.commune.trim(),
-          address: this.userModalDraft.address.trim(),
-          accountStatus: this.userModalDraft.accountStatus,
-          businessName: this.userModalDraft.businessName.trim() || undefined,
-          rut: this.userModalDraft.rut.trim() || undefined
+          address: this.userModalDraft.address.trim()
         });
+        if (!updated) {
+          this.error = 'No fue posible actualizar el usuario.';
+          return;
+        }
 
-        this.notice = `Usuario ${created.displayName} creado.`;
+        this.notice = `Usuario ${updated.displayName} actualizado.`;
         this.closeUserModal();
         this.markUserDataStale();
         await this.ensureSectionData(this.currentSection, true);
-        return;
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'No fue posible guardar el usuario.';
       }
-
-      const user = this.users.find((item) => item.id === this.userModalDraft.id);
-      if (!user) {
-        this.error = 'No fue posible encontrar el usuario seleccionado.';
-        return;
-      }
-
-      const updated = await this.authService.adminUpdateUser(user.id, {
-        role: this.userModalDraft.role,
-        accountStatus: this.userModalDraft.accountStatus,
-        displayName: this.userModalDraft.displayName.trim(),
-        phone: this.userModalDraft.phone.trim(),
-        city: this.userModalDraft.city.trim(),
-        commune: this.userModalDraft.commune.trim(),
-        address: this.userModalDraft.address.trim()
-      });
-      if (!updated) {
-        this.error = 'No fue posible actualizar el usuario.';
-        return;
-      }
-
-      this.notice = `Usuario ${updated.displayName} actualizado.`;
-      this.closeUserModal();
-      this.markUserDataStale();
-      await this.ensureSectionData(this.currentSection, true);
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'No fue posible guardar el usuario.';
-    }
+    });
   }
 
   protected async quickBlock(user: SessionUser): Promise<void> {
-    try {
-      const updated = await this.authService.adminUpdateUser(user.id, {
-        accountStatus: 'bloqueado'
-      });
-      if (!updated) {
-        this.error = 'No fue posible bloquear el usuario.';
-        return;
+    await this.writeFeedback.run('dashboard-admin-validaciones:quickBlock', async () => {
+      try {
+        const updated = await this.authService.adminUpdateUser(user.id, {
+          accountStatus: 'bloqueado'
+        });
+        if (!updated) {
+          this.error = 'No fue posible bloquear el usuario.';
+          return;
+        }
+        this.notice = `Usuario ${updated.displayName} bloqueado.`;
+        this.markUserDataStale();
+        await this.ensureSectionData(this.currentSection, true);
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'No fue posible bloquear el usuario.';
       }
-      this.notice = `Usuario ${updated.displayName} bloqueado.`;
-      this.markUserDataStale();
-      await this.ensureSectionData(this.currentSection, true);
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'No fue posible bloquear el usuario.';
-    }
+    });
   }
 
   protected async deleteUser(user: SessionUser): Promise<void> {
-    try {
-      const deleted = await this.authService.adminDeleteUser(user.id);
-      if (!deleted) {
-        this.error = 'No fue posible eliminar el usuario.';
-        return;
+    await this.writeFeedback.run('dashboard-admin-validaciones:deleteUser', async () => {
+      try {
+        const deleted = await this.authService.adminDeleteUser(user.id);
+        if (!deleted) {
+          this.error = 'No fue posible eliminar el usuario.';
+          return;
+        }
+        this.notice = `Usuario ${user.displayName} eliminado.`;
+        this.markUserDataStale();
+        await this.ensureSectionData(this.currentSection, true);
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'No fue posible eliminar el usuario.';
       }
-      this.notice = `Usuario ${user.displayName} eliminado.`;
-      this.markUserDataStale();
-      await this.ensureSectionData(this.currentSection, true);
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'No fue posible eliminar el usuario.';
-    }
+    });
   }
 
   protected get ferreteriaRows(): SessionUser[] {
@@ -1423,53 +1523,91 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   }
 
   protected async createStore(): Promise<void> {
-    const draft = this.storeCreateDraft;
-    if (!draft.businessName.trim() || !draft.displayName.trim() || !draft.email.trim()
-      || !draft.city || !draft.commune || !draft.address.trim()) {
-      this.storeCreateError = 'Completa los datos de acceso, ciudad, comuna y dirección del local.';
-      return;
-    }
-    if (!STRONG_PASSWORD_PATTERN.test(draft.password)) {
-      this.storeCreateError = 'La contraseña debe tener 12 o más caracteres e incluir mayúscula, minúscula, número y símbolo.';
-      return;
-    }
-    if (!hasValidCoordinates(draft.storeLatitude, draft.storeLongitude)) {
-      this.storeCreateError = 'Captura o ingresa una ubicación válida para habilitar las búsquedas por proximidad.';
-      return;
-    }
+    await this.writeFeedback.run('dashboard-admin-validaciones:createStore', async () => {
+      const draft = this.storeCreateDraft;
+      if (!draft.businessName.trim() || !draft.displayName.trim() || !draft.email.trim()
+        || !draft.city || !draft.commune || !draft.address.trim()) {
+        this.storeCreateError = 'Completa los datos de acceso, ciudad, comuna y dirección del local.';
+        return;
+      }
+      if (!STRONG_PASSWORD_PATTERN.test(draft.password)) {
+        this.storeCreateError = 'La contraseña debe tener 6 o más caracteres e incluir mayúscula, minúscula, número y símbolo.';
+        return;
+      }
+      if (!hasValidCoordinates(draft.storeLatitude, draft.storeLongitude)) {
+        this.storeCreateError = 'Captura o ingresa una ubicación válida para habilitar las búsquedas por proximidad.';
+        return;
+      }
 
-    this.storeCreateSaving = true;
-    this.storeCreateError = '';
-    this.notice = '';
+      this.storeCreateSaving = true;
+      this.storeCreateError = '';
+      this.notice = '';
+      try {
+        const created = await this.authService.adminCreateUser({
+          role: 'ferreteria',
+          name: draft.displayName.trim(),
+          email: draft.email.trim(),
+          password: draft.password,
+          phone: draft.phone.trim(),
+          city: draft.city.trim(),
+          commune: draft.commune.trim(),
+          address: draft.address.trim(),
+          accountStatus: draft.accountStatus,
+          businessName: draft.businessName.trim(),
+          rut: draft.rut.trim() || undefined,
+          storeLatitude: draft.storeLatitude,
+          storeLongitude: draft.storeLongitude as number
+        });
+
+        this.notice = `${created.businessName || created.displayName} fue creada correctamente.`;
+        this.markUserDataStale();
+        await this.ensureUsersLoaded(true);
+        await this.inspectStoreCatalog(created);
+      } catch (error) {
+        this.storeCreateError = error instanceof Error ? error.message : 'No fue posible crear la ferretería.';
+      } finally {
+        this.storeCreateSaving = false;
+      }
+    });
+  }
+
+  protected openStoreProductEditor(): void {
+    this.storeProductEditorOpen = true; this.storeProductSearch = ''; this.storeProductResults = [];
+    this.storeProductDraft = {masterProductId: '', price: 0, stock: 0, sku: '', isPublished: true};
+    this.storeProductError = '';
+  }
+  protected async searchStoreProduct(): Promise<void> {
+    const request = ++this.storeProductSearchRequest;
+    if (this.storeProductSearch.trim().length < 2) { this.storeProductError = 'Escribe al menos dos caracteres.'; return; }
+    this.storeProductSearching = true; this.storeProductError = ''; this.changeDetector.detectChanges();
     try {
-      const created = await this.authService.adminCreateUser({
-        role: 'ferreteria',
-        name: draft.displayName.trim(),
-        email: draft.email.trim(),
-        password: draft.password,
-        phone: draft.phone.trim(),
-        city: draft.city.trim(),
-        commune: draft.commune.trim(),
-        address: draft.address.trim(),
-        accountStatus: draft.accountStatus,
-        businessName: draft.businessName.trim(),
-        rut: draft.rut.trim() || undefined,
-        storeLatitude: draft.storeLatitude,
-        storeLongitude: draft.storeLongitude as number
-      });
-
-      this.notice = `${created.businessName || created.displayName} fue creada correctamente.`;
-      this.markUserDataStale();
-      await this.ensureUsersLoaded(true);
-      await this.inspectStoreCatalog(created);
-    } catch (error) {
-      this.storeCreateError = error instanceof Error ? error.message : 'No fue posible crear la ferretería.';
-    } finally {
-      this.storeCreateSaving = false;
-    }
+      const page = await this.apiService.getAdminMasterCatalogPage({query: this.storeProductSearch, size: 20});
+      if (request === this.storeProductSearchRequest) this.storeProductResults = page.items.filter(product => product.isPublished);
+    } catch (error) { this.storeProductError = 'No se pudieron buscar los productos. Intenta nuevamente.'; }
+    finally { if (request === this.storeProductSearchRequest) { this.storeProductSearching = false; this.changeDetector.detectChanges(); } }
+  }
+  protected async saveStoreProduct(): Promise<void> {
+    await this.writeFeedback.run('dashboard-admin-validaciones:saveStoreProduct', async () => {
+      if (!this.selectedStore || this.storeProductSaving) return;
+      const draft = this.storeProductDraft;
+      if (!draft.masterProductId || !Number.isFinite(Number(draft.price)) || Number(draft.price) <= 0
+          || !Number.isInteger(Number(draft.stock)) || Number(draft.stock) < 0) {
+        this.storeProductError = 'Selecciona un producto, ingresa un precio mayor a cero y un stock entero de cero o más.'; return;
+      }
+      this.storeProductSaving = true; this.storeProductError = ''; this.changeDetector.detectChanges();
+      try {
+        const result = await this.apiService.addCatalogProductFromMaster(this.selectedStore.id, draft.masterProductId, {
+          price: Number(draft.price), stock: Number(draft.stock), sku: draft.sku, isPublished: draft.isPublished
+        });
+        this.selectedStoreCatalog = [...result.catalog]; this.storeProductEditorOpen = false;
+        this.notice = result.wasUpdate ? 'Oferta de la ferretería actualizada.' : 'Producto agregado a la ferretería.';
+      } catch (error) { this.storeProductError = error instanceof Error ? error.message : 'No se pudo guardar el producto.'; }
+      finally { this.storeProductSaving = false; this.changeDetector.detectChanges(); }
+    });
   }
 
   protected async inspectStoreCatalog(store: SessionUser): Promise<void> {
+    this.storeProductEditorOpen = false;
     this.selectedStore = store;
     this.selectedStoreCatalogLabel = store.businessName || store.displayName;
     this.selectedStoreCatalog = [];
@@ -1513,18 +1651,20 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   }
 
   protected async activateStore(store: SessionUser): Promise<void> {
-    try {
-      const updated = await this.authService.adminUpdateUser(store.id, { accountStatus: 'activo' });
-      if (!updated) {
-        this.error = 'No fue posible activar la ferreteria.';
-        return;
+    await this.writeFeedback.run('dashboard-admin-validaciones:activateStore', async () => {
+      try {
+        const updated = await this.authService.adminUpdateUser(store.id, { accountStatus: 'activo' });
+        if (!updated) {
+          this.error = 'No fue posible activar la ferreteria.';
+          return;
+        }
+        this.notice = `${updated.businessName || updated.displayName} activada.`;
+        this.markUserDataStale();
+        await this.ensureSectionData('ferreterias', true);
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'No fue posible activar la ferreteria.';
       }
-      this.notice = `${updated.businessName || updated.displayName} activada.`;
-      this.markUserDataStale();
-      await this.ensureSectionData('ferreterias', true);
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'No fue posible activar la ferreteria.';
-    }
+    });
   }
 
   protected roleLabel(role: UserRole): string {
@@ -1592,7 +1732,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       const storeName = store?.businessName || store?.displayName || 'ferreteria';
       await downloadCatalogImportTemplate(catalogImportTemplateFileName(storeName));
       this.onboardingError = '';
-      this.onboardingNotice = 'Template CotizApp descargado. Pasa la informacion de la ferreteria a la hoja Productos y luego sube ese archivo.';
+      this.onboardingNotice = 'Template Findi descargado. Pasa la informacion de la ferreteria a la hoja Productos y luego sube ese archivo.';
     } catch (error) {
       this.onboardingError = error instanceof Error ? error.message : 'No se pudo generar el template.';
     }
@@ -1606,44 +1746,46 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   }
 
   protected async importInitialCatalog(): Promise<void> {
-    const store = this.onboardingFerreterias.find((user) => user.id === this.onboardingStoreOwnerId);
-    if (!store) {
-      this.onboardingError = 'Selecciona una ferreteria.';
-      return;
-    }
-    if (!this.onboardingCsvContent.trim()) {
-      this.onboardingError = 'Carga un archivo o pega los datos del catalogo.';
-      return;
-    }
+    await this.writeFeedback.run('dashboard-admin-validaciones:importInitialCatalog', async () => {
+      const store = this.onboardingFerreterias.find((user) => user.id === this.onboardingStoreOwnerId);
+      if (!store) {
+        this.onboardingError = 'Selecciona una ferreteria.';
+        return;
+      }
+      if (!this.onboardingCsvContent.trim()) {
+        this.onboardingError = 'Carga un archivo o pega los datos del catalogo.';
+        return;
+      }
 
-    this.onboardingLoading = true;
-    this.onboardingError = '';
-    this.onboardingNotice = '';
+      this.onboardingLoading = true;
+      this.onboardingError = '';
+      this.onboardingNotice = '';
 
-    try {
-      const response = await this.apiService.importCatalogBatch(
-        store.id,
-        store.businessName || store.displayName,
-        this.onboardingCsvContent,
-        {
-          categoryId: '',
-          subcategoryId: '',
-          familyId: '',
-          brand: 'Sin marca',
-          unitLabel: 'Unidad',
-          isPublished: true
-        }
-      );
+      try {
+        const response = await this.apiService.importCatalogBatch(
+          store.id,
+          store.businessName || store.displayName,
+          this.onboardingCsvContent,
+          {
+            categoryId: '',
+            subcategoryId: '',
+            familyId: '',
+            brand: 'Sin marca',
+            unitLabel: 'Unidad',
+            isPublished: true
+          }
+        );
 
-      this.onboardingNotice = `Carga inicial procesada para ${store.businessName || store.displayName}: ${response.report.uploadedCount} producto(s) cargados, ${response.report.pendingNewCount + response.report.possibleMatchCount} pendiente(s) de revision y ${response.report.failedCount} fila(s) con error.`;
-      await this.apiService.refreshFerreteriaCatalogSection(store.id, true);
-      this.selectedStoreCatalog = [...this.apiService.getCatalog(store.id)];
-      this.selectedStoreCatalogPage = 1;
-    } catch (error) {
-      this.onboardingError = error instanceof Error ? error.message : 'No fue posible cargar el catalogo inicial.';
-    } finally {
-      this.onboardingLoading = false;
-    }
+        this.onboardingNotice = `Carga inicial procesada para ${store.businessName || store.displayName}: ${response.report.uploadedCount} producto(s) cargados, ${response.report.pendingNewCount + response.report.possibleMatchCount} pendiente(s) de revision y ${response.report.failedCount} fila(s) con error.`;
+        await this.apiService.refreshFerreteriaCatalogSection(store.id, true);
+        this.selectedStoreCatalog = [...this.apiService.getCatalog(store.id)];
+        this.selectedStoreCatalogPage = 1;
+      } catch (error) {
+        this.onboardingError = error instanceof Error ? error.message : 'No fue posible cargar el catalogo inicial.';
+      } finally {
+        this.onboardingLoading = false;
+      }
+    });
   }
 
   protected goToSection(section: AdminSection): void {
@@ -1859,6 +2001,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   }
 
   private async ensureMasterDefinitionsLoaded(): Promise<void> {
+    try { this.brandOptions=await this.apiService.getBrandOptions(); } catch { /* Free-text brand creation remains available. */ }
     if (this.catalogTaxonomyLoaded) return;
     await this.apiService.refreshAdminTaxonomySection();
     this.catalogTaxonomyLoaded = true;
@@ -2056,12 +2199,16 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     };
   }
 
-  private async loadMasterProductDetail(product: CatalogProduct): Promise<void> {
+  private async loadMasterProductDetail(product: CatalogProduct, request = this.detailRequest): Promise<void> {
     try {
       const detail = await this.apiService.getMasterCatalogProductDetail(product.masterProductId || product.id);
+      if (request !== this.detailRequest) return;
       this.masterDetailDraft = this.mapProductToDraft(detail.product || product);
       this.masterAttributeDrafts = this.buildAttributeDrafts(this.masterDetailDraft.familyId, detail.attributes);
     } catch {
+      if (request !== this.detailRequest) return;
+      this.error = 'No se pudo descargar la ficha completa. Cierra y vuelve a abrir el producto antes de editar.';
+      this.masterDetailReadonly = true;
       this.masterDetailDraft = this.mapProductToDraft(product);
       this.masterAttributeDrafts = this.buildAttributeDrafts(this.masterDetailDraft.familyId);
     }
@@ -2200,7 +2347,8 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     rows: Array<{ label: string; value: string }>,
     labelFragment: string
   ): number | null {
-    const row = rows.find((item) => item.label.toLowerCase().includes(labelFragment));
+    const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const row = rows.find((item) => normalize(item.label).includes(normalize(labelFragment)));
     if (!row) {
       return null;
     }

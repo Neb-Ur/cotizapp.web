@@ -11,9 +11,9 @@ import { RouterLink } from '@angular/router';
 })
 export class PreguntasFrecuentesComponent {
   protected readonly faqItems = [
-    { question: '¿Puedo comprar o reservar productos aquí?', answer: 'No. CotizApp compara precios y genera cotizaciones. Guardar o compartir una cotización no constituye una compra, un pedido ni una reserva; compras directamente en la ferretería.' },
+    { question: '¿Puedo comprar o reservar productos aquí?', answer: 'No. Findi compara precios y genera cotizaciones. Guardar o compartir una cotización no constituye una compra, un pedido ni una reserva; compras directamente en la ferretería.' },
     {
-      question: 'Como funciona CotizApp para maestros?',
+      question: 'Como funciona Findi para maestros?',
       answer: 'Permite comparar precios entre ferreterias, crear cotizaciones y organizar compras por proyecto.'
     },
     {

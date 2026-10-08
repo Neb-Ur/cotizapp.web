@@ -1,4 +1,7 @@
 import { Router } from 'express';
+import { createHash } from 'node:crypto';
+import { brandIdentity } from '../domain/brand-identity.js';
+import { getStaticCatalog, staticCatalogRevision } from '../lib/product-sheet-cache.js';
 import { getPublicCatalogMetadata, getPublicCatalogSnapshot } from '../lib/public-catalog-cache.js';
 
 export const publicCatalogRouter = Router();
@@ -81,4 +84,29 @@ publicCatalogRouter.get('/catalogo-publico', async (req, res) => {
 
   res.set('ETag', `"catalog-${snapshot.version}"`);
   return res.json({ ok: true, data: snapshot });
+});
+
+// This index contains no prices, stock, contact information or internal fields.
+publicCatalogRouter.get('/catalogo-busqueda', async (req, res) => {
+  const [products, categories, subcategories, families, brands] = await getStaticCatalog();
+  const brandNames = new Map(brands.map(item=>[item.id,item.nombre]));
+  const options = (items: any[]) => items.map(item => ({ id: item.id, name: item.nombre,
+    ...(item.categoriaId ? { categoryId: item.categoriaId } : {}),
+    ...(item.subcategoriaId ? { subcategoryId: item.subcategoriaId } : {})
+  })).sort((a, b) => a.id.localeCompare(b.id));
+  const payload = {
+    schema: 1, catalogRevision: staticCatalogRevision(),
+    products: products.filter(item => item.estado !== 'inactivo').map(item => ({
+      id: item.id, name: item.nombre, brandId: item.marcaId || brandIdentity(item.marca)?.id || null,
+      brand: brandNames.get(item.marcaId) || item.marca || '', type: item.tipoProducto || '',
+      categoryId: item.categoriaId, subcategoryId: item.subcategoriaId, familyId: item.familiaId
+    })).sort((a, b) => a.id.localeCompare(b.id)),
+    categories: options(categories), subcategories: options(subcategories), families: options(families),
+    brands: options(brands)
+  };
+  const version = createHash('sha256').update(JSON.stringify(payload)).digest('hex').slice(0, 24);
+  res.set('Cache-Control', 'no-store');
+  res.set('ETag', `"search-${version}"`);
+  return res.json({ ok: true, data: req.query['v'] === version
+    ? { version, unchanged: true } : { version, ...payload } });
 });

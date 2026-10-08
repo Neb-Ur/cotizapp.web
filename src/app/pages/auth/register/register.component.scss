@@ -5,7 +5,7 @@
 .register-page {
   min-height: 100vh;
   background:
-    linear-gradient(140deg, rgba(243, 237, 225, 0.9), rgba(244, 247, 251, 0.92)),
+    linear-gradient(140deg, rgba(243, 245, 248, 0.98), rgba(243, 245, 248, 0.92)),
     radial-gradient(circle at top right, rgba(10, 148, 168, 0.10), transparent 26%);
   display: grid;
   place-items: center;
@@ -296,7 +296,7 @@
 .field small,
 .field--full small {
   font-size: 0.78rem;
-  color: #dc2626;
+  color: var(--text-muted);
 }
 
 .btn-full {
@@ -440,3 +440,5 @@
   color: var(--danger-700);
   font-weight: 700;
 }
+
+.field small[id$="-error"], .legal-error { color: var(--danger, #b42318); }

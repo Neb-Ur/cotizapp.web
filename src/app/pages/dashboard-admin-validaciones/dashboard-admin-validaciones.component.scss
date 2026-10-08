@@ -49,7 +49,7 @@ nav button {
 }
 
 nav button.active {
-  border-color: rgba(217, 109, 44, 0.16);
+  border-color: rgba(255, 122, 0, 0.16);
   background: var(--sand-100);
   color: var(--ink-900);
   box-shadow: inset 3px 0 0 var(--orange);
@@ -208,7 +208,7 @@ p {
   border: 1px solid #d5e2f3;
   border-radius: var(--r-md);
   padding: 0.7rem;
-  background: linear-gradient(165deg, #f8fbff, #eef5ff);
+  background: linear-gradient(165deg, var(--ink-50), #eef5ff);
   display: grid;
   gap: 0.2rem;
 }
@@ -479,7 +479,7 @@ p {
   border: 1px solid var(--border-soft);
   border-radius: var(--r-md);
   padding: 0.75rem;
-  background: #f8fbff;
+  background: var(--ink-50);
 }
 
 .card ul {
@@ -696,10 +696,10 @@ p {
 .taxonomy-section-icon {
   width: 1.8rem;
   height: 1.8rem;
-  border-radius: 9px;
+  border-radius: var(--r-sm);
   display: inline-grid;
   place-items: center;
-  background: rgba(35, 50, 68, 0.08);
+  background: rgba(24, 61, 94, 0.08);
   color: var(--navy-800);
 }
 
@@ -971,7 +971,7 @@ select {
   margin-top: 0.72rem;
   border: 1px solid var(--border-soft);
   border-radius: var(--r-md);
-  background: #f8fbff;
+  background: var(--ink-50);
   padding: 0.72rem;
   display: grid;
   gap: 0.5rem;
@@ -1234,7 +1234,7 @@ select {
   pointer-events: none;
 }
 
-button:not(.taxonomy-item-main):not(.p-button) {
+button:not(.taxonomy-item-main):not(.p-button):not(.menu-icon) {
   border: 0;
   border-radius: var(--r-md);
   background: var(--navy-800);

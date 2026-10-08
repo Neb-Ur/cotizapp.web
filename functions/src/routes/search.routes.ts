@@ -31,6 +31,8 @@ searchRouter.get('/busqueda', async (req, res) => {
       categoryId: normalizeText(req.query['categoriaId']),
       subcategoryId: normalizeText(req.query['subcategoriaId']),
       familyId: normalizeText(req.query['familiaId']),
+      brand: normalizeText(req.query['marca']),
+      brandId: normalizeText(req.query['marcaId']),
       proximity: proximity || undefined,
       sort: sort as ProductSearchOptions['sort'], page, size
     });

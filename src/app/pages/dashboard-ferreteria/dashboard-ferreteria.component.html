@@ -82,7 +82,7 @@
 
     <article class="panel panel--pending" *ngIf="user && user.accountStatus && user.accountStatus !== 'activo'">
       <h3 class="flush-heading">Cuenta pendiente de activacion</h3>
-      <p class="flush-copy">Puedes preparar tu catálogo, pero tus precios no participan en el comparador hasta que CotizApp active la cuenta.</p>
+      <p class="flush-copy">Puedes preparar tu catálogo, pero tus precios no participan en el comparador hasta que Findi active la cuenta.</p>
     </article>
 
     <article class="panel panel--loading" *ngIf="isInitialLoading || isSectionLoading">
@@ -125,7 +125,7 @@
       <div class="projects-topbar">
         <div>
           <h3>Mantener precios y stock</h3>
-          <p class="helper-text">{{ catalogQuotaText }} CotizApp puede realizar la carga inicial por ti.</p>
+          <p class="helper-text">{{ catalogQuotaText }} Findi puede realizar la carga inicial por ti.</p>
         </div>
         <div class="form-actions">
           <button type="button" class="secondary" (click)="goToExcelImport()">Actualizar por Excel</button>
@@ -182,7 +182,7 @@
       </div>
 
       <ng-template #emptyCatalog>
-        <p *ngIf="catalog.length === 0 && !dataLoadError">Aun no tienes productos. CotizApp puede cargarlos por ti o puedes agregarlos desde "Agregar productos".</p>
+        <p *ngIf="catalog.length === 0 && !dataLoadError">Aun no tienes productos. Findi puede cargarlos por ti o puedes agregarlos desde "Agregar productos".</p>
         <p *ngIf="catalog.length > 0 && !dataLoadError">No hay resultados para la búsqueda.</p>
       </ng-template>
 
@@ -207,7 +207,7 @@
         </div>
         <button type="button" class="ghost" (click)="closeAddProducts()">Volver al catálogo</button>
       </div>
-      <p>Si prefieres, puedes enviarnos tu lista y CotizApp realiza la carga inicial.</p>
+      <p>Si prefieres, puedes enviarnos tu lista y Findi realiza la carga inicial.</p>
 
       <div class="upload-mode-toggle">
         <button type="button" [class.active]="uploadMode === 'buscar'" (click)="setUploadMode('buscar')">Agregar individual</button>
@@ -275,7 +275,7 @@
 
       <section *ngIf="uploadMode === 'archivo'" class="upload-search-card">
         <h3>Actualizar masivamente por Excel</h3>
-        <p>Descarga tu catálogo actual, cambia precio y stock en la hoja Productos y vuelve a subir el mismo archivo. Mantén nombre, SKU y código de barras para que CotizApp identifique correctamente cada producto.</p>
+        <p>Descarga tu catálogo actual, cambia precio y stock en la hoja Productos y vuelve a subir el mismo archivo. Mantén nombre, SKU y código de barras para que Findi identifique correctamente cada producto.</p>
         <div class="form-actions">
           <button type="button" class="secondary" (click)="downloadCatalogTemplate()">Descargar mi catálogo Excel</button>
         </div>
@@ -399,7 +399,7 @@
 
       <label class="catalog-edit-published">
 
-        <span><strong>El precio incluye IVA</strong><small>Ingresa el precio final que cobra la ferretería, con IVA incluido. CotizApp no agrega impuestos.</small></span>
+        <span><strong>El precio incluye IVA</strong><small>Ingresa el precio final que cobra la ferretería, con IVA incluido. Findi no agrega impuestos.</small></span>
       </label>
 
       <label>
@@ -410,7 +410,7 @@
       <label class="catalog-edit-published">
         <input type="checkbox" [(ngModel)]="catalogEditDraft.isPublished" [disabled]="catalogEditSaving" />
         <span>
-          <strong>Publicado en CotizApp</strong>
+          <strong>Publicado en Findi</strong>
           <small *ngIf="catalogEditDraft.isPublished">El producto puede aparecer en el comparador si la ferretería está activa y tiene stock suficiente.</small>
           <small *ngIf="!catalogEditDraft.isPublished">El producto queda en tu catálogo, pero no aparece en el comparador.</small>
         </span>

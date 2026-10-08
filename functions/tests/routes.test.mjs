@@ -42,7 +42,7 @@ test('new account passwords must meet the application security policy', () => {
   assert.equal(validStrongPassword('123456'), false);
   assert.equal(validStrongPassword('onlylowercase123!'), false);
   assert.equal(validStrongPassword('SinSimbolo1234'), false);
-  assert.equal(validStrongPassword('CotizApp!2026-segura'), true);
+  assert.equal(validStrongPassword('Findi!2026-segura'), true);
 });
 
 test('Chilean tax identifiers are validated before signing a store agreement', () => {

@@ -83,7 +83,7 @@
 
 .search-primary .top-product-search span {
   color: var(--ink-900);
-  font-family: 'Space Grotesk', 'Manrope', sans-serif;
+  font-family: 'Manrope', 'Segoe UI', sans-serif;
   font-size: var(--text-lg);
   font-weight: 700;
 }
@@ -100,7 +100,7 @@
 .search-primary input:focus,
 .filters-grid input:focus,
 .nearby-search-actions select:focus {
-  outline: 3px solid rgba(217, 109, 44, 0.2);
+  outline: 3px solid rgba(255, 122, 0, 0.2);
   border-color: var(--orange);
 }
 
@@ -154,7 +154,7 @@
 }
 
 .nearby-toolbar-button.active {
-  border-color: rgba(217, 109, 44, 0.34);
+  border-color: rgba(255, 122, 0, 0.34);
   background: var(--sand-100);
   color: var(--orange-hover);
 }
@@ -189,7 +189,7 @@
   place-items: center;
   border-radius: 999px;
   background: var(--orange);
-  color: #fff;
+  color: var(--ink-900);
   font-size: 0.72rem;
 }
 
@@ -324,7 +324,7 @@
 
 .menu-toggle {
   border: 1px solid var(--border-soft);
-  background: #f8fbff;
+  background: var(--ink-50);
   color: var(--navy-800);
   border-radius: var(--r-md);
   padding: 0.5rem 0.65rem;
@@ -360,7 +360,7 @@
   border: 1px solid var(--border-soft);
   border-radius: var(--r-md);
   padding: 0.75rem;
-  background: #f8fbff;
+  background: var(--ink-50);
 }
 
 .stats-grid h3 {
@@ -505,7 +505,7 @@ input:disabled {
 }
 
 .product-card:focus-visible {
-  outline: 3px solid rgba(217, 109, 44, 0.28);
+  outline: 3px solid rgba(255, 122, 0, 0.28);
   outline-offset: 2px;
 }
 
@@ -751,7 +751,7 @@ td {
 
 .row-actions button {
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   padding: 0.38rem 0.56rem;
   font-weight: 700;
   cursor: pointer;
@@ -778,7 +778,7 @@ td {
   border: 1px solid var(--border-soft);
   border-radius: var(--r-md);
   padding: 0.7rem;
-  background: #f8fbff;
+  background: var(--ink-50);
 }
 
 .history-grid h4 {
@@ -816,7 +816,7 @@ td {
 .profile-card {
   border: 1px solid var(--border-soft);
   border-radius: var(--r-md);
-  background: #f8fbff;
+  background: var(--ink-50);
   padding: 0.6rem;
   display: grid;
   gap: 0.45rem;
@@ -1298,7 +1298,7 @@ button.plan-card__action.is-disabled {
 .nearby-search-panel {
   margin-top: 0.6rem;
   padding: 0.85rem;
-  border: 1px solid rgba(217, 109, 44, 0.25);
+  border: 1px solid rgba(255, 122, 0, 0.25);
   border-radius: var(--r-md);
   background: var(--sand-50);
   display: grid;
@@ -1367,7 +1367,7 @@ button.plan-card__action.is-disabled {
   border: 1px solid var(--orange);
   border-radius: var(--r-sm);
   background: var(--orange);
-  color: #fff;
+  color: var(--ink-900);
   font: inherit;
   font-size: 0.78rem;
   font-weight: 800;

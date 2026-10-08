@@ -13,5 +13,5 @@ export const LEGAL_IDENTITY = {
   privacyPolicyVersion: '1.2'
 } as const;
 
-export const STORE_ACCESS_WHATSAPP_MESSAGE = 'Hola, equipo CotizApp. Quiero solicitar acceso para mi ferretería y conocer los pasos para incorporarla y publicar nuestro catálogo.';
+export const STORE_ACCESS_WHATSAPP_MESSAGE = 'Hola, equipo Findi. Quiero solicitar acceso para mi ferretería y conocer los pasos para incorporarla y publicar nuestro catálogo.';
 export const STORE_ACCESS_WHATSAPP_URL = `${LEGAL_IDENTITY.whatsappUrl}?text=${encodeURIComponent(STORE_ACCESS_WHATSAPP_MESSAGE)}`;

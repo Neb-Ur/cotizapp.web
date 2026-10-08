@@ -1,3 +1,4 @@
+import { WriteFeedbackService } from '../../core/services/write-feedback.service';
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -146,6 +147,8 @@ export class DashboardFerreteriaComponent implements OnInit {
     private readonly authService: AuthService,
     private readonly apiService: FirebaseDataService,
     private readonly router: Router
+,
+    private readonly writeFeedback: WriteFeedbackService = new WriteFeedbackService()
   ) {}
 
   protected metrics: { views: number; selections: number } | null = null;
@@ -295,75 +298,77 @@ export class DashboardFerreteriaComponent implements OnInit {
   }
 
   protected async saveCatalogEdit(): Promise<void> {
-    const product = this.catalogEditCandidate;
-    if (!this.user || !product || this.catalogEditSaving) return;
+    await this.writeFeedback.run('dashboard-ferreteria:saveCatalogEdit', async () => {
+      const product = this.catalogEditCandidate;
+      if (!this.user || !product || this.catalogEditSaving) return;
 
-    const rawPrice = Number(this.catalogEditDraft.price);
-    const rawStock = Number(this.catalogEditDraft.stock);
-    const price = Math.round(rawPrice);
-    const stock = Math.floor(rawStock);
+      const rawPrice = Number(this.catalogEditDraft.price);
+      const rawStock = Number(this.catalogEditDraft.stock);
+      const price = Math.round(rawPrice);
+      const stock = Math.floor(rawStock);
 
-    if (!Number.isFinite(rawPrice) || price <= 0) {
-      this.catalogEditError = 'El precio debe ser un numero mayor a 0.';
-      return;
-    }
-    if (!Number.isFinite(rawStock) || stock < 0) {
-      this.catalogEditError = 'El stock debe ser un numero igual o mayor a 0.';
-      return;
-    }
-    if ((this.catalogEditDraft.measurementUnit && !this.catalogEditDraft.measurementQuantity)
-      || (!this.catalogEditDraft.measurementUnit && this.catalogEditDraft.measurementQuantity)) {
-      this.catalogEditError = 'Para calcular el precio por unidad, indica tanto la unidad de medida como la cantidad del envase.';
-      return;
-    }
+      if (!Number.isFinite(rawPrice) || price <= 0) {
+        this.catalogEditError = 'El precio debe ser un numero mayor a 0.';
+        return;
+      }
+      if (!Number.isFinite(rawStock) || stock < 0) {
+        this.catalogEditError = 'El stock debe ser un numero igual o mayor a 0.';
+        return;
+      }
+      if ((this.catalogEditDraft.measurementUnit && !this.catalogEditDraft.measurementQuantity)
+        || (!this.catalogEditDraft.measurementUnit && this.catalogEditDraft.measurementQuantity)) {
+        this.catalogEditError = 'Para calcular el precio por unidad, indica tanto la unidad de medida como la cantidad del envase.';
+        return;
+      }
 
-    const priceChanged = product.price !== price;
-    const stockChanged = product.stock !== stock;
-    const publishedChanged = product.isPublished !== this.catalogEditDraft.isPublished;
-    const metadataChanged = product.includesVat !== this.catalogEditDraft.includesVat
-      || (product.validUntil || '') !== this.catalogEditDraft.validUntil
-      || (product.offerConditions || '') !== this.catalogEditDraft.offerConditions.trim()
-      || (product.measurementUnit || '') !== this.catalogEditDraft.measurementUnit
-      || (product.measurementQuantity || null) !== (this.catalogEditDraft.measurementQuantity || null);
+      const priceChanged = product.price !== price;
+      const stockChanged = product.stock !== stock;
+      const publishedChanged = product.isPublished !== this.catalogEditDraft.isPublished;
+      const metadataChanged = product.includesVat !== this.catalogEditDraft.includesVat
+        || (product.validUntil || '') !== this.catalogEditDraft.validUntil
+        || (product.offerConditions || '') !== this.catalogEditDraft.offerConditions.trim()
+        || (product.measurementUnit || '') !== this.catalogEditDraft.measurementUnit
+        || (product.measurementQuantity || null) !== (this.catalogEditDraft.measurementQuantity || null);
 
-    if (!priceChanged && !stockChanged && !publishedChanged && !metadataChanged) {
-      this.catalogNotice = `${product.name}: sin cambios.`;
-      this.catalogError = '';
-      this.closeCatalogEdit();
-      return;
-    }
+      if (!priceChanged && !stockChanged && !publishedChanged && !metadataChanged) {
+        this.catalogNotice = `${product.name}: sin cambios.`;
+        this.catalogError = '';
+        this.closeCatalogEdit();
+        return;
+      }
 
-    const changes: string[] = [];
-    if (priceChanged) changes.push(`precio ${this.formatCurrency(product.price)} → ${this.formatCurrency(price)}`);
-    if (stockChanged) changes.push(`stock ${product.stock} → ${stock}`);
-    if (publishedChanged) changes.push(this.catalogEditDraft.isPublished ? 'publicado' : 'oculto del comparador');
-    if (metadataChanged) changes.push('condiciones de oferta actualizadas');
+      const changes: string[] = [];
+      if (priceChanged) changes.push(`precio ${this.formatCurrency(product.price)} → ${this.formatCurrency(price)}`);
+      if (stockChanged) changes.push(`stock ${product.stock} → ${stock}`);
+      if (publishedChanged) changes.push(this.catalogEditDraft.isPublished ? 'publicado' : 'oculto del comparador');
+      if (metadataChanged) changes.push('condiciones de oferta actualizadas');
 
-    this.catalogEditSaving = true;
-    this.catalogEditError = '';
+      this.catalogEditSaving = true;
+      this.catalogEditError = '';
 
-    try {
-      this.catalog = await this.apiService.upsertCatalog(this.user.id, {
-        ...product,
-        price,
-        stock,
-        isPublished: this.catalogEditDraft.isPublished,
-        includesVat: this.catalogEditDraft.includesVat,
-        validUntil: this.catalogEditDraft.validUntil,
-        offerConditions: this.catalogEditDraft.offerConditions.trim(),
-        measurementUnit: this.catalogEditDraft.measurementUnit,
-        measurementQuantity: this.catalogEditDraft.measurementQuantity
-      });
-      this.refreshSummary();
-      this.catalogNotice = `${product.name}: ${changes.join(' · ')}.`;
-      this.catalogError = '';
-      this.catalogEditCandidate = null;
-      this.catalogEditModalOpen = false;
-    } catch (error) {
-      this.catalogEditError = error instanceof Error ? error.message : 'No se pudo actualizar el producto.';
-    } finally {
-      this.catalogEditSaving = false;
-    }
+      try {
+        this.catalog = await this.apiService.upsertCatalog(this.user.id, {
+          ...product,
+          price,
+          stock,
+          isPublished: this.catalogEditDraft.isPublished,
+          includesVat: this.catalogEditDraft.includesVat,
+          validUntil: this.catalogEditDraft.validUntil,
+          offerConditions: this.catalogEditDraft.offerConditions.trim(),
+          measurementUnit: this.catalogEditDraft.measurementUnit,
+          measurementQuantity: this.catalogEditDraft.measurementQuantity
+        });
+        this.refreshSummary();
+        this.catalogNotice = `${product.name}: ${changes.join(' · ')}.`;
+        this.catalogError = '';
+        this.catalogEditCandidate = null;
+        this.catalogEditModalOpen = false;
+      } catch (error) {
+        this.catalogEditError = error instanceof Error ? error.message : 'No se pudo actualizar el producto.';
+      } finally {
+        this.catalogEditSaving = false;
+      }
+    });
   }
 
   protected requestDeleteCatalog(product: CatalogProduct): void {
@@ -441,35 +446,37 @@ export class DashboardFerreteriaComponent implements OnInit {
   }
 
   protected async saveSelectedMasterProducts(): Promise<void> {
-    if (!this.user) return;
-    const selected = this.selectedMasterProducts;
-    if (selected.length === 0) {
-      this.relationError = 'Selecciona al menos un producto.';
-      return;
-    }
-    if (selected.some((item) => item.price <= 0)) {
-      this.relationError = 'Todos los productos seleccionados deben tener precio.';
-      return;
-    }
+    await this.writeFeedback.run('dashboard-ferreteria:saveSelectedMasterProducts', async () => {
+      if (!this.user) return;
+      const selected = this.selectedMasterProducts;
+      if (selected.length === 0) {
+        this.relationError = 'Selecciona al menos un producto.';
+        return;
+      }
+      if (selected.some((item) => item.price <= 0)) {
+        this.relationError = 'Todos los productos seleccionados deben tener precio.';
+        return;
+      }
 
-    try {
-      const result = await this.apiService.addCatalogProductsFromMasterBatch(
-        this.user.id,
-        selected.map((item) => ({
-          masterProductId: this.masterProductId(item.product),
-          price: item.price,
-          stock: item.stock
-        }))
-      );
-      this.catalog = result.catalog;
-      this.masterSelectionDrafts = {};
-      this.refreshSummary();
-      this.relationNotice = `${result.createdCount} producto(s) agregado(s) y ${result.updatedCount} actualizado(s).`;
-      this.relationError = '';
-      await this.loadMasterCatalog();
-    } catch (error) {
-      this.relationError = error instanceof Error ? error.message : 'No se pudieron agregar los productos.';
-    }
+      try {
+        const result = await this.apiService.addCatalogProductsFromMasterBatch(
+          this.user.id,
+          selected.map((item) => ({
+            masterProductId: this.masterProductId(item.product),
+            price: item.price,
+            stock: item.stock
+          }))
+        );
+        this.catalog = result.catalog;
+        this.masterSelectionDrafts = {};
+        this.refreshSummary();
+        this.relationNotice = `${result.createdCount} producto(s) agregado(s) y ${result.updatedCount} actualizado(s).`;
+        this.relationError = '';
+        await this.loadMasterCatalog();
+      } catch (error) {
+        this.relationError = error instanceof Error ? error.message : 'No se pudieron agregar los productos.';
+      }
+    });
   }
 
   protected onMasterPageChange(event: PaginatorState): void {
@@ -517,7 +524,7 @@ export class DashboardFerreteriaComponent implements OnInit {
       this.csvError = '';
       this.csvNotice = this.catalog.length > 0
         ? `Catalogo descargado con ${this.catalog.length} producto(s). Modifica precio y stock y luego sube el mismo archivo.`
-        : 'Template CotizApp descargado. Tu catalogo aun no tiene productos.';
+        : 'Template Findi descargado. Tu catalogo aun no tiene productos.';
     } catch (error) {
       this.csvError = error instanceof Error ? error.message : 'No se pudo generar el template.';
     }
@@ -531,36 +538,38 @@ export class DashboardFerreteriaComponent implements OnInit {
   }
 
   protected async importCatalogFile(): Promise<void> {
-    if (!this.user || !this.csvContent.trim()) return;
-    this.csvError = '';
-    this.csvNotice = '';
+    await this.writeFeedback.run('dashboard-ferreteria:importCatalogFile', async () => {
+      if (!this.user || !this.csvContent.trim()) return;
+      this.csvError = '';
+      this.csvNotice = '';
 
-    try {
-      const response = await this.apiService.importCatalogBatch(
-        this.user.id,
-        this.user.businessName || this.user.displayName,
-        this.csvContent,
-        {
-          categoryId: '',
-          subcategoryId: '',
-          familyId: '',
-          brand: 'Sin marca',
-          unitLabel: 'Unidad',
-          isPublished: true,
-          mode: 'update'
-        }
-      );
-      this.catalog = response.catalog;
-      this.importSummary = response.report;
-      this.importSummaryView = response.report.failedCount > 0
-        ? 'fallido'
-        : (response.report.uploadedCount > 0 ? 'subido' : 'sin_cambios');
-      this.importSummaryModalOpen = true;
-      this.refreshSummary();
-      this.csvNotice = `Procesadas ${response.report.totalRows} fila(s): ${response.report.uploadedCount} actualizadas, ${response.report.noChangeCount} sin cambios y ${response.report.failedCount} con error.`;
-    } catch (error) {
-      this.csvError = error instanceof Error ? error.message : 'No se pudo procesar el archivo.';
-    }
+      try {
+        const response = await this.apiService.importCatalogBatch(
+          this.user.id,
+          this.user.businessName || this.user.displayName,
+          this.csvContent,
+          {
+            categoryId: '',
+            subcategoryId: '',
+            familyId: '',
+            brand: 'Sin marca',
+            unitLabel: 'Unidad',
+            isPublished: true,
+            mode: 'update'
+          }
+        );
+        this.catalog = response.catalog;
+        this.importSummary = response.report;
+        this.importSummaryView = response.report.failedCount > 0
+          ? 'fallido'
+          : (response.report.uploadedCount > 0 ? 'subido' : 'sin_cambios');
+        this.importSummaryModalOpen = true;
+        this.refreshSummary();
+        this.csvNotice = `Procesadas ${response.report.totalRows} fila(s): ${response.report.uploadedCount} actualizadas, ${response.report.noChangeCount} sin cambios y ${response.report.failedCount} con error.`;
+      } catch (error) {
+        this.csvError = error instanceof Error ? error.message : 'No se pudo procesar el archivo.';
+      }
+    });
   }
 
   protected async submitProductRequest(): Promise<void> {
@@ -583,7 +592,7 @@ export class DashboardFerreteriaComponent implements OnInit {
           price
         }
       );
-      this.requestNotice = 'Solicitud enviada a CotizApp para revision.';
+      this.requestNotice = 'Solicitud enviada a Findi para revision.';
       this.requestError = '';
       this.requestDraft = { name: '', barcode: '', quantity: 1, price: 0 };
     } catch (error) {
@@ -640,18 +649,20 @@ export class DashboardFerreteriaComponent implements OnInit {
   }
 
   protected async saveProfile(): Promise<void> {
-    this.profileSaved = false;
-    this.profileError = '';
-    this.profileSaving = true;
-    try {
-      await this.authService.updateProfile(this.profileDraft);
-      this.profileSaved = true;
-      setTimeout(() => this.profileSaved = false, 1800);
-    } catch (error) {
-      this.profileError = error instanceof Error ? error.message : 'No se pudo actualizar el perfil.';
-    } finally {
-      this.profileSaving = false;
-    }
+    await this.writeFeedback.run('dashboard-ferreteria:saveProfile', async () => {
+      this.profileSaved = false;
+      this.profileError = '';
+      this.profileSaving = true;
+      try {
+        await this.authService.updateProfile(this.profileDraft);
+        this.profileSaved = true;
+        setTimeout(() => this.profileSaved = false, 1800);
+      } catch (error) {
+        this.profileError = error instanceof Error ? error.message : 'No se pudo actualizar el perfil.';
+      } finally {
+        this.profileSaving = false;
+      }
+    });
   }
 
   protected formatCurrency(value: number): string {

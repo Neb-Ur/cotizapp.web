@@ -76,13 +76,13 @@ export class PropiedadIntelectualComponent {
   protected downloadReceipt(): void {
     if (!this.receipt) return;
     const text = [
-      'COMPROBANTE DE DENUNCIA DE PROPIEDAD INTELECTUAL — COTIZAPP',
+      'COMPROBANTE DE DENUNCIA DE PROPIEDAD INTELECTUAL — Findi',
       `Referencia: ${this.receipt.reference}`,
       `Código privado: ${this.receipt.receiptToken}`,
       `Recibida: ${this.receipt.acknowledgedAt}`,
       `Revisión inicial esperada: ${this.receipt.initialReviewDueAt}`,
       '',
-      'Conserva la referencia y el código privado. CotizApp no volverá a mostrar el código completo.'
+      'Conserva la referencia y el código privado. Findi no volverá a mostrar el código completo.'
     ].join('\n');
     const url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
     const anchor = this.document.createElement('a');

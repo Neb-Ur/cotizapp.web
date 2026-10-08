@@ -132,8 +132,8 @@
             <label>RUT<input type="text" [(ngModel)]="storeCreateDraft.rut" /></label>
             <label>Correo de acceso<input type="email" [(ngModel)]="storeCreateDraft.email" /></label>
             <label>Contraseña temporal
-              <app-password-field><input #passwordInput type="password" [(ngModel)]="storeCreateDraft.password" minlength="12" maxlength="128" autocomplete="new-password" /></app-password-field>
-              <small>12 o más caracteres, con mayúscula, minúscula, número y símbolo.</small>
+              <app-password-field><input #passwordInput type="password" [(ngModel)]="storeCreateDraft.password" minlength="6" maxlength="128" autocomplete="new-password" /></app-password-field>
+              <small>6 o más caracteres, con mayúscula, minúscula, número y símbolo.</small>
             </label>
             <label>Teléfono<input type="text" [(ngModel)]="storeCreateDraft.phone" /></label>
             <label>Ciudad
@@ -189,6 +189,18 @@
           </div>
         </div>
 
+        <div class="actions"><button type="button" (click)="openStoreProductEditor()"><i class="pi pi-plus" aria-hidden="true"></i> Agregar producto individual</button></div>
+        <section class="store-product-editor" *ngIf="storeProductEditorOpen" [attr.aria-busy]="storeProductSaving">
+          <div class="inline-editor-head"><div><span class="section-kicker">Oferta de la ferretería</span><h3>Agregar un producto del catálogo</h3></div><button type="button" class="ghost" (click)="storeProductEditorOpen = false" [disabled]="storeProductSaving">Cancelar</button></div>
+          <label>Buscar producto base<div class="search-input-action"><input type="search" [(ngModel)]="storeProductSearch" (keydown.enter)="searchStoreProduct()" placeholder="Nombre o marca" /><button type="button" (click)="searchStoreProduct()" [disabled]="storeProductSearching">{{ storeProductSearching ? 'Buscando…' : 'Buscar' }}</button></div></label>
+          <app-ui-loader *ngIf="storeProductSearching" label="Buscando productos…" />
+          <label *ngIf="!storeProductSearching && storeProductResults.length">Producto<select [(ngModel)]="storeProductDraft.masterProductId"><option value="">Selecciona un producto</option><option *ngFor="let product of storeProductResults" [value]="product.masterProductId || product.id">{{ product.name }} · {{ product.brand }}</option></select></label>
+          <p *ngIf="!storeProductSearching && storeProductSearch && !storeProductResults.length">Busca en el catálogo para seleccionar el producto.</p>
+          <div class="request-detail-form"><label>Precio final con IVA (CLP)<input type="number" min="1" step="1" [(ngModel)]="storeProductDraft.price" /></label><label>Stock disponible<input type="number" min="0" step="1" [(ngModel)]="storeProductDraft.stock" /></label><label>SKU de la ferretería (opcional)<input type="text" [(ngModel)]="storeProductDraft.sku" /></label></div>
+          <label class="checkbox-line"><input type="checkbox" [(ngModel)]="storeProductDraft.isPublished" />Publicar oferta</label>
+          <p class="error" *ngIf="storeProductError" role="alert">{{ storeProductError }}</p>
+          <div class="actions"><button type="button" (click)="saveStoreProduct()" [disabled]="storeProductSaving || !storeProductDraft.masterProductId"><i [class]="storeProductSaving ? 'pi pi-spin pi-spinner' : 'pi pi-check'" aria-hidden="true"></i>{{ storeProductSaving ? 'Guardando…' : 'Guardar oferta' }}</button></div>
+        </section>
         <dl class="store-profile-grid" *ngIf="selectedStore">
           <div><dt>Contacto</dt><dd>{{ selectedStore.displayName }}</dd></div>
           <div><dt>Correo</dt><dd>{{ selectedStore.email }}</dd></div>
@@ -307,13 +319,14 @@
             </div>
             <div class="taxonomy-create-row">
               <input pInputText type="text" [(ngModel)]="categoryDraftName" placeholder="Nueva categoría" aria-label="Nueva categoría" />
+              <label class="category-icon-picker"><span>Icono</span><i [class]="'pi pi-' + categoryDraftIcon" aria-hidden="true"></i><select [(ngModel)]="categoryDraftIcon" aria-label="Icono de la categoría"><option *ngFor="let icon of categoryIcons" [value]="icon.id">{{ icon.name }}</option></select></label>
               <button pButton type="button" [icon]="categoryEditingId ? 'pi pi-check' : 'pi pi-plus'" [label]="categoryEditingId ? 'Guardar' : 'Crear'" (click)="saveCategory()"></button>
               <button pButton type="button" icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" *ngIf="categoryEditingId" (click)="resetTaxonomyDrafts()" aria-label="Cancelar"></button>
             </div>
             <div class="taxonomy-list">
               <article class="taxonomy-item" *ngFor="let category of categoryOptions" [class.active]="selectedTaxCategoryId === category.id">
                 <button type="button" class="taxonomy-item-main" (click)="selectTaxCategory(category.id)">
-                  <span class="taxonomy-item-title">{{ category.name }}</span>
+                  <span class="taxonomy-item-title"><i [class]="categoryIcon(category)" aria-hidden="true"></i> {{ category.name }}</span>
                 </button>
                 <div class="actions compact">
                   <button pButton type="button" icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" class="store-action-button" (click)="editCategory(category)" aria-label="Editar categoría" title="Editar"></button>
@@ -1093,12 +1106,12 @@
                 <td>{{ user.city || '-' }}</td>
                 <td>{{ user.commune || '-' }}</td>
                 <td>{{ user.address || '-' }}</td>
-                <td class="actions">
-                  <button type="button" class="ghost icon-button" (click)="openUserView(user)" aria-label="Ver usuario">👁</button>
-                  <button type="button" class="ghost icon-button" (click)="openUserEdit(user)" aria-label="Editar usuario">✏</button>
-                  <button type="button" class="danger icon-button" (click)="quickBlock(user)" aria-label="Bloquear usuario">⛔</button>
-                  <button type="button" class="danger icon-button" (click)="deleteUser(user)" aria-label="Eliminar usuario">🗑</button>
-                </td>
+                <td class="user-action-cell"><div class="user-action-buttons">
+                  <button type="button" class="ghost icon-button" (click)="openUserView(user)" aria-label="Ver usuario"><i class="pi pi-eye" aria-hidden="true"></i></button>
+                  <button type="button" class="ghost icon-button" (click)="openUserEdit(user)" aria-label="Editar usuario"><i class="pi pi-pencil" aria-hidden="true"></i></button>
+                  <button type="button" class="danger icon-button" (click)="quickBlock(user)" aria-label="Bloquear usuario"><i class="pi pi-ban" aria-hidden="true"></i></button>
+                  <button type="button" class="danger icon-button" (click)="deleteUser(user)" aria-label="Eliminar usuario"><i class="pi pi-trash" aria-hidden="true"></i></button>
+                </div></td>
               </tr>
             </tbody>
           </table>
@@ -1109,27 +1122,30 @@
     </article>
 
     <ng-template #masterProductEditor>
-      <section class="inline-editor">
+      <section class="inline-editor product-workspace" [attr.aria-busy]="masterDetailLoading || masterDetailSaving">
         <div class="inline-editor-head">
           <div>
-            <h4>{{ masterDetailReadonly ? 'Detalle producto maestro' : (selectedMasterProduct ? 'Editar producto maestro' : 'Crear producto maestro') }}</h4>
-            <p>Completa o revisa la ficha completa del producto maestro sin salir del mantenedor.</p>
+            <span class="section-kicker">Catálogo central · Ficha del producto</span><h4>{{ masterDetailReadonly ? 'Detalle producto maestro' : (selectedMasterProduct ? 'Editar producto maestro' : 'Crear producto maestro') }}</h4>
+            <p>Define el producto, su clasificación y las características que permiten compararlo.</p>
           </div>
           <div class="actions">
-            <button type="button" class="ghost" (click)="closeMasterProductModal()">Volver al listado</button>
-            <button type="button" *ngIf="!masterDetailReadonly" (click)="saveMasterProduct()">Guardar cambios</button>
+            <button type="button" class="ghost product-back" (click)="closeMasterProductModal()" [disabled]="masterDetailSaving">Volver al listado</button>
+            <button type="button" class="product-save" *ngIf="!masterDetailReadonly" (click)="saveMasterProduct()" [disabled]="masterDetailSaving || masterDetailLoading"><i [class]="masterDetailSaving ? 'pi pi-spin pi-spinner' : 'pi pi-check'" aria-hidden="true"></i> {{ masterDetailSaving ? 'Guardando…' : 'Guardar cambios' }}</button>
           </div>
         </div>
 
-        <section class="request-modal inline-editor-body">
+        <app-ui-loader *ngIf="masterDetailLoading" label="Cargando ficha y características…" />
+        <section *ngIf="!masterDetailLoading" class="request-modal inline-editor-body">
+          <p class="error" *ngIf="error" role="alert">{{ error }}</p><p class="saved" *ngIf="notice" role="status">{{ notice }}</p>
+          <h3 class="form-section-title"><i class="pi pi-box" aria-hidden="true"></i> Identidad y clasificación</h3>
           <div class="toolbar modal-form-grid">
-            <label>
+            <label class="product-name-field">
               Nombre
               <input type="text" [(ngModel)]="masterDetailDraft.name" [disabled]="masterDetailReadonly" />
             </label>
             <label>
               Marca
-              <input type="text" [(ngModel)]="masterDetailDraft.brand" [disabled]="masterDetailReadonly" />
+              <input type="text" [(ngModel)]="masterDetailDraft.brand" list="master-brand-options" maxlength="120" [disabled]="masterDetailReadonly" />
             </label>
             <label>
               Código de barras
@@ -1158,7 +1174,7 @@
             </label>
             <label>
               Familia
-              <select [(ngModel)]="masterDetailDraft.familyId" [disabled]="masterDetailReadonly">
+              <select [(ngModel)]="masterDetailDraft.familyId" (ngModelChange)="onDraftSubcategoryChange()" [disabled]="masterDetailReadonly">
                 <option *ngFor="let family of draftFamilyOptions" [value]="family.id">{{ family.name }}</option>
               </select>
             </label>
@@ -1168,6 +1184,7 @@
             </label>
           </div>
 
+          <details class="product-extra"><summary>Presentación y logística</summary>
           <div class="toolbar modal-form-grid">
             <label>
               Presentacion
@@ -1187,6 +1204,8 @@
             </label>
           </div>
 
+          </details>
+          <h3 class="form-section-title"><i class="pi pi-align-left" aria-hidden="true"></i> Descripción</h3>
           <label>
             Descripción corta
             <textarea rows="2" [(ngModel)]="masterDetailDraft.shortDescription" [disabled]="masterDetailReadonly"></textarea>
@@ -1207,6 +1226,7 @@
               <label>Referencia del permiso o revisión<input type="text" [(ngModel)]="masterDetailDraft.contentAuthorizationReference" [disabled]="masterDetailReadonly" placeholder="Contrato, correo, documento o revisión interna" /></label>
             </div>
           </section>
+          <details class="product-extra"><summary>Imágenes y respaldo de derechos</summary>
           <label>
             Imagen principal (URL)
             <input type="text" [(ngModel)]="masterDetailDraft.imageUrl" [disabled]="masterDetailReadonly" />
@@ -1231,8 +1251,9 @@
             <label *ngIf="masterDetailDraft.imageContainsThirdPartyMarks">Autorización de marca<input type="text" [(ngModel)]="masterDetailDraft.trademarkAuthorizationReference" [disabled]="masterDetailReadonly" placeholder="Contrato, correo o licencia del titular" /></label>
             <p>“Generada por IA” registra procedencia, pero no autoriza marcas de terceros.</p>
           </section>
+          </details>
           <label>
-            Bullets (1 por linea)
+            Características destacadas (1 por linea)
             <textarea rows="3" [(ngModel)]="masterDetailDraft.featureBulletsText" [disabled]="masterDetailReadonly"></textarea>
           </label>
 
@@ -1289,7 +1310,7 @@
             </label>
             <label>
               Marca
-              <input type="text" [(ngModel)]="masterDetailDraft.brand" />
+              <input type="text" [(ngModel)]="masterDetailDraft.brand" list="master-brand-options" maxlength="120" />
             </label>
             <label>
               Código de barras
@@ -1438,8 +1459,8 @@
             </label>
             <label *ngIf="userModalDraft.isNew">
               Contraseña temporal
-              <app-password-field><input #passwordInput type="password" [(ngModel)]="userModalDraft.password" minlength="12" maxlength="128" autocomplete="new-password" /></app-password-field>
-              <small>12 o más caracteres, con mayúscula, minúscula, número y símbolo.</small>
+              <app-password-field><input #passwordInput type="password" [(ngModel)]="userModalDraft.password" minlength="6" maxlength="128" autocomplete="new-password" /></app-password-field>
+              <small>6 o más caracteres, con mayúscula, minúscula, número y símbolo.</small>
             </label>
             <label>
               Nombre
@@ -1491,3 +1512,5 @@
     </ng-template>
   </section>
 </main>
+
+<datalist id="master-brand-options"><option *ngFor="let brand of brandOptions" [value]="brand.name"></option></datalist>

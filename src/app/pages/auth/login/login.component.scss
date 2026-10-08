@@ -8,8 +8,8 @@
   grid-template-columns: 1fr 1fr;
   min-height: 100vh;
   background:
-    linear-gradient(140deg, rgba(243, 237, 225, 0.86), rgba(244, 247, 251, 0.92)),
-    radial-gradient(circle at top left, rgba(217, 109, 44, 0.12), transparent 28%);
+    linear-gradient(140deg, rgba(243, 245, 248, 0.98), rgba(243, 245, 248, 0.92)),
+    radial-gradient(circle at top left, rgba(255, 122, 0, 0.12), transparent 28%);
 }
 
 /* ─── Left panel ──────────────────────────────── */
@@ -17,7 +17,7 @@
   position: relative;
   overflow: hidden;
   background:
-    linear-gradient(160deg, #101c29 0%, #1c3043 58%, #244158 100%);
+    linear-gradient(160deg, #0f2d4a 0%, #183d5e 58%, #36536e 100%);
   display: flex;
   align-items: flex-end;
   padding: 2.5rem;

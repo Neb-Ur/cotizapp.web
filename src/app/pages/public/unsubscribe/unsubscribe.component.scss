@@ -1,11 +1,11 @@
-.unsubscribe-page { min-height: 70vh; display: grid; place-items: center; padding: 3rem 1rem; background: #f6f8fb; }
-article { width: min(100%, 620px); padding: 2rem; border: 1px solid #dfe5ec; border-radius: 18px; background: #fff; box-shadow: 0 18px 50px rgba(16, 32, 51, .08); }
+.unsubscribe-page { min-height: 70vh; display: grid; place-items: center; padding: 3rem 1rem; background: var(--ink-50); }
+article { width: min(100%, 620px); padding: 2rem; border: 1px solid #dfe5ec; border-radius: var(--r-md); background: #fff; box-shadow: 0 18px 50px rgba(16, 32, 51, .08); }
 span { color: #d95622; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; font-size: .78rem; }
 h1 { margin: .45rem 0 .75rem; color: #122033; }
 form, label { display: grid; gap: .5rem; }
 form { margin-top: 1.5rem; }
-input { min-height: 48px; border: 1px solid #bdc8d6; border-radius: 10px; padding: 0 .9rem; font: inherit; }
-button { min-height: 48px; border: 0; border-radius: 10px; background: #e75c25; color: #fff; font-weight: 800; cursor: pointer; }
+input { min-height: 48px; border: 1px solid #bdc8d6; border-radius: var(--r-sm); padding: 0 .9rem; font: inherit; }
+button { min-height: 48px; border: 0; border-radius: var(--r-sm); background: var(--orange); color: var(--ink-900); font-weight: 800; cursor: pointer; }
 .privacy-note { color: #596579; font-size: .875rem; line-height: 1.55; }
 .trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 .error { color: #b42318; }

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, afterNextRender } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CookieConsentService } from '../../../core/services/cookie-consent.service';
 import { UiModalComponent } from '../ui-modal/ui-modal.component';
@@ -11,13 +11,14 @@ import { UiModalComponent } from '../ui-modal/ui-modal.component';
   templateUrl: './cookie-consent.component.html',
   styleUrl: './cookie-consent.component.scss'
 })
-export class CookieConsentComponent implements OnInit {
+export class CookieConsentComponent {
   protected preferences = false;
 
-  constructor(protected readonly cookieConsent: CookieConsentService) {}
-
-  ngOnInit(): void {
-    this.syncDraft();
+  constructor(protected readonly cookieConsent: CookieConsentService) {
+    afterNextRender(() => {
+      this.cookieConsent.initializeBrowserState();
+      this.syncDraft();
+    });
   }
 
   protected acceptPreferences(): void {

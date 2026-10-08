@@ -57,11 +57,16 @@ interface ProductoMaestroApi {
   familiaId: string;
   nombre: string;
   marca: string;
+  marcaId?: string | null;
   codigoBarras?: string;
   descripcionCorta?: string;
   descripcionLarga?: string;
   imagenPrincipalUrl?: string;
   galeriaJson?: string[];
+  caracteristicasDestacadas?: string[];
+  pesoLogisticoKg?: number | null;
+  volumenLogisticoM3?: number | null;
+  unidadesPorPallet?: number | null;
   estado?: string;
   catalogoNivel?: 'tipo_base' | 'producto_comercial';
   tipoProducto?: string;
@@ -210,7 +215,7 @@ export class FirebaseDataService {
   async searchProductPage(filters: SearchFilters, page: number, size: number, sort: string, proximity?: SearchProximity): Promise<ProductSearchPage> {
     try {
       return await this.apiClient.get<ProductSearchPage>('/busqueda', false, {
-        vista: 'productos', query: filters.query,
+        vista: 'productos', query: filters.query, marca: filters.brand, marcaId: filters.brandId,
         categoriaId: filters.categoryId, subcategoriaId: filters.subcategoryId, familiaId: filters.familyId,
         page, size, sort, latitude: proximity?.latitude, longitude: proximity?.longitude, radiusKm: proximity?.radiusKm
       });
@@ -336,7 +341,12 @@ export class FirebaseDataService {
     if (user.role === 'admin') {
       return '/dashboard/admin/validaciones';
     }
-    return '/dashboard/maestro';
+    return '/';
+  }
+
+  async getBrandOptions():Promise<Array<{id:string;name:string}>> {
+    const brands=await this.apiClient.get<Array<{id:string;nombre:string}>>('/marcas');
+    return brands.map(item=>({id:item.id,name:item.nombre}));
   }
 
   getCategoryOptions(autoLoad = true): TaxonomyOption[] {
@@ -370,16 +380,16 @@ export class FirebaseDataService {
     return this.familyDefinitionsByFamily.get(familyId) || [];
   }
 
-  async createCategory(name: string): Promise<TaxonomyOption> {
-    const created = await this.apiClient.post<any>('/categorias', { nombre: name.trim() }, true);
+  async createCategory(name: string, icon = 'box'): Promise<TaxonomyOption> {
+    const created = await this.apiClient.post<any>('/categorias', { nombre: name.trim(), icono: icon }, true);
     await this.ensureTaxonomyLoaded(true);
-    return { id: created.id, name: created.nombre };
+    return { id: created.id, name: created.nombre, icon: created.icono };
   }
 
-  async updateCategory(categoryId: string, name: string): Promise<TaxonomyOption> {
-    const updated = await this.apiClient.patch<any>(`/categorias/${categoryId}`, { nombre: name.trim() }, true);
+  async updateCategory(categoryId: string, name: string, icon = 'box'): Promise<TaxonomyOption> {
+    const updated = await this.apiClient.patch<any>(`/categorias/${categoryId}`, { nombre: name.trim(), icono: icon }, true);
     await this.ensureTaxonomyLoaded(true);
-    return { id: updated.id, name: updated.nombre };
+    return { id: updated.id, name: updated.nombre, icon: updated.icono };
   }
 
   async deleteCategory(categoryId: string): Promise<void> {
@@ -553,6 +563,10 @@ export class FirebaseDataService {
       descripcionLarga: raw.descripcionLarga,
       imagenPrincipalUrl: raw.imagenPrincipalUrl,
       galeriaJson: raw.galeriaJson,
+      caracteristicasDestacadas: raw.caracteristicasDestacadas,
+      pesoLogisticoKg: raw.pesoLogisticoKg,
+      volumenLogisticoM3: raw.volumenLogisticoM3,
+      unidadesPorPallet: raw.unidadesPorPallet,
       origenImagen: raw.origenImagen,
       proveedorImagen: raw.proveedorImagen,
       terminosFuenteUrl: raw.terminosFuenteUrl,
@@ -579,6 +593,9 @@ export class FirebaseDataService {
 
   async createMasterCatalogProduct(payload: Partial<CatalogProduct> & {
     descriptionText?: string;
+    logisticsWeightKg?: number | null;
+    logisticsVolumeM3?: number | null;
+    logisticsPalletUnits?: number | null;
   }, refreshCache = true): Promise<CatalogProduct> {
     const created = await this.apiClient.post<any>('/productos-maestro', {
       nombre: payload.name,
@@ -595,6 +612,10 @@ export class FirebaseDataService {
       descripcionLarga: payload.descriptionBlocks?.[0]?.text || payload.descriptionText,
       imagenPrincipalUrl: payload.imageUrl,
       galeriaJson: payload.gallery || [],
+      caracteristicasDestacadas: payload.featureBullets,
+      pesoLogisticoKg: payload.logisticsWeightKg,
+      volumenLogisticoM3: payload.logisticsVolumeM3,
+      unidadesPorPallet: payload.logisticsPalletUnits,
       origenImagen: payload.imageRights?.sourceType,
       proveedorImagen: payload.imageRights?.provider,
       terminosFuenteUrl: payload.imageRights?.sourceTermsUrl,
@@ -612,9 +633,9 @@ export class FirebaseDataService {
 
   async updateMasterCatalogProduct(masterProductId: string, patch: Partial<CatalogProduct> & {
     descriptionText?: string;
-    logisticsWeightKg?: number;
-    logisticsVolumeM3?: number;
-    logisticsPalletUnits?: number;
+    logisticsWeightKg?: number | null;
+    logisticsVolumeM3?: number | null;
+    logisticsPalletUnits?: number | null;
   }, refreshCache = true): Promise<CatalogProduct | null> {
     const payload = {
       nombre: patch.name,
@@ -631,6 +652,10 @@ export class FirebaseDataService {
       descripcionLarga: patch.descriptionBlocks?.[0]?.text || patch.descriptionText,
       imagenPrincipalUrl: patch.imageUrl,
       galeriaJson: patch.gallery,
+      caracteristicasDestacadas: patch.featureBullets,
+      pesoLogisticoKg: patch.logisticsWeightKg,
+      volumenLogisticoM3: patch.logisticsVolumeM3,
+      unidadesPorPallet: patch.logisticsPalletUnits,
       origenImagen: patch.imageRights?.sourceType,
       proveedorImagen: patch.imageRights?.provider,
       terminosFuenteUrl: patch.imageRights?.sourceTermsUrl,
@@ -646,8 +671,7 @@ export class FirebaseDataService {
 
     const updated = await this.apiClient.patch<any>(`/productos-maestro/${masterProductId}`, cleaned, true);
     if (refreshCache) await this.ensureMasterCatalogLoaded(true);
-    return this.masterCatalog.find((item) => (item.masterProductId || item.id) === masterProductId)
-      || (updated ? this.mapMasterProduct(updated, 0) : null);
+    return updated ? this.mapMasterProduct(updated, 0) : null;
   }
 
   async saveMasterProductAttributes(masterProductId: string, rows: Array<{
@@ -740,6 +764,7 @@ export class FirebaseDataService {
     isPublished?: boolean;
   }): Promise<{ catalog: CatalogProduct[]; wasUpdate: boolean }> {
     await this.ensureCatalogLoaded(ownerId, true);
+    await this.ensureMasterCatalogLoaded();
     const catalog = this.getCatalog(ownerId);
     const current = catalog.find((item) => (item.masterProductId || item.id) === masterProductId);
 
@@ -1536,7 +1561,7 @@ export class FirebaseDataService {
         familyName: raw.familyName || this.families.find((item) => item.id === master.familiaId)?.name || 'Sin familia',
         description: master.descripcionLarga || master.descripcionCorta || '',
         shortDescription: master.descripcionCorta || '',
-        featureBullets: [master.descripcionCorta || ''],
+        featureBullets: master.caracteristicasDestacadas || [master.descripcionCorta || ''],
         descriptionBlocks: [{ text: master.descripcionLarga || master.descripcionCorta || '' }],
         technicalSheet: (raw.atributosProducto || []).map((item: any) => ({
           label: item.etiqueta || item.definicionAtributoId,
@@ -1550,6 +1575,20 @@ export class FirebaseDataService {
           || 'Menor precio final unitario con IVA incluido, informado para la misma ficha de producto, con oferta activa y vigente. El patrocinio no altera el orden. El despacho no está incluido.'
       };
 
+  }
+
+  acceptCatalogSearchVersion(version: string): void {
+    if (!version || typeof localStorage === 'undefined') return;
+    const marker = `cotizapp-sheet-index-version:${this.dataMode?.mode() || 'real'}`;
+    try {
+      const previous = localStorage.getItem(marker);
+      if (previous !== version) {
+        this.productDetailByName.clear(); this.productDetailLoadedAt.clear();
+        const prefix = `cotizapp-product-sheet-v1:${this.dataMode?.mode() || 'real'}:`;
+        for (const key of Object.keys(localStorage)) if (key.startsWith(prefix)) localStorage.removeItem(key);
+        localStorage.setItem(marker, version);
+      }
+    } catch { /* Optional browser storage. */ }
   }
 
   async loadProductSheet(productName?: string, slug?: string): Promise<ProductDetailView | null> {
@@ -1764,17 +1803,17 @@ export class FirebaseDataService {
 
     this.replaceArray(this.categories, categories.map((item) => ({
       id: item.id,
-      name: item.nombre
+      name: item.nombre, icon: item.icono
     })));
     this.replaceArray(this.subcategories, subcategories.map((item) => ({
       id: item.id,
       parentId: item.categoriaId,
-      name: item.nombre
+      name: item.nombre, icon: item.icono
     })));
     this.replaceArray(this.families, families.map((item) => ({
       id: item.id,
       parentId: item.subcategoriaId,
-      name: item.nombre
+      name: item.nombre, icon: item.icono
     })));
 
     const mappedSearchRows: SearchRowExtended[] = (snapshot.searchRows || []).map((item) => ({
@@ -1834,7 +1873,7 @@ export class FirebaseDataService {
           this.apiClient.get<any[]>('/familias')
         ]);
 
-        this.replaceArray(this.categories, categories.map((item) => ({ id: item.id, name: item.nombre })));
+        this.replaceArray(this.categories, categories.map((item) => ({ id: item.id, name: item.nombre, icon: item.icono })));
         this.replaceArray(this.subcategories, subcategories.map((item) => ({ id: item.id, parentId: item.categoriaId, name: item.nombre })));
         this.replaceArray(this.families, families.map((item) => ({ id: item.id, parentId: item.subcategoriaId, name: item.nombre })));
       } catch (error) {
@@ -2047,6 +2086,7 @@ export class FirebaseDataService {
       subcategoryId: product.subcategoriaId,
       familyId: product.familiaId,
       brand: product.marca || 'Sin marca',
+      brandId: product.marcaId || null,
       productType: product.tipoProducto || product.descripcionCorta || 'Producto ferretero',
       unitLabel: product.unidadVenta || 'Unidad',
       packagingLabel: product.presentacion || 'Unidad',
@@ -2057,8 +2097,12 @@ export class FirebaseDataService {
       isPublished: product.estado !== 'inactivo',
       shortDescription: product.descripcionCorta || '',
       descriptionBlocks: product.descripcionLarga ? [{ text: product.descripcionLarga }] : [],
-      featureBullets: product.descripcionCorta ? [product.descripcionCorta] : [],
-      technicalSheet: [],
+      featureBullets: product.caracteristicasDestacadas || (product.descripcionCorta ? [product.descripcionCorta] : []),
+      technicalSheet: [
+        ...(typeof product.pesoLogisticoKg === 'number' ? [{label:'Peso logístico (kg)',value:String(product.pesoLogisticoKg)}] : []),
+        ...(typeof product.volumenLogisticoM3 === 'number' ? [{label:'Volumen logístico (m3)',value:String(product.volumenLogisticoM3)}] : []),
+        ...(typeof product.unidadesPorPallet === 'number' ? [{label:'Unidades por pallet',value:String(product.unidadesPorPallet)}] : [])
+      ],
       extraSections: [],
       gallery: Array.isArray(product.galeriaJson) && product.galeriaJson.length > 0
         ? product.galeriaJson

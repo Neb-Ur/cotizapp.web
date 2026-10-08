@@ -270,7 +270,7 @@ export class AuthService implements OnDestroy {
 
   async changePassword(currentPassword: string, newPassword: string): Promise<boolean> {
     if (!STRONG_PASSWORD_PATTERN.test(newPassword)) {
-      throw new Error('Usa entre 12 y 128 caracteres, con mayúscula, minúscula, número y símbolo.');
+      throw new Error('Usa entre 6 y 128 caracteres, con mayúscula, minúscula, número y símbolo.');
     }
     if (currentPassword === newPassword) throw new Error('La nueva contraseña debe ser diferente de la actual.');
     try {
@@ -391,7 +391,7 @@ export class AuthService implements OnDestroy {
   dashboardRouteForRole(role: UserRole): string {
     if (role === 'admin') return '/dashboard/admin/validaciones';
     if (role === 'ferreteria') return '/dashboard/ferreteria';
-    return '/dashboard/maestro';
+    return '/';
   }
 
   async listUsersForAdmin(): Promise<SessionUser[]> {

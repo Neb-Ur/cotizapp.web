@@ -21,7 +21,7 @@ publicPagesRouter.get('/producto', async (req, res, next) => {
     const name = query.get('product') || '';
     if (!name) return res.redirect(302, '/buscar');
     const product = (await getProductSheet(name.trim().toLowerCase(), ''))?.productoMaestro;
-    if (!product) return res.status(404).type('html').send(page('Producto no encontrado | CotizApp', 'Este producto no existe.', req.path, '<main><h1>Producto no encontrado</h1><a href="/buscar">Buscar materiales</a></main>'));
+    if (!product) return res.status(404).type('html').send(page('Producto no encontrado | Findi', 'Este producto no existe.', req.path, '<main><h1>Producto no encontrado</h1><a href="/buscar">Buscar materiales</a></main>'));
     query.delete('product');
     return res.redirect(302, `/productos/${slug(String(product.nombre))}${query.size ? `?${query}` : ''}`);
   } catch (error) { return next(error); }
@@ -30,16 +30,16 @@ publicPagesRouter.get('/productos/:slug', async (req, res, next) => {
   try {
     const sheet = await getProductSheet('', String(req.params.slug));
     const product = sheet?.productoMaestro;
-    if (!product) return res.status(404).type('html').send(page('Producto no encontrado | CotizApp', 'Este producto no existe.', req.path, '<main><h1>Producto no encontrado</h1><a href="/buscar">Buscar materiales</a></main>'));
-    const description = product.descripcionCorta || `Consulta las características de ${product.nombre} y compara ofertas informadas por las ferreterías en CotizApp.`;
+    if (!product) return res.status(404).type('html').send(page('Producto no encontrado | Findi', 'Este producto no existe.', req.path, '<main><h1>Producto no encontrado</h1><a href="/buscar">Buscar materiales</a></main>'));
+    const description = product.descripcionCorta || `Consulta las características de ${product.nombre} y compara ofertas informadas por las ferreterías en Findi.`;
     const schema = { '@context':'https://schema.org', '@type':'Product', name:product.nombre, description };
     const body = `<main><a href="/buscar">Buscar materiales</a><h1>${escape(product.nombre)}</h1><p>${escape(description)}</p><p>${escape(sheet.categoryName)} · ${escape(sheet.subcategoryName)} · ${escape(sheet.familyName)}</p><dl>${sheet.atributosProducto.map((attribute: any) => `<dt>${escape(attribute.etiqueta)}</dt><dd>${escape(attribute.valorTexto ?? attribute.valorNumero ?? attribute.valorOpcion ?? attribute.valorBooleano ?? '')}</dd>`).join('')}</dl><p role="status">Cargando precios de las ferreterías…</p><noscript>Activa JavaScript para consultar las ofertas vigentes de las ferreterías.</noscript></main>`;
     res.set('Cache-Control','public, max-age=0, s-maxage=30, must-revalidate');
-    return res.type('html').send(page(`${product.nombre}: precios en ferreterías | CotizApp`, description, req.path, body, schema, String(product.imagenPrincipalUrl || '')));
+    return res.type('html').send(page(`${product.nombre}: precios en ferreterías | Findi`, description, req.path, body, schema, String(product.imagenPrincipalUrl || '')));
   } catch(error) { return next(error); }
 });
 publicPagesRouter.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/') || req.accepts('html') !== 'html') return next();
   res.set('X-Robots-Tag','noindex');
-  return res.status(404).type('html').send(page('Página no encontrada | CotizApp','Esta página no existe.',req.path,'<main><h1>Página no encontrada</h1><a href="/">Volver al inicio</a></main>'));
+  return res.status(404).type('html').send(page('Página no encontrada | Findi','Esta página no existe.',req.path,'<main><h1>Página no encontrada</h1><a href="/">Volver al inicio</a></main>'));
 });

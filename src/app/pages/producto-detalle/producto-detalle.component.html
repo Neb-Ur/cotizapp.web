@@ -55,7 +55,7 @@
         <section class="comparison-method" aria-label="Cómo se comparan los precios">
           <strong>Criterio de comparación</strong>
           <p>{{ product.comparisonCriteria }}</p>
-          <p><strong>Fuente:</strong> precios informados por cada ferretería. CotizApp no vende ni reserva productos. La compra se realiza directamente con la ferretería.</p>
+          <p><strong>Fuente:</strong> precios informados por cada ferretería. Findi no vende ni reserva productos. La compra se realiza directamente con la ferretería.</p>
         </section>
 
         <p class="product-unavailable-alert" *ngIf="displayStores.length === 0 && !loadError && !offersLoading && !offersError" role="alert">
@@ -332,7 +332,7 @@
   >
       <form class="quotation-form" (ngSubmit)="createQuotation()">
         <label>
-          Nombre <strong aria-hidden="true">*</strong>
+          <span class="field-label">Nombre <strong aria-hidden="true">*</strong></span>
           <input
             name="quotationName"
             type="text"
@@ -346,7 +346,7 @@
         </label>
 
         <label>
-          Dirección <span>(opcional)</span>
+          <span class="field-label">Dirección <small>(opcional)</small></span>
           <input
             name="quotationAddress"
             type="text"

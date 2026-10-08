@@ -101,7 +101,7 @@ nav button:hover {
 }
 
 nav button.active {
-  border-color: rgba(217, 109, 44, 0.16);
+  border-color: rgba(255, 122, 0, 0.16);
   background: var(--sand-100);
   color: var(--ink-900);
   box-shadow: inset 3px 0 0 var(--orange);
@@ -115,7 +115,7 @@ nav button.active {
 
 .sidebar-actions a,
 .sidebar-actions button {
-  border: 1px solid rgba(22, 33, 46, 0.08);
+  border: 1px solid rgba(15, 45, 74, 0.08);
   border-radius: var(--r-sm);
   padding: 0.72rem;
   color: var(--navy-800);

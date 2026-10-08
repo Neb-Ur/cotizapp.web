@@ -1,3 +1,4 @@
+import { WriteFeedbackService } from '../../core/services/write-feedback.service';
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -18,7 +19,6 @@ import {
 } from '../../core/utils/location.util';
 import { shareQuotationPdf } from '../../core/utils/quotation-pdf.util';
 import { productPath } from '../../core/utils/product-url.util';
-import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 
 type MaestroSection = 'inicio' | 'buscar' | 'cotizaciones' | 'historial' | 'perfil';
@@ -38,7 +38,7 @@ interface MaestroProfileDraft {
 @Component({
   selector: 'app-dashboard-maestro',
   standalone: true,
-  imports: [CommonModule, FormsModule, FontAwesomeModule, PaginatorModule, DashboardMenuComponent, UiLoaderComponent],
+  imports: [CommonModule, FormsModule, FontAwesomeModule, PaginatorModule, UiLoaderComponent],
   templateUrl: './dashboard-maestro.component.html',
   styleUrl: './dashboard-maestro.component.scss'
 })
@@ -68,6 +68,8 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
   protected subcategorySearch = '';
   protected familySearch = '';
   protected tableProductSearch = '';
+  protected selectedBrand = '';
+  protected selectedBrandId = '';
   protected selectedCategoryId = '';
   protected selectedSubcategoryId = '';
   protected selectedFamilyId = '';
@@ -114,11 +116,13 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
     private readonly apiService: FirebaseDataService,
     private readonly route: ActivatedRoute,
     private readonly router: Router
+,
+    private readonly writeFeedback: WriteFeedbackService = new WriteFeedbackService()
   ) {}
 
   ngOnInit(): void {
     this.syncViewportState();
-    if (!this.user) {
+    if (!this.user || this.route.snapshot.data['publicCatalog']) {
       this.currentSection = 'buscar';
     }
     const savedNearby = readNearbySearchPreference();
@@ -144,14 +148,19 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
       if (this.isValidSection(requested) && (this.user || requested === 'buscar')) {
         this.currentSection = requested;
       }
+      const requestedBrand = params.get('marca') || '';
+      const requestedBrandId = params.get('marcaId') || '';
       const requestedCategory = params.get('categoria') || '';
       const requestedSubcategory = params.get('subcategoria') || '';
       const requestedFamily = params.get('familia') || '';
       if (
-        requestedCategory !== this.selectedCategoryId
+        requestedBrand !== this.selectedBrand || requestedBrandId !== this.selectedBrandId
+        || requestedCategory !== this.selectedCategoryId
         || requestedSubcategory !== this.selectedSubcategoryId
         || requestedFamily !== this.selectedFamilyId
       ) {
+        this.selectedBrand = requestedBrand;
+        this.selectedBrandId = requestedBrandId;
         this.selectedCategoryId = requestedCategory;
         this.selectedSubcategoryId = requestedSubcategory;
         this.selectedFamilyId = requestedFamily;
@@ -174,7 +183,6 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
   }
 
   protected get user(): SessionUser | null {
-    if (this.route.snapshot.data['publicCatalog']) return null;
     const currentUser = this.authService.currentUser();
     return currentUser?.role === 'maestro' ? currentUser : null;
   }
@@ -268,7 +276,7 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
   }
 
   protected get taxonomyFilterCount(): number {
-    return [this.selectedCategoryId, this.selectedSubcategoryId, this.selectedFamilyId]
+    return [this.selectedCategoryId, this.selectedSubcategoryId, this.selectedFamilyId, this.selectedBrand]
       .filter(Boolean).length;
   }
 
@@ -399,7 +407,16 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
     this.refreshProductRows();
   }
 
+  protected clearBrandFilter(): void {
+    this.selectedBrand = '';
+    this.selectedBrandId = '';
+    this.currentPage = 1;
+    this.refreshProductRows();
+  }
+
   protected clearCategoryFilter(): void {
+    this.selectedBrand = '';
+    this.selectedBrandId = '';
     this.categorySearch = '';
     this.subcategorySearch = '';
     this.familySearch = '';
@@ -522,34 +539,38 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
   }
 
   protected async deleteProject(projectId: string): Promise<void> {
-    if (!this.user) return;
-    await this.apiService.deleteProject(this.user.id, projectId);
-    this.loadedSections.delete('inicio');
-    this.loadedSections.delete('cotizaciones');
-    this.loadedSections.delete('historial');
-    await this.ensureSectionData(this.currentSection, true);
+    await this.writeFeedback.run('dashboard-maestro:deleteProject', async () => {
+      if (!this.user) return;
+      await this.apiService.deleteProject(this.user.id, projectId);
+      this.loadedSections.delete('inicio');
+      this.loadedSections.delete('cotizaciones');
+      this.loadedSections.delete('historial');
+      await this.ensureSectionData(this.currentSection, true);
+    });
   }
 
   protected async saveProfile(): Promise<void> {
-    this.profileSaved = false;
-    this.profileError = '';
+    await this.writeFeedback.run('dashboard-maestro:saveProfile', async () => {
+      this.profileSaved = false;
+      this.profileError = '';
 
-    if (this.profileDraft.displayName.trim().length < 2) {
-      this.profileError = 'Ingresa tu nombre.';
-      return;
-    }
+      if (this.profileDraft.displayName.trim().length < 2) {
+        this.profileError = 'Ingresa tu nombre.';
+        return;
+      }
 
-    try {
-      await this.authService.updateProfile({
-        displayName: this.profileDraft.displayName.trim(),
-        phone: this.profileDraft.phone.trim(),
-        commune: this.profileDraft.commune.trim()
-      });
-      this.profileSaved = true;
-      setTimeout(() => this.profileSaved = false, 1800);
-    } catch (error) {
-      this.profileError = error instanceof Error ? error.message : 'No fue posible guardar tu perfil.';
-    }
+      try {
+        await this.authService.updateProfile({
+          displayName: this.profileDraft.displayName.trim(),
+          phone: this.profileDraft.phone.trim(),
+          commune: this.profileDraft.commune.trim()
+        });
+        this.profileSaved = true;
+        setTimeout(() => this.profileSaved = false, 1800);
+      } catch (error) {
+        this.profileError = error instanceof Error ? error.message : 'No fue posible guardar tu perfil.';
+      }
+    });
   }
 
   protected resetProfileDraft(): void {
@@ -632,7 +653,9 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
         query: this.tableProductSearch.trim(),
         categoryId: this.selectedCategoryId,
         subcategoryId: this.selectedSubcategoryId,
-        familyId: this.selectedFamilyId
+        familyId: this.selectedFamilyId,
+        brand: this.selectedBrand,
+        ...(this.selectedBrandId ? {brandId:this.selectedBrandId} : {})
       }, this.currentPage, this.pageSize, this.productSort, this.currentProximity);
       if (requestId !== this.searchRequestId) return false;
       this.productRows = result.items;

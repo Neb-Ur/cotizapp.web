@@ -1,9 +1,7 @@
+import { categoryIcon } from '../../core/utils/category-icon.util';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AutoCompleteCompleteEvent, AutoCompleteModule, AutoCompleteSelectEvent } from 'primeng/autocomplete';
-import { ButtonModule } from 'primeng/button';
 import { SkeletonModule } from 'primeng/skeleton';
 import { FamilyProductRow, TaxonomyOption } from '../../core/models/app.models';
 import { FirebaseDataService } from '../../core/services/firebase-data.service';
@@ -17,23 +15,18 @@ interface HomeCategory extends TaxonomyOption {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, AutoCompleteModule, ButtonModule, SkeletonModule],
+  imports: [CommonModule, RouterLink, SkeletonModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
 export class HomeComponent implements OnInit {
   protected readonly storeAccessWhatsappUrl = STORE_ACCESS_WHATSAPP_URL;
-  protected searchValue: string | FamilyProductRow = '';
-  protected searchSuggestions: FamilyProductRow[] = [];
   protected featuredProducts: FamilyProductRow[] = [];
   protected featuredCategories: HomeCategory[] = [];
   protected catalogLoading = true;
   protected catalogError = '';
 
-  private readonly categoryIcons = [
-    'pi pi-building', 'pi pi-box', 'pi pi-wrench', 'pi pi-bolt',
-    'pi pi-palette', 'pi pi-home', 'pi pi-sun', 'pi pi-cog'
-  ];
+
 
   constructor(
     private readonly dataService: FirebaseDataService,
@@ -42,27 +35,6 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     void this.loadCatalog();
-  }
-
-  protected searchProducts(event: AutoCompleteCompleteEvent): void {
-    const query = event.query.trim();
-    this.searchSuggestions = query.length < 2
-      ? []
-      : this.dataService.getPopularProductRows(query, 6, undefined, false);
-  }
-
-  protected selectSuggestion(event: AutoCompleteSelectEvent): void {
-    this.openProduct(event.value as FamilyProductRow);
-  }
-
-  protected submitSearch(): void {
-    if (typeof this.searchValue !== 'string') {
-      this.openProduct(this.searchValue);
-      return;
-    }
-
-    const query = this.searchValue.trim();
-    void this.router.navigate(['/buscar'], { queryParams: query ? { q: query } : undefined });
   }
 
   protected openProduct(product: FamilyProductRow): void {
@@ -111,9 +83,9 @@ export class HomeComponent implements OnInit {
     this.featuredProducts = this.dataService.getPopularProductRows('', 12, undefined, false);
     this.featuredCategories = this.dataService.getCategoryOptions(false)
       .slice(0, 8)
-      .map((category, index) => ({
+      .map((category) => ({
         ...category,
-        icon: this.categoryIcons[index % this.categoryIcons.length]
+        icon: categoryIcon(category)
       }));
   }
 }

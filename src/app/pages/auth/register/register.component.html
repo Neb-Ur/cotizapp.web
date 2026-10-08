@@ -24,8 +24,8 @@
 
       <div class="field" *ngIf="!isCompletingProfile">
         <label for="register-password">Contraseña</label>
-        <app-password-field><input #passwordInput id="register-password" formControlName="password" type="password" placeholder="Crea una contraseña segura" autocomplete="new-password" minlength="12" maxlength="128" [attr.aria-invalid]="hasError('password')" aria-describedby="register-password-help register-password-error" /></app-password-field>
-        <small id="register-password-help">Usa 12 o más caracteres, con mayúscula, minúscula, número y símbolo.</small>
+        <app-password-field><input #passwordInput id="register-password" formControlName="password" type="password" placeholder="Crea una contraseña segura" autocomplete="new-password" minlength="6" maxlength="128" [attr.aria-invalid]="hasError('password')" aria-describedby="register-password-help register-password-error" /></app-password-field>
+        <small id="register-password-help">Usa 6 o más caracteres, con mayúscula, minúscula, número y símbolo.</small>
         <small id="register-password-error" *ngIf="hasError('password')">La contraseña no cumple los requisitos de seguridad.</small>
       </div>
 
@@ -58,7 +58,7 @@
         <div class="optional-divider"><span>Preferencia opcional</span></div>
         <label class="check-row check-row--optional" for="register-marketing">
           <input id="register-marketing" type="checkbox" formControlName="marketingConsent" />
-          <span>Quiero recibir novedades y comunicaciones comerciales de CotizApp. Puedo retirar este consentimiento en cualquier momento.</span>
+          <span>Quiero recibir novedades y comunicaciones comerciales de Findi. Puedo retirar este consentimiento en cualquier momento.</span>
         </label>
         <small class="legal-error" *ngIf="form.touched && (form.controls.termsAccepted.invalid || form.controls.privacyAcknowledged.invalid || form.controls.ageConfirmed.invalid)">
           Debes completar las tres confirmaciones obligatorias para crear la cuenta.

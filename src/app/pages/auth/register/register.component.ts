@@ -1,3 +1,4 @@
+import { STRONG_PASSWORD_PATTERN } from '../../../core/utils/password-policy.util';
 import { PasswordFieldComponent } from '../../../shared/components/password-field/password-field.component';
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
@@ -16,7 +17,7 @@ import { LEGAL_IDENTITY } from '../../../core/config/legal-identity.config';
   styleUrl: './register.component.scss'
 })
 export class RegisterComponent {
-  private static readonly STRONG_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{12,128}$/;
+  private static readonly STRONG_PASSWORD = STRONG_PASSWORD_PATTERN;
 
   protected errorMessage = '';
   protected isSubmitting = false;
@@ -29,7 +30,7 @@ export class RegisterComponent {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [
       Validators.required,
-      Validators.minLength(12),
+      Validators.minLength(6),
       Validators.maxLength(128),
       Validators.pattern(RegisterComponent.STRONG_PASSWORD)
     ]],

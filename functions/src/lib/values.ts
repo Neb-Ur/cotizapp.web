@@ -83,7 +83,7 @@ export function validRole(value: unknown): value is UserRole {
 
 export function validStrongPassword(value: unknown): boolean {
   const password = String(value ?? '');
-  return password.length >= 12
+  return password.length >= 6
     && password.length <= 128
     && /[a-z]/.test(password)
     && /[A-Z]/.test(password)

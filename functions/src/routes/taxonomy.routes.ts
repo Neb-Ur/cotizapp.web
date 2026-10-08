@@ -1,28 +1,42 @@
+import { invalidateStaticCatalog } from '../lib/product-sheet-cache.js';
+import { markPublicCatalogDirty } from '../lib/public-catalog-cache.js';
 import { Router } from 'express';
 import { db } from '../lib/firebase.js';
 import { requireAuth, requireRole } from '../lib/auth.js';
 import { fail, ok } from '../lib/http.js';
 import { COLLECTIONS } from '../lib/collections.js';
 import { normalizeText, numberValue, boolValue } from '../lib/values.js';
-import { rows, createRow, patchRow } from '../repositories/firestore.repository.js';
+import { rows, createRow as createStoredRow, patchRow as patchStoredRow } from '../repositories/firestore.repository.js';
+const invalidateTaxonomy = () => Promise.all([invalidateStaticCatalog(), markPublicCatalogDirty()]);
+async function createRow(collection: string, payload: Record<string, unknown>) {
+  const created = await createStoredRow(collection, payload); await invalidateTaxonomy(); return created;
+}
+async function patchRow(collection: string, id: string, payload: Record<string, unknown>) {
+  const updated = await patchStoredRow(collection, id, payload); if (updated) await invalidateTaxonomy(); return updated;
+}
 export const taxonomyRouter = Router();
+const categoryIcons = new Set(['building', 'home', 'bolt', 'wrench', 'filter', 'sun', 'palette', 'th-large', 'shield', 'box', 'truck', 'cog', 'sitemap', 'cloud', 'objects-column', 'hashtag']);
+const iconOf = (value: unknown) => categoryIcons.has(String(value)) ? String(value) : 'box';
 
 taxonomyRouter.get('/categorias', async (_req, res) => ok(res, (await rows(COLLECTIONS.categories)).sort((a, b) => a.nombre.localeCompare(b.nombre))));
 
 taxonomyRouter.post('/categorias', requireAuth, requireRole('admin'), async (req, res) => {
   const nombre = normalizeText(req.body?.nombre);
   if (!nombre) return fail(res, 'TAXONOMIA_INVALID_PAYLOAD', 'Nombre requerido.', 400);
-  return ok(res, await createRow(COLLECTIONS.categories, { nombre }), 201);
+  const created = await createRow(COLLECTIONS.categories, { nombre, icono: iconOf(req.body?.icono) });
+  return ok(res, created, 201);
 });
 
 taxonomyRouter.patch('/categorias/:id', requireAuth, requireRole('admin'), async (req, res) => {
   const nombre = normalizeText(req.body?.nombre);
-  const updated = await patchRow(COLLECTIONS.categories, req.params.id, { nombre });
+  if (!nombre) return fail(res, 'TAXONOMIA_INVALID_PAYLOAD', 'Nombre requerido.', 400);
+  const updated = await patchRow(COLLECTIONS.categories, req.params.id, { nombre, ...(req.body?.icono !== undefined ? {icono: iconOf(req.body.icono)} : {}) });
   return updated ? ok(res, updated) : fail(res, 'TAXONOMIA_NOT_FOUND', 'Categoria no encontrada.', 404);
 });
 
 taxonomyRouter.delete('/categorias/:id', requireAuth, requireRole('admin'), async (req, res) => {
   await db.collection(COLLECTIONS.categories).doc(req.params.id).delete();
+  await invalidateTaxonomy();
   return ok(res, { deleted: true });
 });
 
@@ -51,6 +65,7 @@ taxonomyRouter.patch('/subcategorias/:id', requireAuth, requireRole('admin'), as
 
 taxonomyRouter.delete('/subcategorias/:id', requireAuth, requireRole('admin'), async (req, res) => {
   await db.collection(COLLECTIONS.subcategories).doc(req.params.id).delete();
+  await invalidateTaxonomy();
   return ok(res, { deleted: true });
 });
 
@@ -79,6 +94,7 @@ taxonomyRouter.patch('/familias/:id', requireAuth, requireRole('admin'), async (
 
 taxonomyRouter.delete('/familias/:id', requireAuth, requireRole('admin'), async (req, res) => {
   await db.collection(COLLECTIONS.families).doc(req.params.id).delete();
+  await invalidateTaxonomy();
   return ok(res, { deleted: true });
 });
 
@@ -120,6 +136,7 @@ taxonomyRouter.patch('/familias/:familyId/atributos-definicion/:definitionId', r
 
 taxonomyRouter.delete('/familias/:familyId/atributos-definicion/:definitionId', requireAuth, requireRole('admin'), async (req, res) => {
   await db.collection(COLLECTIONS.familyDefinitions).doc(req.params.definitionId).delete();
+  await invalidateTaxonomy();
   return ok(res, { deleted: true });
 });
 

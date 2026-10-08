@@ -15,65 +15,65 @@ interface SeoPage {
 const SITE_URL = 'https://cotizapp-d71c8.web.app';
 const STRUCTURED_DATA_ID = 'cotizapp-page-structured-data';
 const DEFAULT_PAGE: SeoPage = {
-  title: 'CotizApp | Compara precios de materiales de construcción',
+  title: 'Findi | Compara precios de materiales de construcción',
   description: 'Compara precios y stock de materiales entre ferreterías y arma tu cotización de obra en minutos.'
 };
 
 const PAGE_SEO: Record<string, SeoPage> = {
   '/': DEFAULT_PAGE,
   '/buscar': {
-    title: 'Buscar materiales y comparar precios | CotizApp',
+    title: 'Buscar materiales y comparar precios | Findi',
     description: 'Busca materiales de construcción y compara precios y disponibilidad entre ferreterías activas sin crear una cuenta.'
   },
   '/producto': {
-    title: 'Comparar precios de productos | CotizApp',
+    title: 'Comparar precios de productos | Findi',
     description: 'Revisa precios, stock y alternativas disponibles para tus materiales de construcción.'
   },
   '/maestros': {
-    title: 'Cotizaciones para maestros y contratistas | CotizApp',
+    title: 'Cotizaciones para maestros y contratistas | Findi',
     description: 'Compara materiales, optimiza costos y guarda cotizaciones para cada proyecto de construcción.'
   },
   '/ferreterias': {
-    title: 'CotizApp para ferreterías | Solicita acceso',
+    title: 'Findi para ferreterías | Solicita acceso',
     description: 'Publica tu catálogo, precio y stock para participar en las comparaciones de maestros y contratistas.'
   },
   '/contacto': {
-    title: 'Contacto y solicitud de acceso | CotizApp',
-    description: 'Contacta a CotizApp para soporte o para solicitar acceso como ferretería.'
+    title: 'Contacto y solicitud de acceso | Findi',
+    description: 'Contacta a Findi para soporte o para solicitar acceso como ferretería.'
   },
   '/preguntas-frecuentes': {
-    title: 'Preguntas frecuentes | CotizApp',
+    title: 'Preguntas frecuentes | Findi',
     description: 'Resuelve dudas sobre búsqueda de productos, cotizaciones, cuentas de maestro y acceso para ferreterías.'
   },
   '/terminos-condiciones': {
-    title: 'Términos y condiciones | CotizApp',
-    description: 'Condiciones de uso de CotizApp para visitantes, maestros y ferreterías.'
+    title: 'Términos y condiciones | Findi',
+    description: 'Condiciones de uso de Findi para visitantes, maestros y ferreterías.'
   },
   '/privacidad': {
-    title: 'Política de privacidad | CotizApp',
-    description: 'Conoce cómo CotizApp trata y protege los datos personales de sus usuarios.'
+    title: 'Política de privacidad | Findi',
+    description: 'Conoce cómo Findi trata y protege los datos personales de sus usuarios.'
   },
   '/propiedad-intelectual': {
-    title: 'Propiedad intelectual y denuncia de contenido | CotizApp',
-    description: 'Consulta la política de propiedad intelectual de CotizApp y denuncia imágenes, marcas, fichas o descripciones presuntamente infractoras.'
+    title: 'Propiedad intelectual y denuncia de contenido | Findi',
+    description: 'Consulta la política de propiedad intelectual de Findi y denuncia imágenes, marcas, fichas o descripciones presuntamente infractoras.'
   },
   '/desuscribir': {
-    title: 'Dejar de recibir publicidad | CotizApp',
-    description: 'Retira tu autorización para comunicaciones publicitarias de CotizApp.',
+    title: 'Dejar de recibir publicidad | Findi',
+    description: 'Retira tu autorización para comunicaciones publicitarias de Findi.',
     index: false
   },
   '/reportar-precio': {
-    title: 'Reportar un precio incorrecto | CotizApp',
-    description: 'Informa una diferencia para que CotizApp verifique y corrija el precio publicado.',
+    title: 'Reportar un precio incorrecto | Findi',
+    description: 'Informa una diferencia para que Findi verifique y corrija el precio publicado.',
     index: false
   },
   '/login': {
-    title: 'Iniciar sesión | CotizApp',
-    description: 'Accede a tu cuenta de CotizApp.',
+    title: 'Iniciar sesión | Findi',
+    description: 'Accede a tu cuenta de Findi.',
     index: false
   },
   '/registro': {
-    title: 'Crear cuenta de maestro | CotizApp',
+    title: 'Crear cuenta de maestro | Findi',
     description: 'Crea una cuenta de maestro para guardar cotizaciones y consultar tu historial.',
     index: false
   }
@@ -100,7 +100,7 @@ export class SeoService {
     const description = this.productDescription(product);
     const image = this.validImage(product.imageUrl) ? product.imageUrl : undefined;
     const page: SeoPage = {
-      title: `${product.productName}: precios en ferreterías | CotizApp`,
+      title: `${product.productName}: precios en ferreterías | Findi`,
       index: true,
       description
     };
@@ -137,8 +137,8 @@ export class SeoService {
 
   markProductNotFound(): void {
     this.applyPage({
-      title: 'Producto no encontrado | CotizApp',
-      description: 'El producto solicitado no está disponible en el catálogo de CotizApp.',
+      title: 'Producto no encontrado | Findi',
+      description: 'El producto solicitado no está disponible en el catálogo de Findi.',
       index: false
     }, this.router.url.split('?')[0] || '/producto');
   }
@@ -173,7 +173,7 @@ export class SeoService {
     this.meta.updateTag({ property: 'og:description', content: page.description });
     this.meta.updateTag({ property: 'og:type', content: openGraphType });
     this.meta.updateTag({ property: 'og:url', content: canonicalUrl });
-    this.meta.updateTag({ property: 'og:site_name', content: 'CotizApp' });
+    this.meta.updateTag({ property: 'og:site_name', content: 'Findi' });
     this.meta.updateTag({ property: 'og:locale', content: 'es_CL' });
     this.meta.updateTag({ name: 'twitter:card', content: image ? 'summary_large_image' : 'summary' });
     this.meta.updateTag({ name: 'twitter:title', content: page.title });

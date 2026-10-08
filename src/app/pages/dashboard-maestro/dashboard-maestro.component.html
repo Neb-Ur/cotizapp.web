@@ -1,27 +1,16 @@
-<main class="dashboard" [class.dashboard--public]="!user">
+<main class="dashboard dashboard--public account-page">
   <div *ngIf="dataLoadError" class="data-load-error" role="alert">
     <p>{{ dataLoadError }}</p>
     <button type="button" (click)="retryDataLoad()">Reintentar carga</button>
   </div>
-  <app-dashboard-menu
-    *ngIf="user"
-    title="Panel Maestro"
-    [userName]="user.displayName || ''"
-    [sections]="sections"
-    [activeSection]="currentSection"
-    [isMobileViewport]="isMobileViewport"
-    [isMobileOpen]="isMobileMenuVisible"
-    (sectionSelected)="setSection($any($event))"
-    (menuClosed)="closeMobileMenu()"
-    (logoutRequested)="logout()"
-  />
+  <nav class="account-tabs" *ngIf="user && currentSection !== 'buscar'" aria-label="Mi cuenta">
+    <button *ngFor="let section of sections" [hidden]="section.id === 'buscar'" [class.active]="currentSection === section.id" (click)="setSection(section.id)">{{ section.label }}</button>
+  </nav>
 
   <section class="content">
-    <header class="content-header" *ngIf="user">
+    <header class="content-header" *ngIf="user && currentSection !== 'buscar'">
       <div class="title-row">
-        <button *ngIf="isMobileViewport" type="button" class="menu-toggle menu-icon" (click)="toggleMobileMenu()" aria-label="Abrir menu">
-          <span></span><span></span><span></span>
-        </button>
+
         <div>
           <h1>{{ currentSectionLabel }}</h1>
           <p>{{ currentSectionDescription }}</p>
@@ -30,7 +19,7 @@
     </header>
 
     <article class="panel panel--loading" *ngIf="user && (isInitialLoading || isSectionLoading)">
-      <app-ui-loader [label]="!user && currentSection === 'buscar' ? 'Cargando productos...' : (isInitialLoading ? 'Cargando CotizApp...' : 'Cargando seccion...')" />
+      <app-ui-loader [label]="!user && currentSection === 'buscar' ? 'Cargando productos...' : (isInitialLoading ? 'Cargando Findi...' : 'Cargando seccion...')" />
     </article>
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'inicio'">
@@ -66,14 +55,8 @@
 
     <article class="panel" *ngIf="currentSection === 'buscar' && (!user || (!isInitialLoading && !isSectionLoading))">
       <section class="search-primary" aria-labelledby="product-search-label">
-        <div class="public-search-main">
-          <h1 *ngIf="!user">Busca y compara materiales de construcción</h1>
-          <label class="top-product-search" id="product-search-label">
-            <span>¿Qué material necesitas?</span>
-            <input [(ngModel)]="tableProductSearch" (ngModelChange)="onProductSearchChange()" type="search" placeholder="Busca cemento, OSB, yeso..." />
-          </label>
-        </div>
-        <p>Busca por nombre o acota los resultados por categoría, subcategoría y familia.</p>
+        <div class="public-search-main"><h1 id="product-search-label">{{ tableProductSearch ? 'Resultados para “' + tableProductSearch + '”' : 'Productos y materiales' }}</h1></div>
+        <p>Explora el catálogo y compara las ofertas disponibles. Usa los filtros para acotar tu búsqueda.</p>
       </section>
 
       <div class="catalog-results-layout">
@@ -181,6 +164,7 @@
         <button type="button" *ngIf="selectedFamilyId" (click)="clearFamilyFilter()" [attr.aria-label]="'Quitar familia ' + selectedFamilyName">
           {{ selectedFamilyName }} <fa-icon [icon]="faRemove" aria-hidden="true" />
         </button>
+        <button type="button" *ngIf="selectedBrand" (click)="clearBrandFilter()" [attr.aria-label]="'Quitar marca ' + selectedBrand">{{ selectedBrand }} <fa-icon [icon]="faRemove" aria-hidden="true" /></button>
         <button type="button" class="clear-active-filters" (click)="clearCategoryFilter()">Limpiar todo</button>
       </div>
 

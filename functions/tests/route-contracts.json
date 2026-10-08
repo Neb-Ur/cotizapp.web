@@ -331,6 +331,12 @@
   },
   {
     "method": "get",
+    "path": "/marcas",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "get",
     "path": "/productos-maestro",
     "auth": false,
     "middlewareCount": 1

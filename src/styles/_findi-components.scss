@@ -1,0 +1,183 @@
+/* Shared Findi shapes and surfaces. Native controls, dense tables and status colors retain their purpose. */
+:root {
+  h1, h2, h3 { text-wrap: balance; }
+  button, .btn { font-weight: 700; }
+  th, td { font-variant-numeric: tabular-nums; }
+  .btn { gap: 0.55rem; padding-inline: 1.3rem; }
+  .btn-primary { box-shadow: none; }
+  input, select, textarea { box-shadow: none; }
+
+  app-site-navbar {
+    .navbar { box-shadow: 0 2px 16px rgba(15, 45, 74, 0.04); }
+    .navbar-search { border-radius: 14px; overflow: hidden; }
+    .search-submit { display: grid; place-items: center; border-radius: 0; margin: 0; padding: 0; width: 48px; min-width: 48px; flex-basis: 48px; min-height: 0; font-size: 1rem; }
+    .search-panel, .taxonomy-mega-menu { border-radius: var(--r-lg); box-shadow: var(--shadow-lg); }
+    .search-result { border-radius: var(--r-sm); }
+    .search-result-icon { border-radius: 10px; background: var(--orange-muted); }
+  }
+
+  :is(app-dashboard-admin-validaciones, app-dashboard-maestro, app-dashboard-ferreteria) {
+    :is(.dashboard, .dashboard-admin) { margin-block: 1.25rem 2rem; gap: 1.15rem; }
+    .content { gap: 1rem; min-width: 0; }
+    :is(.panel, .content-header) { min-width: 0; }
+    .title-row > div { min-width: 0; }
+    :is(.panel, .content-header, .store-header, .kpi-card) { box-shadow: var(--shadow-sm); }
+    :is(.content-header, .store-header) {
+      border-top: 3px solid var(--orange);
+      background: linear-gradient(120deg, #fff, var(--ink-50));
+      padding: 1.2rem 1.4rem;
+    }
+    .sidebar { background: #fff; box-shadow: var(--shadow-sm); }
+    .sidebar nav button { padding: 0.8rem 0.85rem; }
+    .sidebar nav button.active[class] { background: var(--ink-900); color: #fff; border-color: var(--ink-900); box-shadow: none; }
+    .sidebar nav button.active :is(span, small, strong, svg) { color: inherit; }
+    .table-wrap { border-radius: var(--r-md); border-color: var(--border); }
+  }
+
+  app-dashboard-menu {
+    .sidebar { background: #fff; border-radius: var(--r-lg); }
+    nav button.active { background: var(--ink-900); color: #fff; border-color: var(--ink-900); box-shadow: none; }
+    .user-avatar { border-radius: 14px; }
+  }
+
+  app-producto-detalle {
+    .detail-page { margin-block: 1.5rem 2.5rem; gap: 1.25rem; }
+    .detail-card { padding: 1.5rem; box-shadow: var(--shadow-sm); border-radius: var(--r-lg); }
+    .hero-grid { gap: 1.5rem; }
+    .main-image { background: var(--ink-50); border-color: transparent; }
+    .purchase-panel { padding: 1.35rem; background: #fff; border-top: 3px solid var(--orange); }
+    .purchase-panel .brand { color: var(--orange-hover); font-size: 0.75rem; }
+    .comparison-method { background: var(--ink-50); border-color: var(--border); }
+    .price-range { font-size: 1.65rem; letter-spacing: -0.035em; }
+  }
+
+  app-proyecto-detalle {
+    .project-detail-page { margin-block: 1.5rem 2.5rem; gap: 1.15rem; }
+    .page-header { padding: 1.4rem; border: 1px solid var(--border); border-radius: var(--r-lg); background: #fff; box-shadow: var(--shadow-sm); }
+    .detail-card { padding: 1.4rem; box-shadow: var(--shadow-sm); border-radius: var(--r-lg); }
+    :is(.editor-panel, .quotation-table-card, .store-totals-card) { background: var(--ink-50); border-color: var(--border); }
+    .page-title h1 { letter-spacing: -0.035em; }
+  }
+
+  app-home {
+    .category-card, .highlight-card { box-shadow: var(--shadow-xs); }
+    .category-icon { border-radius: 14px; }
+    .discovery-category { border-radius: 16px; }
+  }
+
+  app-site-footer {
+    .footer-inner { background: #fff; box-shadow: none; border-radius: var(--r-lg); }
+    .brand-name { font-size: 1.35rem; letter-spacing: -0.04em; font-weight: 800; }
+  }
+
+  app-login {
+    .auth-panel::after { content: ''; position: absolute; width: 260px; height: 260px; border: 45px solid rgba(255, 122, 0, 0.1); border-radius: 50%; top: 12%; right: -150px; pointer-events: none; }
+    .panel-brand { font-size: 1.6rem; letter-spacing: -0.04em; }
+  }
+
+  :is(app-register, app-forgot-password, app-change-password) .auth-card { box-shadow: var(--shadow-md); padding: 1.75rem; }
+  app-ui-modal .dialog { border-radius: var(--r-lg); }
+}
+
+@media (max-width: 768px) {
+  :root {
+    :is(app-dashboard-admin-validaciones, app-dashboard-maestro, app-dashboard-ferreteria) {
+      :is(.dashboard, .dashboard-admin) { margin-block: 0.75rem 1.5rem; }
+      :is(.content-header, .store-header) { padding: 1rem; }
+    }
+    app-producto-detalle {
+      .detail-page { margin-block: 0.75rem 1.5rem; }
+      .detail-card, .purchase-panel { padding: 1rem; }
+      .hero-grid { gap: 1rem; }
+    }
+    app-proyecto-detalle {
+      .project-detail-page { margin-block: 0.75rem 1.5rem; }
+      .page-header { flex-wrap: wrap; }
+      .page-header, .detail-card { padding: 1rem; }
+    }
+    app-ui-modal .dialog { border-radius: var(--r-lg) var(--r-lg) 0 0; }
+  }
+}
+
+/* Editing and account flows share the public Findi visual language. */
+:root {
+  .write-progress { position: fixed; z-index: 10001; top: 1rem; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: .75rem; padding: .9rem 1.25rem; border: 1px solid var(--border-soft); border-radius: 14px; background: var(--navy-900); color: white; box-shadow: var(--shadow-md); font-size: .9rem; font-weight: 700; white-space: nowrap; }
+  .write-shield { position: fixed; inset: 0; z-index: 10000; cursor: progress; background: rgb(15 45 74 / 3%); }
+  .product-workspace .inline-editor-head { position: sticky; top: 0; z-index: 2; background: white; border-bottom: 1px solid var(--border-soft); padding: 1rem 0; }
+  .product-workspace .inline-editor-head h4 { font-size: 1.35rem; margin: .3rem 0; }
+  .product-workspace .inline-editor-body { border: 0; box-shadow: none; padding: 1.25rem 0; display: grid; gap: 1.25rem; }
+  .product-workspace .modal-form-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1rem; background: transparent; padding: 0; }
+  .product-workspace label { display: grid; gap: .4rem; font-size: .85rem; font-weight: 650; }
+  .product-workspace label:has(input[type=checkbox]) { display: flex; align-items: center; gap: .6rem; }
+  .product-workspace input:not([type=checkbox]), .product-workspace select, .product-workspace textarea { width: 100%; min-width: 0; padding: .7rem .85rem; border: 1px solid var(--border-med); border-radius: 10px; background: white; font: inherit; font-weight: 450; }
+  .product-workspace input:disabled, .product-workspace textarea:disabled, .product-workspace select:disabled { background: var(--gray-50, #f3f5f8); color: var(--navy-800); opacity: 1; }
+  .form-section-title { display: flex; gap: .6rem; align-items: center; margin: .1rem 0; font-size: 1.05rem; }
+  .form-section-title i, .category-menu-label i, .taxonomy-item-title i { color: var(--orange); }
+  .product-extra { border: 1px solid var(--border-soft); padding: 1rem; border-radius: 12px; }
+  .product-extra summary { cursor: pointer; color: var(--navy-800); font-weight: 750; margin-bottom: .3rem; }
+  .product-extra[open] summary { margin-bottom: 1rem; }
+  .product-extra > label { margin-bottom: .85rem; }
+  .user-action-cell { vertical-align: middle; white-space: nowrap; }
+  .user-action-buttons { display: flex; flex-flow: row nowrap; align-items: center; gap: .3rem; }
+  .user-action-buttons button { width: 36px; height: 36px; min-height: 36px; padding: 0; display: grid; place-items: center; border-radius: 9px; }
+  .category-menu-label { display: flex; align-items: center; gap: .75rem; }
+  .category-menu-label i { font-size: 1.1rem; flex: 0 0 22px; }
+  .category-icon-picker { display: flex; align-items: center; gap: .4rem; min-width: 0; }
+  .category-icon-picker select { max-width: 180px; min-width: 0; padding: .6rem; }
+  .taxonomy-create-row:has(.category-icon-picker) { flex-wrap: wrap; }
+  .taxonomy-item-title { display: inline-flex; align-items: center; gap: .5rem; }
+  .account-page { display: block; }
+  .account-tabs { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1.25rem 0; }
+  .account-tabs button { background: white; border: 1px solid var(--border-soft); padding: .65rem 1rem; border-radius: 10px; color: var(--navy-800); }
+  .account-tabs button.active { background: var(--navy-900); color: white; }
+  .account-tabs button[hidden] { display: none; }
+  .account-nav-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--border-soft); color: var(--navy-800); }
+  .home-link { display: inline-flex; gap: .4rem; margin-bottom: 1rem; font-size: .85rem; color: var(--navy-800); text-decoration: none; }
+  .quotation-form .field-label { display: inline-flex; align-items: baseline; gap: .4rem; }
+  .quotation-form .field-label small { font-weight: 400; font-size: .85em; }
+  .quotation-disclaimer { font-size: .8rem; color: var(--text-muted); line-height: 1.6; padding: .5rem 0; }
+  .project-detail-page .detail-card { background: transparent; border: 0; padding: 0; box-shadow: none; gap: 1.25rem; }
+  .project-detail-page .editor-grid { grid-template-columns: minmax(0, 1.7fr) minmax(270px, 1fr); gap: 1.25rem; align-items: start; }
+  .project-detail-page .editor-panel, .project-detail-page .summary, .project-detail-page .quotation-table-card { padding: 1.5rem; background: white; border: 1px solid var(--border-soft); border-radius: 18px; }
+  .project-detail-page .summary { position: sticky; top: 1rem; }
+  .project-detail-page h2 { font-size: 1.1rem; margin-bottom: .8rem; }
+  .project-detail-page label { font-size: .85rem; margin-top: 1rem; }
+  .project-detail-page .summary-kpis { display: grid; grid-template-columns: 1fr; }
+  .project-detail-page .summary-kpis p { border-radius: 10px; padding: .8rem 1rem; }
+  .project-detail-page .summary-kpis .highlight strong { font-size: 1.65rem; }
+  .store-product-editor { border: 1px solid var(--border-soft); border-radius: 16px; padding: 1.25rem; background: white; margin: 1rem 0; display: grid; gap: .85rem; }
+  .store-product-editor label { display: grid; gap: .4rem; font-size: .85rem; }
+  .store-product-editor input, .store-product-editor select { padding: .7rem; border: 1px solid var(--border-med); border-radius: 10px; min-width: 0; }
+  @media(max-width: 800px) {
+    .product-workspace .modal-form-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .project-detail-page .editor-grid { grid-template-columns: 1fr; }
+    .project-detail-page .summary { position: static; }
+  }
+  @media(max-width: 540px) {
+    .product-workspace .modal-form-grid { grid-template-columns: 1fr; }
+    .product-workspace .inline-editor-head { flex-wrap: wrap; }
+    .project-detail-page .editor-panel, .project-detail-page .summary, .project-detail-page .quotation-table-card { padding: 1rem; }
+  }
+}
+:root {
+  .project-detail-page .editor-grid > article.editor-panel,
+  .project-detail-page .editor-grid > article.summary { background: white; padding: 1.25rem; }
+  .project-detail-page .summary .summary-kpis .highlight strong { font-size: 1.65rem; }
+  .quotation-form .field-label { color: var(--navy-800); font-weight: 700; }
+  .quotation-form input { min-height: 44px; border-radius: 10px; font-size: .95rem; }
+  .product-workspace .toolbar.modal-form-grid { align-items: start; }
+}
+:root {
+  .product-workspace .inline-editor-head .actions .product-save { background: var(--orange); color: var(--navy-900); border-radius: 10px; }
+  .product-workspace .inline-editor-head .actions .product-back { background: white; color: var(--navy-800); border: 1px solid var(--border-med); border-radius: 10px; }
+  .product-workspace .product-name-field { grid-column: span 2; }
+  .account-page .search-primary { display: block; }
+  @media(max-width: 540px) { .product-workspace .product-name-field { grid-column: auto; } }
+}
+:root {
+  .taxonomy-create-row:has(.category-icon-picker) { display: flex; flex-wrap: wrap; }
+  .taxonomy-create-row:has(.category-icon-picker) > input { flex: 1 1 100%; min-width: 0; }
+  .taxonomy-create-row .category-icon-picker { flex: 1 1 100%; }
+  .taxonomy-create-row .category-icon-picker select { flex: 1; max-width: none; }
+  .quotation-form label .field-label { color: var(--navy-800); font-weight: 700; }
+}

@@ -83,7 +83,7 @@
 
 .help-menu__heading strong {
   color: var(--ink-900);
-  font-family: 'Space Grotesk', 'Manrope', sans-serif;
+  font-family: 'Manrope', 'Segoe UI', sans-serif;
   font-size: var(--text-lg);
 }
 
@@ -125,7 +125,7 @@
 }
 
 .help-option--primary {
-  border-color: rgba(217, 109, 44, 0.28);
+  border-color: rgba(255, 122, 0, 0.28);
   background: var(--orange-muted);
 }
 
@@ -136,7 +136,7 @@
   place-items: center;
   border-radius: var(--r-full);
   background: var(--orange);
-  color: #fff;
+  color: var(--ink-900);
   font-size: 1.05rem;
 }
 

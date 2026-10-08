@@ -4,7 +4,7 @@
     <div class="panel-inner">
       <div class="panel-brand">
         <app-brand-mark />
-        <span>CotizApp</span>
+        <span>Findi</span>
       </div>
       <blockquote class="panel-quote">
         “Antes perdía horas comparando precios.
@@ -17,9 +17,10 @@
   <!-- Right: form -->
   <section class="auth-card">
     <a [routerLink]="returnUrl || '/'" class="back-link">
-      <span>&larr;</span> {{ returnUrl ? 'Volver al producto' : 'Volver al inicio' }}
+      <span>&larr;</span> Volver
     </a>
 
+    <a routerLink="/" class="home-link"><i class="pi pi-home" aria-hidden="true"></i> Inicio</a>
     <div class="auth-header">
       <h1>Bienvenido</h1>
       <p>Accede a tu cuenta para continuar.</p>
@@ -54,7 +55,7 @@
         <a routerLink="/recuperar-clave" class="forgot-link" [class.is-disabled]="isSubmitting">Olvidé mi contraseña</a>
       </div>
 
-      <p class="legal-help">Tu sesión se mantiene mientras usas CotizApp y se cierra después de 30 minutos sin actividad o cuando eliges cerrar sesión.</p>
+      <p class="legal-help">Tu sesión se mantiene mientras usas Findi y se cierra después de 30 minutos sin actividad o cuando eliges cerrar sesión.</p>
 
       <button class="btn btn-primary btn-full" type="submit" [disabled]="isSubmitting">
         {{ isSubmitting ? 'Ingresando...' : 'Iniciar sesión' }}

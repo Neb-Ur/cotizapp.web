@@ -55,3 +55,29 @@ El navegador conserva cada ficha consultada en `localStorage` durante una hora, 
 La ficha se muestra antes de terminar la consulta de ofertas. Mientras tanto, solo la sección de precios indica que está cargando; una falla conserva la ficha y permite reintentar. La ausencia de ferreterías se anuncia únicamente después de una consulta de ofertas correcta. Las respuestas de una ruta anterior se descartan.
 
 En producción se mantiene la página pública preparada por el servidor para enlaces y buscadores, con la ficha y sus atributos. Esa página tampoco espera precios. El navegador completa las ofertas. En desarrollo local se mantiene el renderizado en el navegador para evitar esperas en `ng serve`.
+
+### Buscador del header: sugerencias locales por tipo
+
+El desplegable combina únicamente productos, familias y marcas reales relacionadas. Las categorías y subcategorías siguen formando parte del índice para encontrar productos por su clasificación, pero no tienen una sección en las sugerencias. En escritorio usa dos columnas; en móvil, una lista vertical. No incorpora precios ni imágenes remotas. Enter busca todo el texto; las flechas permiten seleccionar un resultado, Enter lo abre y Escape cierra. Las categorías, familias y marcas abren filtros reales, y los productos abren su ficha.
+
+`GET /api/catalogo-busqueda` entrega un índice compacto de productos activos y taxonomía. Se construye con la caché de datos estáticos de cinco minutos, sin consultar ofertas. Su versión es una huella del contenido público: los cambios de precios y stock no la modifican. El parámetro `v` permite responder solo con la versión cuando no hay cambios. La respuesta HTTP tiene caché de un minuto.
+
+El navegador precarga el índice después del primer render, lo guarda en IndexedDB y prepara el texto en memoria una sola vez. Al escribir, las sugerencias se calculan localmente sin peticiones por letra. Al volver a entrar, utiliza el índice guardado mientras comprueba actualizaciones en segundo plano; la comprobación al enfocar se limita a una cada cinco minutos cuando tiene éxito. Un índice guardado permanece disponible durante fallos de conexión. Si IndexedDB está bloqueado, la búsqueda funciona con la memoria de la página. La primera visita necesita descargar el índice; los resultados completos y precios siguen requiriendo conexión.
+
+Se normalizan tildes, mayúsculas, plurales simples y unidades pegadas a números, y se aceptan palabras en cualquier orden. La página de resultados aplica la misma normalización y puede filtrar por marca. Los valores `Por especificar`, `Sin marca` y otros marcadores genéricos no se presentan como marcas.
+
+Ante fallos iniciales de conexión, la descarga del índice hace hasta dos reintentos automáticos, con esperas de 250 y 500 ms. Si todos fallan y no existe un índice guardado, se muestra la opción de reintentar. Una caché dañada o un fallo al leerla no impiden descargar una copia nueva. Esta recuperación se comprobó en Chrome con una primera respuesta 503, en vistas de escritorio y móvil, sin nuevas peticiones al seguir escribiendo.
+
+### Registro de marcas
+
+Las marcas comerciales se guardan en la colección `marcas`, con `nombre`, `nombreNormalizado` y `creadoEn`. El identificador determinista se deriva del nombre normalizado (sin diferencias de tildes, mayúsculas o espacios). Cada producto conserva `marca` como nombre visible y `marcaId` como referencia estable. Crear o editar un producto registra o reutiliza la marca en una transacción; las escrituras requieren el rol admin. Una etiqueta genérica como «Sin marca» o «Por especificar» deja `marcaId: null` y no crea registros comerciales.
+
+El admin recibe sugerencias de marcas existentes en el campo Marca y puede escribir una nueva. `GET /api/marcas` entrega solo ID y nombre. El índice de búsqueda incluye nombres canónicos y referencias; al seleccionar una marca, la búsqueda usa `marcaId` y conserva `marca` como etiqueta visible. Los enlaces antiguos con el nombre siguen funcionando. Los productos antiguos sin referencia pueden filtrarse usando su identidad normalizada mientras se migran. Las sugerencias solo incluyen marcas vinculadas a productos coincidentes.
+
+`functions/scripts/migrate-product-brands.mjs` ofrece comprobación y aplicación idempotente de referencias existentes, verificando dentro de cada transacción que la marca del producto no haya cambiado. Se aplicó en `cotizapp-d71c8`: 816 productos revisados, cero marcas comerciales identificadas y cero productos modificados. Las marcas aparecerán al completar los productos comerciales con su fabricante; no se asignan fabricantes ficticios a referencias base. Los cambios del índice conservan la política de actualización de cinco minutos.
+
+Una futura fusión de nombres alternativos debe reasignar las referencias al ID elegido; no basta con editar el nombre visible. La colección permite incorporar metadatos de marca sin duplicarlos en cada producto.
+
+### Tanda comercial 01 · 7 de octubre de 2026
+
+Se incorporaron 40 productos comerciales verificados de Bosch, Makita, Stanley, Sika, Volcanita, Trupan, Cbb Cementos y Ceresita. [Listado y fuentes oficiales](productos-comerciales-tanda-01.md). La colección compartida `marcas` se vincula mediante `marcaId`; la carga incluye los atributos y amplía únicamente las opciones de tipo necesarias. Los productos genéricos permanecen como referencias base y el catálogo alcanza 856 productos activos. Las fichas comerciales no contienen ofertas ni imágenes inventadas.

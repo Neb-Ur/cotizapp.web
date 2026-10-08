@@ -10,7 +10,7 @@ test('all account messages keep their action token and security instructions in 
     assert.ok(html.includes(content.actionLabel));
     assert.ok(text.includes(content.securityNote));
     assert.ok(html.includes('lang="es"'));
-    assert.ok(content.subject.startsWith('CotizApp'));
+    assert.ok(content.subject.startsWith('Findi'));
   }
   assert.ok(renderCotizAppEmail(AUTH_EMAIL_CONTENT.resetPasswordTemplate).html.includes('%EMAIL%'));
   assert.ok(renderCotizAppEmail(AUTH_EMAIL_CONTENT.changeEmailTemplate).html.includes('%NEW_EMAIL%'));

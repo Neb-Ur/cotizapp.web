@@ -41,7 +41,7 @@ storeOnboardingRouter.post('/store-onboarding/accept', requireAuth, requireRole(
   const { store, user, agreement } = await context(req.authUserId!);
   if (!store || !user) return fail(res, 'FERRETERIA_NOT_FOUND', 'No existe una ferretería asociada a tu cuenta.', 404);
   if (['suspendido', 'terminado'].includes(store.contratoEstado)) {
-    return fail(res, 'STORE_AGREEMENT_RESTRICTED', 'El acceso comercial está suspendido o terminado. Contacta a CotizApp.', 403);
+    return fail(res, 'STORE_AGREEMENT_RESTRICTED', 'El acceso comercial está suspendido o terminado. Contacta a Findi.', 403);
   }
   if (hasCurrentLegalAcceptance(user) && agreement) return ok(res, { accepted: true, ...versions() });
 

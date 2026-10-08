@@ -1,10 +1,12 @@
+import { invalidateStaticCatalog } from '../lib/product-sheet-cache.js';
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { markPublicCatalogDirty } from '../lib/public-catalog-cache.js';
+const invalidateCatalog = async () => { await Promise.all([markPublicCatalogDirty(), invalidateStaticCatalog()]); };
 const region = 'southamerica-west1';
 export const publicCacheOnRealStoreProductWrite = onDocumentWritten({ document: 'real_productosFerreteria/{documentId}', region }, markPublicCatalogDirty);
-export const publicCacheOnMasterProductWrite = onDocumentWritten({ document: 'productosMaestro/{documentId}', region }, markPublicCatalogDirty);
-export const publicCacheOnCategoryWrite = onDocumentWritten({ document: 'categorias/{documentId}', region }, markPublicCatalogDirty);
-export const publicCacheOnSubcategoryWrite = onDocumentWritten({ document: 'subcategorias/{documentId}', region }, markPublicCatalogDirty);
-export const publicCacheOnFamilyWrite = onDocumentWritten({ document: 'familias/{documentId}', region }, markPublicCatalogDirty);
+export const publicCacheOnMasterProductWrite = onDocumentWritten({ document: 'productosMaestro/{documentId}', region }, invalidateCatalog);
+export const publicCacheOnCategoryWrite = onDocumentWritten({ document: 'categorias/{documentId}', region }, invalidateCatalog);
+export const publicCacheOnSubcategoryWrite = onDocumentWritten({ document: 'subcategorias/{documentId}', region }, invalidateCatalog);
+export const publicCacheOnFamilyWrite = onDocumentWritten({ document: 'familias/{documentId}', region }, invalidateCatalog);
 export const publicCacheOnRealStoreWrite = onDocumentWritten({ document: 'real_ferreterias/{documentId}', region }, markPublicCatalogDirty);
 export const publicCacheOnUserWrite = onDocumentWritten({ document: 'usuarios/{documentId}', region }, markPublicCatalogDirty);

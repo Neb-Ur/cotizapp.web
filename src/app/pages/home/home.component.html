@@ -16,50 +16,6 @@
         <p>Busca productos de construcción, compara precios en ferreterías de Chile y arma tu cotización en minutos.</p>
       </div>
 
-      <form class="home-search" (submit)="$event.preventDefault(); submitSearch()" role="search">
-        <label for="home-product-search">¿Qué material necesitas?</label>
-        <div class="home-search-control">
-          <p-autoComplete
-            inputId="home-product-search"
-            name="homeProductSearch"
-            [(ngModel)]="searchValue"
-            [suggestions]="searchSuggestions"
-            (completeMethod)="searchProducts($event)"
-            (onSelect)="selectSuggestion($event)"
-            field="productName"
-            [minLength]="2"
-            [delay]="250"
-            [forceSelection]="false"
-            [completeOnFocus]="false"
-            placeholder="Busca cemento, OSB, yeso, herramientas..."
-            styleClass="home-autocomplete"
-            inputStyleClass="home-search-input"
-          >
-            <ng-template let-product pTemplate="item">
-              <div class="search-suggestion">
-                <div class="suggestion-image">
-                  <img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.productName" width="64" height="64" loading="lazy" decoding="async" />
-                  <img *ngIf="!product.imageUrl" src="assets/cotizapp-mark.svg" alt="" width="64" height="64" />
-                </div>
-                <div class="suggestion-copy">
-                  <strong>{{ product.productName }}</strong>
-                  <span>{{ product.productType }}</span>
-                </div>
-                <div class="suggestion-price">
-                  <ng-container *ngIf="product.storeCount > 0; else noSuggestionOffers"><span>Desde</span><strong>{{ formatCurrency(product.minPrice) }}</strong></ng-container>
-                  <ng-template #noSuggestionOffers><span>Sin ofertas disponibles</span></ng-template>
-                </div>
-                <i class="pi pi-angle-right" aria-hidden="true"></i>
-              </div>
-            </ng-template>
-            <ng-template pTemplate="empty">
-              <div class="search-empty">No encontramos coincidencias. Presiona Enter para ver el catálogo.</div>
-            </ng-template>
-          </p-autoComplete>
-          <button pButton type="submit" icon="pi pi-search" label="Buscar" class="home-search-button" aria-label="Buscar materiales"></button>
-        </div>
-      </form>
-
       <div class="quick-categories" aria-label="Categorías destacadas">
         <a *ngFor="let category of featuredCategories | slice:0:6" routerLink="/buscar" [queryParams]="{ categoria: category.id }">
           <i [class]="category.icon" aria-hidden="true"></i>
@@ -73,7 +29,7 @@
   <section class="catalog-section" aria-labelledby="featured-products-title">
     <div class="section-heading">
       <div>
-        <span>Catálogo de CotizApp</span>
+        <span>Catálogo de Findi</span>
         <h2 id="featured-products-title">Productos y materiales</h2>
         <p>Explora el catálogo base y compara precios cuando existan ofertas de ferreterías.</p>
       </div>
@@ -100,9 +56,9 @@
         </span>
         <span class="home-product-meta">{{ product.brand === 'Por especificar' ? 'Producto base' : product.brand }} · {{ product.productType }}</span>
         <span class="home-product-name">{{ product.productName }}</span>
-        <span class="home-product-pricing">
+        <span class="home-product-pricing" [class.with-offers]="product.storeCount > 0">
           <span *ngIf="product.storeCount > 0; else noHomeOffers"><small>Desde</small><strong>{{ formatCurrency(product.minPrice) }}</strong></span>
-          <ng-template #noHomeOffers><span>Sin ofertas disponibles</span></ng-template>
+          <ng-template #noHomeOffers><span class="home-no-offers">Sin ofertas disponibles</span></ng-template>
           <span class="compare-link" aria-hidden="true"><i class="pi pi-arrow-right"></i></span>
         </span>
         <span class="home-product-stores" *ngIf="product.storeCount > 0"><i class="pi pi-shop" aria-hidden="true"></i> {{ product.storeCount }} {{ product.storeCount === 1 ? 'ferretería' : 'ferreterías' }}</span>
@@ -127,7 +83,7 @@
     </div>
   </section>
 
-  <section class="benefit-strip" aria-label="Beneficios de CotizApp">
+  <section class="benefit-strip" aria-label="Beneficios de Findi">
     <article>
       <i class="pi pi-search" aria-hidden="true"></i>
       <div><strong>Busca en un solo lugar</strong><span>Encuentra materiales sin recorrer múltiples sitios.</span></div>

@@ -46,7 +46,7 @@ export class HelpWidgetComponent {
   ) {}
 
   protected get whatsappUrl(): string {
-    const text = `Hola, necesito ayuda con CotizApp. Estoy en la página ${this.safePagePath}.`;
+    const text = `Hola, necesito ayuda con Findi. Estoy en la página ${this.safePagePath}.`;
     return `${this.legalIdentity.whatsappUrl}?text=${encodeURIComponent(text)}`;
   }
 

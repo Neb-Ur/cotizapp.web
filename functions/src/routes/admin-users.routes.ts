@@ -21,7 +21,7 @@ adminUsersRouter.post('/admin/usuarios', requireAuth, requireRole('admin'), asyn
     return fail(
       res,
       'AUTH_WEAK_PASSWORD',
-      'La contraseña debe tener entre 12 y 128 caracteres e incluir mayúscula, minúscula, número y símbolo.',
+      'La contraseña debe tener entre 6 y 128 caracteres e incluir mayúscula, minúscula, número y símbolo.',
       400
     );
   }

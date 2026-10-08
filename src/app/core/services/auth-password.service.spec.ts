@@ -34,7 +34,7 @@ describe('password changes for signed-in accounts',()=>{
   });
   it('rejects weak or unchanged passwords before contacting Firebase',async()=>{
     const {service}=fixture();
-    await expect(service.changePassword(currentPassword,'123456')).rejects.toThrow('12 y 128');
+    await expect(service.changePassword(currentPassword,'123456')).rejects.toThrow('6 y 128');
     await expect(service.changePassword(currentPassword,currentPassword)).rejects.toThrow('diferente');
     expect(reauthenticateWithCredential).not.toHaveBeenCalled();expect(updatePassword).not.toHaveBeenCalled();
   });

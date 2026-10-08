@@ -14,6 +14,38 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/dashboard-maestro/dashboard-maestro.component').then((module) => module.DashboardMaestroComponent),
         data: { publicCatalog: true }
       },
+  {
+    path: 'dashboard/maestro',
+    loadComponent: () => import('./pages/dashboard-maestro/dashboard-maestro.component').then((module) => module.DashboardMaestroComponent),
+    canActivate: [authGuard, legalAcceptanceGuard, roleGuard],
+    data: { role: 'maestro' }
+  },
+  {
+    path: 'dashboard/maestro/producto-detalle',
+    redirectTo: 'producto'
+  },
+  {
+    path: 'dashboard/maestro/cotizaciones/nuevo',
+    loadComponent: () => import('./pages/proyecto-detalle/proyecto-detalle.component').then((module) => module.ProyectoDetalleComponent),
+    canActivate: [authGuard, legalAcceptanceGuard, roleGuard],
+    data: { role: 'maestro' }
+  },
+  {
+    path: 'dashboard/maestro/cotizaciones/:projectId',
+    loadComponent: () => import('./pages/proyecto-detalle/proyecto-detalle.component').then((module) => module.ProyectoDetalleComponent),
+    canActivate: [authGuard, legalAcceptanceGuard, roleGuard],
+    data: { role: 'maestro' }
+  },
+  {
+    path: 'dashboard/maestro/proyectos/nuevo',
+    redirectTo: 'dashboard/maestro/cotizaciones/nuevo',
+    pathMatch: 'full'
+  },
+  {
+    path: 'dashboard/maestro/proyectos/:projectId',
+    redirectTo: 'dashboard/maestro/cotizaciones/:projectId',
+    pathMatch: 'full'
+  },
       { path: 'producto', loadComponent: () => import('./pages/producto-detalle/producto-detalle.component').then((module) => module.ProductoDetalleComponent) },
       { path: 'productos/:slug', loadComponent: () => import('./pages/producto-detalle/producto-detalle.component').then((module) => module.ProductoDetalleComponent) },
       { path: 'maestros', loadComponent: () => import('./pages/public/maestros/maestros.component').then((module) => module.MaestrosComponent) },
@@ -53,38 +85,6 @@ export const routes: Routes = [
     path: 'cuenta/cambiar-contrasena',
     loadComponent: () => import('./pages/auth/change-password/change-password.component').then((module) => module.ChangePasswordComponent),
     canActivate: [authGuard]
-  },
-  {
-    path: 'dashboard/maestro',
-    loadComponent: () => import('./pages/dashboard-maestro/dashboard-maestro.component').then((module) => module.DashboardMaestroComponent),
-    canActivate: [authGuard, legalAcceptanceGuard, roleGuard],
-    data: { role: 'maestro' }
-  },
-  {
-    path: 'dashboard/maestro/producto-detalle',
-    redirectTo: 'producto'
-  },
-  {
-    path: 'dashboard/maestro/cotizaciones/nuevo',
-    loadComponent: () => import('./pages/proyecto-detalle/proyecto-detalle.component').then((module) => module.ProyectoDetalleComponent),
-    canActivate: [authGuard, legalAcceptanceGuard, roleGuard],
-    data: { role: 'maestro' }
-  },
-  {
-    path: 'dashboard/maestro/cotizaciones/:projectId',
-    loadComponent: () => import('./pages/proyecto-detalle/proyecto-detalle.component').then((module) => module.ProyectoDetalleComponent),
-    canActivate: [authGuard, legalAcceptanceGuard, roleGuard],
-    data: { role: 'maestro' }
-  },
-  {
-    path: 'dashboard/maestro/proyectos/nuevo',
-    redirectTo: 'dashboard/maestro/cotizaciones/nuevo',
-    pathMatch: 'full'
-  },
-  {
-    path: 'dashboard/maestro/proyectos/:projectId',
-    redirectTo: 'dashboard/maestro/cotizaciones/:projectId',
-    pathMatch: 'full'
   },
   {
     path: 'cuenta/contrato-ferreteria',

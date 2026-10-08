@@ -1,0 +1,836 @@
+{
+  "version": "comerciales-2026-10-07-01",
+  "date": "2026-10-07",
+  "brands": [
+    {
+      "name": "Bosch",
+      "sourceHosts": [
+        "www.bosch-professional.com"
+      ],
+      "familyIds": [
+        "fam-perforacion-y-atornillado",
+        "fam-corte-desbaste-y-lijado"
+      ]
+    },
+    {
+      "name": "Makita",
+      "sourceHosts": [
+        "makita.cl"
+      ],
+      "familyIds": [
+        "fam-perforacion-y-atornillado",
+        "fam-corte-desbaste-y-lijado"
+      ]
+    },
+    {
+      "name": "Stanley",
+      "sourceHosts": [
+        "cl.stanleytools.global"
+      ],
+      "familyIds": [
+        "fam-llaves-alicates-y-destornilladores"
+      ]
+    },
+    {
+      "name": "Sika",
+      "sourceHosts": [
+        "chl.sika.com"
+      ],
+      "familyIds": [
+        "fam-selladores-y-espumas"
+      ]
+    },
+    {
+      "name": "Volcanita",
+      "sourceHosts": [
+        "tienda.volcan.cl"
+      ],
+      "familyIds": [
+        "fam-placas-de-yeso-carton"
+      ]
+    },
+    {
+      "name": "Trupan",
+      "sourceHosts": [
+        "new.arauco.com"
+      ],
+      "familyIds": [
+        "fam-mdf"
+      ]
+    },
+    {
+      "name": "Cbb Cementos",
+      "sourceHosts": [
+        "cbb.cl"
+      ],
+      "familyIds": [
+        "fam-cementos-y-cales"
+      ]
+    },
+    {
+      "name": "Ceresita",
+      "sourceHosts": [
+        "www.ceresita.com"
+      ],
+      "familyIds": [
+        "fam-pinturas-de-muro-y-fachada"
+      ]
+    }
+  ],
+  "products": [
+    {
+      "name": "Taladro percutor Bosch GSB 13 RE 650 W",
+      "brand": "Bosch",
+      "familyId": "fam-perforacion-y-atornillado",
+      "model": "GSB 13 RE",
+      "manufacturerCode": "060123D5E3",
+      "productType": "Taladro percutor",
+      "unit": "Unidad",
+      "packaging": "1 herramienta",
+      "sourceUrl": "https://www.bosch-professional.com/cl/es/products/gsb-13-060123D5E3",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "modelo": "GSB 13 RE",
+        "potencia W": 650,
+        "tensión V": 220,
+        "mandril": "1,5–13 mm"
+      },
+      "note": ""
+    },
+    {
+      "name": "Esmeril angular Bosch GWS 700 710 W 115 mm",
+      "brand": "Bosch",
+      "familyId": "fam-corte-desbaste-y-lijado",
+      "model": "GWS 700",
+      "manufacturerCode": "06013A30E0",
+      "productType": "Esmeril angular",
+      "unit": "Unidad",
+      "packaging": "1 herramienta en caja",
+      "sourceUrl": "https://www.bosch-professional.com/cl/es/products/gws-700-06013A30E0",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "modelo": "GWS 700",
+        "potencia W": 710,
+        "diámetro o carrera": "Disco de 115 mm"
+      },
+      "note": ""
+    },
+    {
+      "name": "Sierra circular Bosch GKS 150 1500 W 184 mm",
+      "brand": "Bosch",
+      "familyId": "fam-corte-desbaste-y-lijado",
+      "model": "GKS 150",
+      "manufacturerCode": "06016B30E0",
+      "productType": "Sierra circular",
+      "unit": "Unidad",
+      "packaging": "1 herramienta en caja",
+      "sourceUrl": "https://www.bosch-professional.com/cl/es/products/gks-150-06016B30E0",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "modelo": "GKS 150",
+        "potencia W": 1500,
+        "diámetro o carrera": "Disco de 184 mm"
+      },
+      "note": ""
+    },
+    {
+      "name": "Sierra caladora Bosch GST 650 450 W",
+      "brand": "Bosch",
+      "familyId": "fam-corte-desbaste-y-lijado",
+      "model": "GST 650",
+      "manufacturerCode": "06015A80E0",
+      "productType": "Sierra caladora",
+      "unit": "Unidad",
+      "packaging": "1 herramienta en caja",
+      "sourceUrl": "https://www.bosch-professional.com/cl/es/products/gst-650-06015A80E0",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "modelo": "GST 650",
+        "potencia W": 450,
+        "tensión V": 220,
+        "diámetro o carrera": "Carrera de 18 mm"
+      },
+      "note": ""
+    },
+    {
+      "name": "Taladro atornillador Bosch GSR 120-LI 12 V kit 1 batería 2 Ah",
+      "brand": "Bosch",
+      "familyId": "fam-perforacion-y-atornillado",
+      "model": "GSR 120-LI",
+      "manufacturerCode": "06019G80E1",
+      "productType": "Taladro atornillador inalámbrico",
+      "unit": "Unidad",
+      "packaging": "Kit en maletín: 1 batería GBA 12V 2 Ah y cargador GAL 12V-20",
+      "sourceUrl": "https://www.bosch-professional.com/cl/es/products/gsr-120-li-06019G80E1",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "modelo": "GSR 120-LI",
+        "tensión V": 12,
+        "alimentación": "Batería de ion-litio",
+        "baterías y accesorios incluidos": "1 batería GBA 12V 2 Ah, cargador GAL 12V-20 y maletín"
+      },
+      "note": ""
+    },
+    {
+      "name": "Taladro percutor Makita HP1630 710 W",
+      "brand": "Makita",
+      "familyId": "fam-perforacion-y-atornillado",
+      "model": "HP1630",
+      "manufacturerCode": "",
+      "productType": "Taladro percutor",
+      "unit": "Unidad",
+      "packaging": "1 herramienta",
+      "sourceUrl": "https://makita.cl/producto/taladro-percutor-hp1630/",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "modelo": "HP1630",
+        "potencia W": 710,
+        "mandril": "13 mm"
+      },
+      "note": "Referencia del modelo. La configuración de accesorios y baterías debe comprobarse en la oferta de la ferretería."
+    },
+    {
+      "name": "Taladro percutor inalámbrico Makita DHP482 18 V",
+      "brand": "Makita",
+      "familyId": "fam-perforacion-y-atornillado",
+      "model": "DHP482",
+      "manufacturerCode": "",
+      "productType": "Taladro percutor",
+      "unit": "Unidad",
+      "packaging": "1 herramienta",
+      "sourceUrl": "https://makita.cl/producto/dhp482/",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "modelo": "DHP482",
+        "tensión V": 18,
+        "alimentación": "Batería LXT",
+        "mandril": "13 mm"
+      },
+      "note": "Referencia del modelo. La configuración de accesorios y baterías debe comprobarse en la oferta de la ferretería."
+    },
+    {
+      "name": "Rotomartillo Makita HR2470 780 W SDS-Plus",
+      "brand": "Makita",
+      "familyId": "fam-perforacion-y-atornillado",
+      "model": "HR2470",
+      "manufacturerCode": "",
+      "productType": "Rotomartillo SDS Plus",
+      "unit": "Unidad",
+      "packaging": "1 herramienta",
+      "sourceUrl": "https://makita.cl/producto/hr2470/",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "modelo": "HR2470",
+        "potencia W": 780,
+        "encastre": "SDS-Plus"
+      },
+      "note": "Referencia del modelo. La configuración de accesorios y baterías debe comprobarse en la oferta de la ferretería."
+    },
+    {
+      "name": "Esmeril angular Makita GA4530 720 W 115 mm",
+      "brand": "Makita",
+      "familyId": "fam-corte-desbaste-y-lijado",
+      "model": "GA4530",
+      "manufacturerCode": "",
+      "productType": "Esmeril angular",
+      "unit": "Unidad",
+      "packaging": "1 herramienta",
+      "sourceUrl": "https://makita.cl/producto/esmeril-angular-720w-115mm-ga4530-cuerpo-delgado/",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "modelo": "GA4530",
+        "potencia W": 720,
+        "diámetro o carrera": "Disco de 115 mm"
+      },
+      "note": "Referencia del modelo. La configuración de accesorios y baterías debe comprobarse en la oferta de la ferretería."
+    },
+    {
+      "name": "Destornillador multipuntas Stanley 68-012 de 6 vías",
+      "brand": "Stanley",
+      "familyId": "fam-llaves-alicates-y-destornilladores",
+      "model": "68-012",
+      "manufacturerCode": "68-012",
+      "productType": "Destornillador multipuntas",
+      "unit": "Unidad",
+      "packaging": "1 herramienta",
+      "sourceUrl": "https://cl.stanleytools.global/productos/herramientas-manuales/destornilladores-y-llaves-hexagonales/destornilladores",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "modelo": "68-012",
+        "medida": "6 vías"
+      },
+      "note": ""
+    },
+    {
+      "name": "Destornillador plano Stanley CushionGrip 6,5 x 150 mm STMT60828-840",
+      "brand": "Stanley",
+      "familyId": "fam-llaves-alicates-y-destornilladores",
+      "model": "STMT60828-840",
+      "manufacturerCode": "STMT60828-840",
+      "productType": "Destornillador plano",
+      "unit": "Unidad",
+      "packaging": "1 herramienta",
+      "sourceUrl": "https://cl.stanleytools.global/productos/herramientas-manuales/destornilladores-y-llaves-hexagonales/destornilladores",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "modelo": "STMT60828-840",
+        "medida": "6,5 x 150 mm"
+      },
+      "note": ""
+    },
+    {
+      "name": "Destornillador Phillips Stanley Pro PH2 x 100 mm STHT69145",
+      "brand": "Stanley",
+      "familyId": "fam-llaves-alicates-y-destornilladores",
+      "model": "STHT69145",
+      "manufacturerCode": "STHT69145",
+      "productType": "Destornillador Phillips",
+      "unit": "Unidad",
+      "packaging": "1 herramienta",
+      "sourceUrl": "https://cl.stanleytools.global/productos/herramientas-manuales/destornilladores-y-llaves-hexagonales/destornilladores",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "modelo": "STHT69145",
+        "medida": "PH2 x 100 mm"
+      },
+      "note": ""
+    },
+    {
+      "name": "Destornillador Phillips Stanley Pro PH1 x 101 mm STHT69141",
+      "brand": "Stanley",
+      "familyId": "fam-llaves-alicates-y-destornilladores",
+      "model": "STHT69141",
+      "manufacturerCode": "STHT69141",
+      "productType": "Destornillador Phillips",
+      "unit": "Unidad",
+      "packaging": "1 herramienta",
+      "sourceUrl": "https://cl.stanleytools.global/productos/herramientas-manuales/destornilladores-y-llaves-hexagonales/destornilladores",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "modelo": "STHT69141",
+        "medida": "PH1 x 101 mm"
+      },
+      "note": ""
+    },
+    {
+      "name": "Destornillador Phillips Stanley Pro PH0 x 70 mm STHT69138",
+      "brand": "Stanley",
+      "familyId": "fam-llaves-alicates-y-destornilladores",
+      "model": "STHT69138",
+      "manufacturerCode": "STHT69138",
+      "productType": "Destornillador Phillips",
+      "unit": "Unidad",
+      "packaging": "1 herramienta",
+      "sourceUrl": "https://cl.stanleytools.global/productos/herramientas-manuales/destornilladores-y-llaves-hexagonales/destornilladores",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "modelo": "STHT69138",
+        "medida": "PH0 x 70 mm"
+      },
+      "note": ""
+    },
+    {
+      "name": "Destornillador Phillips Stanley Pro PH3 x 150 mm STHT69148",
+      "brand": "Stanley",
+      "familyId": "fam-llaves-alicates-y-destornilladores",
+      "model": "STHT69148",
+      "manufacturerCode": "STHT69148",
+      "productType": "Destornillador Phillips",
+      "unit": "Unidad",
+      "packaging": "1 herramienta",
+      "sourceUrl": "https://cl.stanleytools.global/productos/herramientas-manuales/destornilladores-y-llaves-hexagonales/destornilladores",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "modelo": "STHT69148",
+        "medida": "PH3 x 150 mm"
+      },
+      "note": ""
+    },
+    {
+      "name": "Silicona neutra Sika Sikasil C blanco 280 ml",
+      "brand": "Sika",
+      "familyId": "fam-selladores-y-espumas",
+      "model": "Sikasil C",
+      "manufacturerCode": "",
+      "productType": "Silicona neutra",
+      "unit": "Unidad",
+      "packaging": "Cartucho de 280 ml",
+      "sourceUrl": "https://chl.sika.com/es/construccion/sellado-y-pegadoelastico/siliconas/sikasil-c.html",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "contenido neto y unidad": "280 ml",
+        "base química": "Silicona alcoxi",
+        "tipo": "Silicona neutra",
+        "color": "Blanco"
+      },
+      "note": "Color: Blanco."
+    },
+    {
+      "name": "Silicona neutra Sika Sikasil C transparente 280 ml",
+      "brand": "Sika",
+      "familyId": "fam-selladores-y-espumas",
+      "model": "Sikasil C",
+      "manufacturerCode": "",
+      "productType": "Silicona neutra",
+      "unit": "Unidad",
+      "packaging": "Cartucho de 280 ml",
+      "sourceUrl": "https://chl.sika.com/es/construccion/sellado-y-pegadoelastico/siliconas/sikasil-c.html",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "contenido neto y unidad": "280 ml",
+        "base química": "Silicona alcoxi",
+        "tipo": "Silicona neutra",
+        "color": "Transparente"
+      },
+      "note": "Color: Transparente."
+    },
+    {
+      "name": "Silicona neutra Sika Sikasil C café roble 280 ml",
+      "brand": "Sika",
+      "familyId": "fam-selladores-y-espumas",
+      "model": "Sikasil C",
+      "manufacturerCode": "",
+      "productType": "Silicona neutra",
+      "unit": "Unidad",
+      "packaging": "Cartucho de 280 ml",
+      "sourceUrl": "https://chl.sika.com/es/construccion/sellado-y-pegadoelastico/siliconas/sikasil-c.html",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "contenido neto y unidad": "280 ml",
+        "base química": "Silicona alcoxi",
+        "tipo": "Silicona neutra",
+        "color": "Café roble"
+      },
+      "note": "Color: Café roble."
+    },
+    {
+      "name": "Silicona neutra Sika Sikasil C marrón 280 ml",
+      "brand": "Sika",
+      "familyId": "fam-selladores-y-espumas",
+      "model": "Sikasil C",
+      "manufacturerCode": "",
+      "productType": "Silicona neutra",
+      "unit": "Unidad",
+      "packaging": "Cartucho de 280 ml",
+      "sourceUrl": "https://chl.sika.com/es/construccion/sellado-y-pegadoelastico/siliconas/sikasil-c.html",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "contenido neto y unidad": "280 ml",
+        "base química": "Silicona alcoxi",
+        "tipo": "Silicona neutra",
+        "color": "Marrón"
+      },
+      "note": "Color: Marrón."
+    },
+    {
+      "name": "Silicona acética Sika Sikasil E gris 280 ml",
+      "brand": "Sika",
+      "familyId": "fam-selladores-y-espumas",
+      "model": "Sikasil E",
+      "manufacturerCode": "",
+      "productType": "Silicona acética",
+      "unit": "Unidad",
+      "packaging": "Cartucho de 280 ml",
+      "sourceUrl": "https://chl.sika.com/es/construccion/sellado-y-pegadoelastico/siliconas/sikasil-e.html",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "contenido neto y unidad": "280 ml",
+        "base química": "Silicona acética",
+        "tipo": "Silicona acética",
+        "color": "Gris"
+      },
+      "note": "Color: Gris."
+    },
+    {
+      "name": "Silicona acética Sika Sikasil E negro 280 ml",
+      "brand": "Sika",
+      "familyId": "fam-selladores-y-espumas",
+      "model": "Sikasil E",
+      "manufacturerCode": "",
+      "productType": "Silicona acética",
+      "unit": "Unidad",
+      "packaging": "Cartucho de 280 ml",
+      "sourceUrl": "https://chl.sika.com/es/construccion/sellado-y-pegadoelastico/siliconas/sikasil-e.html",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "contenido neto y unidad": "280 ml",
+        "base química": "Silicona acética",
+        "tipo": "Silicona acética",
+        "color": "Negro"
+      },
+      "note": "Color: Negro."
+    },
+    {
+      "name": "Silicona acética Sika Sikasil E bronce 280 ml",
+      "brand": "Sika",
+      "familyId": "fam-selladores-y-espumas",
+      "model": "Sikasil E",
+      "manufacturerCode": "",
+      "productType": "Silicona acética",
+      "unit": "Unidad",
+      "packaging": "Cartucho de 280 ml",
+      "sourceUrl": "https://chl.sika.com/es/construccion/sellado-y-pegadoelastico/siliconas/sikasil-e.html",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "contenido neto y unidad": "280 ml",
+        "base química": "Silicona acética",
+        "tipo": "Silicona acética",
+        "color": "Bronce"
+      },
+      "note": "Color: Bronce."
+    },
+    {
+      "name": "Sellador adhesivo Sika Sikaflex-11 FC Purform blanco 300 ml",
+      "brand": "Sika",
+      "familyId": "fam-selladores-y-espumas",
+      "model": "Sikaflex-11 FC Purform",
+      "manufacturerCode": "",
+      "productType": "Sellador poliuretano",
+      "unit": "Unidad",
+      "packaging": "Cartucho de 300 ml",
+      "sourceUrl": "https://chl.sika.com/dam/dms/cl01/3/sikaflex-11-fc-purform.pdf",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "contenido neto y unidad": "300 ml",
+        "base química": "Poliuretano",
+        "tipo": "Sellador adhesivo de poliuretano",
+        "color": "Blanco"
+      },
+      "note": "Color: Blanco."
+    },
+    {
+      "name": "Sellador adhesivo Sika Sikaflex-11 FC Purform gris 300 ml",
+      "brand": "Sika",
+      "familyId": "fam-selladores-y-espumas",
+      "model": "Sikaflex-11 FC Purform",
+      "manufacturerCode": "",
+      "productType": "Sellador poliuretano",
+      "unit": "Unidad",
+      "packaging": "Cartucho de 300 ml",
+      "sourceUrl": "https://chl.sika.com/dam/dms/cl01/3/sikaflex-11-fc-purform.pdf",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "contenido neto y unidad": "300 ml",
+        "base química": "Poliuretano",
+        "tipo": "Sellador adhesivo de poliuretano",
+        "color": "Gris"
+      },
+      "note": "Color: Gris."
+    },
+    {
+      "name": "Sellador adhesivo Sika Sikaflex-11 FC Purform marrón 300 ml",
+      "brand": "Sika",
+      "familyId": "fam-selladores-y-espumas",
+      "model": "Sikaflex-11 FC Purform",
+      "manufacturerCode": "",
+      "productType": "Sellador poliuretano",
+      "unit": "Unidad",
+      "packaging": "Cartucho de 300 ml",
+      "sourceUrl": "https://chl.sika.com/dam/dms/cl01/3/sikaflex-11-fc-purform.pdf",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "contenido neto y unidad": "300 ml",
+        "base química": "Poliuretano",
+        "tipo": "Sellador adhesivo de poliuretano",
+        "color": "Marrón"
+      },
+      "note": "Color: Marrón."
+    },
+    {
+      "name": "Sellador adhesivo Sika Sikaflex-11 FC Purform negro 300 ml",
+      "brand": "Sika",
+      "familyId": "fam-selladores-y-espumas",
+      "model": "Sikaflex-11 FC Purform",
+      "manufacturerCode": "",
+      "productType": "Sellador poliuretano",
+      "unit": "Unidad",
+      "packaging": "Cartucho de 300 ml",
+      "sourceUrl": "https://chl.sika.com/dam/dms/cl01/3/sikaflex-11-fc-purform.pdf",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "contenido neto y unidad": "300 ml",
+        "base química": "Poliuretano",
+        "tipo": "Sellador adhesivo de poliuretano",
+        "color": "Negro"
+      },
+      "note": "Color: Negro."
+    },
+    {
+      "name": "Espuma expansiva Sika Boom S 500 ml",
+      "brand": "Sika",
+      "familyId": "fam-selladores-y-espumas",
+      "model": "Sika Boom S",
+      "manufacturerCode": "",
+      "productType": "Espuma expansiva",
+      "unit": "Unidad",
+      "packaging": "Lata de 500 ml",
+      "sourceUrl": "https://chl.sika.com/dam/dms/cl01/b/sika_boom_s.pdf",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "contenido neto y unidad": "500 ml",
+        "base química": "Poliuretano monocomponente",
+        "tipo": "Espuma expansiva"
+      },
+      "note": ""
+    },
+    {
+      "name": "Placa Volcanita ST BR 10 mm 1200 x 2400 mm",
+      "brand": "Volcanita",
+      "familyId": "fam-placas-de-yeso-carton",
+      "model": "ST BR",
+      "manufacturerCode": "5000313",
+      "productType": "Placa de yeso cartón estándar",
+      "unit": "Unidad",
+      "packaging": "1 placa",
+      "sourceUrl": "https://tienda.volcan.cl/products/5000313-volcanita-st-br-10-x-12-x-24",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "material": "Yeso cartón",
+        "espesor mm": 10,
+        "ancho mm": 1200,
+        "largo mm": 2400,
+        "tipo ST/RH/RF declarado": "ST",
+        "tipo de borde": "Rebajado"
+      },
+      "note": ""
+    },
+    {
+      "name": "Placa Volcanita ST BR 12,5 mm 1200 x 2400 mm",
+      "brand": "Volcanita",
+      "familyId": "fam-placas-de-yeso-carton",
+      "model": "ST BR",
+      "manufacturerCode": "5000534",
+      "productType": "Placa de yeso cartón estándar",
+      "unit": "Unidad",
+      "packaging": "1 placa",
+      "sourceUrl": "https://tienda.volcan.cl/products/5000534-volcanita-st-br-125-x-12-x-24",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "material": "Yeso cartón",
+        "espesor mm": 12.5,
+        "ancho mm": 1200,
+        "largo mm": 2400,
+        "tipo ST/RH/RF declarado": "ST",
+        "tipo de borde": "Rebajado"
+      },
+      "note": ""
+    },
+    {
+      "name": "Placa Volcanita ST BR 15 mm 1200 x 2400 mm",
+      "brand": "Volcanita",
+      "familyId": "fam-placas-de-yeso-carton",
+      "model": "ST BR",
+      "manufacturerCode": "5000811",
+      "productType": "Placa de yeso cartón estándar",
+      "unit": "Unidad",
+      "packaging": "1 placa",
+      "sourceUrl": "https://tienda.volcan.cl/products/5000811-volcanita-st-br-15-x-12-x-24",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "material": "Yeso cartón",
+        "espesor mm": 15,
+        "ancho mm": 1200,
+        "largo mm": 2400,
+        "tipo ST/RH/RF declarado": "ST",
+        "tipo de borde": "Rebajado"
+      },
+      "note": ""
+    },
+    {
+      "name": "Placa Volcanita RH BR 12,5 mm 1200 x 2400 mm",
+      "brand": "Volcanita",
+      "familyId": "fam-placas-de-yeso-carton",
+      "model": "RH BR",
+      "manufacturerCode": "5000598",
+      "productType": "Placa de yeso cartón resistente a humedad",
+      "unit": "Unidad",
+      "packaging": "1 placa",
+      "sourceUrl": "https://tienda.volcan.cl/products/5000598-volcanita-rh-br-125-x-12-x-24",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "material": "Yeso cartón",
+        "espesor mm": 12.5,
+        "ancho mm": 1200,
+        "largo mm": 2400,
+        "tipo ST/RH/RF declarado": "RH",
+        "tipo de borde": "Rebajado"
+      },
+      "note": ""
+    },
+    {
+      "name": "Placa Volcanita RH BR 15 mm 1200 x 2400 mm",
+      "brand": "Volcanita",
+      "familyId": "fam-placas-de-yeso-carton",
+      "model": "RH BR",
+      "manufacturerCode": "5000981",
+      "productType": "Placa de yeso cartón resistente a humedad",
+      "unit": "Unidad",
+      "packaging": "1 placa",
+      "sourceUrl": "https://tienda.volcan.cl/products/5000981-volcanita-rh-br-15-x-12-x-24",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "material": "Yeso cartón",
+        "espesor mm": 15,
+        "ancho mm": 1200,
+        "largo mm": 2400,
+        "tipo ST/RH/RF declarado": "RH",
+        "tipo de borde": "Rebajado"
+      },
+      "note": ""
+    },
+    {
+      "name": "Placa Volcanita RF BR 12,5 mm 1200 x 2400 mm",
+      "brand": "Volcanita",
+      "familyId": "fam-placas-de-yeso-carton",
+      "model": "RF BR",
+      "manufacturerCode": "5000644",
+      "productType": "Placa de yeso cartón resistente al fuego",
+      "unit": "Unidad",
+      "packaging": "1 placa",
+      "sourceUrl": "https://tienda.volcan.cl/products/5000644-volcanita-rf-br-125-x-12-x-24",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "material": "Yeso cartón",
+        "espesor mm": 12.5,
+        "ancho mm": 1200,
+        "largo mm": 2400,
+        "tipo ST/RH/RF declarado": "RF",
+        "tipo de borde": "Rebajado"
+      },
+      "note": ""
+    },
+    {
+      "name": "Placa Volcanita RF BR 15 mm 1200 x 2400 mm",
+      "brand": "Volcanita",
+      "familyId": "fam-placas-de-yeso-carton",
+      "model": "RF BR",
+      "manufacturerCode": "5001051",
+      "productType": "Placa de yeso cartón resistente al fuego",
+      "unit": "Unidad",
+      "packaging": "1 placa",
+      "sourceUrl": "https://tienda.volcan.cl/products/5001051-volcanita-rf-br-15-x-12-x-24",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "material": "Yeso cartón",
+        "espesor mm": 15,
+        "ancho mm": 1200,
+        "largo mm": 2400,
+        "tipo ST/RH/RF declarado": "RF",
+        "tipo de borde": "Rebajado"
+      },
+      "note": ""
+    },
+    {
+      "name": "Tablero MDF Trupan Arauco 15 mm 1520 x 2440 mm",
+      "brand": "Trupan",
+      "familyId": "fam-mdf",
+      "model": "TRUPAN MDF",
+      "manufacturerCode": "",
+      "productType": "Tablero MDF",
+      "unit": "Unidad",
+      "packaging": "1 tablero",
+      "sourceUrl": "https://new.arauco.com/chile/ayuda-para-tus-proyectos/optimizador-de-corte/",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "material": "MDF",
+        "espesor mm": 15,
+        "ancho mm": 1520,
+        "largo mm": 2440
+      },
+      "note": "Fabricante: Arauco. Formato publicado en su optimizador de corte; no se declara un grado técnico adicional."
+    },
+    {
+      "name": "Tablero MDF Trupan Arauco 18 mm 1520 x 2440 mm",
+      "brand": "Trupan",
+      "familyId": "fam-mdf",
+      "model": "TRUPAN MDF",
+      "manufacturerCode": "",
+      "productType": "Tablero MDF",
+      "unit": "Unidad",
+      "packaging": "1 tablero",
+      "sourceUrl": "https://new.arauco.com/chile/ayuda-para-tus-proyectos/optimizador-de-corte/",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "material": "MDF",
+        "espesor mm": 18,
+        "ancho mm": 1520,
+        "largo mm": 2440
+      },
+      "note": "Fabricante: Arauco. Formato publicado en su optimizador de corte; no se declara un grado técnico adicional."
+    },
+    {
+      "name": "Cemento Cbb especial 25 kg",
+      "brand": "Cbb Cementos",
+      "familyId": "fam-cementos-y-cales",
+      "model": "Especial",
+      "manufacturerCode": "",
+      "productType": "Cemento de uso general",
+      "unit": "Unidad",
+      "packaging": "Saco de 25 kg",
+      "sourceUrl": "https://cbb.cl/cementos/productos-y-servicios/productos/",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "masa neta kg": 25,
+        "presentación": "Saco de 25 kg",
+        "clase declarada": "Puzolánico corriente"
+      },
+      "note": ""
+    },
+    {
+      "name": "Cemento Cbb alta resistencia 25 kg",
+      "brand": "Cbb Cementos",
+      "familyId": "fam-cementos-y-cales",
+      "model": "Alta Resistencia",
+      "manufacturerCode": "",
+      "productType": "Cemento de alta resistencia inicial",
+      "unit": "Unidad",
+      "packaging": "Saco de 25 kg",
+      "sourceUrl": "https://cbb.cl/cementos/productos-y-servicios/productos/",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "masa neta kg": 25,
+        "presentación": "Saco de 25 kg",
+        "clase declarada": "Portland puzolánico alta resistencia"
+      },
+      "note": ""
+    },
+    {
+      "name": "Esmalte al agua Ceresita Pieza y Fachada Premium Plus blanco semibrillo 1 galón",
+      "brand": "Ceresita",
+      "familyId": "fam-pinturas-de-muro-y-fachada",
+      "model": "Pieza y Fachada Premium Plus",
+      "manufacturerCode": "",
+      "productType": "Esmalte al agua",
+      "unit": "Unidad",
+      "packaging": "Envase de 1 galón",
+      "sourceUrl": "https://www.ceresita.com/media/download/424",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "base": "Agua",
+        "acabado": "Semibrillo",
+        "color o código de color": "Blanco",
+        "contenido neto y unidad": "1 galón"
+      },
+      "note": ""
+    },
+    {
+      "name": "Esmalte al agua Ceresita Pieza y Fachada Premium Plus blanco semibrillo 5 galónes",
+      "brand": "Ceresita",
+      "familyId": "fam-pinturas-de-muro-y-fachada",
+      "model": "Pieza y Fachada Premium Plus",
+      "manufacturerCode": "",
+      "productType": "Esmalte al agua",
+      "unit": "Unidad",
+      "packaging": "Tineta de 5 galones",
+      "sourceUrl": "https://www.ceresita.com/media/download/424",
+      "evidenceMode": "ficha oficial consultada o extracto indexado del fabricante",
+      "attributes": {
+        "base": "Agua",
+        "acabado": "Semibrillo",
+        "color o código de color": "Blanco",
+        "contenido neto y unidad": "5 galónes"
+      },
+      "note": ""
+    }
+  ]
+}

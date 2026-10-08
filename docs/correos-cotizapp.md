@@ -1,4 +1,4 @@
-# Correos CotizApp
+# Correos Findi
 
 ## Envío existente y estado aplicado
 
@@ -7,7 +7,7 @@ Firebase Authentication envía los cuatro tipos de correo existentes: recuperaci
 El 4 de octubre de 2026 se configuró y verificó en `cotizapp-d71c8`:
 
 - Idioma predeterminado: español (`es`).
-- Nombre del remitente de los cuatro tipos: `CotizApp`.
+- Nombre del remitente de los cuatro tipos: `Findi`.
 - Se conserva el transporte de Firebase, los remitentes existentes y los enlaces de acción seguros.
 
 **La personalización de los asuntos y del cuerpo HTML no quedó aplicada.** El proyecto responde `EMAIL_TEMPLATE_UPDATE_NOT_ALLOWED` al modificar esos campos; algunos cuerpos protegidos devuelven éxito pero conservan el contenido predeterminado. La lectura posterior confirma que los cuatro mensajes conservan los asuntos y cuerpos estándar en español. Se necesita resolver la restricción del proyecto con Firebase o disponer de un proveedor SMTP autorizado para completar la personalización. No se enviaron correos de prueba ni se habilitó un proveedor nuevo.
@@ -16,7 +16,7 @@ El frontend también establece `auth.languageCode = 'es'` antes de utilizar Fire
 
 ## Diseño preparado
 
-La plantilla compartida está en [email-template.ts](../functions/src/lib/email-template.ts). Usa encabezado azul oscuro, marca CotizApp, fondo arena, botón naranja, instrucciones de seguridad y enlaces de contacto, privacidad y términos. El ancho es fluido, con un máximo de 600 px. Emplea tablas y estilos en línea, sin imágenes remotas ni fuentes externas, y dispone de versión de texto plano.
+La plantilla compartida está en [email-template.ts](../functions/src/lib/email-template.ts). Usa encabezado azul oscuro, marca Findi, fondo gris neutro, botón naranja, instrucciones de seguridad y enlaces de contacto, privacidad y términos. El ancho es fluido, con un máximo de 600 px. Emplea tablas y estilos en línea, sin imágenes remotas ni fuentes externas, y dispone de versión de texto plano.
 
 Los cuatro mensajes conservan los marcadores de Firebase (`%LINK%`, `%EMAIL%`, `%NEW_EMAIL%`, `%SECOND_FACTOR%`) y explican el propósito exacto de cada enlace. No se cambia el controlador de acciones ni se generan enlaces o códigos reales durante la previsualización.
 
@@ -39,3 +39,7 @@ Si Firebase bloquea algún campo, el script aplica los campos permitidos, verifi
 Validación local: 69 pruebas frontend y 49 backend aprobadas. Incluye idioma, normalización del destinatario, verificación solo para la cuenta autenticada, prevención de reenvíos a direcciones ya verificadas, escape de contenido y conservación de los enlaces de acción. Las cuatro previsualizaciones se comprobaron estructuralmente; no se pudo hacer revisión visual en navegador porque la sesión no tenía un navegador disponible.
 
 Referencias: [campos de configuración de Identity Platform](https://docs.cloud.google.com/identity-platform/docs/reference/rest/v2/Config) y [personalización de correos en Firebase](https://support.google.com/firebase/answer/7000714?hl=es).
+
+## Cambio de marca a Findi · 7 de octubre de 2026
+
+Las cuatro plantillas locales y sus previsualizaciones usan Findi y la paleta nueva. Se verificó en Firebase el remitente Findi en los cuatro tipos de correo. Firebase bloqueó la modificación del asunto y cuerpo mediante la API en los cuatro tipos; la actualización del diseño en producción requiere las opciones que permita la consola de Authentication o un servicio de envío personalizado. Los cuerpos locales `tmp/email-previews/*.firebase.html` conservan los tokens reales y están preparados para el editor. La configuración anterior se conserva en una copia privada, excluida del repositorio.

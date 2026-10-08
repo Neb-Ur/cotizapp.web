@@ -24,9 +24,9 @@
 </app-ui-modal>
 <main class="privacy-center" [hidden]="!!overview?.legalAcceptanceRequired && !overview?.processingBlocked" [attr.inert]="overview?.legalAcceptanceRequired && !overview?.processingBlocked ? '' : null" [attr.aria-hidden]="overview?.legalAcceptanceRequired && !overview?.processingBlocked ? 'true' : null">
   <header class="topbar">
-    <a class="brand" routerLink="/" aria-label="CotizApp, ir al inicio">
+    <a class="brand" routerLink="/" aria-label="Findi, ir al inicio">
       <span class="brand-mark">C</span>
-      <span>CotizApp</span>
+      <span>Findi</span>
     </a>
     <a class="back-link" [routerLink]="auth.dashboardRouteForUser(user)">Volver a mi panel</a>
   </header>

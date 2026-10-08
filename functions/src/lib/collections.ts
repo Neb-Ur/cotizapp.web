@@ -6,6 +6,7 @@ const names = {
   categories: 'categorias',
   subcategories: 'subcategorias',
   families: 'familias',
+  brands: 'marcas',
   familyDefinitions: 'definicionesAtributoFamilia',
   masterProducts: 'productosMaestro',
   masterAttributes: 'atributosProductoMaestro',

@@ -207,6 +207,8 @@ export interface SearchRow {
 }
 
 export interface SearchFilters {
+  brandId?: string;
+  brand?: string;
   query?: string;
   categoryId?: string;
   subcategoryId?: string;
@@ -220,6 +222,7 @@ export interface SearchProximity {
 }
 
 export interface TaxonomyOption {
+  icon?: string;
   id: string;
   name: string;
   parentId?: string;
@@ -409,6 +412,7 @@ export interface ProjectComparisonStrategy {
 }
 
 export interface CatalogProduct {
+  brandId?: string | null;
   catalogLevel?: 'tipo_base' | 'producto_comercial';
   id: string;
   masterProductId?: string;

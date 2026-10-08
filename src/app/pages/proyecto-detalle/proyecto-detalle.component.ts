@@ -1,3 +1,4 @@
+import { WriteFeedbackService } from '../../core/services/write-feedback.service';
 import { DataModeService } from '../../core/services/data-mode.service';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
@@ -35,6 +36,7 @@ export class ProyectoDetalleComponent implements OnInit {
   protected projectName = '';
   protected projectAddress = '';
   protected projectItems: ProjectItem[] = [];
+  protected isSaving = false;
   protected saveNotice = '';
   protected projectProximity?: SearchProximity;
   protected selectedSingleStoreName = '';
@@ -50,6 +52,8 @@ export class ProyectoDetalleComponent implements OnInit {
     private readonly router: Router,
     private readonly authService: AuthService,
     private readonly apiService: FirebaseDataService
+,
+    private readonly writeFeedback: WriteFeedbackService = new WriteFeedbackService()
   ) {}
 
   ngOnInit(): void {
@@ -183,67 +187,74 @@ export class ProyectoDetalleComponent implements OnInit {
   }
 
   protected async saveProject(): Promise<void> {
-    const currentUser = this.user;
-    if (!currentUser) {
-      this.persistDraftIfNeeded();
-      await this.router.navigate(['/registro'], {
-        queryParams: { returnUrl: '/dashboard/maestro/cotizaciones/nuevo' }
-      });
-      return;
-    }
-
-    const name = this.projectName.trim();
-    if (!name) {
-      return;
-    }
-
-    if (this.isNewProject) {
+    await this.writeFeedback.run('proyecto-detalle:saveProject', async () => {
+      if (this.isSaving) return;
+      this.isSaving = true;
       try {
-        const created = await this.apiService.saveProject(
-          currentUser.id,
-          name,
-          this.projectItems,
-          this.projectAddress,
-          this.projectProximity,
-          this.quotation.appliedStoreName,
-          this.quotation.appliedStoreId
-        );
-        this.saveNotice = 'Cotizacion creada correctamente.';
-        this.clearDraft();
-        this.router.navigate(['/dashboard/maestro/cotizaciones', created.id]);
-      } catch (error) {
-        this.saveNotice = error instanceof Error
-          ? error.message
-          : 'No se pudo guardar la cotizacion.';
+      const currentUser = this.user;
+      if (!currentUser) {
+        this.persistDraftIfNeeded();
+        await this.router.navigate(['/registro'], {
+          queryParams: { returnUrl: '/dashboard/maestro/cotizaciones/nuevo' }
+        });
+        return;
       }
-      return;
-    }
 
-    const updated = await this.apiService.updateProject(
-      currentUser.id,
-      this.projectId,
-      name,
-      this.projectItems,
-      this.projectAddress,
-      this.projectProximity,
-      this.quotation.appliedStoreName,
-      this.quotation.appliedStoreId
-    );
-    if (!updated) {
-      this.saveNotice = 'No se pudo actualizar la cotizacion.';
-      return;
-    }
+      const name = this.projectName.trim();
+      if (!name) {
+        return;
+      }
 
-    this.saveNotice = 'Cotizacion actualizada correctamente.';
+      if (this.isNewProject) {
+        try {
+          const created = await this.apiService.saveProject(
+            currentUser.id,
+            name,
+            this.projectItems,
+            this.projectAddress,
+            this.projectProximity,
+            this.quotation.appliedStoreName,
+            this.quotation.appliedStoreId
+          );
+          this.saveNotice = 'Cotizacion creada correctamente.';
+          this.clearDraft();
+          this.router.navigate(['/dashboard/maestro/cotizaciones', created.id]);
+        } catch (error) {
+          this.saveNotice = error instanceof Error
+            ? error.message
+            : 'No se pudo guardar la cotizacion.';
+        }
+        return;
+      }
+
+      const updated = await this.apiService.updateProject(
+        currentUser.id,
+        this.projectId,
+        name,
+        this.projectItems,
+        this.projectAddress,
+        this.projectProximity,
+        this.quotation.appliedStoreName,
+        this.quotation.appliedStoreId
+      );
+      if (!updated) {
+        this.saveNotice = 'No se pudo actualizar la cotizacion.';
+        return;
+      }
+
+      this.saveNotice = 'Cotizacion actualizada correctamente.';
+      } catch (error) { this.saveNotice = error instanceof Error ? error.message : 'No se pudo guardar la cotización.'; }
+      finally { this.isSaving = false; }
+
+    });
   }
 
   protected goToSearchForProduct(): void {
     const projectTarget = this.isNewProject ? 'nuevo' : this.projectId;
     this.persistDraftIfNeeded();
     this.syncNearbyPreference();
-    this.router.navigate(['/dashboard/maestro'], {
+    this.router.navigate(['/buscar'], {
       queryParams: {
-        section: 'buscar',
         projectTarget,
         draftName: this.isNewProject ? this.projectName : null,
         draftAddress: this.isNewProject ? this.projectAddress : null

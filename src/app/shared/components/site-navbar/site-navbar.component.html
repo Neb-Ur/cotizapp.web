@@ -7,25 +7,22 @@
 ></button>
 
 <header class="navbar">
-  <a class="brand" routerLink="/" (click)="closeMenu()">
+  <a class="brand" routerLink="/" aria-label="Findi · Ir al inicio" (click)="closeMenu()">
     <app-brand-mark />
-    <span class="brand-copy">
-      <span class="brand-kicker">Cotizaciones de obra</span>
-      <span class="brand-name"><strong>Cotiz</strong>App</span>
-    </span>
+    <span class="brand-wordmark" aria-hidden="true">find<span>ı</span></span>
+
   </a>
 
   <nav class="links" id="primary-navigation" [class.open]="menuOpen" aria-label="Navegacion principal">
-    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Inicio</a>
     <div class="desktop-taxonomy">
       <button type="button" class="taxonomy-trigger" (click)="toggleTaxonomy($event)" [attr.aria-expanded]="taxonomyOpen" aria-controls="desktop-taxonomy-menu">
-        Categorías
+        <fa-icon [icon]="faCategories" class="categories-icon" aria-hidden="true" /> Categorías
         <fa-icon [icon]="faChevronDown" [class.expanded]="taxonomyOpen" aria-hidden="true" />
       </button>
       <section id="desktop-taxonomy-menu" class="taxonomy-mega-menu" *ngIf="taxonomyOpen" (click)="$event.stopPropagation()" aria-label="Taxonomía de productos">
         <header class="taxonomy-menu-header">
           <div>
-            <span>Catálogo CotizApp</span>
+            <span>Catálogo Findi</span>
             <h2>Encuentra materiales por especialidad</h2>
           </div>
           <a routerLink="/buscar" (click)="closeTaxonomy()">Ver todos los productos</a>
@@ -40,7 +37,7 @@
               (focus)="setActiveDesktopCategory(category.id)"
               (click)="setActiveDesktopCategory(category.id)"
             >
-              <span>{{ category.name }}</span>
+              <span class="category-menu-label"><i [class]="categoryIcon(category)" aria-hidden="true"></i>{{ category.name }}</span>
               <fa-icon [icon]="faChevronRight" aria-hidden="true" />
             </button>
           </nav>
@@ -71,51 +68,87 @@
         </div>
       </section>
     </div>
-    <a routerLink="/buscar" routerLinkActive="active" (click)="closeMenu()">Buscar productos</a>
-    <a routerLink="/ferreterias" routerLinkActive="active" (click)="closeMenu()">Ferreterías</a>
-    <a routerLink="/preguntas-frecuentes" routerLinkActive="active" (click)="closeMenu()">FAQ</a>
+    <div #searchShell class="search-shell" (focusout)="onSearchFocusOut($event)">
+      <form class="navbar-search" role="search" aria-label="Buscar en el catálogo" (ngSubmit)="submitSearch()">
+        <label for="header-product-search" class="visually-hidden">Buscar productos, categorías, familias o marcas</label>
+        <input #searchInput id="header-product-search" name="q" type="search" [(ngModel)]="searchValue"
+          (ngModelChange)="onSearchInput()" (focus)="focusSearch()" (keydown)="onSearchKeydown($event)"
+          placeholder="Busca productos, categorías o marcas…" autocomplete="off" role="combobox" aria-autocomplete="list"
+          [attr.aria-expanded]="searchOpen" aria-controls="header-search-options" [attr.aria-activedescendant]="activeOptionId" />
+        <button *ngIf="searchValue" type="button" class="search-clear" (click)="clearSearch()" aria-label="Limpiar búsqueda"><i class="pi pi-times" aria-hidden="true"></i></button>
+        <button type="submit" class="search-submit" aria-label="Buscar"><i class="pi pi-search" aria-hidden="true"></i></button>
+      </form>
+      <section class="search-panel" *ngIf="searchOpen" aria-label="Sugerencias de búsqueda">
+        <div class="search-panel-heading"><span>Encuentra tu material</span><button type="button" (click)="closeSearch()" aria-label="Cerrar sugerencias"><i class="pi pi-times" aria-hidden="true"></i></button></div>
+        <div id="header-search-options" role="listbox" aria-label="Productos, familias y marcas" class="search-groups" [class.with-products]="suggestionGroups[0]?.kind==='product'">
+          <section *ngFor="let group of suggestionGroups" class="search-group" [class.search-group-products]="group.kind==='product'" role="group" [attr.aria-label]="group.label">
+            <h2>{{ group.label }}</h2>
+            <a *ngFor="let item of group.items" [id]="optionId(item)" [routerLink]="suggestionUrl(item)" [queryParams]="suggestionParams(item)"
+              role="option" tabindex="-1" [attr.aria-selected]="activeOptionId===optionId(item)" [class.keyboard-active]="activeOptionId===optionId(item)"
+              (click)="closeSearch()" class="search-result">
+              <span class="search-result-icon"><i [class]="item.kind==='product'?'pi pi-box':item.kind==='brand'?'pi pi-tag':'pi pi-th-large'" aria-hidden="true"></i></span>
+              <span class="search-result-copy"><strong>{{ item.name }}</strong><small>{{ item.context }}<ng-container *ngIf="item.count !== undefined"> · {{ item.count }} productos</ng-container></small></span>
+              <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+            </a>
+          </section>
+        </div>
+        <p class="search-panel-message" *ngIf="!searchIndex.ready() && searchIndex.loading()" role="status">Preparando el catálogo para buscar…</p>
+        <p class="search-panel-message" *ngIf="searchIndex.error()" role="status">{{ searchIndex.error() }} <button type="button" (click)="retrySearchIndex()">Reintentar</button></p>
+        <p class="search-panel-message" *ngIf="searchIndex.ready() && suggestionGroups.length===0" role="status">No encontramos coincidencias para “{{ searchValue }}”. Prueba con otro material o revisa el catálogo.</p>
+        <button type="button" class="search-view-all" (click)="submitSearch()">Ver todos los resultados de “{{ searchValue.trim() }}” <i class="pi pi-arrow-right" aria-hidden="true"></i></button>
+        <p class="search-keyboard-hint">↑ ↓ para explorar · Enter para abrir · Esc para cerrar</p>
+      </section>
+    </div>
+    <a class="desktop-link" routerLink="/ferreterias" routerLinkActive="active" (click)="closeMenu()">Ferreterías</a>
 
     <ng-container *ngIf="!isLogged; else loggedActions">
       <div class="auth-group">
-        <a class="nav-login" routerLink="/login" (click)="closeMenu()">Iniciar sesión</a>
-        <a class="btn btn-primary btn-sm" routerLink="/registro" (click)="closeMenu()">Crear cuenta</a>
+        <a class="nav-login" routerLink="/login" [queryParams]="{returnUrl: returnUrl}" (click)="closeMenu()">Iniciar sesión</a>
       </div>
     </ng-container>
 
     <ng-template #loggedActions>
       <div class="auth-group">
-        <a [routerLink]="dashboardUrl" class="nav-login" (click)="closeMenu()">Dashboard</a>
+        <ng-container *ngIf="isMaestro; else managementLink">
+          <a routerLink="/dashboard/maestro" [queryParams]="{section:'cotizaciones'}" class="account-nav-icon" (click)="closeMenu()" aria-label="Mis cotizaciones" title="Mis cotizaciones"><i class="pi pi-file" aria-hidden="true"></i></a>
+          <a routerLink="/dashboard/maestro" [queryParams]="{section:'perfil'}" class="account-nav-icon" (click)="closeMenu()" aria-label="Mi perfil" title="Mi perfil"><i class="pi pi-user" aria-hidden="true"></i></a>
+        </ng-container>
+        <ng-template #managementLink><a [routerLink]="dashboardUrl" class="nav-login" (click)="closeMenu()">Mi panel</a></ng-template>
         <button type="button" class="btn btn-outline btn-sm" (click)="logout()">Salir</button>
       </div>
     </ng-template>
   </nav>
 
-  <button class="hamburger" type="button" (click)="toggleMenu()" aria-label="Abrir menu" aria-controls="primary-navigation" [attr.aria-expanded]="menuOpen" [class.open]="menuOpen">
+  <button class="hamburger" type="button" (click)="toggleMenu()" [attr.aria-label]="menuOpen ? 'Cerrar menú' : 'Abrir menú'" aria-controls="mobile-navigation" [attr.aria-expanded]="menuOpen" [class.open]="menuOpen">
     <span></span>
     <span></span>
     <span></span>
   </button>
 </header>
 
-<aside class="mobile-drawer" [class.open]="menuOpen" [attr.aria-hidden]="!menuOpen" aria-label="Menu principal">
+<aside #mobileDrawer tabindex="-1" id="mobile-navigation" role="dialog" [attr.aria-modal]="menuOpen ? true : null" [attr.inert]="menuOpen ? null : ''" (keydown.tab)="trapMenuFocus($event)" class="mobile-drawer" [class.open]="menuOpen" [attr.aria-hidden]="!menuOpen" aria-label="Menu principal">
   <div class="drawer-header">
-    <span>Menú</span>
+    <a class="drawer-brand" routerLink="/" (click)="closeMenu()"><app-brand-mark /> <strong>Findi</strong></a>
     <button type="button" class="drawer-close" (click)="closeMenu()" aria-label="Cerrar menu"><fa-icon [icon]="faClose" /></button>
   </div>
 
   <nav class="drawer-content">
-    <a *ngIf="!isLogged" class="drawer-login" routerLink="/login" (click)="closeMenu()">
+    <a *ngIf="!isLogged" class="drawer-login" routerLink="/login" [queryParams]="{returnUrl: returnUrl}" (click)="closeMenu()">
       <fa-icon class="drawer-item-icon" [icon]="faLogin" aria-hidden="true" />
       <span>Iniciar sesión</span>
       <fa-icon class="drawer-chevron" [icon]="faChevronRight" aria-hidden="true" />
     </a>
-    <a *ngIf="isLogged" class="drawer-login" [routerLink]="dashboardUrl" (click)="closeMenu()">
+    <a *ngIf="isLogged" class="drawer-login" [routerLink]="isMaestro ? '/dashboard/maestro' : dashboardUrl" [queryParams]="isMaestro ? {section:'perfil'} : null" (click)="closeMenu()">
       <fa-icon class="drawer-item-icon" [icon]="faLogin" aria-hidden="true" />
-      <span>Ir a mi panel</span>
+      <span>{{ isMaestro ? 'Mi perfil' : 'Mi panel' }}</span>
       <fa-icon class="drawer-chevron" [icon]="faChevronRight" aria-hidden="true" />
     </a>
 
-    <a *ngIf="isLogged" routerLink="/cuenta/cambiar-contrasena" (click)="closeMenu()">Cambiar contraseña</a>
+    <a class="drawer-link" routerLink="/" (click)="closeMenu()"><i class="pi pi-home" aria-hidden="true"></i> Inicio</a>
+    <a class="drawer-link" routerLink="/ferreterias" (click)="closeMenu()"><i class="pi pi-shop" aria-hidden="true"></i> Ferreterías</a>
+    <a class="drawer-link" *ngIf="isMaestro" routerLink="/dashboard/maestro" [queryParams]="{section:'cotizaciones'}" (click)="closeMenu()"><i class="pi pi-file" aria-hidden="true"></i> Mis cotizaciones</a>
+    <a class="drawer-link" *ngIf="isLogged" routerLink="/cuenta/cambiar-contrasena" (click)="closeMenu()">Cambiar contraseña</a>
+    <button class="drawer-link" *ngIf="isLogged" type="button" (click)="logout()"><i class="pi pi-sign-out" aria-hidden="true"></i> Cerrar sesión</button>
     <section class="drawer-categories">
       <button type="button" class="drawer-section-toggle" (click)="toggleCategories()" [attr.aria-expanded]="categoriesOpen">
         <fa-icon class="drawer-grid-icon" [icon]="faCategories" aria-hidden="true" />
@@ -126,7 +159,7 @@
       <div class="drawer-category-list" *ngIf="categoriesOpen">
         <section class="drawer-category" *ngFor="let category of categories">
           <button type="button" (click)="toggleMobileCategory(category.id)" [attr.aria-expanded]="expandedMobileCategoryId === category.id">
-            <span>{{ category.name }}</span>
+            <span class="category-menu-label"><i [class]="categoryIcon(category)" aria-hidden="true"></i>{{ category.name }}</span>
             <fa-icon [icon]="faChevronRight" [class.expanded]="expandedMobileCategoryId === category.id" aria-hidden="true" />
           </button>
           <div class="drawer-category-detail" *ngIf="expandedMobileCategoryId === category.id">

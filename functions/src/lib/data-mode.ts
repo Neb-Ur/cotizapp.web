@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from 'express';
 import { fail } from './http.js';
 
 export function dataMode(): 'real' { return 'real'; }
-const shared = new Set(['usuarios', 'categorias', 'subcategorias', 'familias', 'definicionesAtributoFamilia', 'productosMaestro', 'atributosProductoMaestro']);
+const shared = new Set(['usuarios', 'categorias', 'subcategorias', 'familias', 'marcas', 'definicionesAtributoFamilia', 'productosMaestro', 'atributosProductoMaestro']);
 export function collectionForMode(name: string): string {
   return shared.has(name) ? name : `real_${name}`;
 }

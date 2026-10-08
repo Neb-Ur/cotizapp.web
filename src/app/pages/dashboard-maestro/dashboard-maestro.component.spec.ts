@@ -25,10 +25,10 @@ describe('server-paginated product search',()=>{
   });
   it('sends filters, page, ordering and proximity to the server',async()=>{
     const {component,api}=fixture();
-    component.tableProductSearch=' Producto 134 ';component.selectedCategoryId='cat';component.selectedSubcategoryId='sub';component.selectedFamilyId='fam';
+    component.tableProductSearch=' Producto 134 ';component.selectedCategoryId='cat';component.selectedSubcategoryId='sub';component.selectedFamilyId='fam';component.selectedBrand='Marca Uno';
     component.currentPage=3;component.pageSize=50;component.productSort='price-desc';component.nearbyEnabled=true;component.maestroLocation={latitude:0,longitude:0};
     await component.fetchProductPage();
-    expect(api.searchProductPage).toHaveBeenCalledWith({query:'Producto 134',categoryId:'cat',subcategoryId:'sub',familyId:'fam'},3,50,'price-desc',{latitude:0,longitude:0,radiusKm:10});
+    expect(api.searchProductPage).toHaveBeenCalledWith({query:'Producto 134',categoryId:'cat',subcategoryId:'sub',familyId:'fam',brand:'Marca Uno'},3,50,'price-desc',{latitude:0,longitude:0,radiusKm:10});
   });
   it('ignores an old response arriving after a newer query',async()=>{
     const {component,api}=fixture();let resolveOld!:(value:any)=>void;
