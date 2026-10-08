@@ -1,0 +1,209 @@
+# Generated inspection operations. Browser clients are denied access.
+
+query InspeccionarEliminacionDeCuentas @auth(level: NO_ACCESS) {
+  inspeccionEliminacionDeCuentas(limit: 20) { id userId status authDeleteConfirmedAt completedAt attempts requestedAt lastErrorCode backupErasureExpectedBy }
+}
+
+query InspeccionarPreferenciasDeUsuarios @auth(level: NO_ACCESS) {
+  inspeccionPreferenciasDeUsuarios(limit: 20) { userId primaryStoreId selectedQuotationId updatedAt }
+}
+
+query InspeccionarHistorialDeAccionesAdministrativas @auth(level: NO_ACCESS) {
+  inspeccionHistorialDeAccionesAdministrativas(limit: 20) { id actorId action actorRole method path targetType targetReference statusCode outcome resultCode details occurredAt retentionUntil apiPayload apiVersion }
+}
+
+query InspeccionarAtributosDeCadaFamilia @auth(level: NO_ACCESS) {
+  inspeccionAtributosDeCadaFamilia(limit: 20) { id familyId code label unit dataType filterable required position apiPayload apiVersion }
+}
+
+query InspeccionarOpcionesDeAtributos @auth(level: NO_ACCESS) {
+  inspeccionOpcionesDeAtributos(limit: 20) { definitionId value label position }
+}
+
+query InspeccionarMarcas @auth(level: NO_ACCESS) {
+  inspeccionMarcas(limit: 20) { id name normalizedName createdAt updatedAt apiPayload apiVersion }
+}
+
+query InspeccionarVersionesDelCatalogo @auth(level: NO_ACCESS) {
+  inspeccionVersionesDelCatalogo(limit: 20) { scope revision changedAt }
+}
+
+query InspeccionarIndiceDeBusquedaDeProductos @auth(level: NO_ACCESS) {
+  inspeccionIndiceDeBusquedaDeProductos(limit: 20) { productId normalizedText searchVector version updatedAt }
+}
+
+query InspeccionarCategorias @auth(level: NO_ACCESS) {
+  inspeccionCategorias(limit: 20) { id name icon createdAt updatedAt apiPayload apiVersion }
+}
+
+query InspeccionarRegistroDeConsentimientos @auth(level: NO_ACCESS) {
+  inspeccionRegistroDeConsentimientos(limit: 20) { id userId type version granted source occurredAt documentHash purpose expressConsent evidence apiPayload apiVersion }
+}
+
+query InspeccionarMensajesDeContacto @auth(level: NO_ACCESS) {
+  inspeccionMensajesDeContacto(limit: 20) { id userId type name email phone commune businessName message status privacyConsent legalAcceptance createdAt updatedAt apiPayload apiVersion }
+}
+
+query InspeccionarPermisosDeUsoDeContenido @auth(level: NO_ACCESS) {
+  inspeccionPermisosDeUsoDeContenido(limit: 20) { id sourceType provider sourceUrl sourceTermsUrl authorizationReference containsThirdPartyMarks trademarkAuthorizationReference reviewedBy reviewedAt legalHold retentionUntil }
+}
+
+query InspeccionarEstadoDelCambioDeBase @auth(level: NO_ACCESS) {
+  inspeccionEstadoDelCambioDeBase(limit: 20) { id status sourceProject verifiedAt manifest updatedAt }
+}
+
+query InspeccionarComprobantesDeEliminacion @auth(level: NO_ACCESS) {
+  inspeccionComprobantesDeEliminacion(limit: 20) { id completedAt counts source retentionUntil apiPayload apiVersion }
+}
+
+query InspeccionarFamiliasDeProductos @auth(level: NO_ACCESS) {
+  inspeccionFamiliasDeProductos(limit: 20) { id subcategoryId name apiPayload apiVersion }
+}
+
+query InspeccionarEvidenciasDeCumplimiento @auth(level: NO_ACCESS) {
+  inspeccionEvidenciasDeCumplimiento(limit: 20) { id type outcome title ownerLabel performedAt nextReviewAt notes evidenceUrl createdAt createdBy legalHold retentionUntil apiPayload apiVersion }
+}
+
+query InspeccionarImportacionesDeProductos @auth(level: NO_ACCESS) {
+  inspeccionImportacionesDeProductos(limit: 20) { id storeId actorId sourceName status createdAt completedAt totalRows successfulRows rejectedRows }
+}
+
+query InspeccionarFilasDeImportaciones @auth(level: NO_ACCESS) {
+  inspeccionFilasDeImportaciones(limit: 20) { batchId rowNumber status errorCode resultingOfferId resultingRequestId inputSnapshot }
+}
+
+query InspeccionarHistorialDeReclamosDePropiedadIntelectual @auth(level: NO_ACCESS) {
+  inspeccionHistorialDeReclamosDePropiedadIntelectual(limit: 20) { id reportId position status occurredAt actorUserId actorKind resolution }
+}
+
+query InspeccionarReclamosDePropiedadIntelectual @auth(level: NO_ACCESS) {
+  inspeccionReclamosDePropiedadIntelectual(limit: 20) { id userId reference receiptTokenHash claimantName claimantEmail claimantOrganization claimantCapacity rightsType contentType targetType targetReference productId offerId storeId contentUrl originalWorkUrl workDescription infringementDescription declarations privacyConsent status publicStatusMessage assignedTo submittedAt acknowledgedAt initialReviewDueAt targetResolutionAt resolution resolvedAt updatedAt minimizedAt legalHold retentionUntil apiPayload apiVersion }
+}
+
+query InspeccionarEjecucionesDeTareasProgramadas @auth(level: NO_ACCESS) {
+  inspeccionEjecucionesDeTareasProgramadas(limit: 20) { jobName localDate timeZone status startedAt completedAt failedAt errorCode storesProcessed apiPayload apiVersion }
+}
+
+query InspeccionarDocumentosLegales @auth(level: NO_ACCESS) {
+  inspeccionDocumentosLegales(limit: 20) { kind version documentHash content effectiveAt isCurrent }
+}
+
+query InspeccionarExclusionesDeComunicacionesComerciales @auth(level: NO_ACCESS) {
+  inspeccionExclusionesDeComunicacionesComerciales(limit: 20) { emailHash hashScheme suppressedAt source apiPayload apiVersion }
+}
+
+query InspeccionarArchivosMultimedia @auth(level: NO_ACCESS) {
+  inspeccionArchivosMultimedia(limit: 20) { id url storagePath mimeType origin rightsId generatedBy generationReference aiDisclosure altText createdAt }
+}
+
+query InspeccionarHistorialDeOfertasYPrecios @auth(level: NO_ACCESS) {
+  inspeccionHistorialDeOfertasYPrecios(limit: 20) { id offerId storeId productId offerReference storeReference productReference actorId actorAccountDeletedAt action source oldPrice newPrice includesVat beforeSnapshot afterSnapshot productRequestId priceReportId occurredAt legalHold retentionUntil apiPayload apiVersion }
+}
+
+query InspeccionarOfertasDeFerreterias @auth(level: NO_ACCESS) {
+  inspeccionOfertasDeFerreterias(limit: 20) { id storeId productId storeSku barcode price currency stock includesVat measurementUnit measurementQuantity measurementSource validFrom validUntil conditions active published sponsored withdrawalReason ipStatus previousIpState ipReportId createdAt updatedAt apiPayload apiVersion }
+}
+
+query InspeccionarEventosPendientesDeProcesamiento @auth(level: NO_ACCESS) {
+  inspeccionEventosPendientesDeProcesamiento(limit: 20) { id topic entityType entityReference payload createdAt processedAt attempts lastErrorCode }
+}
+
+query InspeccionarReportesDePreciosIncorrectos @auth(level: NO_ACCESS) {
+  inspeccionReportesDePreciosIncorrectos(limit: 20) { id reference userId email productId storeId offerId productNameSnapshot storeNameSnapshot storeReference offerReference contentUrl displayedPrice catalogPriceAtReport observedPrice details privacyConsent status resolution resolvedAt resolvedBy createdAt updatedAt minimizedAt legalHold retentionUntil apiPayload apiVersion }
+}
+
+query InspeccionarSolicitudesSobreDatosPersonales @auth(level: NO_ACCESS) {
+  inspeccionSolicitudesSobreDatosPersonales(limit: 20) { id userId email type details status submittedAt acknowledgedAt responseDueAt blockingDueAt resolution resolvedAt resolvedBy updatedAt legalHold retentionUntil apiPayload apiVersion }
+}
+
+query InspeccionarValoresDeAtributosDeProductos @auth(level: NO_ACCESS) {
+  inspeccionValoresDeAtributosDeProductos(limit: 20) { id productId familyId definitionId codeSnapshot labelSnapshot textValue numericValue booleanValue optionValue apiPayload apiVersion }
+}
+
+query InspeccionarPermisosDeContenidoDeProductos @auth(level: NO_ACCESS) {
+  inspeccionPermisosDeContenidoDeProductos(limit: 20) { productId rightsId }
+}
+
+query InspeccionarCaracteristicasDestacadasDeProductos @auth(level: NO_ACCESS) {
+  inspeccionCaracteristicasDestacadasDeProductos(limit: 20) { productId position text }
+}
+
+query InspeccionarImagenesYArchivosDeProductos @auth(level: NO_ACCESS) {
+  inspeccionImagenesYArchivosDeProductos(limit: 20) { productId assetId position inGallery isPrimary }
+}
+
+query InspeccionarModelosDeProductos @auth(level: NO_ACCESS) {
+  inspeccionModelosDeProductos(limit: 20) { id familyId name description }
+}
+
+query InspeccionarSolicitudesDeProductosAlCatalogo @auth(level: NO_ACCESS) {
+  inspeccionSolicitudesDeProductosAlCatalogo(limit: 20) { id storeId requesterId adminId productName barcode storeSku published referenceQuantity referencePrice status requestType suggestedProductId resultingOfferId adminNotes createdAt resolvedAt apiPayload apiVersion }
+}
+
+query InspeccionarProductosDelCatalogoMaestro @auth(level: NO_ACCESS) {
+  inspeccionProductosDelCatalogoMaestro(limit: 20) { id familyId modelId brandId legacyBrandLabel name productType catalogLevel saleUnit presentation barcode shortDescription longDescription logisticsWeightKg logisticsVolumeM3 unitsPerPallet status sourceKind sourceReference sourceBatch ipStatus deletedAt createdAt updatedAt ipReportId apiPayload apiVersion modelLabel manufacturerCode catalogEvidence }
+}
+
+query InspeccionarDatosPublicosEnCache @auth(level: NO_ACCESS) {
+  inspeccionDatosPublicosEnCache(limit: 20) { key scope version objectPath payload schemaVersion updatedAt expiresAt }
+}
+
+query InspeccionarProductosDeCotizaciones @auth(level: NO_ACCESS) {
+  inspeccionProductosDeCotizaciones(limit: 20) { id quotationId position productId productNameSnapshot quantity selectedStoreId selectedStoreNameSnapshot selectedOfferId productReference storeReference offerReference resolutionState }
+}
+
+query InspeccionarCotizaciones @auth(level: NO_ACCESS) {
+  inspeccionCotizaciones(limit: 20) { id ownerId name address proximityLatitude proximityLongitude proximityRadiusKm singleStoreId singleStoreNameSnapshot singleStoreReference status createdAt updatedAt apiPayload apiVersion }
+}
+
+query InspeccionarIncidentesDeSeguridad @auth(level: NO_ACCESS) {
+  inspeccionIncidentesDeSeguridad(limit: 20) { id title description severity status detectedAt systems dataCategories affectedPeopleEstimate reasonableRisk agencyNotificationRequired containmentActions rootCause lessonsLearned agencyNotifiedAt subjectsNotifiedAt closedAt createdBy updatedBy createdAt updatedAt legalHold retentionUntil apiPayload apiVersion }
+}
+
+query InspeccionarRutasParaBuscadores @auth(level: NO_ACCESS) {
+  inspeccionRutasParaBuscadores(limit: 20) { path productId categoryId familyId brandId canonicalPath isCanonical active titleOverride descriptionOverride createdAt }
+}
+
+query InspeccionarVersionesDeLaReplicaDeFirestore @auth(level: NO_ACCESS) {
+  inspeccionVersionesDeLaReplicaDeFirestore(limit: 20) { collectionName documentId sourceVersion deleted replicatedAt }
+}
+
+query InspeccionarAcuerdosConFerreterias @auth(level: NO_ACCESS) {
+  inspeccionAcuerdosConFerreterias(limit: 20) { id storeId storeReference signerUserId version documentHash status providerSnapshot storeSnapshot signerSnapshot declarations evidence acceptedAt updatedAt terminatedAt terminationReason modifiedBy legalHold deleteAfter documentKind apiPayload apiVersion }
+}
+
+query InspeccionarMetricasDiariasDeFerreterias @auth(level: NO_ACCESS) {
+  inspeccionMetricasDiariasDeFerreterias(limit: 20) { storeId localDate schemaVersion computedAt activeWindowDays quotationCount quotedLines quotedUnits quotedProducts activeQuotationCount activeQuotedUnits activeQuotedAmount recentQuotationCount previousQuotationCount views selections catalogTotal catalogPublished catalogInStock catalogOutOfStock catalogStalePrices apiPayload apiVersion }
+}
+
+query InspeccionarProductosMasCotizadosPorDia @auth(level: NO_ACCESS) {
+  inspeccionProductosMasCotizadosPorDia(limit: 20) { storeId localDate rank productId productReference productNameSnapshot quotationCount units activeAmount stock }
+}
+
+query InspeccionarContadoresDeActividadDeFerreterias @auth(level: NO_ACCESS) {
+  inspeccionContadoresDeActividadDeFerreterias(limit: 20) { storeId views selections updatedAt apiPayload apiVersion }
+}
+
+query InspeccionarFerreterias @auth(level: NO_ACCESS) {
+  inspeccionFerreterias(limit: 20) { id ownerId businessName legalName taxId branchName address region city commune publicEmail publicPhone latitude longitude status agreementStatus agreementVersion agreementDocumentHash agreementAcceptedAt agreementUpdatedAt catalogUpdatedAt ipStatus previousIpState createdAt updatedAt ipReportId apiPayload apiVersion }
+}
+
+query InspeccionarSubcategorias @auth(level: NO_ACCESS) {
+  inspeccionSubcategorias(limit: 20) { id categoryId name apiPayload apiVersion }
+}
+
+query InspeccionarUsuarios @auth(level: NO_ACCESS) {
+  inspeccionUsuarios(limit: 20) { id role name email phone region city commune address accountStatus processingBlocked blockedAt unblockedAt termsVersion termsAcceptedAt privacyVersion privacyInformedAt ageConfirmed marketingConsent marketingUpdatedAt quotationLimit createdAt updatedAt apiPayload apiVersion }
+}
+
+query InspeccionarIncidenciasDeMigracion @auth(level: NO_ACCESS) {
+  inspeccionIncidenciasDeMigracion(limit: 20) { id collectionName documentId fieldName issueCode resolution resolvedAt }
+}
+
+query InspeccionarDocumentosDeOrigenDeMigracion @auth(level: NO_ACCESS) {
+  inspeccionDocumentosDeOrigenDeMigracion(limit: 20) { collectionName documentId sourcePayload sourceHash exportedAt expiresAt status }
+}
+
+query InspeccionarMigracionesDelEsquemaSQL @auth(level: NO_ACCESS) {
+  inspeccionMigracionesDelEsquemaSQL(limit: 20) { version sha256 appliedAt }
+}

@@ -1,0 +1,366 @@
+[
+  {
+    "table": "findi.account_deletion_jobs",
+    "model": "EliminacionDeCuentas",
+    "query": "InspeccionarEliminacionDeCuentas",
+    "root": "inspeccionEliminacionDeCuentas",
+    "columns": 9
+  },
+  {
+    "table": "findi.account_preferences",
+    "model": "PreferenciasDeUsuarios",
+    "query": "InspeccionarPreferenciasDeUsuarios",
+    "root": "inspeccionPreferenciasDeUsuarios",
+    "columns": 4
+  },
+  {
+    "table": "findi.admin_audit_logs",
+    "model": "HistorialDeAccionesAdministrativas",
+    "query": "InspeccionarHistorialDeAccionesAdministrativas",
+    "root": "inspeccionHistorialDeAccionesAdministrativas",
+    "columns": 16
+  },
+  {
+    "table": "findi.attribute_definitions",
+    "model": "AtributosDeCadaFamilia",
+    "query": "InspeccionarAtributosDeCadaFamilia",
+    "root": "inspeccionAtributosDeCadaFamilia",
+    "columns": 11
+  },
+  {
+    "table": "findi.attribute_options",
+    "model": "OpcionesDeAtributos",
+    "query": "InspeccionarOpcionesDeAtributos",
+    "root": "inspeccionOpcionesDeAtributos",
+    "columns": 4
+  },
+  {
+    "table": "findi.brands",
+    "model": "Marcas",
+    "query": "InspeccionarMarcas",
+    "root": "inspeccionMarcas",
+    "columns": 7
+  },
+  {
+    "table": "findi.catalog_revisions",
+    "model": "VersionesDelCatalogo",
+    "query": "InspeccionarVersionesDelCatalogo",
+    "root": "inspeccionVersionesDelCatalogo",
+    "columns": 3
+  },
+  {
+    "table": "findi.catalog_search_documents",
+    "model": "IndiceDeBusquedaDeProductos",
+    "query": "InspeccionarIndiceDeBusquedaDeProductos",
+    "root": "inspeccionIndiceDeBusquedaDeProductos",
+    "columns": 5
+  },
+  {
+    "table": "findi.categories",
+    "model": "Categorias",
+    "query": "InspeccionarCategorias",
+    "root": "inspeccionCategorias",
+    "columns": 7
+  },
+  {
+    "table": "findi.consent_events",
+    "model": "RegistroDeConsentimientos",
+    "query": "InspeccionarRegistroDeConsentimientos",
+    "root": "inspeccionRegistroDeConsentimientos",
+    "columns": 13
+  },
+  {
+    "table": "findi.contact_messages",
+    "model": "MensajesDeContacto",
+    "query": "InspeccionarMensajesDeContacto",
+    "root": "inspeccionMensajesDeContacto",
+    "columns": 16
+  },
+  {
+    "table": "findi.content_rights",
+    "model": "PermisosDeUsoDeContenido",
+    "query": "InspeccionarPermisosDeUsoDeContenido",
+    "root": "inspeccionPermisosDeUsoDeContenido",
+    "columns": 12
+  },
+  {
+    "table": "findi.database_migration_state",
+    "model": "EstadoDelCambioDeBase",
+    "query": "InspeccionarEstadoDelCambioDeBase",
+    "root": "inspeccionEstadoDelCambioDeBase",
+    "columns": 6
+  },
+  {
+    "table": "findi.deletion_receipts",
+    "model": "ComprobantesDeEliminacion",
+    "query": "InspeccionarComprobantesDeEliminacion",
+    "root": "inspeccionComprobantesDeEliminacion",
+    "columns": 7
+  },
+  {
+    "table": "findi.families",
+    "model": "FamiliasDeProductos",
+    "query": "InspeccionarFamiliasDeProductos",
+    "root": "inspeccionFamiliasDeProductos",
+    "columns": 5
+  },
+  {
+    "table": "findi.governance_evidence",
+    "model": "EvidenciasDeCumplimiento",
+    "query": "InspeccionarEvidenciasDeCumplimiento",
+    "root": "inspeccionEvidenciasDeCumplimiento",
+    "columns": 15
+  },
+  {
+    "table": "findi.import_batches",
+    "model": "ImportacionesDeProductos",
+    "query": "InspeccionarImportacionesDeProductos",
+    "root": "inspeccionImportacionesDeProductos",
+    "columns": 10
+  },
+  {
+    "table": "findi.import_rows",
+    "model": "FilasDeImportaciones",
+    "query": "InspeccionarFilasDeImportaciones",
+    "root": "inspeccionFilasDeImportaciones",
+    "columns": 7
+  },
+  {
+    "table": "findi.ip_report_events",
+    "model": "HistorialDeReclamosDePropiedadIntelectual",
+    "query": "InspeccionarHistorialDeReclamosDePropiedadIntelectual",
+    "root": "inspeccionHistorialDeReclamosDePropiedadIntelectual",
+    "columns": 8
+  },
+  {
+    "table": "findi.ip_reports",
+    "model": "ReclamosDePropiedadIntelectual",
+    "query": "InspeccionarReclamosDePropiedadIntelectual",
+    "root": "inspeccionReclamosDePropiedadIntelectual",
+    "columns": 36
+  },
+  {
+    "table": "findi.job_runs",
+    "model": "EjecucionesDeTareasProgramadas",
+    "query": "InspeccionarEjecucionesDeTareasProgramadas",
+    "root": "inspeccionEjecucionesDeTareasProgramadas",
+    "columns": 11
+  },
+  {
+    "table": "findi.legal_documents",
+    "model": "DocumentosLegales",
+    "query": "InspeccionarDocumentosLegales",
+    "root": "inspeccionDocumentosLegales",
+    "columns": 6
+  },
+  {
+    "table": "findi.marketing_suppressions",
+    "model": "ExclusionesDeComunicacionesComerciales",
+    "query": "InspeccionarExclusionesDeComunicacionesComerciales",
+    "root": "inspeccionExclusionesDeComunicacionesComerciales",
+    "columns": 6
+  },
+  {
+    "table": "findi.media_assets",
+    "model": "ArchivosMultimedia",
+    "query": "InspeccionarArchivosMultimedia",
+    "root": "inspeccionArchivosMultimedia",
+    "columns": 11
+  },
+  {
+    "table": "findi.offer_history",
+    "model": "HistorialDeOfertasYPrecios",
+    "query": "InspeccionarHistorialDeOfertasYPrecios",
+    "root": "inspeccionHistorialDeOfertasYPrecios",
+    "columns": 23
+  },
+  {
+    "table": "findi.offers",
+    "model": "OfertasDeFerreterias",
+    "query": "InspeccionarOfertasDeFerreterias",
+    "root": "inspeccionOfertasDeFerreterias",
+    "columns": 26
+  },
+  {
+    "table": "findi.outbox_events",
+    "model": "EventosPendientesDeProcesamiento",
+    "query": "InspeccionarEventosPendientesDeProcesamiento",
+    "root": "inspeccionEventosPendientesDeProcesamiento",
+    "columns": 9
+  },
+  {
+    "table": "findi.price_reports",
+    "model": "ReportesDePreciosIncorrectos",
+    "query": "InspeccionarReportesDePreciosIncorrectos",
+    "root": "inspeccionReportesDePreciosIncorrectos",
+    "columns": 28
+  },
+  {
+    "table": "findi.privacy_requests",
+    "model": "SolicitudesSobreDatosPersonales",
+    "query": "InspeccionarSolicitudesSobreDatosPersonales",
+    "root": "inspeccionSolicitudesSobreDatosPersonales",
+    "columns": 18
+  },
+  {
+    "table": "findi.product_attributes",
+    "model": "ValoresDeAtributosDeProductos",
+    "query": "InspeccionarValoresDeAtributosDeProductos",
+    "root": "inspeccionValoresDeAtributosDeProductos",
+    "columns": 12
+  },
+  {
+    "table": "findi.product_content_rights",
+    "model": "PermisosDeContenidoDeProductos",
+    "query": "InspeccionarPermisosDeContenidoDeProductos",
+    "root": "inspeccionPermisosDeContenidoDeProductos",
+    "columns": 2
+  },
+  {
+    "table": "findi.product_features",
+    "model": "CaracteristicasDestacadasDeProductos",
+    "query": "InspeccionarCaracteristicasDestacadasDeProductos",
+    "root": "inspeccionCaracteristicasDestacadasDeProductos",
+    "columns": 3
+  },
+  {
+    "table": "findi.product_media",
+    "model": "ImagenesYArchivosDeProductos",
+    "query": "InspeccionarImagenesYArchivosDeProductos",
+    "root": "inspeccionImagenesYArchivosDeProductos",
+    "columns": 5
+  },
+  {
+    "table": "findi.product_models",
+    "model": "ModelosDeProductos",
+    "query": "InspeccionarModelosDeProductos",
+    "root": "inspeccionModelosDeProductos",
+    "columns": 4
+  },
+  {
+    "table": "findi.product_requests",
+    "model": "SolicitudesDeProductosAlCatalogo",
+    "query": "InspeccionarSolicitudesDeProductosAlCatalogo",
+    "root": "inspeccionSolicitudesDeProductosAlCatalogo",
+    "columns": 19
+  },
+  {
+    "table": "findi.products",
+    "model": "ProductosDelCatalogoMaestro",
+    "query": "InspeccionarProductosDelCatalogoMaestro",
+    "root": "inspeccionProductosDelCatalogoMaestro",
+    "columns": 30
+  },
+  {
+    "table": "findi.public_cache_artifacts",
+    "model": "DatosPublicosEnCache",
+    "query": "InspeccionarDatosPublicosEnCache",
+    "root": "inspeccionDatosPublicosEnCache",
+    "columns": 8
+  },
+  {
+    "table": "findi.quotation_items",
+    "model": "ProductosDeCotizaciones",
+    "query": "InspeccionarProductosDeCotizaciones",
+    "root": "inspeccionProductosDeCotizaciones",
+    "columns": 13
+  },
+  {
+    "table": "findi.quotations",
+    "model": "Cotizaciones",
+    "query": "InspeccionarCotizaciones",
+    "root": "inspeccionCotizaciones",
+    "columns": 15
+  },
+  {
+    "table": "findi.security_incidents",
+    "model": "IncidentesDeSeguridad",
+    "query": "InspeccionarIncidentesDeSeguridad",
+    "root": "inspeccionIncidentesDeSeguridad",
+    "columns": 25
+  },
+  {
+    "table": "findi.seo_routes",
+    "model": "RutasParaBuscadores",
+    "query": "InspeccionarRutasParaBuscadores",
+    "root": "inspeccionRutasParaBuscadores",
+    "columns": 11
+  },
+  {
+    "table": "findi.source_replication_versions",
+    "model": "VersionesDeLaReplicaDeFirestore",
+    "query": "InspeccionarVersionesDeLaReplicaDeFirestore",
+    "root": "inspeccionVersionesDeLaReplicaDeFirestore",
+    "columns": 5
+  },
+  {
+    "table": "findi.store_agreements",
+    "model": "AcuerdosConFerreterias",
+    "query": "InspeccionarAcuerdosConFerreterias",
+    "root": "inspeccionAcuerdosConFerreterias",
+    "columns": 22
+  },
+  {
+    "table": "findi.store_daily_analytics",
+    "model": "MetricasDiariasDeFerreterias",
+    "query": "InspeccionarMetricasDiariasDeFerreterias",
+    "root": "inspeccionMetricasDiariasDeFerreterias",
+    "columns": 23
+  },
+  {
+    "table": "findi.store_daily_top_products",
+    "model": "ProductosMasCotizadosPorDia",
+    "query": "InspeccionarProductosMasCotizadosPorDia",
+    "root": "inspeccionProductosMasCotizadosPorDia",
+    "columns": 10
+  },
+  {
+    "table": "findi.store_event_counters",
+    "model": "ContadoresDeActividadDeFerreterias",
+    "query": "InspeccionarContadoresDeActividadDeFerreterias",
+    "root": "inspeccionContadoresDeActividadDeFerreterias",
+    "columns": 6
+  },
+  {
+    "table": "findi.stores",
+    "model": "Ferreterias",
+    "query": "InspeccionarFerreterias",
+    "root": "inspeccionFerreterias",
+    "columns": 28
+  },
+  {
+    "table": "findi.subcategories",
+    "model": "Subcategorias",
+    "query": "InspeccionarSubcategorias",
+    "root": "inspeccionSubcategorias",
+    "columns": 5
+  },
+  {
+    "table": "findi.users",
+    "model": "Usuarios",
+    "query": "InspeccionarUsuarios",
+    "root": "inspeccionUsuarios",
+    "columns": 25
+  },
+  {
+    "table": "findi_migration.issues",
+    "model": "IncidenciasDeMigracion",
+    "query": "InspeccionarIncidenciasDeMigracion",
+    "root": "inspeccionIncidenciasDeMigracion",
+    "columns": 7
+  },
+  {
+    "table": "findi_migration.source_documents",
+    "model": "DocumentosDeOrigenDeMigracion",
+    "query": "InspeccionarDocumentosDeOrigenDeMigracion",
+    "root": "inspeccionDocumentosDeOrigenDeMigracion",
+    "columns": 7
+  },
+  {
+    "table": "public.findi_schema_migrations",
+    "model": "MigracionesDelEsquemaSQL",
+    "query": "InspeccionarMigracionesDelEsquemaSQL",
+    "root": "inspeccionMigracionesDelEsquemaSQL",
+    "columns": 3
+  }
+]
