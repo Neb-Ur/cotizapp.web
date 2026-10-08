@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { WriteBatch } from 'firebase-admin/firestore';
+import type { WriteBatch } from '../database/port.js';
 import { db } from '../lib/firebase.js';
 import { COLLECTIONS } from '../lib/collections.js';
 import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION } from '../lib/legal.js';

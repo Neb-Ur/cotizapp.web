@@ -1,0 +1,4338 @@
+[
+  {
+    "table_name": "ip_reports",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "stores",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "product_models",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "privacy_requests",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "marketing_suppressions",
+    "column_name": "email_hash",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "product_requests",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "store_event_counters",
+    "column_name": "store_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "legal_documents",
+    "column_name": "kind",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_analytics",
+    "column_name": "store_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "catalog_revisions",
+    "column_name": "scope",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "subcategories",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "seo_routes",
+    "column_name": "path",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "consent_events",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "offers",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "ip_report_events",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "public_cache_artifacts",
+    "column_name": "key",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "categories",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "offer_history",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "product_content_rights",
+    "column_name": "product_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "job_runs",
+    "column_name": "job_name",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "outbox_events",
+    "column_name": "id",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "contact_messages",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "product_media",
+    "column_name": "product_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "product_features",
+    "column_name": "product_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "products",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "account_deletion_jobs",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "attribute_options",
+    "column_name": "definition_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "catalog_search_documents",
+    "column_name": "product_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "store_agreements",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "users",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "media_assets",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "brands",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "governance_evidence",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "admin_audit_logs",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "content_rights",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "deletion_receipts",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "attribute_definitions",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "account_preferences",
+    "column_name": "user_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "import_batches",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "product_attributes",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "import_rows",
+    "column_name": "batch_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "quotations",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "store_daily_top_products",
+    "column_name": "store_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "families",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "quotation_items",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "(gen_random_uuid())::text"
+  },
+  {
+    "table_name": "media_assets",
+    "column_name": "url",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "store_agreements",
+    "column_name": "store_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "deletion_receipts",
+    "column_name": "completed_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "governance_evidence",
+    "column_name": "type",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_top_products",
+    "column_name": "local_date",
+    "data_type": "date",
+    "udt_name": "date",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "privacy_requests",
+    "column_name": "user_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "users",
+    "column_name": "role",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "admin_audit_logs",
+    "column_name": "actor_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "seo_routes",
+    "column_name": "product_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "reference",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "product_attributes",
+    "column_name": "product_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "catalog_search_documents",
+    "column_name": "normalized_text",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "account_deletion_jobs",
+    "column_name": "user_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "consent_events",
+    "column_name": "user_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "attribute_definitions",
+    "column_name": "family_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_analytics",
+    "column_name": "local_date",
+    "data_type": "date",
+    "udt_name": "date",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "product_media",
+    "column_name": "asset_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "product_models",
+    "column_name": "family_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "stores",
+    "column_name": "owner_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "categories",
+    "column_name": "name",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "attribute_options",
+    "column_name": "value",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "title",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "product_features",
+    "column_name": "position",
+    "data_type": "integer",
+    "udt_name": "int4",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "contact_messages",
+    "column_name": "user_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "import_rows",
+    "column_name": "row_number",
+    "data_type": "integer",
+    "udt_name": "int4",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "store_event_counters",
+    "column_name": "views",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "legal_documents",
+    "column_name": "version",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "subcategories",
+    "column_name": "category_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "families",
+    "column_name": "subcategory_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "user_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_report_events",
+    "column_name": "report_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "import_batches",
+    "column_name": "store_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "marketing_suppressions",
+    "column_name": "hash_scheme",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "'sha256-normalized-email-v1'::text"
+  },
+  {
+    "table_name": "offers",
+    "column_name": "store_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "public_cache_artifacts",
+    "column_name": "scope",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "quotation_items",
+    "column_name": "quotation_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "job_runs",
+    "column_name": "local_date",
+    "data_type": "date",
+    "udt_name": "date",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "product_content_rights",
+    "column_name": "rights_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "offer_history",
+    "column_name": "offer_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "content_rights",
+    "column_name": "source_type",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "outbox_events",
+    "column_name": "topic",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "account_preferences",
+    "column_name": "primary_store_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "quotations",
+    "column_name": "owner_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "product_requests",
+    "column_name": "store_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "products",
+    "column_name": "family_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "catalog_revisions",
+    "column_name": "revision",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "brands",
+    "column_name": "name",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "subcategories",
+    "column_name": "name",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "description",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "catalog_revisions",
+    "column_name": "changed_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "legal_documents",
+    "column_name": "document_hash",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "contact_messages",
+    "column_name": "type",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "users",
+    "column_name": "name",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "reference",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "offers",
+    "column_name": "product_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "privacy_requests",
+    "column_name": "email",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "job_runs",
+    "column_name": "time_zone",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "'America/Santiago'::text"
+  },
+  {
+    "table_name": "public_cache_artifacts",
+    "column_name": "version",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "product_attributes",
+    "column_name": "family_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_report_events",
+    "column_name": "position",
+    "data_type": "integer",
+    "udt_name": "int4",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "marketing_suppressions",
+    "column_name": "suppressed_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "categories",
+    "column_name": "icon",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "'box'::text"
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "user_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "families",
+    "column_name": "name",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "import_rows",
+    "column_name": "status",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "catalog_search_documents",
+    "column_name": "search_vector",
+    "data_type": "tsvector",
+    "udt_name": "tsvector",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "quotations",
+    "column_name": "name",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_top_products",
+    "column_name": "rank",
+    "data_type": "integer",
+    "udt_name": "int4",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "product_features",
+    "column_name": "text",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "import_batches",
+    "column_name": "actor_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "attribute_definitions",
+    "column_name": "code",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "products",
+    "column_name": "model_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "media_assets",
+    "column_name": "storage_path",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "admin_audit_logs",
+    "column_name": "action",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "outbox_events",
+    "column_name": "entity_type",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "product_media",
+    "column_name": "position",
+    "data_type": "integer",
+    "udt_name": "int4",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "deletion_receipts",
+    "column_name": "counts",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "seo_routes",
+    "column_name": "category_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "account_deletion_jobs",
+    "column_name": "status",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "account_preferences",
+    "column_name": "selected_quotation_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "brands",
+    "column_name": "normalized_name",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_analytics",
+    "column_name": "schema_version",
+    "data_type": "integer",
+    "udt_name": "int4",
+    "is_nullable": "NO",
+    "column_default": "1"
+  },
+  {
+    "table_name": "quotation_items",
+    "column_name": "position",
+    "data_type": "integer",
+    "udt_name": "int4",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "content_rights",
+    "column_name": "provider",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "stores",
+    "column_name": "business_name",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "store_event_counters",
+    "column_name": "selections",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "store_agreements",
+    "column_name": "store_reference",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "product_models",
+    "column_name": "name",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "offer_history",
+    "column_name": "store_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "attribute_options",
+    "column_name": "label",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "governance_evidence",
+    "column_name": "outcome",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "consent_events",
+    "column_name": "type",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "product_requests",
+    "column_name": "requester_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "admin_audit_logs",
+    "column_name": "actor_role",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offer_history",
+    "column_name": "product_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "product_media",
+    "column_name": "in_gallery",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "true"
+  },
+  {
+    "table_name": "marketing_suppressions",
+    "column_name": "source",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "product_attributes",
+    "column_name": "definition_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "import_batches",
+    "column_name": "source_name",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_top_products",
+    "column_name": "product_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "quotations",
+    "column_name": "address",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "media_assets",
+    "column_name": "mime_type",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_analytics",
+    "column_name": "computed_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "store_event_counters",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "email",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "seo_routes",
+    "column_name": "family_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "privacy_requests",
+    "column_name": "type",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "users",
+    "column_name": "email",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "product_models",
+    "column_name": "description",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "stores",
+    "column_name": "legal_name",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "catalog_search_documents",
+    "column_name": "version",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "account_deletion_jobs",
+    "column_name": "auth_delete_confirmed_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "attribute_definitions",
+    "column_name": "label",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "categories",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "import_rows",
+    "column_name": "error_code",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "contact_messages",
+    "column_name": "name",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "attribute_options",
+    "column_name": "position",
+    "data_type": "integer",
+    "udt_name": "int4",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "severity",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "receipt_token_hash",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "consent_events",
+    "column_name": "version",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "legal_documents",
+    "column_name": "content",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "job_runs",
+    "column_name": "status",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "public_cache_artifacts",
+    "column_name": "object_path",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offers",
+    "column_name": "store_sku",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "outbox_events",
+    "column_name": "entity_reference",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "governance_evidence",
+    "column_name": "title",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "store_agreements",
+    "column_name": "signer_user_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "brands",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "deletion_receipts",
+    "column_name": "source",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "product_requests",
+    "column_name": "admin_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "quotation_items",
+    "column_name": "product_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "products",
+    "column_name": "brand_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "account_preferences",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "ip_report_events",
+    "column_name": "status",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "content_rights",
+    "column_name": "source_url",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "catalog_search_documents",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "claimant_name",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "public_cache_artifacts",
+    "column_name": "payload",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "legal_documents",
+    "column_name": "effective_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "import_batches",
+    "column_name": "status",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "import_rows",
+    "column_name": "resulting_offer_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "stores",
+    "column_name": "tax_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offers",
+    "column_name": "barcode",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "quotation_items",
+    "column_name": "product_name_snapshot",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "outbox_events",
+    "column_name": "payload",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "NO",
+    "column_default": "'{}'::jsonb"
+  },
+  {
+    "table_name": "quotations",
+    "column_name": "proximity_latitude",
+    "data_type": "numeric",
+    "udt_name": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "products",
+    "column_name": "legacy_brand_label",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "product_attributes",
+    "column_name": "code_snapshot",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_analytics",
+    "column_name": "active_window_days",
+    "data_type": "integer",
+    "udt_name": "int4",
+    "is_nullable": "NO",
+    "column_default": "30"
+  },
+  {
+    "table_name": "contact_messages",
+    "column_name": "email",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "media_assets",
+    "column_name": "origin",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "product_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "status",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "offer_history",
+    "column_name": "offer_reference",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "admin_audit_logs",
+    "column_name": "method",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "consent_events",
+    "column_name": "granted",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "content_rights",
+    "column_name": "source_terms_url",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_agreements",
+    "column_name": "version",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "account_deletion_jobs",
+    "column_name": "completed_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_report_events",
+    "column_name": "occurred_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "deletion_receipts",
+    "column_name": "retention_until",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_top_products",
+    "column_name": "product_reference",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "brands",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "attribute_definitions",
+    "column_name": "unit",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "categories",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "users",
+    "column_name": "phone",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "seo_routes",
+    "column_name": "brand_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "product_requests",
+    "column_name": "product_name",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "job_runs",
+    "column_name": "started_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "product_media",
+    "column_name": "is_primary",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "false"
+  },
+  {
+    "table_name": "privacy_requests",
+    "column_name": "details",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "governance_evidence",
+    "column_name": "owner_label",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "store_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "content_rights",
+    "column_name": "authorization_reference",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "media_assets",
+    "column_name": "rights_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "job_runs",
+    "column_name": "completed_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "privacy_requests",
+    "column_name": "status",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "offers",
+    "column_name": "price",
+    "data_type": "numeric",
+    "udt_name": "numeric",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "account_deletion_jobs",
+    "column_name": "attempts",
+    "data_type": "integer",
+    "udt_name": "int4",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "quotation_items",
+    "column_name": "quantity",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "admin_audit_logs",
+    "column_name": "path",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "stores",
+    "column_name": "branch_name",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_report_events",
+    "column_name": "actor_user_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_analytics",
+    "column_name": "quotation_count",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "attribute_definitions",
+    "column_name": "data_type",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_top_products",
+    "column_name": "product_name_snapshot",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "contact_messages",
+    "column_name": "phone",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "users",
+    "column_name": "region",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "quotations",
+    "column_name": "proximity_longitude",
+    "data_type": "numeric",
+    "udt_name": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "governance_evidence",
+    "column_name": "performed_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "product_attributes",
+    "column_name": "label_snapshot",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "import_batches",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "consent_events",
+    "column_name": "source",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "store_agreements",
+    "column_name": "document_hash",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "seo_routes",
+    "column_name": "canonical_path",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "claimant_email",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "import_rows",
+    "column_name": "resulting_request_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offer_history",
+    "column_name": "store_reference",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "outbox_events",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "products",
+    "column_name": "name",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "detected_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "product_requests",
+    "column_name": "barcode",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "legal_documents",
+    "column_name": "is_current",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "false"
+  },
+  {
+    "table_name": "public_cache_artifacts",
+    "column_name": "schema_version",
+    "data_type": "integer",
+    "udt_name": "int4",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "privacy_requests",
+    "column_name": "submitted_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "stores",
+    "column_name": "address",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "products",
+    "column_name": "product_type",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "account_deletion_jobs",
+    "column_name": "requested_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "import_batches",
+    "column_name": "completed_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "import_rows",
+    "column_name": "input_snapshot",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "users",
+    "column_name": "city",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "attribute_definitions",
+    "column_name": "filterable",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "false"
+  },
+  {
+    "table_name": "product_requests",
+    "column_name": "store_sku",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "quotation_items",
+    "column_name": "selected_store_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_report_events",
+    "column_name": "actor_kind",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "systems",
+    "data_type": "ARRAY",
+    "udt_name": "_text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_top_products",
+    "column_name": "quotation_count",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "quotations",
+    "column_name": "proximity_radius_km",
+    "data_type": "numeric",
+    "udt_name": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offer_history",
+    "column_name": "product_reference",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "media_assets",
+    "column_name": "generated_by",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "outbox_events",
+    "column_name": "processed_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "offer_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "product_attributes",
+    "column_name": "text_value",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "claimant_organization",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "content_rights",
+    "column_name": "contains_third_party_marks",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "false"
+  },
+  {
+    "table_name": "seo_routes",
+    "column_name": "is_canonical",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "true"
+  },
+  {
+    "table_name": "offers",
+    "column_name": "currency",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "'CLP'::text"
+  },
+  {
+    "table_name": "store_agreements",
+    "column_name": "status",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "public_cache_artifacts",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "job_runs",
+    "column_name": "failed_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "governance_evidence",
+    "column_name": "next_review_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_analytics",
+    "column_name": "quoted_lines",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "admin_audit_logs",
+    "column_name": "target_type",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "contact_messages",
+    "column_name": "commune",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "consent_events",
+    "column_name": "occurred_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "import_batches",
+    "column_name": "total_rows",
+    "data_type": "integer",
+    "udt_name": "int4",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "quotations",
+    "column_name": "single_store_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "data_categories",
+    "data_type": "ARRAY",
+    "udt_name": "_text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "governance_evidence",
+    "column_name": "notes",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offer_history",
+    "column_name": "actor_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_top_products",
+    "column_name": "units",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "content_rights",
+    "column_name": "trademark_authorization_reference",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_report_events",
+    "column_name": "resolution",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "privacy_requests",
+    "column_name": "acknowledged_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "stores",
+    "column_name": "region",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "contact_messages",
+    "column_name": "business_name",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "account_deletion_jobs",
+    "column_name": "last_error_code",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "users",
+    "column_name": "commune",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offers",
+    "column_name": "stock",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "job_runs",
+    "column_name": "error_code",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_analytics",
+    "column_name": "quoted_units",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "product_name_snapshot",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "quotation_items",
+    "column_name": "selected_store_name_snapshot",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "seo_routes",
+    "column_name": "active",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "true"
+  },
+  {
+    "table_name": "outbox_events",
+    "column_name": "attempts",
+    "data_type": "integer",
+    "udt_name": "int4",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "public_cache_artifacts",
+    "column_name": "expires_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "admin_audit_logs",
+    "column_name": "target_reference",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_agreements",
+    "column_name": "provider_snapshot",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "claimant_capacity",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "consent_events",
+    "column_name": "document_hash",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "product_requests",
+    "column_name": "published",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "true"
+  },
+  {
+    "table_name": "media_assets",
+    "column_name": "generation_reference",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "attribute_definitions",
+    "column_name": "required",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "false"
+  },
+  {
+    "table_name": "product_attributes",
+    "column_name": "numeric_value",
+    "data_type": "numeric",
+    "udt_name": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "products",
+    "column_name": "catalog_level",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "'tipo_base'::text"
+  },
+  {
+    "table_name": "import_batches",
+    "column_name": "successful_rows",
+    "data_type": "integer",
+    "udt_name": "int4",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "products",
+    "column_name": "sale_unit",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "product_requests",
+    "column_name": "reference_quantity",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "stores",
+    "column_name": "city",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "content_rights",
+    "column_name": "reviewed_by",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_analytics",
+    "column_name": "quoted_products",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "offer_history",
+    "column_name": "actor_account_deleted_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "product_attributes",
+    "column_name": "boolean_value",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "seo_routes",
+    "column_name": "title_override",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "store_name_snapshot",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "privacy_requests",
+    "column_name": "response_due_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_agreements",
+    "column_name": "store_snapshot",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "governance_evidence",
+    "column_name": "evidence_url",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "outbox_events",
+    "column_name": "last_error_code",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "quotations",
+    "column_name": "single_store_name_snapshot",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_top_products",
+    "column_name": "active_amount",
+    "data_type": "numeric",
+    "udt_name": "numeric",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "offers",
+    "column_name": "includes_vat",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "true"
+  },
+  {
+    "table_name": "job_runs",
+    "column_name": "stores_processed",
+    "data_type": "integer",
+    "udt_name": "int4",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "users",
+    "column_name": "address",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "media_assets",
+    "column_name": "ai_disclosure",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "admin_audit_logs",
+    "column_name": "status_code",
+    "data_type": "integer",
+    "udt_name": "int4",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "rights_type",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "consent_events",
+    "column_name": "purpose",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "quotation_items",
+    "column_name": "selected_offer_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "contact_messages",
+    "column_name": "message",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "affected_people_estimate",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "attribute_definitions",
+    "column_name": "position",
+    "data_type": "integer",
+    "udt_name": "int4",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "account_deletion_jobs",
+    "column_name": "backup_erasure_expected_by",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "content_type",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "offers",
+    "column_name": "measurement_unit",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "quotations",
+    "column_name": "single_store_reference",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_analytics",
+    "column_name": "active_quotation_count",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "product_requests",
+    "column_name": "reference_price",
+    "data_type": "numeric",
+    "udt_name": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "admin_audit_logs",
+    "column_name": "outcome",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "consent_events",
+    "column_name": "express_consent",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "seo_routes",
+    "column_name": "description_override",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "media_assets",
+    "column_name": "alt_text",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "products",
+    "column_name": "presentation",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "users",
+    "column_name": "account_status",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "'activo'::text"
+  },
+  {
+    "table_name": "contact_messages",
+    "column_name": "status",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "'pendiente'::text"
+  },
+  {
+    "table_name": "product_attributes",
+    "column_name": "option_value",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "store_reference",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "store_agreements",
+    "column_name": "signer_snapshot",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "stores",
+    "column_name": "commune",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "import_batches",
+    "column_name": "rejected_rows",
+    "data_type": "integer",
+    "udt_name": "int4",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "content_rights",
+    "column_name": "reviewed_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_top_products",
+    "column_name": "stock",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "reasonable_risk",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "privacy_requests",
+    "column_name": "blocking_due_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "governance_evidence",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "quotation_items",
+    "column_name": "product_reference",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offer_history",
+    "column_name": "action",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "stores",
+    "column_name": "public_email",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "target_type",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "store_agreements",
+    "column_name": "declarations",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "offer_history",
+    "column_name": "source",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "quotations",
+    "column_name": "status",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "products",
+    "column_name": "barcode",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "seo_routes",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "content_rights",
+    "column_name": "legal_hold",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "false"
+  },
+  {
+    "table_name": "consent_events",
+    "column_name": "evidence",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "NO",
+    "column_default": "'{}'::jsonb"
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "offer_reference",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "privacy_requests",
+    "column_name": "resolution",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "agency_notification_required",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "users",
+    "column_name": "processing_blocked",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "false"
+  },
+  {
+    "table_name": "contact_messages",
+    "column_name": "privacy_consent",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "quotation_items",
+    "column_name": "store_reference",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "product_requests",
+    "column_name": "status",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "'pendiente'::text"
+  },
+  {
+    "table_name": "governance_evidence",
+    "column_name": "created_by",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "admin_audit_logs",
+    "column_name": "result_code",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_analytics",
+    "column_name": "active_quoted_units",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "offers",
+    "column_name": "measurement_quantity",
+    "data_type": "numeric",
+    "udt_name": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "media_assets",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "contact_messages",
+    "column_name": "legal_acceptance",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "content_url",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "product_requests",
+    "column_name": "request_type",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_analytics",
+    "column_name": "active_quoted_amount",
+    "data_type": "numeric",
+    "udt_name": "numeric",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "products",
+    "column_name": "short_description",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "content_rights",
+    "column_name": "retention_until",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "stores",
+    "column_name": "public_phone",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_agreements",
+    "column_name": "evidence",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "offers",
+    "column_name": "measurement_source",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "governance_evidence",
+    "column_name": "legal_hold",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "false"
+  },
+  {
+    "table_name": "offer_history",
+    "column_name": "old_price",
+    "data_type": "numeric",
+    "udt_name": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "target_reference",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "users",
+    "column_name": "blocked_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "quotations",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "admin_audit_logs",
+    "column_name": "details",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "NO",
+    "column_default": "'{}'::jsonb"
+  },
+  {
+    "table_name": "privacy_requests",
+    "column_name": "resolved_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "containment_actions",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "quotation_items",
+    "column_name": "offer_reference",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offer_history",
+    "column_name": "new_price",
+    "data_type": "numeric",
+    "udt_name": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "product_requests",
+    "column_name": "suggested_product_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "product_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_analytics",
+    "column_name": "recent_quotation_count",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "contact_messages",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "admin_audit_logs",
+    "column_name": "occurred_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "quotations",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_agreements",
+    "column_name": "accepted_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "governance_evidence",
+    "column_name": "retention_until",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "displayed_price",
+    "data_type": "numeric",
+    "udt_name": "numeric",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "quotation_items",
+    "column_name": "resolution_state",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "'id'::text"
+  },
+  {
+    "table_name": "stores",
+    "column_name": "latitude",
+    "data_type": "numeric",
+    "udt_name": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "privacy_requests",
+    "column_name": "resolved_by",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "products",
+    "column_name": "long_description",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "users",
+    "column_name": "unblocked_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offers",
+    "column_name": "valid_from",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "root_cause",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "stores",
+    "column_name": "longitude",
+    "data_type": "numeric",
+    "udt_name": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offers",
+    "column_name": "valid_until",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "contact_messages",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "privacy_requests",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "products",
+    "column_name": "logistics_weight_kg",
+    "data_type": "numeric",
+    "udt_name": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "catalog_price_at_report",
+    "data_type": "numeric",
+    "udt_name": "numeric",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "admin_audit_logs",
+    "column_name": "retention_until",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "users",
+    "column_name": "terms_version",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_agreements",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offer_history",
+    "column_name": "includes_vat",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_analytics",
+    "column_name": "previous_quotation_count",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "product_requests",
+    "column_name": "resulting_offer_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "offer_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "lessons_learned",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "users",
+    "column_name": "terms_accepted_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offers",
+    "column_name": "conditions",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "agency_notified_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "privacy_requests",
+    "column_name": "legal_hold",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "false"
+  },
+  {
+    "table_name": "stores",
+    "column_name": "status",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "'activo'::text"
+  },
+  {
+    "table_name": "products",
+    "column_name": "logistics_volume_m3",
+    "data_type": "numeric",
+    "udt_name": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "store_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_analytics",
+    "column_name": "views",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "observed_price",
+    "data_type": "numeric",
+    "udt_name": "numeric",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "store_agreements",
+    "column_name": "terminated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offer_history",
+    "column_name": "before_snapshot",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "product_requests",
+    "column_name": "admin_notes",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "products",
+    "column_name": "units_per_pallet",
+    "data_type": "numeric",
+    "udt_name": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "product_requests",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "offer_history",
+    "column_name": "after_snapshot",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_analytics",
+    "column_name": "selections",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "details",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "stores",
+    "column_name": "agreement_status",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "'pendiente'::text"
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "subjects_notified_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "content_url",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "offers",
+    "column_name": "active",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "true"
+  },
+  {
+    "table_name": "store_agreements",
+    "column_name": "termination_reason",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "users",
+    "column_name": "privacy_version",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "privacy_requests",
+    "column_name": "retention_until",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "closed_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_agreements",
+    "column_name": "modified_by",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "privacy_consent",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "product_requests",
+    "column_name": "resolved_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "original_work_url",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_analytics",
+    "column_name": "catalog_total",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "offers",
+    "column_name": "published",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "true"
+  },
+  {
+    "table_name": "offer_history",
+    "column_name": "product_request_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "users",
+    "column_name": "privacy_informed_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "stores",
+    "column_name": "agreement_version",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "products",
+    "column_name": "status",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "'activo'::text"
+  },
+  {
+    "table_name": "offer_history",
+    "column_name": "price_report_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offers",
+    "column_name": "sponsored",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "false"
+  },
+  {
+    "table_name": "store_daily_analytics",
+    "column_name": "catalog_published",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "status",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "stores",
+    "column_name": "agreement_document_hash",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "users",
+    "column_name": "age_confirmed",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "false"
+  },
+  {
+    "table_name": "products",
+    "column_name": "source_kind",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "created_by",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_agreements",
+    "column_name": "legal_hold",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "false"
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "work_description",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "stores",
+    "column_name": "agreement_accepted_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "products",
+    "column_name": "source_reference",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "resolution",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "users",
+    "column_name": "marketing_consent",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "false"
+  },
+  {
+    "table_name": "store_agreements",
+    "column_name": "delete_after",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "infringement_description",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offers",
+    "column_name": "withdrawal_reason",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "updated_by",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offer_history",
+    "column_name": "occurred_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_analytics",
+    "column_name": "catalog_in_stock",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "products",
+    "column_name": "source_batch",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offers",
+    "column_name": "ip_status",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "declarations",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "offer_history",
+    "column_name": "legal_hold",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "false"
+  },
+  {
+    "table_name": "users",
+    "column_name": "marketing_updated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "stores",
+    "column_name": "agreement_updated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_agreements",
+    "column_name": "document_kind",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "'store_agreement'::text"
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "resolved_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_analytics",
+    "column_name": "catalog_out_of_stock",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "store_daily_analytics",
+    "column_name": "catalog_stale_prices",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": "0"
+  },
+  {
+    "table_name": "offer_history",
+    "column_name": "retention_until",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "users",
+    "column_name": "quotation_limit",
+    "data_type": "integer",
+    "udt_name": "int4",
+    "is_nullable": "NO",
+    "column_default": "2"
+  },
+  {
+    "table_name": "stores",
+    "column_name": "catalog_updated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "products",
+    "column_name": "ip_status",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offers",
+    "column_name": "previous_ip_state",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "privacy_consent",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "resolved_by",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "legal_hold",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "false"
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "stores",
+    "column_name": "ip_status",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "products",
+    "column_name": "deleted_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "status",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "users",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "offers",
+    "column_name": "ip_report_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "stores",
+    "column_name": "previous_ip_state",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "users",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "security_incidents",
+    "column_name": "retention_until",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "products",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "public_status_message",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offers",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "assigned_to",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "minimized_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offers",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "stores",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "products",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "legal_hold",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "false"
+  },
+  {
+    "table_name": "stores",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "submitted_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "products",
+    "column_name": "ip_report_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "price_reports",
+    "column_name": "retention_until",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "acknowledged_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "stores",
+    "column_name": "ip_report_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "initial_review_due_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "target_resolution_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "resolution",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "resolved_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "minimized_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "legal_hold",
+    "data_type": "boolean",
+    "udt_name": "bool",
+    "is_nullable": "NO",
+    "column_default": "false"
+  },
+  {
+    "table_name": "ip_reports",
+    "column_name": "retention_until",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "YES",
+    "column_default": null
+  }
+]

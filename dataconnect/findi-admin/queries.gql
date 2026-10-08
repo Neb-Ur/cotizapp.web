@@ -1,0 +1,8 @@
+query InspectCatalog @auth(level: NO_ACCESS) {
+  catalogProducts(limit: 20) {
+    id name brand familyName categoryName subcategoryName updatedAt
+  }
+}
+query InspectMigration @auth(level: NO_ACCESS) {
+  databaseMigrations { id status verifiedAt updatedAt }
+}

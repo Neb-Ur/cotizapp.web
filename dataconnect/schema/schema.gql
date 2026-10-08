@@ -1,0 +1,23 @@
+# The API owns migrations and CRUD, preserving PostgreSQL constraints and
+# multi-operation transactions. These views allow trusted SQL Connect inspection.
+# Browser clients have no access: every deployed operation is NO_ACCESS.
+type CatalogProduct @view(sql: """
+  SELECT id,name,brand,family_name,category_name,subcategory_name,updated_at
+  FROM findi.public_products
+""") {
+  id: String
+  name: String
+  brand: String
+  familyName: String
+  categoryName: String
+  subcategoryName: String
+  updatedAt: Timestamp
+}
+type DatabaseMigration @view(sql: """
+  SELECT id,status,verified_at,updated_at FROM findi.sql_connect_migration_status
+""") {
+  id: String
+  status: String
+  verifiedAt: Timestamp
+  updatedAt: Timestamp
+}

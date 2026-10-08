@@ -3,7 +3,7 @@ import { COLLECTIONS } from './collections.js';
 import { dataMode } from './data-mode.js';
 import { buildSearchRows } from '../services/catalog-search.service.js';
 import { randomUUID } from 'node:crypto';
-import type { DocumentReference } from 'firebase-admin/firestore';
+import type { DocumentReference } from '../database/port.js';
 import { db } from './firebase.js';
 import { CURRENT_STORE_AGREEMENT_VERSION } from './legal.js';
 import { storeAgreementDocumentHash } from '../services/store-agreement.service.js';

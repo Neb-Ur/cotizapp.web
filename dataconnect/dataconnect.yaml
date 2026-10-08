@@ -1,0 +1,13 @@
+specVersion: v1alpha
+serviceId: cotizapp-d71c8-service
+location: us-east4
+schema:
+  source: ./schema
+  datasource:
+    postgresql:
+      database: cotizapp-d71c8-database
+      cloudSql:
+        instanceId: cotizapp-d71c8-instance
+      schemaValidation: COMPATIBLE
+connectorDirs:
+  - ./findi-admin

@@ -9,6 +9,9 @@ import { mvpRouter } from './routes/mvp.routes.js';
 import { publicCatalogRouter } from './routes/public-catalog.routes.js';
 import { accountRateLimit, generalRateLimit, sensitiveWriteRateLimit, statusLookupRateLimit, writeRateLimit } from './lib/rate-limit.js';
 
+import { sqlPassword } from './database/pool.js';
+import { acquireFirestoreWriteLease,activateSqlIfRequested } from './database/cutover.js';
+
 const app = express();
 app.set('trust proxy', 1);
 
@@ -52,6 +55,17 @@ app.use((req, res, next) => {
 });
 
 app.use(dataModeMiddleware);
+app.use(async (req,res,next) => {
+  try {
+    await activateSqlIfRequested();
+    if (['POST','PUT','PATCH','DELETE'].includes(req.method)) {
+      const release=await acquireFirestoreWriteLease();
+      const finish=()=>{void release().catch(error=>console.error('DATABASE_WRITE_LEASE_ERROR',error?.code||'ERROR'));};
+      res.once('finish',finish);res.once('close',finish);
+    }
+    next();
+  } catch(error) { next(error); }
+});
 app.get(['/api/config', '/config'], (_req, res) => {
   res.set('Cache-Control', 'no-store');
   res.json({ ok: true, data: { dataMode: 'real' } });
@@ -95,6 +109,9 @@ forwardAsyncErrors((app as any)._router);
 app.use((error: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Request failed', error?.code || error?.name || 'ERROR');
   if (res.headersSent) return _next(error);
+  if (['DATABASE_CUTOVER_IN_PROGRESS','SQL_MIGRATION_NOT_VERIFIED'].includes(error?.message)) {
+    res.status(503).json({ok:false,error:{code:error.message,message:'Estamos preparando la base de datos. Intenta nuevamente en unos momentos.'}});return;
+  }
   const status = error?.type === 'entity.too.large' ? 413 : error instanceof SyntaxError ? 400 : 500;
   res.status(status).json({ ok: false, error: { code: status === 500 ? 'INTERNAL_ERROR' : 'INVALID_REQUEST', message: status === 500 ? 'No fue posible completar la solicitud. Intenta nuevamente.' : 'Solicitud inválida.' } });
 });
@@ -103,7 +120,8 @@ export const api = onRequest(
   {
     region: 'southamerica-west1',
     cors: false,
-    maxInstances: 10
+    maxInstances: 10,
+    secrets: [sqlPassword]
   },
   app
 );
@@ -119,3 +137,5 @@ export {
 } from './triggers/public-catalog-cache.triggers.js';
 
 export { refreshStoreDailyAnalytics } from './jobs/store-daily-analytics.job.js';
+
+export { replicateFirestoreToSql } from './triggers/sql-replication.triggers.js';

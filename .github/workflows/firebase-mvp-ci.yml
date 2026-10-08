@@ -150,6 +150,11 @@ jobs:
           echo "FIREBASE_AUTH_MODE=adc" >> "$GITHUB_ENV"
           echo "Firebase authentication: service account / ADC"
 
+      - name: Preserve server storage configuration
+        env:
+          REQUESTED_USE_SQL_DATABASE: ${{ vars.USE_SQL_DATABASE }}
+        run: node functions/scripts/preserve-storage-config.mjs
+
       - name: Deploy Firebase application
         shell: bash
         run: |

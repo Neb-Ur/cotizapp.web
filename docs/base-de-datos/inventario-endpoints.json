@@ -1,0 +1,618 @@
+{
+  "generatedFrom": "functions/src/routes/*.ts",
+  "note": "Design inventory only. Existing /api and direct function aliases must remain; Firebase SDK flows and index.ts /config also remain.",
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/admin/usuarios",
+      "source": "functions/src/routes/admin-users.routes.ts",
+      "line": 13
+    },
+    {
+      "method": "POST",
+      "path": "/admin/usuarios",
+      "source": "functions/src/routes/admin-users.routes.ts",
+      "line": 17
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/usuarios/:id",
+      "source": "functions/src/routes/admin-users.routes.ts",
+      "line": 69
+    },
+    {
+      "method": "DELETE",
+      "path": "/admin/usuarios/:id",
+      "source": "functions/src/routes/admin-users.routes.ts",
+      "line": 79
+    },
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "source": "functions/src/routes/auth.routes.ts",
+      "line": 14
+    },
+    {
+      "method": "GET",
+      "path": "/auth/me",
+      "source": "functions/src/routes/auth.routes.ts",
+      "line": 90
+    },
+    {
+      "method": "GET",
+      "path": "/auth/session",
+      "source": "functions/src/routes/auth.routes.ts",
+      "line": 97
+    },
+    {
+      "method": "PATCH",
+      "path": "/auth/me",
+      "source": "functions/src/routes/auth.routes.ts",
+      "line": 112
+    },
+    {
+      "method": "POST",
+      "path": "/auth/logout",
+      "source": "functions/src/routes/auth.routes.ts",
+      "line": 147
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "source": "functions/src/routes/contact.routes.ts",
+      "line": 10
+    },
+    {
+      "method": "POST",
+      "path": "/solicitudes-contacto",
+      "source": "functions/src/routes/contact.routes.ts",
+      "line": 12
+    },
+    {
+      "method": "GET",
+      "path": "/admin/solicitudes-contacto",
+      "source": "functions/src/routes/contact.routes.ts",
+      "line": 79
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/solicitudes-contacto/:id",
+      "source": "functions/src/routes/contact.routes.ts",
+      "line": 85
+    },
+    {
+      "method": "GET",
+      "path": "/admin/governance/summary",
+      "source": "functions/src/routes/governance.routes.ts",
+      "line": 42
+    },
+    {
+      "method": "GET",
+      "path": "/admin/governance/audit-logs",
+      "source": "functions/src/routes/governance.routes.ts",
+      "line": 64
+    },
+    {
+      "method": "GET",
+      "path": "/admin/governance/incidents",
+      "source": "functions/src/routes/governance.routes.ts",
+      "line": 73
+    },
+    {
+      "method": "POST",
+      "path": "/admin/governance/incidents",
+      "source": "functions/src/routes/governance.routes.ts",
+      "line": 79
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/governance/incidents/:id",
+      "source": "functions/src/routes/governance.routes.ts",
+      "line": 111
+    },
+    {
+      "method": "GET",
+      "path": "/admin/governance/evidence",
+      "source": "functions/src/routes/governance.routes.ts",
+      "line": 132
+    },
+    {
+      "method": "POST",
+      "path": "/admin/governance/evidence",
+      "source": "functions/src/routes/governance.routes.ts",
+      "line": 138
+    },
+    {
+      "method": "POST",
+      "path": "/ip-reports",
+      "source": "functions/src/routes/intellectual-property.routes.ts",
+      "line": 36
+    },
+    {
+      "method": "POST",
+      "path": "/ip-reports/status",
+      "source": "functions/src/routes/intellectual-property.routes.ts",
+      "line": 110
+    },
+    {
+      "method": "GET",
+      "path": "/admin/ip-reports",
+      "source": "functions/src/routes/intellectual-property.routes.ts",
+      "line": 127
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/ip-reports/:id",
+      "source": "functions/src/routes/intellectual-property.routes.ts",
+      "line": 134
+    },
+    {
+      "method": "POST",
+      "path": "/marketing/unsubscribe",
+      "source": "functions/src/routes/marketing.routes.ts",
+      "line": 11
+    },
+    {
+      "method": "GET",
+      "path": "/marcas",
+      "source": "functions/src/routes/master-products.routes.ts",
+      "line": 64
+    },
+    {
+      "method": "GET",
+      "path": "/productos-maestro",
+      "source": "functions/src/routes/master-products.routes.ts",
+      "line": 69
+    },
+    {
+      "method": "GET",
+      "path": "/admin/productos-maestro/paginado",
+      "source": "functions/src/routes/master-products.routes.ts",
+      "line": 107
+    },
+    {
+      "method": "GET",
+      "path": "/productos-maestro/paginado",
+      "source": "functions/src/routes/master-products.routes.ts",
+      "line": 108
+    },
+    {
+      "method": "GET",
+      "path": "/admin/productos-maestro/:id",
+      "source": "functions/src/routes/master-products.routes.ts",
+      "line": 116
+    },
+    {
+      "method": "GET",
+      "path": "/productos-maestro/:id",
+      "source": "functions/src/routes/master-products.routes.ts",
+      "line": 117
+    },
+    {
+      "method": "POST",
+      "path": "/productos-maestro",
+      "source": "functions/src/routes/master-products.routes.ts",
+      "line": 119
+    },
+    {
+      "method": "PATCH",
+      "path": "/productos-maestro/:id",
+      "source": "functions/src/routes/master-products.routes.ts",
+      "line": 150
+    },
+    {
+      "method": "PUT",
+      "path": "/productos-maestro/:id/atributos",
+      "source": "functions/src/routes/master-products.routes.ts",
+      "line": 171
+    },
+    {
+      "method": "DELETE",
+      "path": "/productos-maestro/:id",
+      "source": "functions/src/routes/master-products.routes.ts",
+      "line": 184
+    },
+    {
+      "method": "POST",
+      "path": "/price-reports",
+      "source": "functions/src/routes/price-reports.routes.ts",
+      "line": 13
+    },
+    {
+      "method": "GET",
+      "path": "/admin/price-reports",
+      "source": "functions/src/routes/price-reports.routes.ts",
+      "line": 64
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/price-reports/:id",
+      "source": "functions/src/routes/price-reports.routes.ts",
+      "line": 70
+    },
+    {
+      "method": "GET",
+      "path": "/privacy/overview",
+      "source": "functions/src/routes/privacy.routes.ts",
+      "line": 45
+    },
+    {
+      "method": "POST",
+      "path": "/privacy/consents/current",
+      "source": "functions/src/routes/privacy.routes.ts",
+      "line": 50
+    },
+    {
+      "method": "PATCH",
+      "path": "/privacy/consents/marketing",
+      "source": "functions/src/routes/privacy.routes.ts",
+      "line": 67
+    },
+    {
+      "method": "POST",
+      "path": "/privacy/requests",
+      "source": "functions/src/routes/privacy.routes.ts",
+      "line": 75
+    },
+    {
+      "method": "POST",
+      "path": "/privacy/export",
+      "source": "functions/src/routes/privacy.routes.ts",
+      "line": 109
+    },
+    {
+      "method": "DELETE",
+      "path": "/privacy/account",
+      "source": "functions/src/routes/privacy.routes.ts",
+      "line": 129
+    },
+    {
+      "method": "GET",
+      "path": "/admin/privacy-requests",
+      "source": "functions/src/routes/privacy.routes.ts",
+      "line": 153
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/privacy-requests/:id",
+      "source": "functions/src/routes/privacy.routes.ts",
+      "line": 159
+    },
+    {
+      "method": "POST",
+      "path": "/ferreterias/:storeId/solicitudes-creacion-producto",
+      "source": "functions/src/routes/product-requests.routes.ts",
+      "line": 12
+    },
+    {
+      "method": "GET",
+      "path": "/solicitudes-creacion-producto",
+      "source": "functions/src/routes/product-requests.routes.ts",
+      "line": 35
+    },
+    {
+      "method": "POST",
+      "path": "/solicitudes-creacion-producto/:id/resolver",
+      "source": "functions/src/routes/product-requests.routes.ts",
+      "line": 45
+    },
+    {
+      "method": "GET",
+      "path": "/maestros/:ownerId/proyectos",
+      "source": "functions/src/routes/projects.routes.ts",
+      "line": 13
+    },
+    {
+      "method": "POST",
+      "path": "/maestros/:ownerId/proyectos",
+      "source": "functions/src/routes/projects.routes.ts",
+      "line": 23
+    },
+    {
+      "method": "GET",
+      "path": "/maestros/:ownerId/proyectos/:projectId",
+      "source": "functions/src/routes/projects.routes.ts",
+      "line": 52
+    },
+    {
+      "method": "PUT",
+      "path": "/maestros/:ownerId/proyectos/:projectId",
+      "source": "functions/src/routes/projects.routes.ts",
+      "line": 59
+    },
+    {
+      "method": "POST",
+      "path": "/maestros/:ownerId/proyectos/:projectId/items",
+      "source": "functions/src/routes/projects.routes.ts",
+      "line": 75
+    },
+    {
+      "method": "DELETE",
+      "path": "/maestros/:ownerId/proyectos/:projectId",
+      "source": "functions/src/routes/projects.routes.ts",
+      "line": 93
+    },
+    {
+      "method": "POST",
+      "path": "/cotizaciones/optimizar",
+      "source": "functions/src/routes/projects.routes.ts",
+      "line": 101
+    },
+    {
+      "method": "GET",
+      "path": "/sitemap.xml",
+      "source": "functions/src/routes/public-catalog.routes.ts",
+      "line": 42
+    },
+    {
+      "method": "GET",
+      "path": "/catalogo-publico/version",
+      "source": "functions/src/routes/public-catalog.routes.ts",
+      "line": 58
+    },
+    {
+      "method": "GET",
+      "path": "/catalogo-publico",
+      "source": "functions/src/routes/public-catalog.routes.ts",
+      "line": 67
+    },
+    {
+      "method": "GET",
+      "path": "/catalogo-busqueda",
+      "source": "functions/src/routes/public-catalog.routes.ts",
+      "line": 85
+    },
+    {
+      "method": "GET",
+      "path": "/catalogo-seo/:kind/:slug",
+      "source": "functions/src/routes/public-catalog.routes.ts",
+      "line": 109
+    },
+    {
+      "method": "GET",
+      "path": "/producto",
+      "source": "functions/src/routes/public-pages.routes.ts",
+      "line": 21
+    },
+    {
+      "method": "GET",
+      "path": "/productos/:slug",
+      "source": "functions/src/routes/public-pages.routes.ts",
+      "line": 33
+    },
+    {
+      "method": "GET",
+      "path": "/:kind(categorias|familias|marcas)/:slug",
+      "source": "functions/src/routes/public-pages.routes.ts",
+      "line": 55
+    },
+    {
+      "method": "GET",
+      "path": "*",
+      "source": "functions/src/routes/public-pages.routes.ts",
+      "line": 70
+    },
+    {
+      "method": "GET",
+      "path": "/busqueda",
+      "source": "functions/src/routes/search.routes.ts",
+      "line": 14
+    },
+    {
+      "method": "GET",
+      "path": "/productos/opciones",
+      "source": "functions/src/routes/search.routes.ts",
+      "line": 56
+    },
+    {
+      "method": "GET",
+      "path": "/familias/:familyId/productos",
+      "source": "functions/src/routes/search.routes.ts",
+      "line": 64
+    },
+    {
+      "method": "GET",
+      "path": "/productos/populares",
+      "source": "functions/src/routes/search.routes.ts",
+      "line": 89
+    },
+    {
+      "method": "GET",
+      "path": "/productos/detalle",
+      "source": "functions/src/routes/search.routes.ts",
+      "line": 110
+    },
+    {
+      "method": "GET",
+      "path": "/ofertas/mejor",
+      "source": "functions/src/routes/search.routes.ts",
+      "line": 180
+    },
+    {
+      "method": "GET",
+      "path": "/store-agreement/current",
+      "source": "functions/src/routes/store-agreement.routes.ts",
+      "line": 32
+    },
+    {
+      "method": "POST",
+      "path": "/store-agreement/accept",
+      "source": "functions/src/routes/store-agreement.routes.ts",
+      "line": 59
+    },
+    {
+      "method": "GET",
+      "path": "/admin/store-agreements",
+      "source": "functions/src/routes/store-agreement.routes.ts",
+      "line": 135
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/store-agreements/:id",
+      "source": "functions/src/routes/store-agreement.routes.ts",
+      "line": 141
+    },
+    {
+      "method": "GET",
+      "path": "/ferreterias/by-owner/:ownerId",
+      "source": "functions/src/routes/store-catalog.routes.ts",
+      "line": 37
+    },
+    {
+      "method": "GET",
+      "path": "/ferreterias/:storeId/catalogo",
+      "source": "functions/src/routes/store-catalog.routes.ts",
+      "line": 43
+    },
+    {
+      "method": "POST",
+      "path": "/ferreterias/:storeId/catalogo",
+      "source": "functions/src/routes/store-catalog.routes.ts",
+      "line": 56
+    },
+    {
+      "method": "PATCH",
+      "path": "/ferreterias/:storeId/catalogo/:offerId",
+      "source": "functions/src/routes/store-catalog.routes.ts",
+      "line": 112
+    },
+    {
+      "method": "DELETE",
+      "path": "/ferreterias/:storeId/catalogo/:offerId",
+      "source": "functions/src/routes/store-catalog.routes.ts",
+      "line": 159
+    },
+    {
+      "method": "POST",
+      "path": "/metricas/oferta",
+      "source": "functions/src/routes/store-metrics.routes.ts",
+      "line": 11
+    },
+    {
+      "method": "GET",
+      "path": "/ferreterias/propietario/:ownerId/metricas",
+      "source": "functions/src/routes/store-metrics.routes.ts",
+      "line": 19
+    },
+    {
+      "method": "GET",
+      "path": "/ferreterias/propietario/:ownerId/dashboard",
+      "source": "functions/src/routes/store-metrics.routes.ts",
+      "line": 26
+    },
+    {
+      "method": "GET",
+      "path": "/store-onboarding/current",
+      "source": "functions/src/routes/store-onboarding.routes.ts",
+      "line": 22
+    },
+    {
+      "method": "POST",
+      "path": "/store-onboarding/accept",
+      "source": "functions/src/routes/store-onboarding.routes.ts",
+      "line": 33
+    },
+    {
+      "method": "GET",
+      "path": "/categorias",
+      "source": "functions/src/routes/taxonomy.routes.ts",
+      "line": 21
+    },
+    {
+      "method": "POST",
+      "path": "/categorias",
+      "source": "functions/src/routes/taxonomy.routes.ts",
+      "line": 23
+    },
+    {
+      "method": "PATCH",
+      "path": "/categorias/:id",
+      "source": "functions/src/routes/taxonomy.routes.ts",
+      "line": 30
+    },
+    {
+      "method": "DELETE",
+      "path": "/categorias/:id",
+      "source": "functions/src/routes/taxonomy.routes.ts",
+      "line": 37
+    },
+    {
+      "method": "GET",
+      "path": "/subcategorias",
+      "source": "functions/src/routes/taxonomy.routes.ts",
+      "line": 43
+    },
+    {
+      "method": "POST",
+      "path": "/subcategorias",
+      "source": "functions/src/routes/taxonomy.routes.ts",
+      "line": 51
+    },
+    {
+      "method": "PATCH",
+      "path": "/subcategorias/:id",
+      "source": "functions/src/routes/taxonomy.routes.ts",
+      "line": 58
+    },
+    {
+      "method": "DELETE",
+      "path": "/subcategorias/:id",
+      "source": "functions/src/routes/taxonomy.routes.ts",
+      "line": 66
+    },
+    {
+      "method": "GET",
+      "path": "/familias",
+      "source": "functions/src/routes/taxonomy.routes.ts",
+      "line": 72
+    },
+    {
+      "method": "POST",
+      "path": "/familias",
+      "source": "functions/src/routes/taxonomy.routes.ts",
+      "line": 80
+    },
+    {
+      "method": "PATCH",
+      "path": "/familias/:id",
+      "source": "functions/src/routes/taxonomy.routes.ts",
+      "line": 87
+    },
+    {
+      "method": "DELETE",
+      "path": "/familias/:id",
+      "source": "functions/src/routes/taxonomy.routes.ts",
+      "line": 95
+    },
+    {
+      "method": "GET",
+      "path": "/atributos-definicion",
+      "source": "functions/src/routes/taxonomy.routes.ts",
+      "line": 101
+    },
+    {
+      "method": "GET",
+      "path": "/familias/:familyId/atributos-definicion",
+      "source": "functions/src/routes/taxonomy.routes.ts",
+      "line": 110
+    },
+    {
+      "method": "POST",
+      "path": "/familias/:familyId/atributos-definicion",
+      "source": "functions/src/routes/taxonomy.routes.ts",
+      "line": 117
+    },
+    {
+      "method": "PATCH",
+      "path": "/familias/:familyId/atributos-definicion/:definitionId",
+      "source": "functions/src/routes/taxonomy.routes.ts",
+      "line": 131
+    },
+    {
+      "method": "DELETE",
+      "path": "/familias/:familyId/atributos-definicion/:definitionId",
+      "source": "functions/src/routes/taxonomy.routes.ts",
+      "line": 137
+    }
+  ]
+}

@@ -1,0 +1,682 @@
+{
+  "designOnly": false,
+  "collectionCount": 29,
+  "unknownFieldRule": "Unmodeled source fields are retained in the private api_payload of their entity. Source and destination IDs and complete API payloads are reconciled by counts and SHA-256; no silent field deletion. Typed columns and foreign keys are written in the same transaction.",
+  "collections": {
+    "users": {
+      "tables": [
+        "users"
+      ],
+      "fields": {
+        "rol": "users.role",
+        "nombre": "users.name",
+        "correo": "users.email",
+        "telefono": "users.phone",
+        "region": "users.region",
+        "ciudad": "users.city",
+        "comuna": "users.commune",
+        "direccion": "users.address",
+        "estadoCuenta": "users.account_status",
+        "creadoEn": "users.created_at",
+        "terminosVersion": "users.terms_version",
+        "terminosAceptadosEn": "users.terms_accepted_at",
+        "privacidadVersion": "users.privacy_version",
+        "privacidadInformadaEn": "users.privacy_informed_at",
+        "mayoriaEdadDeclarada": "users.age_confirmed",
+        "marketingConsent": "users.marketing_consent",
+        "marketingConsentUpdatedAt": "users.marketing_updated_at",
+        "tratamientoBloqueado": "users.processing_blocked",
+        "tratamientoBloqueadoEn": "users.blocked_at",
+        "tratamientoDesbloqueadoEn": "users.unblocked_at",
+        "dataMode": "migration validation: only real",
+        "actualizadoEn": "users.updated_at"
+      },
+      "notes": "UID stays primary key. Email verification/password/tokens stay in Firebase Auth. Unknown fields block final reconciliation.",
+      "sourceCollection": "usuarios",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "stores": {
+      "tables": [
+        "stores"
+      ],
+      "fields": {
+        "usuarioDuenoId": "stores.owner_id",
+        "nombreComercial": "stores.business_name",
+        "razonSocial": "stores.legal_name",
+        "rut": "stores.tax_id",
+        "nombreSucursal": "stores.branch_name",
+        "direccion": "stores.address",
+        "region": "stores.region",
+        "ciudad": "stores.city",
+        "comuna": "stores.commune",
+        "latitud": "stores.latitude",
+        "longitud": "stores.longitude",
+        "correoContactoPublico": "stores.public_email",
+        "telefonoContactoPublico": "stores.public_phone",
+        "estado": "stores.status",
+        "contratoEstado": "stores.agreement_status",
+        "contratoVersion": "stores.agreement_version",
+        "contratoDocumentHash": "stores.agreement_document_hash",
+        "contratoAceptadoEn": "stores.agreement_accepted_at",
+        "contratoActualizadoEn": "stores.agreement_updated_at",
+        "catalogoActualizadoEn": "stores.catalog_updated_at",
+        "propiedadIntelectualEstado": "stores.ip_status",
+        "propiedadIntelectualReporteId": "stores.ip_report_id",
+        "creadoEn": "stores.created_at",
+        "actualizadoEn": "stores.updated_at"
+      },
+      "notes": "Several stores per owner remain possible. Preserve current first/default store using account_preferences.primary_store_id.",
+      "sourceCollection": "real_ferreterias",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "categories": {
+      "tables": [
+        "categories"
+      ],
+      "fields": {
+        "nombre": "categories.name",
+        "icono": "categories.icon",
+        "catalogoPlanVersion": "categories.api_payload.catalogoPlanVersion (compatibility metadata)",
+        "catalogoPlanFecha": "categories.api_payload.catalogoPlanFecha (compatibility metadata)"
+      },
+      "notes": "",
+      "sourceCollection": "categorias",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "subcategories": {
+      "tables": [
+        "subcategories"
+      ],
+      "fields": {
+        "nombre": "subcategories.name",
+        "categoriaId": "subcategories.category_id",
+        "catalogoPlanVersion": "subcategories.api_payload.catalogoPlanVersion (compatibility metadata)",
+        "catalogoPlanFecha": "subcategories.api_payload.catalogoPlanFecha (compatibility metadata)"
+      },
+      "notes": "",
+      "sourceCollection": "subcategorias",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "families": {
+      "tables": [
+        "families"
+      ],
+      "fields": {
+        "nombre": "families.name",
+        "subcategoriaId": "families.subcategory_id",
+        "catalogoPlanVersion": "families.api_payload.catalogoPlanVersion (compatibility metadata)",
+        "catalogoPlanFecha": "families.api_payload.catalogoPlanFecha (compatibility metadata)"
+      },
+      "notes": "",
+      "sourceCollection": "familias",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "brands": {
+      "tables": [
+        "brands"
+      ],
+      "fields": {
+        "nombre": "brands.name",
+        "nombreNormalizado": "brands.normalized_name",
+        "creadoEn": "brands.created_at",
+        "actualizadoEn": "brands.updated_at"
+      },
+      "notes": "",
+      "sourceCollection": "marcas",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "familyDefinitions": {
+      "tables": [
+        "attribute_definitions",
+        "attribute_options"
+      ],
+      "fields": {
+        "familiaId": "attribute_definitions.family_id",
+        "codigo": "attribute_definitions.code",
+        "etiqueta": "attribute_definitions.label",
+        "tipoDato": "attribute_definitions.data_type",
+        "unidad": "attribute_definitions.unit",
+        "esFiltrable": "attribute_definitions.filterable",
+        "esObligatorio": "attribute_definitions.required",
+        "orden": "attribute_definitions.position",
+        "opcionesJson": "attribute_options ordered rows",
+        "catalogoPlanVersion": "attribute_definitions.api_payload.catalogoPlanVersion (compatibility metadata)",
+        "catalogoPlanFecha": "attribute_definitions.api_payload.catalogoPlanFecha (compatibility metadata)"
+      },
+      "notes": "Preserve seleccion, not an invented type name; inspect duplicate family/code before enforcing uniqueness.",
+      "sourceCollection": "definicionesAtributoFamilia",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "masterProducts": {
+      "tables": [
+        "products",
+        "product_models",
+        "product_features",
+        "product_content_rights",
+        "content_rights",
+        "media_assets",
+        "product_media",
+        "seo_routes"
+      ],
+      "fields": {
+        "nombre": "products.name",
+        "categoriaId": "derived through families/subcategories, reconcile source ID",
+        "subcategoriaId": "derived through families, reconcile source ID",
+        "familiaId": "products.family_id",
+        "marcaId": "products.brand_id",
+        "marca": "products.legacy_brand_label / brands.name",
+        "tipoProducto": "products.product_type",
+        "catalogoNivel": "products.catalog_level",
+        "unidadVenta": "products.sale_unit",
+        "presentacion": "products.presentation",
+        "codigoBarras": "products.barcode",
+        "descripcionCorta": "products.short_description",
+        "descripcionLarga": "products.long_description",
+        "pesoLogisticoKg": "products.logistics_weight_kg",
+        "volumenLogisticoM3": "products.logistics_volume_m3",
+        "unidadesPorPallet": "products.units_per_pallet",
+        "caracteristicasDestacadas": "product_features ordered rows",
+        "estado": "products.status",
+        "tandaCatalogo": "products.source_batch",
+        "creadoEn": "products.created_at",
+        "actualizadoEn": "products.updated_at",
+        "imagenPrincipalUrl": "product_media.is_primary + media_assets.url",
+        "galeriaJson": "product_media ordered rows + media_assets.url",
+        "origenImagen": "media_assets.origin",
+        "proveedorImagen": "content_rights.provider",
+        "terminosFuenteUrl": "content_rights.source_terms_url",
+        "referenciaAutorizacion": "content_rights.authorization_reference",
+        "contieneMarcasTerceros": "content_rights.contains_third_party_marks",
+        "referenciaAutorizacionMarca": "content_rights.trademark_authorization_reference",
+        "derechosRevisadosEn": "content_rights.reviewed_at",
+        "derechosRevisadosPor": "content_rights.reviewed_by",
+        "origenContenido": "content_rights.source_type",
+        "fuenteContenidoUrl": "content_rights.source_url",
+        "referenciaDerechosContenido": "content_rights.authorization_reference",
+        "derechosContenidoRevisadosEn": "content_rights.reviewed_at",
+        "derechosContenidoRevisadosPor": "content_rights.reviewed_by",
+        "propiedadIntelectualEstado": "products.ip_status",
+        "propiedadIntelectualReporteId": "products.ip_report_id",
+        "modelo": "products.model_label + optional product_models parent",
+        "codigoFabricante": "products.manufacturer_code",
+        "evidenciaCatalogo": "products.catalog_evidence",
+        "catalogoPlanFecha": "products.api_payload.catalogoPlanFecha (compatibility metadata)",
+        "catalogoPlanVersion": "products.api_payload.catalogoPlanVersion (compatibility metadata)"
+      },
+      "notes": "Image and description rights are distinct records. Preserve current generic bases as products; model parent optional. Existing paths must be imported into seo_routes, including hashed duplicate-name URLs.",
+      "sourceCollection": "productosMaestro",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "masterAttributes": {
+      "tables": [
+        "product_attributes"
+      ],
+      "fields": {
+        "productoMaestroId": "product_attributes.product_id",
+        "definicionAtributoId": "product_attributes.definition_id",
+        "codigo": "product_attributes.code_snapshot",
+        "etiqueta": "product_attributes.label_snapshot",
+        "valorTexto": "product_attributes.text_value",
+        "valorNumero": "product_attributes.numeric_value",
+        "valorBooleano": "product_attributes.boolean_value",
+        "valorOpcion": "product_attributes.option_value",
+        "catalogoPlanVersion": "product_attributes.api_payload.catalogoPlanVersion (compatibility metadata)",
+        "catalogoPlanFecha": "product_attributes.api_payload.catalogoPlanFecha (compatibility metadata)"
+      },
+      "notes": "family_id resolved from product; all-null, multiple-value, invalid option and cross-family values quarantined, never coerced to guessed values.",
+      "sourceCollection": "atributosProductoMaestro",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "storeProducts": {
+      "tables": [
+        "offers"
+      ],
+      "fields": {
+        "ferreteriaId": "offers.store_id",
+        "productoMaestroId": "offers.product_id",
+        "skuFerreteria": "offers.store_sku",
+        "codigoBarras": "offers.barcode",
+        "precio": "offers.price",
+        "stock": "offers.stock",
+        "incluyeIva": "offers.includes_vat",
+        "unidadMedidaPrecio": "offers.measurement_unit",
+        "cantidadMedida": "offers.measurement_quantity",
+        "vigenteDesde": "offers.valid_from",
+        "vigenteHasta": "offers.valid_until",
+        "condicionesOferta": "offers.conditions",
+        "patrocinado": "offers.sponsored",
+        "activo": "offers.active",
+        "publicado": "offers.published",
+        "retiroMotivo": "offers.withdrawal_reason",
+        "propiedadIntelectualEstadoAnterior": "offers.previous_ip_state",
+        "propiedadIntelectualEstado": "offers.ip_status",
+        "propiedadIntelectualReporteId": "offers.ip_report_id",
+        "creadoEn": "offers.created_at",
+        "actualizadoEn": "offers.updated_at"
+      },
+      "notes": "One offer per store/product. Zero prices and zero stock remain representable; public eligibility excludes zero prices and purchasing eligibility excludes zero stock. Invalid old VAT flags require audit, not blind conversion.",
+      "sourceCollection": "real_productosFerreteria",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "priceHistory": {
+      "tables": [
+        "offer_history"
+      ],
+      "fields": {
+        "ferreteriaId": "offer_history.store_id + store_reference",
+        "productoFerreteriaId": "offer_history.offer_id + offer_reference",
+        "productoMaestroId": "offer_history.product_id + product_reference",
+        "actorId": "offer_history.actor_id",
+        "actorAccountDeletedAt": "offer_history.actor_account_deleted_at",
+        "action": "offer_history.action",
+        "source": "offer_history.source",
+        "precioAnterior": "offer_history.old_price",
+        "precioNuevo": "offer_history.new_price",
+        "incluyeIva": "offer_history.includes_vat",
+        "ocurridoEn": "offer_history.occurred_at",
+        "snapshotAnterior": "offer_history.before_snapshot",
+        "snapshotNuevo": "offer_history.after_snapshot",
+        "solicitudId": "offer_history.product_request_id",
+        "priceReportId": "offer_history.price_report_id"
+      },
+      "notes": "Nullable foreign keys preserve evidence when account/offers are deleted; reference fields preserve non-personal source identities.",
+      "sourceCollection": "real_historialPrecios",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "storeAgreements": {
+      "tables": [
+        "store_agreements",
+        "legal_documents"
+      ],
+      "fields": {
+        "ferreteriaId": "store_agreements.store_id + store_reference",
+        "usuarioFirmanteId": "store_agreements.signer_user_id",
+        "version": "store_agreements.version",
+        "documentHash": "store_agreements.document_hash",
+        "estado": "store_agreements.status",
+        "proveedor": "store_agreements.provider_snapshot",
+        "ferreteria": "store_agreements.store_snapshot",
+        "firmante": "store_agreements.signer_snapshot",
+        "declaraciones": "store_agreements.declarations",
+        "evidencia": "store_agreements.evidence",
+        "aceptadoEn": "store_agreements.accepted_at",
+        "actualizadoEn": "store_agreements.updated_at",
+        "terminadoEn": "store_agreements.terminated_at",
+        "motivoTermino": "store_agreements.termination_reason",
+        "modificadoPor": "store_agreements.modified_by",
+        "eliminarDespuesDe": "store_agreements.delete_after"
+      },
+      "notes": "Store exact historical provider/clauses/hash bytes; unknown historical content may require an evidence-backed record, not reconstructing with current clauses.",
+      "sourceCollection": "real_contratosFerreteria",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "projects": {
+      "tables": [
+        "quotations",
+        "quotation_items"
+      ],
+      "fields": {
+        "ownerId": "quotations.owner_id",
+        "name": "quotations.name",
+        "nombre": "quotations.name (legacy alias)",
+        "address": "quotations.address",
+        "direccionObra": "quotations.address (legacy alias)",
+        "createdAt": "quotations.created_at",
+        "creadoEn": "quotations.created_at (legacy alias)",
+        "updatedAt": "quotations.updated_at",
+        "proximity": "quotations.proximity_*",
+        "proximidad": "quotations.proximity_* (legacy alias)",
+        "singleStoreId": "quotations.single_store_id + reference",
+        "ferreteriaUnicaId": "quotations.single_store_id (legacy alias)",
+        "singleStoreName": "quotations.single_store_name_snapshot",
+        "ferreteriaUnica": "quotations.single_store_name_snapshot (legacy alias)",
+        "items": "quotation_items ordered rows",
+        "status": "quotations.status",
+        "estado": "quotations.status (legacy alias)"
+      },
+      "notes": "Nested items preserve productName,quantity,storeId,storeName,productoFerreteriaId,productoMaestroId in snapshot/reference + nullable FK columns. Totals are live derived, not stored at import as fixed prices.",
+      "sourceCollection": "real_proyectos",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "productRequests": {
+      "tables": [
+        "product_requests"
+      ],
+      "fields": {
+        "ferreteriaId": "product_requests.store_id",
+        "usuarioSolicitanteId": "product_requests.requester_id",
+        "usuarioAdminId": "product_requests.admin_id",
+        "nombreProducto": "product_requests.product_name",
+        "codigoBarras": "product_requests.barcode",
+        "skuFerreteria": "product_requests.store_sku",
+        "publicado": "product_requests.published",
+        "cantidadReferencia": "product_requests.reference_quantity",
+        "precioReferencia": "product_requests.reference_price",
+        "estado": "product_requests.status",
+        "tipoSolicitud": "product_requests.request_type",
+        "productoMaestroSugeridoId": "product_requests.suggested_product_id",
+        "productoFerreteriaId": "product_requests.resulting_offer_id",
+        "notasAdmin": "product_requests.admin_notes",
+        "fechaCreacion": "product_requests.created_at",
+        "fechaResolucion": "product_requests.resolved_at"
+      },
+      "notes": "",
+      "sourceCollection": "real_solicitudesCreacionProducto",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "contactRequests": {
+      "tables": [
+        "contact_messages"
+      ],
+      "fields": {
+        "usuarioId": "contact_messages.user_id",
+        "type": "contact_messages.type",
+        "name": "contact_messages.name",
+        "email": "contact_messages.email",
+        "phone": "contact_messages.phone",
+        "commune": "contact_messages.commune",
+        "businessName": "contact_messages.business_name",
+        "message": "contact_messages.message",
+        "status": "contact_messages.status",
+        "privacyConsent": "contact_messages.privacy_consent",
+        "legalAcceptance": "contact_messages.legal_acceptance",
+        "createdAt": "contact_messages.created_at",
+        "updatedAt": "contact_messages.updated_at"
+      },
+      "notes": "Contact messages remain. Access requests stay WhatsApp; do not recreate an access-request dashboard.",
+      "sourceCollection": "real_solicitudesContacto",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "consentRecords": {
+      "tables": [
+        "consent_events"
+      ],
+      "fields": {
+        "usuarioId": "consent_events.user_id",
+        "type": "consent_events.type",
+        "version": "consent_events.version",
+        "granted": "consent_events.granted",
+        "purpose": "consent_events.purpose",
+        "expressConsent": "consent_events.express_consent",
+        "occurredAt": "consent_events.occurred_at",
+        "source": "consent_events.source"
+      },
+      "notes": "",
+      "sourceCollection": "real_registrosConsentimiento",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "marketingSuppressions": {
+      "tables": [
+        "marketing_suppressions"
+      ],
+      "fields": {
+        "emailHash": "marketing_suppressions.email_hash",
+        "suppressedAt": "marketing_suppressions.suppressed_at",
+        "source": "marketing_suppressions.source"
+      },
+      "notes": "Preserve SHA256 scheme for existing suppression list; hash does not grant public access or prove anonymization against dictionaries.",
+      "sourceCollection": "real_supresionesMarketing",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "priceReports": {
+      "tables": [
+        "price_reports"
+      ],
+      "fields": {
+        "reference": "price_reports.reference",
+        "usuarioId": "price_reports.user_id",
+        "email": "price_reports.email",
+        "productName": "price_reports.product_name_snapshot",
+        "storeName": "price_reports.store_name_snapshot",
+        "storeId": "price_reports.store_id + store_reference",
+        "offerId": "price_reports.offer_id + offer_reference",
+        "contentUrl": "price_reports.content_url",
+        "displayedPrice": "price_reports.displayed_price",
+        "catalogPriceAtReport": "price_reports.catalog_price_at_report",
+        "observedPrice": "price_reports.observed_price",
+        "details": "price_reports.details",
+        "privacyConsent": "price_reports.privacy_consent",
+        "status": "price_reports.status",
+        "resolution": "price_reports.resolution",
+        "resolvedAt": "price_reports.resolved_at",
+        "resolvedBy": "price_reports.resolved_by",
+        "createdAt": "price_reports.created_at",
+        "updatedAt": "price_reports.updated_at",
+        "accountDataMinimizedAt": "price_reports.minimized_at"
+      },
+      "notes": "",
+      "sourceCollection": "real_reclamosPrecios",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "privacyRequests": {
+      "tables": [
+        "privacy_requests"
+      ],
+      "fields": {
+        "usuarioId": "privacy_requests.user_id",
+        "email": "privacy_requests.email",
+        "type": "privacy_requests.type",
+        "details": "privacy_requests.details",
+        "status": "privacy_requests.status",
+        "submittedAt": "privacy_requests.submitted_at",
+        "acknowledgedAt": "privacy_requests.acknowledged_at",
+        "responseDueAt": "privacy_requests.response_due_at",
+        "blockingDueAt": "privacy_requests.blocking_due_at",
+        "resolution": "privacy_requests.resolution",
+        "resolvedAt": "privacy_requests.resolved_at",
+        "resolvedBy": "privacy_requests.resolved_by",
+        "updatedAt": "privacy_requests.updated_at"
+      },
+      "notes": "",
+      "sourceCollection": "real_solicitudesDerechos",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "deletionReceipts": {
+      "tables": [
+        "deletion_receipts"
+      ],
+      "fields": {
+        "completedAt": "deletion_receipts.completed_at",
+        "counts": "deletion_receipts.counts",
+        "source": "deletion_receipts.source"
+      },
+      "notes": "No UID/email/content in receipts.",
+      "sourceCollection": "real_comprobantesEliminacion",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "adminAuditLogs": {
+      "tables": [
+        "admin_audit_logs"
+      ],
+      "fields": {
+        "actorId": "admin_audit_logs.actor_id",
+        "actorRole": "admin_audit_logs.actor_role",
+        "action": "admin_audit_logs.action",
+        "method": "admin_audit_logs.method",
+        "path": "admin_audit_logs.path",
+        "statusCode": "admin_audit_logs.status_code",
+        "outcome": "admin_audit_logs.outcome",
+        "occurredAt": "admin_audit_logs.occurred_at"
+      },
+      "notes": "",
+      "sourceCollection": "real_bitacoraAdministrativa",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "securityIncidents": {
+      "tables": [
+        "security_incidents"
+      ],
+      "fields": {
+        "title": "security_incidents.title",
+        "description": "security_incidents.description",
+        "severity": "security_incidents.severity",
+        "status": "security_incidents.status",
+        "detectedAt": "security_incidents.detected_at",
+        "systems": "security_incidents.systems",
+        "dataCategories": "security_incidents.data_categories",
+        "affectedPeopleEstimate": "security_incidents.affected_people_estimate",
+        "reasonableRisk": "security_incidents.reasonable_risk",
+        "agencyNotificationRequired": "security_incidents.agency_notification_required",
+        "containmentActions": "security_incidents.containment_actions",
+        "rootCause": "security_incidents.root_cause",
+        "lessonsLearned": "security_incidents.lessons_learned",
+        "agencyNotifiedAt": "security_incidents.agency_notified_at",
+        "subjectsNotifiedAt": "security_incidents.subjects_notified_at",
+        "closedAt": "security_incidents.closed_at",
+        "createdBy": "security_incidents.created_by",
+        "updatedBy": "security_incidents.updated_by",
+        "createdAt": "security_incidents.created_at",
+        "updatedAt": "security_incidents.updated_at"
+      },
+      "notes": "",
+      "sourceCollection": "real_registroIncidentesSeguridad",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "governanceEvidence": {
+      "tables": [
+        "governance_evidence"
+      ],
+      "fields": {
+        "type": "governance_evidence.type",
+        "outcome": "governance_evidence.outcome",
+        "title": "governance_evidence.title",
+        "owner": "governance_evidence.owner_label",
+        "performedAt": "governance_evidence.performed_at",
+        "nextReviewAt": "governance_evidence.next_review_at",
+        "notes": "governance_evidence.notes",
+        "evidenceUrl": "governance_evidence.evidence_url",
+        "createdAt": "governance_evidence.created_at",
+        "createdBy": "governance_evidence.created_by"
+      },
+      "notes": "",
+      "sourceCollection": "real_evidenciasGobiernoDatos",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "intellectualPropertyReports": {
+      "tables": [
+        "ip_reports",
+        "ip_report_events"
+      ],
+      "fields": {
+        "usuarioId": "ip_reports.user_id",
+        "reference": "ip_reports.reference",
+        "receiptTokenHash": "ip_reports.receipt_token_hash",
+        "claimant": "ip_reports.claimant_*",
+        "rightsType": "ip_reports.rights_type",
+        "contentType": "ip_reports.content_type",
+        "targetType": "ip_reports.target_type",
+        "targetId": "ip_reports.target_reference + optional resolved FK",
+        "contentUrl": "ip_reports.content_url",
+        "originalWorkUrl": "ip_reports.original_work_url",
+        "workDescription": "ip_reports.work_description",
+        "infringementDescription": "ip_reports.infringement_description",
+        "declarations": "ip_reports.declarations",
+        "privacyConsent": "ip_reports.privacy_consent",
+        "status": "ip_reports.status",
+        "publicStatusMessage": "ip_reports.public_status_message",
+        "assignedTo": "ip_reports.assigned_to",
+        "submittedAt": "ip_reports.submitted_at",
+        "acknowledgedAt": "ip_reports.acknowledged_at",
+        "initialReviewDueAt": "ip_reports.initial_review_due_at",
+        "targetResolutionAt": "ip_reports.target_resolution_at",
+        "resolution": "ip_reports.resolution",
+        "resolvedAt": "ip_reports.resolved_at",
+        "updatedAt": "ip_reports.updated_at",
+        "accountDataMinimizedAt": "ip_reports.minimized_at",
+        "history": "ip_report_events ordered rows"
+      },
+      "notes": "Status endpoint must validate reference + receipt token hash and expose only current public fields. Never return token hash.",
+      "sourceCollection": "real_denunciasPropiedadIntelectual",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "publicCache": {
+      "tables": [
+        "catalog_revisions",
+        "public_cache_artifacts",
+        "catalog_search_documents"
+      ],
+      "fields": {
+        "catalog-revision.revision": "catalog_revisions scope static",
+        "meta.version": "public_cache_artifacts.version",
+        "meta.updatedAt": "public_cache_artifacts.updated_at",
+        "meta.dirty": "revision/outbox pending state",
+        "meta.policy": "artifact schema/contract version",
+        "taxonomyDocId": "artifact payload or object reference",
+        "offerDocIds": "artifact chunks",
+        "productDocIds": "artifact chunks"
+      },
+      "notes": "Rebuild allowlisted derived caches; do not treat old cached copies as authoritative rows.",
+      "sourceCollection": "real_cachePublico",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "storeMetrics": {
+      "tables": [
+        "store_event_counters"
+      ],
+      "fields": {
+        "views": "store_event_counters.views",
+        "selections": "store_event_counters.selections",
+        "updatedAt": "store_event_counters.updated_at"
+      },
+      "notes": "Document ID = store_id; anonymous aggregate only.",
+      "sourceCollection": "real_storeMetrics",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "storeDailyAnalytics": {
+      "tables": [
+        "store_daily_analytics",
+        "store_daily_top_products"
+      ],
+      "fields": {
+        "computedAt": "store_daily_analytics.computed_at",
+        "schema": "store_daily_analytics.schema_version",
+        "activeWindowDays": "store_daily_analytics.active_window_days",
+        "quotationCount": "store_daily_analytics.quotation_count",
+        "quotedLines": "store_daily_analytics.quoted_lines",
+        "quotedUnits": "store_daily_analytics.quoted_units",
+        "quotedProducts": "store_daily_analytics.quoted_products",
+        "activeQuotationCount": "store_daily_analytics.active_quotation_count",
+        "activeQuotedUnits": "store_daily_analytics.active_quoted_units",
+        "activeQuotedAmount": "store_daily_analytics.active_quoted_amount",
+        "recentQuotationCount": "store_daily_analytics.recent_quotation_count",
+        "previousQuotationCount": "store_daily_analytics.previous_quotation_count",
+        "views": "store_daily_analytics.views",
+        "selections": "store_daily_analytics.selections",
+        "catalog": "store_daily_analytics.catalog_*",
+        "topProducts": "store_daily_top_products ordered rows"
+      },
+      "notes": "Document ID = store_id. local_date derived in America/Santiago from computedAt; preserve latest report, never invent unavailable historical days.",
+      "sourceCollection": "real_storeDailyAnalytics",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "analyticsJobs": {
+      "tables": [
+        "job_runs"
+      ],
+      "fields": {
+        "attemptDate": "job_runs.local_date",
+        "status": "job_runs.status",
+        "startedAt": "job_runs.started_at",
+        "completedAt": "job_runs.completed_at",
+        "failedAt": "job_runs.failed_at",
+        "stores": "job_runs.stores_processed"
+      },
+      "notes": "Daily unique job/date replaces transaction guard. Preserve at-most-one scheduled attempt per local day; manual retry controlled.",
+      "sourceCollection": "real_analyticsJobs",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    },
+    "projectOwnerLocks": {
+      "tables": [
+        "users",
+        "quotations"
+      ],
+      "fields": {
+        "updatedAt": "transient row lock, not business data"
+      },
+      "notes": "Replaced by users SELECT FOR UPDATE + enforce_quotation_limit trigger; no durable lock table needed.",
+      "sourceCollection": "real_projectOwnerLocks",
+      "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+    }
+  },
+  "implementation": "functions/src/database; compatibility metadata in 005-runtime-compatibility.sql"
+}

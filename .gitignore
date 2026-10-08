@@ -17,6 +17,7 @@ firebase-debug.log
 
 # Firebase local state
 .firebase/
+**/.dataconnect/
 
 # IDEs and editors
 .idea/

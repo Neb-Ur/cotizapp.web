@@ -11,17 +11,23 @@
     "build": "tsc && cd .. && node functions/scripts/copy-web-template.mjs",
     "serve": "npm run build && firebase emulators:start --only functions,firestore,auth,hosting",
     "deploy": "firebase deploy --only functions,firestore:rules",
-    "test": "npm run build && node --test tests/*.test.mjs"
+    "test": "npm run build && node --test tests/*.test.mjs",
+    "sql:bootstrap": "npm run build && node scripts/bootstrap-sql.mjs",
+    "sql:migrate": "npm run build && node scripts/migrate-firestore-to-sql.mjs"
   },
   "dependencies": {
+    "@google-cloud/cloud-sql-connector": "^1.12.0",
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "firebase-admin": "^14.4.0",
-    "firebase-functions": "^7.4.0"
+    "firebase-functions": "^7.4.0",
+    "pg": "^8.23.1"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@types/cors": "^2.8.19",
     "@types/express": "^4.17.21",
+    "@types/pg": "^8.23.1",
     "typescript": "^5.8.3"
   },
   "overrides": {
