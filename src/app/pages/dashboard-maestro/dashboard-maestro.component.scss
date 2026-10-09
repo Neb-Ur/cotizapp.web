@@ -554,16 +554,23 @@ input:disabled {
 .product-image-slot {
   width: 100%;
   height: 180px;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
   border-bottom: 1px solid var(--border-soft);
   background: #fff;
-  display: grid;
-  place-items: center;
 }
 
 .product-image-slot img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
+  padding: 1rem;
   object-fit: contain;
+  object-position: center;
 }
 
 .product-image-slot .product-image-fallback {

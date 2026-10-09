@@ -151,6 +151,7 @@
 }
 
 .main-image {
+  position: relative;
   border: 1px solid var(--border-soft);
   border-radius: var(--r-md);
   background: var(--ink-50);
@@ -163,8 +164,13 @@
 }
 
 .main-image img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
+  padding: clamp(1rem, 3vw, 2rem);
   object-fit: contain;
 }
 
@@ -190,9 +196,12 @@
 }
 
 .thumb-strip img {
+  display: block;
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  padding: 0.4rem;
+  object-fit: contain;
 }
 
 .purchase-panel {
