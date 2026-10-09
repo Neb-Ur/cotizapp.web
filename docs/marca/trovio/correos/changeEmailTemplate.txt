@@ -1,0 +1,15 @@
+Trovio · Encontrar. Comparar. Construir mejor.
+
+Cambio de correo electrónico
+
+El correo de acceso de tu cuenta Trovio cambió a nuevo@example.test.
+Si realizaste este cambio, no necesitas hacer nada. Si no lo reconoces, usa el siguiente botón para recuperar tu dirección anterior.
+
+Revertir cambio de correo: https://cotizapp-d71c8.firebaseapp.com/__/auth/action?mode=recoverEmail&lang=es
+
+Este enlace permite revertir el cambio. Úsalo únicamente si no autorizaste la actualización de tu correo y no lo compartas.
+
+Equipo Trovio
+Trovio nunca te pedirá tu contraseña por correo.
+Contacto: https://cotizapp-d71c8.web.app/contacto
+Privacidad: https://cotizapp-d71c8.web.app/privacidad

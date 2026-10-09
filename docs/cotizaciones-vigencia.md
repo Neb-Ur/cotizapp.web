@@ -4,7 +4,7 @@ Los 10 días son una recomendación: «Genera tu cotización y realiza la compra
 
 ## Código y documento verificable
 
-Al guardar una cotización el servidor emite un código aleatorio, por ejemplo `FND-1234-ABCD-5678-EF90`. Se muestra en el detalle, se puede copiar y aparece en el PDF y el mensaje de WhatsApp.
+Al guardar una cotización el servidor emite un código aleatorio, por ejemplo `TRV-1234-ABCD-5678-EF90`. Se muestra en el detalle, se puede copiar y aparece en el PDF y el mensaje de WhatsApp. Los códigos anteriores con prefijo `FND-` siguen siendo válidos.
 
 Cada modificación guardada emite un nuevo código. El anterior conserva su versión original: no cambia silenciosamente el contenido de un PDF que ya se entregó. El maestro debe guardar sus cambios antes de descargar o enviar la versión modificada.
 

@@ -64,7 +64,7 @@ export class StoreOnboardingComponent implements OnInit, OnDestroy {
       this.overview = await this.api.get<OnboardingOverview>('/store-onboarding/current', true);
       if (this.destroyed) return;
       if (!this.overview.acceptanceRequired) this.finishAcceptance();
-      else if (!this.overview.canAccept) this.error = 'Tu acceso comercial está suspendido o terminado. Contacta a Findi.';
+      else if (!this.overview.canAccept) this.error = 'Tu acceso comercial está suspendido o terminado. Contacta a Trovio.';
     } catch {
       this.error = 'No pudimos cargar las condiciones. Reintenta para continuar o cierra la sesión.';
     } finally { this.loading = false; }

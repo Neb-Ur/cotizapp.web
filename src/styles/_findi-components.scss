@@ -1,4 +1,4 @@
-/* Shared Findi shapes and surfaces. Native controls, dense tables and status colors retain their purpose. */
+/* Shared Trovio shapes and surfaces. Native controls, dense tables and status colors retain their purpose. */
 :root {
   h1, h2, h3 { text-wrap: balance; }
   button, .btn { font-weight: 700; }
@@ -99,7 +99,7 @@
   }
 }
 
-/* Editing and account flows share the public Findi visual language. */
+/* Editing and account flows share the public Trovio visual language. */
 :root {
   .write-progress { position: fixed; z-index: 10001; top: 1rem; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: .75rem; padding: .9rem 1.25rem; border: 1px solid var(--border-soft); border-radius: 14px; background: var(--navy-900); color: white; box-shadow: var(--shadow-md); font-size: .9rem; font-weight: 700; white-space: nowrap; }
   .write-shield { position: fixed; inset: 0; z-index: 10000; cursor: progress; background: rgb(15 45 74 / 3%); }

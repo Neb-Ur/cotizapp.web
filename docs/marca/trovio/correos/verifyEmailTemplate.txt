@@ -1,0 +1,15 @@
+Trovio · Encontrar. Comparar. Construir mejor.
+
+Confirma tu correo electrónico
+
+Verifica el correo usuario@example.test para completar la seguridad de tu cuenta Trovio.
+Confirma que esta dirección te pertenece con el siguiente botón.
+
+Verificar correo: https://cotizapp-d71c8.firebaseapp.com/__/auth/action?mode=verifyEmail&lang=es
+
+Si no creaste esta cuenta o no solicitaste la verificación, ignora este correo. No compartas este enlace.
+
+Equipo Trovio
+Trovio nunca te pedirá tu contraseña por correo.
+Contacto: https://cotizapp-d71c8.web.app/contacto
+Privacidad: https://cotizapp-d71c8.web.app/privacidad

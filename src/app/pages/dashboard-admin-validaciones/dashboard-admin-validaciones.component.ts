@@ -1751,7 +1751,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       const storeName = store?.businessName || store?.displayName || 'ferreteria';
       await downloadCatalogImportTemplate(catalogImportTemplateFileName(storeName));
       this.onboardingError = '';
-      this.onboardingNotice = 'Template Findi descargado. Pasa la informacion de la ferreteria a la hoja Productos y luego sube ese archivo.';
+      this.onboardingNotice = 'Template Trovio descargado. Pasa la informacion de la ferreteria a la hoja Productos y luego sube ese archivo.';
     } catch (error) {
       this.onboardingError = error instanceof Error ? error.message : 'No se pudo generar el template.';
     }

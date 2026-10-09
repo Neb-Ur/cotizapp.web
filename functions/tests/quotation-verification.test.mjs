@@ -11,7 +11,7 @@ test('verification contains only server-priced products and each store sees only
  const view=storeVerificationView(record,'a');assert.equal(view.lines.length,1);assert.equal(view.lines[0].productName,'Cemento');assert.equal(view.total,2000);
  assert.equal(view.withinRecommendedPeriod,false);assert.equal(storeVerificationView(record,'other'),null);
  assert.ok(!JSON.stringify(view).includes('Private'));assert.equal(view.ownerId,undefined);assert.equal(view.quotationReference,undefined);
- assert.equal(normalizeVerificationCode('fnd aaaabbbbccccdddd'),code);assert.equal(normalizeVerificationCode('anything'),null);
+ assert.equal(normalizeVerificationCode('fnd aaaabbbbccccdddd'),code);assert.equal(normalizeVerificationCode('anything'),null);assert.equal(normalizeVerificationCode('trv aaaabbbbccccdddd'),'TRV-AAAA-BBBB-CCCC-DDDD');
 });
 const handler=storeQuotationsRouter.stack[0].route.stack.at(-1).handle;
 const response=()=>({statusCode:200,headers:{},set(k,v){this.headers[k]=v;return this;},status(code){this.statusCode=code;return this;},json(body){this.body=body;return this;}});

@@ -29,9 +29,9 @@ export function catalogLandings([allProducts, categories, subcategories, familie
     const existing = result.find(p => p.path === path);
     const uniquePath = existing ? `${path}-${seoSlug(Object.values(filters)[0])}` : path;
     const description = kind === 'marcas'
-      ? `Explora productos ${name} en Findi: características, formatos y ofertas de ferreterías de Chile cuando estén disponibles.`
-      : `Encuentra ${name.toLowerCase()} en Findi. Revisa características, marcas y formatos y compara ofertas de ferreterías de Chile cuando estén disponibles.`;
-    result.push({path: uniquePath, name, title: `${name}: productos y precios en Chile | Findi`, description, filters, products:items});
+      ? `Explora productos ${name} en Trovio: características, formatos y ofertas de ferreterías de Chile cuando estén disponibles.`
+      : `Encuentra ${name.toLowerCase()} en Trovio. Revisa características, marcas y formatos y compara ofertas de ferreterías de Chile cuando estén disponibles.`;
+    result.push({path: uniquePath, name, title: `${name}: productos y precios en Chile | Trovio`, description, filters, products:items});
   }
   for (const category of categories) add('categorias', category.nombre, {categoria:category.id}, products.filter(p=>p.categoriaId===category.id));
   for (const family of families) {
@@ -45,6 +45,6 @@ export function productSeoDescription(product: any, familyName = ''): string {
   const source = String(product.descripcionCorta || product.descripcionLarga || '').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
   const brand = brandIdentity(product.marca)?.nombre;
   const details = [familyName,brand,product.presentacion,product.unidadVenta].filter(Boolean).join(' · ');
-  const text = source || `${product.nombre}${details ? `: ${details}` : ''}. Consulta características y ofertas disponibles de ferreterías de Chile en Findi.`;
+  const text = source || `${product.nombre}${details ? `: ${details}` : ''}. Consulta características y ofertas disponibles de ferreterías de Chile en Trovio.`;
   return text.length>160 ? `${text.slice(0,157).trimEnd()}...` : text;
 }

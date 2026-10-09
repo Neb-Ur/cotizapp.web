@@ -2,11 +2,11 @@ import { randomBytes } from 'node:crypto';
 import { buildQuotationOptimization } from '../domain/quotation.js';
 import { geographicDistanceKm } from '../lib/values.js';
 export function newVerificationCode(): string {
-  return 'FND-' + randomBytes(8).toString('hex').toUpperCase().match(/.{4}/g)!.join('-');
+  return 'TRV-' + randomBytes(8).toString('hex').toUpperCase().match(/.{4}/g)!.join('-');
 }
 export function normalizeVerificationCode(value: unknown): string | null {
   const compact=String(value || '').toUpperCase().replace(/[\s-]/g,'');
-  return /^FND[0-9A-F]{16}$/.test(compact) ? 'FND-'+compact.slice(3).match(/.{4}/g)!.join('-') : null;
+  return /^(?:FND|TRV)[0-9A-F]{16}$/.test(compact) ? compact.slice(0,3)+'-'+compact.slice(3).match(/.{4}/g)!.join('-') : null;
 }
 export function verificationSnapshot(project: any, code=newVerificationCode(), now=new Date().toISOString()) {
   const proximity=project.proximity;

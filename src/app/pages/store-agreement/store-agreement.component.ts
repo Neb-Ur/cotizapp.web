@@ -1,3 +1,4 @@
+import { BrandMarkComponent } from '../../shared/components/brand-mark/brand-mark.component';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -9,7 +10,7 @@ import { StoreAgreementService } from '../../core/services/store-agreement.servi
 @Component({
   selector: 'app-store-agreement',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [BrandMarkComponent, CommonModule, FormsModule, RouterLink],
   templateUrl: './store-agreement.component.html',
   styleUrl: './store-agreement.component.scss'
 })
@@ -82,11 +83,11 @@ export class StoreAgreementComponent implements OnInit {
     if (!this.overview) return;
     const agreement = this.overview;
     const lines = [
-      `ACUERDO DE PARTICIPACIÓN EN LA MARCHA BLANCA Findi — VERSIÓN ${agreement.version}`,
+      `ACUERDO DE PARTICIPACIÓN EN LA MARCHA BLANCA Trovio — VERSIÓN ${agreement.version}`,
       `Vigente desde: ${agreement.effectiveDate}`,
       '',
       `Responsable: ${agreement.provider.legalName}${agreement.provider.taxId ? ` · RUT ${agreement.provider.taxId}` : ''}`,
-      'Contacto: formulario /contacto de Findi',
+      'Contacto: formulario /contacto de Trovio',
       `Ferretería: ${agreement.store.legalName} · RUT ${agreement.store.taxId}`,
       `Sucursal: ${agreement.store.branchName} · ${agreement.store.address}, ${agreement.store.commune}`,
       '',

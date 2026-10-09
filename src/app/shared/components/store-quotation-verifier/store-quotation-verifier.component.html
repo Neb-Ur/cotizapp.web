@@ -1,18 +1,18 @@
 
       <h2>Verificar una cotización</h2>
-      <p>Pide al maestro el código de Findi. Verás únicamente los productos cotizados con tu ferretería y los precios registrados al generar ese documento.</p>
+      <p>Pide al maestro el código de Trovio. Verás únicamente los productos cotizados con tu ferretería y los precios registrados al generar ese documento.</p>
       <form class="verification-search" (ngSubmit)="lookupQuotation()">
-        <label for="quotation-code">Código de cotización<input id="quotation-code" name="quotationCode" [(ngModel)]="quotationCode" autocomplete="off" maxlength="32" placeholder="FND-1234-ABCD-5678-EF90" [disabled]="isLookingUpQuotation" /></label>
+        <label for="quotation-code">Código de cotización<input id="quotation-code" name="quotationCode" [(ngModel)]="quotationCode" autocomplete="off" maxlength="32" placeholder="TRV-1234-ABCD-5678-EF90" [disabled]="isLookingUpQuotation" /></label>
         <button type="submit" [disabled]="isLookingUpQuotation || !quotationCode.trim()"><i class="pi" [class.pi-spin]="isLookingUpQuotation" [class.pi-spinner]="isLookingUpQuotation" [class.pi-search]="!isLookingUpQuotation" aria-hidden="true"></i> {{ isLookingUpQuotation ? 'Verificando…' : 'Verificar código' }}</button>
       </form>
       <p class="notice error" role="alert" *ngIf="quotationLookupError">{{ quotationLookupError }}</p>
       <section *ngIf="quotationResult as result" class="verified-quotation">
-        <div class="verified-header"><span><i class="pi pi-check-circle" aria-hidden="true"></i> Cotización registrada en Findi</span><strong>{{ result.code }}</strong></div>
+        <div class="verified-header"><span><i class="pi pi-check-circle" aria-hidden="true"></i> Cotización registrada en Trovio</span><strong>{{ result.code }}</strong></div>
         <p>Precios registrados el {{ result.pricesCapturedAt | date:'dd/MM/yyyy HH:mm' }}. Compra recomendada dentro de 10 días, hasta el {{ result.recommendedUntil | date:'dd/MM/yyyy HH:mm' }}.</p>
         <p *ngIf="!result.withinRecommendedPeriod" class="verification-note">Han pasado más de 10 días. El documento sigue siendo verificable; revisa los precios antes de atender la compra.</p>
         <p *ngIf="result.pilot" class="verification-note">Solo prueba: ferretería ficticia, precios y stock simulados.</p>
         <div class="table-wrap"><table><caption class="visually-hidden">Productos cotizados con tu ferretería</caption><thead><tr><th>Producto</th><th>Cantidad</th><th>Precio unitario</th><th>Subtotal</th></tr></thead><tbody><tr *ngFor="let line of result.lines"><td>{{ line.productName }}</td><td>{{ line.quantity }}</td><td>{{ formatCurrency(line.unitPrice) }}</td><td>{{ formatCurrency(line.subtotal) }}</td></tr></tbody></table></div>
         <div class="verified-total"><span>Total cotizado con tu ferretería · IVA incluido</span><strong>{{ formatCurrency(result.total) }}</strong></div>
-        <p class="verification-note">Este código verifica el contenido guardado en Findi. La cotización no constituye una compra ni una reserva de stock.</p>
+        <p class="verification-note">Este código verifica el contenido guardado en Trovio. La cotización no constituye una compra ni una reserva de stock.</p>
       </section>
     

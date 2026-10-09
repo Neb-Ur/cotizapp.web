@@ -1,0 +1,15 @@
+Trovio · Encontrar. Comparar. Construir mejor.
+
+Nueva protección para tu cuenta
+
+Se añadió una aplicación de autenticación como método de verificación en dos pasos a tu cuenta Trovio.
+Si realizaste esta acción, no necesitas hacer nada. Si no la reconoces, usa el siguiente botón para retirar el método añadido.
+
+Retirar método no reconocido: https://cotizapp-d71c8.firebaseapp.com/__/auth/action?mode=revertSecondFactorAddition&lang=es
+
+Este botón retira el método de seguridad recién añadido. Úsalo solo si no autorizaste esta acción y revisa la contraseña de tu cuenta.
+
+Equipo Trovio
+Trovio nunca te pedirá tu contraseña por correo.
+Contacto: https://cotizapp-d71c8.web.app/contacto
+Privacidad: https://cotizapp-d71c8.web.app/privacidad

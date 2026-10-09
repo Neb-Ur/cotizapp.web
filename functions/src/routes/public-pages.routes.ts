@@ -25,7 +25,7 @@ publicPagesRouter.get('/producto', async (req, res, next) => {
     const name = query.get('product') || '';
     if (!name) return res.redirect(302, '/buscar');
     const product = (await getProductSheet(name.trim().toLowerCase(), ''))?.productoMaestro;
-    if (!product) return res.status(404).type('html').send(page('Producto no encontrado | Findi', 'Este producto no existe.', req.path, '<main><h1>Producto no encontrado</h1><a href="/buscar">Buscar materiales</a></main>'));
+    if (!product) return res.status(404).type('html').send(page('Producto no encontrado | Trovio', 'Este producto no existe.', req.path, '<main><h1>Producto no encontrado</h1><a href="/buscar">Buscar materiales</a></main>'));
     query.delete('product');
     return res.redirect(302, `/productos/${product.seoPath?.split('/').pop() || slug(String(product.nombre))}${query.size ? `?${query}` : ''}`);
   } catch (error) { return next(error); }
@@ -34,7 +34,7 @@ publicPagesRouter.get('/productos/:slug', async (req, res, next) => {
   try {
     const sheet = await getProductSheet('', String(req.params.slug));
     const product = sheet?.productoMaestro;
-    if (!product) return res.status(404).type('html').send(page('Producto no encontrado | Findi', 'Este producto no existe.', req.path, '<main><h1>Producto no encontrado</h1><a href="/buscar">Buscar materiales</a></main>'));
+    if (!product) return res.status(404).type('html').send(page('Producto no encontrado | Trovio', 'Este producto no existe.', req.path, '<main><h1>Producto no encontrado</h1><a href="/buscar">Buscar materiales</a></main>'));
     const description = productSeoDescription(product, sheet.familyName);
     const landings = catalogLandings(await getStaticCatalog());
     const related = landings.filter(p => p.products.some(item=>item.id===product.id));
@@ -49,7 +49,7 @@ publicPagesRouter.get('/productos/:slug', async (req, res, next) => {
       {'@type':'BreadcrumbList',itemListElement:[{ '@type':'ListItem',position:1,name:'Inicio',item:SITE_URL },...related.filter(p=>p.path.startsWith('/familias/')).slice(0,1).map(p=>({'@type':'ListItem',position:2,name:p.name,item:`${SITE_URL}${p.path}`})),{'@type':'ListItem',position:related.some(p=>p.path.startsWith('/familias/'))?3:2,name:product.nombre,item:`${SITE_URL}${req.path}`}]}]};
     const body = `<main><a href="/buscar">Buscar materiales</a><h1>${escape(product.nombre)}</h1><p>${escape(description)}</p><nav aria-label="Categorías del producto">${related.map(p=>`<a href="${escape(p.path)}">${escape(p.name)}</a>`).join(" · ")}</nav><dl>${sheet.atributosProducto.map((attribute: any) => `<dt>${escape(attribute.etiqueta)}</dt><dd>${escape(attribute.valorTexto ?? attribute.valorNumero ?? attribute.valorOpcion ?? attribute.valorBooleano ?? '')}</dd>`).join('')}</dl><p role="status">Cargando precios de las ferreterías…</p><noscript>Activa JavaScript para consultar las ofertas vigentes de las ferreterías.</noscript></main>`;
     res.set('Cache-Control','public, max-age=0, s-maxage=30, must-revalidate');
-    return res.type('html').send(page(`${product.nombre}: precios en ferreterías | Findi`, description, req.path, body, schema, String(product.imagenPrincipalUrl || '')));
+    return res.type('html').send(page(`${product.nombre}: precios en ferreterías | Trovio`, description, req.path, body, schema, String(product.imagenPrincipalUrl || '')));
   } catch(error) { return next(error); }
 });
 publicPagesRouter.get(['/:kind(categorias|familias|marcas)/:slug'], async (req,res,next) => {
@@ -57,7 +57,7 @@ publicPagesRouter.get(['/:kind(categorias|familias|marcas)/:slug'], async (req,r
     const catalog = await getStaticCatalog();
     const landings = catalogLandings(catalog);
     const landing = landings.find(p=>p.path===req.path);
-    if (!landing) {res.set('X-Robots-Tag','noindex');return res.status(404).type('html').send(page('Sección no encontrada | Findi','Esta sección no existe.',req.path,'<main><h1>Sección no encontrada</h1><a href="/buscar">Buscar materiales</a></main>'));}
+    if (!landing) {res.set('X-Robots-Tag','noindex');return res.status(404).type('html').send(page('Sección no encontrada | Trovio','Esta sección no existe.',req.path,'<main><h1>Sección no encontrada</h1><a href="/buscar">Buscar materiales</a></main>'));}
     const related = landings.filter(p=>p.path!==landing.path && p.products.some(item=>landing.products.some(product=>product.id===item.id)));
     const schema = {'@context':'https://schema.org','@graph':[
       {'@type':'CollectionPage',name:landing.name,description:landing.description,url:`${SITE_URL}${landing.path}`,mainEntity:{'@type':'ItemList',numberOfItems:landing.products.length,itemListElement:landing.products.map((p,i)=>({'@type':'ListItem',position:i+1,name:p.nombre,url:`${SITE_URL}/productos/${seoProductSlug(p,catalog[0])}`}))}},
@@ -70,5 +70,5 @@ publicPagesRouter.get(['/:kind(categorias|familias|marcas)/:slug'], async (req,r
 publicPagesRouter.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/') || req.accepts('html') !== 'html') return next();
   res.set('X-Robots-Tag','noindex');
-  return res.status(404).type('html').send(page('Página no encontrada | Findi','Esta página no existe.',req.path,'<main><h1>Página no encontrada</h1><a href="/">Volver al inicio</a></main>'));
+  return res.status(404).type('html').send(page('Página no encontrada | Trovio','Esta página no existe.',req.path,'<main><h1>Página no encontrada</h1><a href="/">Volver al inicio</a></main>'));
 });

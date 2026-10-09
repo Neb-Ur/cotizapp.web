@@ -43,7 +43,7 @@ async function main() {
   const templates = Object.keys(AUTH_EMAIL_CONTENT).filter(key => before.notification?.sendEmail?.[key]);
   if (!templates.length) throw new Error('No se encontraron plantillas de correo en el proyecto.');
   if (!apply) {
-    console.log(JSON.stringify({ projectId, mode: 'dry-run', locale: 'es', templates: templates.map(key => ({ key, senderDisplayName: 'Findi', subject: AUTH_EMAIL_CONTENT[key].subject })) }, null, 2));
+    console.log(JSON.stringify({ projectId, mode: 'dry-run', locale: 'es', templates: templates.map(key => ({ key, senderDisplayName: 'Trovio', subject: AUTH_EMAIL_CONTENT[key].subject })) }, null, 2));
     return;
   }
   if (!process.env.EMAIL_TEMPLATE_BACKUP_PATH) throw new Error('EMAIL_TEMPLATE_BACKUP_PATH es obligatorio para conservar una copia de las plantillas actuales.');
@@ -53,7 +53,7 @@ async function main() {
   const results = [];
   for (const key of templates) {
     const content = AUTH_EMAIL_CONTENT[key];
-    const template = { senderDisplayName: 'Findi', subject: content.subject, body: renderFirebaseEmailBody(content), bodyFormat: 'HTML' };
+    const template = { senderDisplayName: 'Trovio', subject: content.subject, body: renderFirebaseEmailBody(content), bodyFormat: 'HTML' };
     const applied = [];
     const blocked = [];
     // Use individual masks: a protected body/subject must not prevent editable fields from updating.
@@ -74,7 +74,7 @@ async function main() {
   for (const result of results) {
     const saved = after.notification.sendEmail[result.key];
     const expected = AUTH_EMAIL_CONTENT[result.key];
-    if (result.applied.includes('senderDisplayName') && saved.senderDisplayName !== 'Findi') throw new Error(`El remitente no se conservó en ${result.key}.`);
+    if (result.applied.includes('senderDisplayName') && saved.senderDisplayName !== 'Trovio') throw new Error(`El remitente no se conservó en ${result.key}.`);
     // Some protected fields return success while retaining the built-in template.
     for (const [field, value] of [['subject', expected.subject], ['body', renderFirebaseEmailBody(expected)]]) {
       if (result.applied.includes(field) && saved[field] !== value) {

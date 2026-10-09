@@ -7,9 +7,9 @@
 ></button>
 
 <header class="navbar" [class.navbar--store]="isStoreDashboard">
-  <a class="brand" routerLink="/" aria-label="Findi · Ir al inicio" (click)="closeMenu()">
+  <a class="brand" routerLink="/" aria-label="Trovio · Ir al inicio" (click)="closeMenu()">
     <app-brand-mark />
-    <span class="brand-wordmark" aria-hidden="true">find<span>ı</span></span>
+    <span class="brand-wordmark" aria-hidden="true">trov<span>ı</span>o</span>
 
   </a>
 
@@ -29,7 +29,7 @@
       <section id="desktop-taxonomy-menu" class="taxonomy-mega-menu" *ngIf="taxonomyOpen" (click)="$event.stopPropagation()" aria-label="Taxonomía de productos">
         <header class="taxonomy-menu-header">
           <div>
-            <span>Catálogo Findi</span>
+            <span>Catálogo Trovio</span>
             <h2>Encuentra materiales por especialidad</h2>
           </div>
           <a routerLink="/buscar" (click)="closeTaxonomy()">Ver todos los productos</a>
@@ -135,7 +135,7 @@
 
 <aside #mobileDrawer tabindex="-1" id="mobile-navigation" role="dialog" [attr.aria-modal]="menuOpen ? true : null" [attr.inert]="menuOpen ? null : ''" (keydown.tab)="trapMenuFocus($event)" class="mobile-drawer" [class.open]="menuOpen" [attr.aria-hidden]="!menuOpen" aria-label="Menu principal">
   <div class="drawer-header">
-    <a class="drawer-brand" routerLink="/" (click)="closeMenu()"><app-brand-mark /> <strong>Findi</strong></a>
+    <a class="drawer-brand" routerLink="/" (click)="closeMenu()"><app-brand-mark /> <strong>Trovio</strong></a>
     <button type="button" class="drawer-close" (click)="closeMenu()" aria-label="Cerrar menu"><fa-icon [icon]="faClose" /></button>
   </div>
 

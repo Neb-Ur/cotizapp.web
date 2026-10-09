@@ -77,11 +77,11 @@ export async function downloadCatalogImportTemplate(
   ];
 
   const instructionsSheet = XLSX.utils.aoa_to_sheet([
-    ['Template oficial de catalogo Findi'],
+    ['Template oficial de catalogo Trovio'],
     [],
     ['Columna', 'Obligatoria', 'Uso', 'Ejemplo'],
     ['nombre', 'Si', 'Nombre comercial del producto.', 'Cemento Melon 25kg'],
-    ['sku', 'No', 'Codigo interno de la ferreteria. Si falta, Findi genera uno.', 'CEM-25'],
+    ['sku', 'No', 'Codigo interno de la ferreteria. Si falta, Trovio genera uno.', 'CEM-25'],
     ['precio', 'Si', 'Precio de venta en pesos, mayor a 0. Puede venir con $ o separador de miles.', '5490'],
     ['stock', 'No', 'Unidades disponibles. Si se deja vacio se considera 0.', '80'],
     ['codigo_barras', 'No', 'EAN/codigo de barras cuando exista.', '7800000000000'],
@@ -92,7 +92,7 @@ export async function downloadCatalogImportTemplate(
     ['3. Deja vacias las columnas que no tengas; nombre y precio son las unicas obligatorias.'],
     ['4. Sube este mismo archivo desde Admin > Ferreterias o desde el panel de la ferreteria.'],
     ['5. Si el archivo viene con tu catalogo actual, modifica principalmente precio y stock; conserva nombre, SKU y codigo de barras para identificar correctamente cada producto.'],
-    ['6. Findi relaciona cada fila por SKU, codigo de barras o nombre; si agregas una fila nueva, el producto puede quedar para revision.']
+    ['6. Trovio relaciona cada fila por SKU, codigo de barras o nombre; si agregas una fila nueva, el producto puede quedar para revision.']
   ]);
   instructionsSheet['!cols'] = [
     { wch: 24 },

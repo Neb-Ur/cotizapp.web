@@ -1,7 +1,7 @@
 <section class="wrapper">
   <article class="card">
     <h1>Contacto</h1>
-    <p *ngIf="!isStoreRequest">Escríbenos y te ayudamos con tus dudas sobre Findi.</p>
+    <p *ngIf="!isStoreRequest">Escríbenos y te ayudamos con tus dudas sobre Trovio.</p>
     <p *ngIf="isStoreRequest">Completa la solicitud para evaluar la incorporación de tu ferretería al piloto.</p>
 
     <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="isSubmitting">
@@ -70,7 +70,7 @@
         <p id="contact-acceptance-help">Revisa los documentos y marca cada declaración. Todas son obligatorias.</p>
         <label class="check-row" for="contact-terms">
           <input id="contact-terms" type="checkbox" formControlName="termsAccepted" required />
-          <span>Acepto los <a routerLink="/terminos-condiciones" target="_blank" rel="noopener">Términos y condiciones</a> de Findi (versión {{ legalIdentity.termsVersion }}).</span>
+          <span>Acepto los <a routerLink="/terminos-condiciones" target="_blank" rel="noopener">Términos y condiciones</a> de Trovio (versión {{ legalIdentity.termsVersion }}).</span>
         </label>
         <label class="check-row" for="contact-privacy">
           <input id="contact-privacy" type="checkbox" formControlName="privacyAcknowledged" required />

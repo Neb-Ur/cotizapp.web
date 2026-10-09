@@ -1,0 +1,42 @@
+{
+  "brand": "Trovio",
+  "date": "2026-10-09",
+  "mode": "built-in image_gen",
+  "image": "propuestas-logo-01.png",
+  "palette": {
+    "navy": "#0F2D4A",
+    "orange": "#FF7A00",
+    "background": "#F3F5F8",
+    "text": "#6B7280",
+    "nearBlack": "#111827",
+    "white": "#FFFFFF"
+  },
+  "currentIcon": "src/assets/findi-mark.svg",
+  "options": [
+    {
+      "number": 1,
+      "concept": "T con lupa"
+    },
+    {
+      "number": 2,
+      "concept": "Comparación y T en espacio negativo"
+    },
+    {
+      "number": 3,
+      "concept": "Portal de construcción"
+    },
+    {
+      "number": 4,
+      "concept": "T con flecha"
+    },
+    {
+      "number": 5,
+      "concept": "Monograma TV"
+    },
+    {
+      "number": 6,
+      "concept": "Localizador integrado en la o"
+    }
+  ],
+  "prompt": "Use case: logo-brand.\nAsset type: one high-resolution professional logo exploration board for the brand \"trovio\", a Chilean construction-material product discovery, price comparison and quotation platform.\nPrimary request: draw SIX genuinely different polished logo proposals using the existing Findi brand color palette, so the owner can select one. This is an original exploration, not a rebrand implementation.\nComposition: wide landscape board, clean 3-column by 2-row grid, six equal large white panels separated by generous very pale gray gutters. At top a restrained title \"TROVIO · PROPUESTAS DE LOGO\". Each panel has its option number 01 through 06 in small muted gray at top left, a large horizontal logo with icon on left and exact lowercase wordmark \"trovio\" on right, plus underneath a smaller dark navy rectangle showing the reversed white/orange horizontal logo and a small square app icon. Plenty of breathing room. All six wordmarks must read exactly t r o v i o, no spelling changes, no extra letters.\nPalette strictly: primary dark navy #0F2D4A, bright orange #FF7A00, white #FFFFFF, neutral light gray #F3F5F8, text gray #6B7280, near black #111827. Use navy and orange for the marks; orange as a deliberate accent rather than filling every letter. No other hues, no gradients, no metallic effects.\nVisual style: flat, vector-friendly professional custom geometry; modern slightly rounded sans-serif wordmarks, excellent optical alignment, clear shapes readable at favicon size. Consistent brand sophistication and line weight, but clearly distinct icon concepts. Never use the old letter F.\nConcept 01: geometric lowercase/uppercase T monogram whose lower terminal integrates a small orange magnifying ring, hinting discovery. Inspired by the existing rounded F plus orange magnifier language, but a new T.\nConcept 02: two rounded navy/orange opposing comparison brackets forming an abstract T in negative space, signaling price comparison. No magnifier.\nConcept 03: simple navy architectural portal or minimal doorway with an orange beam, with a subtle T integrated into its negative space, suggesting construction materials. Avoid generic detailed roof houses.\nConcept 04: bold rounded navy T with a small orange directional arrow moving right/up through its stem, suggesting finding the best option and progressing with a project. No magnifier.\nConcept 05: compact geometric interlocking navy and orange shapes forming a custom TV monogram (Trovio), strong scalable app symbol. No car badge appearance.\nConcept 06: clean typographic wordmark, custom orange cutout/locator treatment within one o as an integrated discovery cue, plus corresponding standalone circular/rounded-square icon. No extra unrelated pictogram.\nConstraints: original designs, no resemblance to famous brand logos, no tools/hammer clipart, no shopping carts, no cranes, no photoreal mockups, no scenes, no embossed effects, no shadows, no watermarks, no taglines, no decorative dummy text. Make the logos the clear focus. Small numeric labels only, with the exact brand wordmark in every panel. Render a sharp large landscape presentation suitable for comparing all six choices."
+}

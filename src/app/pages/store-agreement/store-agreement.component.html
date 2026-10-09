@@ -1,6 +1,6 @@
 <main class="agreement-page">
   <header class="topbar">
-    <a class="brand" routerLink="/"><span class="brand-mark">C</span><strong>Findi</strong></a>
+    <a class="brand" routerLink="/"><app-brand-mark /><strong>Trovio</strong></a>
   </header>
 
   <div class="loading" *ngIf="loading">Cargando acuerdo de participación…</div>
@@ -11,7 +11,7 @@
       <div>
         <span class="eyebrow">Marcha blanca</span>
         <h1>Acuerdo de participación de ferreterías</h1>
-        <p>Regula la publicación y comparación de precios, stock y contenido comercial dentro de Findi.</p>
+        <p>Regula la publicación y comparación de precios, stock y contenido comercial dentro de Trovio.</p>
       </div>
       <div class="status" [class.status--active]="contract.status === 'vigente'">
         <span>{{ contract.status === 'vigente' ? 'Contrato vigente' : 'Aceptación requerida' }}</span>
@@ -32,7 +32,7 @@
 
         <div class="party-grid">
           <section>
-            <span>Findi</span>
+            <span>Trovio</span>
             <strong>{{ contract.provider.legalName }}</strong>
             <p *ngIf="contract.provider.taxId">RUT {{ contract.provider.taxId }}</p>
             <p *ngIf="contract.provider.address">{{ contract.provider.address }}</p>

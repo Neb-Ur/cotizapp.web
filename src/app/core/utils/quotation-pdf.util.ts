@@ -26,7 +26,7 @@ export function buildQuotationPdfFile(input: QuotationPdfInput): File {
 export async function shareQuotationPdf(input: QuotationPdfInput): Promise<'shared' | 'downloaded' | 'cancelled'> {
   const file = buildQuotationPdfFile(input);
   const shareData: ShareData = {
-    title: `Cotizacion - ${input.projectName || 'Findi'}`,
+    title: `Cotizacion - ${input.projectName || 'Trovio'}`,
     text: `Cotizacion de materiales ${input.projectName ? `- ${input.projectName}` : ''}`,
     files: [file]
   };
@@ -110,8 +110,8 @@ function buildQuotationPdfLines(input: QuotationPdfInput, exportedAt: Date): str
   lines.push('Compra dentro de los 10 dias de generar la cotizacion para mantener los precios cotizados.');
   lines.push('La ferreteria puede verificar el codigo y los productos cotizados con ella.');
   lines.push('Esta cotizacion no constituye una compra, un pedido ni una reserva de productos.');
-  lines.push('Findi permite crear cotizaciones; no procesa compras.');
-  lines.push('Documento generado por Findi.');
+  lines.push('Trovio permite crear cotizaciones; no procesa compras.');
+  lines.push('Documento generado por Trovio.');
 
   return lines.flatMap((line) => wrapLine(line, 95));
 }
@@ -168,11 +168,11 @@ function buildPdfPageContent(lines: string[], pageNumber: number, pageCount: num
   const gray = '0.420 0.447 0.502';
   const commands: string[] = [
     'q', `${navy} rg`, roundedPdfRect(32, 754, 531, 64, 16), 'f',
-    // Vector Findi mark: F and magnifying glass, with no external images or fonts.
-    '1 1 1 RG 8 w 1 J', '48 767 m 48 786 l 48 795 53 799 61 799 c 75 799 l S',
+    // Vector Trovio mark: T and magnifying glass, with no external images or fonts.
+    '1 1 1 RG 8 w 1 J', '48 799 m 77 799 l S 58 799 m 58 770 l S',
     `${orange} RG 4 w`, '66 789 m 71 789 75 785 75 780 c 75 775 71 771 66 771 c 61 771 57 775 57 780 c 57 785 61 789 66 789 c S',
     '73 773 m 80 766 l S',
-    'BT /F2 26 Tf 1 1 1 rg 94 783 Td (findi) Tj ET',
+    'BT /F2 26 Tf 1 1 1 rg 94 783 Td (trovio) Tj ET',
     'BT /F1 9 Tf 1 1 1 rg 95 767 Td (Encontrar. Comparar. Construir mejor.) Tj ET',
     'Q'
   ];
@@ -187,7 +187,7 @@ function buildPdfPageContent(lines: string[], pageNumber: number, pageCount: num
 
   commands.push(
     'q 0.86 0.89 0.92 RG 0.5 w 40 60 m 555 60 l S Q',
-    `BT /F1 8 Tf ${gray} rg 44 42 Td (${pilot ? 'Findi - SOLO PRUEBA. Precios simulados; no disponible para compra.' : 'Findi - Cotizacion referencial. Compra directamente en la ferreteria.'}) Tj ET`,
+    `BT /F1 8 Tf ${gray} rg 44 42 Td (${pilot ? 'Trovio - SOLO PRUEBA. Precios simulados; no disponible para compra.' : 'Trovio - Cotizacion referencial. Compra directamente en la ferreteria.'}) Tj ET`,
     `BT /F1 8 Tf ${gray} rg 485 42 Td (Pagina ${pageNumber} / ${pageCount}) Tj ET`
   );
   return commands.join('\n');

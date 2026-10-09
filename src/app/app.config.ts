@@ -5,7 +5,7 @@ import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
 import { definePreset } from '@primeuix/themes';
 
-const FindiTheme = definePreset(Aura, {
+const TrovioTheme = definePreset(Aura, {
   semantic: { primary: {
     50: '#f3f5f8', 100: '#e0e8f0', 200: '#c0d1e0', 300: '#94b2cc',
     400: '#527c9f', 500: '#0f2d4a', 600: '#0d2842', 700: '#0b233a',
@@ -24,7 +24,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection(),
     provideAppInitializer(() => inject(DataModeService).initialize()),
-    providePrimeNG({ translation: { aria: { firstPageLabel: 'Primera página', lastPageLabel: 'Última página', nextPageLabel: 'Página siguiente', prevPageLabel: 'Página anterior', previousPageLabel: 'Página anterior', rowsPerPageLabel: 'Filas por página', pageLabel: 'Página {page}', jumpToPageDropdownLabel: 'Ir a página', jumpToPageInputLabel: 'Ir a página' } }, theme: { preset: FindiTheme, options: { darkModeSelector: false } } }),
+    providePrimeNG({ translation: { aria: { firstPageLabel: 'Primera página', lastPageLabel: 'Última página', nextPageLabel: 'Página siguiente', prevPageLabel: 'Página anterior', previousPageLabel: 'Página anterior', rowsPerPageLabel: 'Filas por página', pageLabel: 'Página {page}', jumpToPageDropdownLabel: 'Ir a página', jumpToPageInputLabel: 'Ir a página' } }, theme: { preset: TrovioTheme, options: { darkModeSelector: false } } }),
     provideRouter(routes, withInMemoryScrolling({
       scrollPositionRestoration: 'enabled',
       anchorScrolling: 'enabled'

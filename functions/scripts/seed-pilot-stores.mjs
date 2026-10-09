@@ -2,7 +2,7 @@ import {createHash} from 'node:crypto';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {cloudAuth,cloudPool,secretValue,requireApply} from './lib/sql-cloud.mjs';
 import {PostgresDatabase} from '../lib/database/postgres.js';
-const names=['Findi Norte (Prueba)','Findi Sur (Prueba)','Findi Centro (Prueba)','Findi Construcción (Prueba)'];
+const names=['Trovio Norte (Prueba)','Trovio Sur (Prueba)','Trovio Centro (Prueba)','Trovio Construcción (Prueba)'];
 const batchId='findi-pilot-2026-10';
 const hash=value=>createHash('sha256').update(value).digest().readUInt32BE(0);
 function basePrice(name){
@@ -34,7 +34,7 @@ async function main(){
  for(let n=0;n<names.length;n++){
   const storeId=`pilot-store-${n+1}`,ownerId=`pilot-owner-${n+1}`;
   const profile={rol:'ferreteria',nombre:names[n],correo:`pilot-${n+1}@example.invalid`,telefono:'',direccion:'',region:'',ciudad:'',comuna:'',estadoCuenta:'activo',creadoEn:now,esPrueba:true,lotePrueba:batchId,marketingConsent:false};
-  const store={usuarioDuenoId:ownerId,nombreComercial:names[n],razonSocial:'Entidad ficticia para pruebas Findi',rut:null,direccion:'',region:'',ciudad:'',comuna:'',latitud:null,longitud:null,correoContactoPublico:'',telefonoContactoPublico:'',estado:'activo',contratoEstado:'pendiente',esPrueba:true,lotePrueba:batchId,creadoEn:now,actualizadoEn:now,catalogoActualizadoEn:now};
+  const store={usuarioDuenoId:ownerId,nombreComercial:names[n],razonSocial:'Entidad ficticia para pruebas Trovio',rut:null,direccion:'',region:'',ciudad:'',comuna:'',latitud:null,longitud:null,correoContactoPublico:'',telefonoContactoPublico:'',estado:'activo',contratoEstado:'pendiente',esPrueba:true,lotePrueba:batchId,creadoEn:now,actualizadoEn:now,catalogoActualizadoEn:now};
   if(!before.some(r=>r.kind==='store'&&r.id===storeId)){const init=db.batch();init.set(db.collection('usuarios').doc(ownerId),profile);init.set(db.collection('real_ferreterias').doc(storeId),store);await init.commit();}
   const entries=products.map(p=>{
     const h=hash(p.id),variation=0.82+((h+n*7)%29)/100;

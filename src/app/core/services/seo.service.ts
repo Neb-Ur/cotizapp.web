@@ -15,65 +15,65 @@ interface SeoPage {
 const SITE_URL = 'https://cotizapp-d71c8.web.app';
 const STRUCTURED_DATA_ID = 'cotizapp-page-structured-data';
 const DEFAULT_PAGE: SeoPage = {
-  title: 'Findi | Compara precios de materiales de construcción',
+  title: 'Trovio | Compara precios de materiales de construcción',
   description: 'Compara precios y stock de materiales entre ferreterías y arma tu cotización de obra en minutos.'
 };
 
 const PAGE_SEO: Record<string, SeoPage> = {
   '/': DEFAULT_PAGE,
   '/buscar': {
-    title: 'Buscar materiales y comparar precios | Findi',
+    title: 'Buscar materiales y comparar precios | Trovio',
     description: 'Busca materiales de construcción y compara precios y disponibilidad entre ferreterías activas sin crear una cuenta.'
   },
   '/producto': {
-    title: 'Comparar precios de productos | Findi',
+    title: 'Comparar precios de productos | Trovio',
     description: 'Revisa precios, stock y alternativas disponibles para tus materiales de construcción.'
   },
   '/maestros': {
-    title: 'Cotizaciones para maestros y contratistas | Findi',
+    title: 'Cotizaciones para maestros y contratistas | Trovio',
     description: 'Compara materiales, optimiza costos y guarda cotizaciones para cada proyecto de construcción.'
   },
   '/ferreterias': {
-    title: 'Findi para ferreterías | Solicita acceso',
+    title: 'Trovio para ferreterías | Solicita acceso',
     description: 'Publica tu catálogo, precio y stock para participar en las comparaciones de maestros y contratistas.'
   },
   '/contacto': {
-    title: 'Contacto y solicitud de acceso | Findi',
-    description: 'Contacta a Findi para soporte o para solicitar acceso como ferretería.'
+    title: 'Contacto y solicitud de acceso | Trovio',
+    description: 'Contacta a Trovio para soporte o para solicitar acceso como ferretería.'
   },
   '/preguntas-frecuentes': {
-    title: 'Preguntas frecuentes | Findi',
+    title: 'Preguntas frecuentes | Trovio',
     description: 'Resuelve dudas sobre búsqueda de productos, cotizaciones, cuentas de maestro y acceso para ferreterías.'
   },
   '/terminos-condiciones': {
-    title: 'Términos y condiciones | Findi',
-    description: 'Condiciones de uso de Findi para visitantes, maestros y ferreterías.'
+    title: 'Términos y condiciones | Trovio',
+    description: 'Condiciones de uso de Trovio para visitantes, maestros y ferreterías.'
   },
   '/privacidad': {
-    title: 'Política de privacidad | Findi',
-    description: 'Conoce cómo Findi trata y protege los datos personales de sus usuarios.'
+    title: 'Política de privacidad | Trovio',
+    description: 'Conoce cómo Trovio trata y protege los datos personales de sus usuarios.'
   },
   '/propiedad-intelectual': {
-    title: 'Propiedad intelectual y denuncia de contenido | Findi',
-    description: 'Consulta la política de propiedad intelectual de Findi y denuncia imágenes, marcas, fichas o descripciones presuntamente infractoras.'
+    title: 'Propiedad intelectual y denuncia de contenido | Trovio',
+    description: 'Consulta la política de propiedad intelectual de Trovio y denuncia imágenes, marcas, fichas o descripciones presuntamente infractoras.'
   },
   '/desuscribir': {
-    title: 'Dejar de recibir publicidad | Findi',
-    description: 'Retira tu autorización para comunicaciones publicitarias de Findi.',
+    title: 'Dejar de recibir publicidad | Trovio',
+    description: 'Retira tu autorización para comunicaciones publicitarias de Trovio.',
     index: false
   },
   '/reportar-precio': {
-    title: 'Reportar un precio incorrecto | Findi',
-    description: 'Informa una diferencia para que Findi verifique y corrija el precio publicado.',
+    title: 'Reportar un precio incorrecto | Trovio',
+    description: 'Informa una diferencia para que Trovio verifique y corrija el precio publicado.',
     index: false
   },
   '/login': {
-    title: 'Iniciar sesión | Findi',
-    description: 'Accede a tu cuenta de Findi.',
+    title: 'Iniciar sesión | Trovio',
+    description: 'Accede a tu cuenta de Trovio.',
     index: false
   },
   '/registro': {
-    title: 'Crear cuenta de maestro | Findi',
+    title: 'Crear cuenta de maestro | Trovio',
     description: 'Crea una cuenta de maestro para guardar cotizaciones y consultar tu historial.',
     index: false
   }
@@ -100,7 +100,7 @@ export class SeoService {
     const description = this.productDescription(product);
     const image = this.validImage(product.imageUrl) ? product.imageUrl : undefined;
     const page: SeoPage = {
-      title: `${product.productName}: precios en ferreterías | Findi`,
+      title: `${product.productName}: precios en ferreterías | Trovio`,
       index: true,
       description
     };
@@ -144,8 +144,8 @@ export class SeoService {
 
   markProductNotFound(): void {
     this.applyPage({
-      title: 'Producto no encontrado | Findi',
-      description: 'El producto solicitado no está disponible en el catálogo de Findi.',
+      title: 'Producto no encontrado | Trovio',
+      description: 'El producto solicitado no está disponible en el catálogo de Trovio.',
       index: false
     }, this.router.url.split('?')[0] || '/producto');
   }
@@ -160,7 +160,7 @@ export class SeoService {
 
     this.applyPage(page, path, 'website', undefined, isPrivate);
     this.removeStructuredData();
-    if(path === '/') this.setStructuredData({'@context':'https://schema.org','@type':'WebSite',name:'Findi',url:SITE_URL,description:DEFAULT_PAGE.description});
+    if(path === '/') this.setStructuredData({'@context':'https://schema.org','@type':'WebSite',name:'Trovio',url:SITE_URL,description:DEFAULT_PAGE.description});
   }
 
   private applyPage(
@@ -181,7 +181,7 @@ export class SeoService {
     this.meta.updateTag({ property: 'og:description', content: page.description });
     this.meta.updateTag({ property: 'og:type', content: openGraphType });
     this.meta.updateTag({ property: 'og:url', content: canonicalUrl });
-    this.meta.updateTag({ property: 'og:site_name', content: 'Findi' });
+    this.meta.updateTag({ property: 'og:site_name', content: 'Trovio' });
     this.meta.updateTag({ property: 'og:locale', content: 'es_CL' });
     this.meta.updateTag({ name: 'twitter:card', content: image ? 'summary_large_image' : 'summary' });
     this.meta.updateTag({ name: 'twitter:title', content: page.title });

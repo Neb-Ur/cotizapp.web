@@ -554,7 +554,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
       this.csvError = '';
       this.csvNotice = this.catalog.length > 0
         ? `Catalogo descargado con ${this.catalog.length} producto(s). Modifica precio y stock y luego sube el mismo archivo.`
-        : 'Template Findi descargado. Tu catalogo aun no tiene productos.';
+        : 'Template Trovio descargado. Tu catalogo aun no tiene productos.';
     } catch (error) {
       this.csvError = error instanceof Error ? error.message : 'No se pudo generar el template.';
     }
@@ -622,7 +622,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
           price
         }
       );
-      this.requestNotice = 'Solicitud enviada a Findi para revision.';
+      this.requestNotice = 'Solicitud enviada a Trovio para revision.';
       this.requestError = '';
       this.requestDraft = { name: '', barcode: '', quantity: 1, price: 0 };
     } catch (error) {
