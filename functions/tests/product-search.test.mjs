@@ -76,7 +76,7 @@ test('API returns product pages and legacy offer arrays with and without offers'
     const snapshot=catalog(135);
     if(!hasOffers)snapshot.searchRows=[];
     const cache=db.collection(COLLECTIONS.publicCache);
-    await cache.doc('meta').set({dirty:false,version:`paged-search-${hasOffers}`,updatedAt:snapshot.updatedAt,policy:`data-modes-v1:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']});
+    await cache.doc('meta').set({dirty:false,version:`paged-search-${hasOffers}`,updatedAt:snapshot.updatedAt,policy:`data-modes-v1:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']});
     await cache.doc('taxonomy').set(snapshot.taxonomy);
     await cache.doc('products').set({items:snapshot.products});await cache.doc('offers').set({items:snapshot.searchRows});
     const res=response();await handler({query:{vista:'productos',page:'7',size:'20'}},res);

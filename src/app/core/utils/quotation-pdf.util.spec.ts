@@ -24,3 +24,8 @@ it('reports a completed native share', async () => {
   Object.defineProperty(navigator, 'share', { configurable: true, value: vi.fn().mockResolvedValue(undefined) });
   expect(await shareQuotationPdf(input)).toBe('shared');
 });
+it('includes description and an unmistakable pilot disclaimer in the PDF',async()=>{
+ const file=buildQuotationPdfFile({...input,projectDescription:'Reparacion cocina',pilot:true});
+ const text=await new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=reject;reader.readAsText(file);});
+ expect(text).toContain('Reparacion cocina');expect(text).toContain('SOLO PRUEBA');expect(text).toContain('precios y stock simulados');
+});

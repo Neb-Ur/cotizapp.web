@@ -29,6 +29,7 @@ projectsRouter.post('/maestros/:ownerId/proyectos', requireAuth, requireRole('ma
     ownerId: req.params.ownerId,
     name,
     address: normalizeText(req.body?.direccionObra),
+    description: normalizeText(req.body?.descripcion).slice(0, 2000),
     items: normalizeItems(req.body?.items),
     proximity: normalizeProjectProximity(req.body?.proximidad) || null,
     singleStoreName: normalizeText(req.body?.ferreteriaUnica) || null,
@@ -63,6 +64,7 @@ projectsRouter.put('/maestros/:ownerId/proyectos/:projectId', requireAuth, requi
   const updated = await patchRow(COLLECTIONS.projects, req.params.projectId, {
     name: normalizeText(req.body?.nombre) || project.name,
     address: normalizeText(req.body?.direccionObra),
+    description: req.body?.descripcion === undefined ? (project.description || '') : normalizeText(req.body.descripcion).slice(0, 2000),
     items: normalizeItems(req.body?.items),
     proximity: normalizeProjectProximity(req.body?.proximidad) || null,
     singleStoreName: normalizeText(req.body?.ferreteriaUnica) || null,

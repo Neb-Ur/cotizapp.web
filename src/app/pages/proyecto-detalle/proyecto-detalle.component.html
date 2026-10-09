@@ -24,6 +24,11 @@
           <input [(ngModel)]="projectAddress" type="text" placeholder="Ej: Av. Principal 1234, Maipu" />
         </label>
 
+        <label>
+          Descripción <span class="optional">(opcional)</span>
+          <textarea [(ngModel)]="projectDescription" maxlength="2000" rows="3" placeholder="Describe el trabajo, alcance o notas para tu cliente"></textarea>
+        </label>
+
         <section class="quotation-nearby-card">
           <div class="quotation-nearby-copy">
             <span class="quotation-nearby-label">Ferreterías consideradas</span>
@@ -73,6 +78,15 @@
 
 
 
+        <section class="whatsapp-share" *ngIf="hasQuotation">
+          <h3>Enviar por WhatsApp</h3>
+          <p>Descarga el PDF y abre un mensaje para tu cliente. Adjunta el archivo en WhatsApp antes de enviarlo.</p>
+          <div class="whatsapp-share-actions">
+            <label>Número del destinatario<input type="tel" [(ngModel)]="whatsappNumber" autocomplete="tel" placeholder="+56 9 1234 5678" /></label>
+            <button type="button" class="secondary" (click)="sendViaWhatsapp()" [disabled]="!whatsappNumber.trim()"><i class="pi pi-whatsapp" aria-hidden="true"></i> Preparar envío</button>
+          </div>
+          <p role="status" *ngIf="shareNotice">{{ shareNotice }}</p>
+        </section>
         <p class="saved" *ngIf="saveNotice">{{ saveNotice }}</p>
       </article>
 

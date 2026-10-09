@@ -1,3 +1,5 @@
+import { PilotService } from '../../core/services/pilot.service';
+import { quotationWhatsappUrl } from '../../core/utils/quotation-whatsapp.util';
 import { WriteFeedbackService } from '../../core/services/write-feedback.service';
 import { DataModeService } from '../../core/services/data-mode.service';
 import { CommonModule } from '@angular/common';
@@ -35,6 +37,9 @@ export class ProyectoDetalleComponent implements OnInit {
   protected isNewProject = true;
   protected projectName = '';
   protected projectAddress = '';
+  protected projectDescription = '';
+  protected whatsappNumber = '';
+  protected shareNotice = '';
   protected projectItems: ProjectItem[] = [];
   protected isSaving = false;
   protected saveNotice = '';
@@ -53,7 +58,8 @@ export class ProyectoDetalleComponent implements OnInit {
     private readonly authService: AuthService,
     private readonly apiService: FirebaseDataService
 ,
-    private readonly writeFeedback: WriteFeedbackService = new WriteFeedbackService()
+    private readonly writeFeedback: WriteFeedbackService = new WriteFeedbackService(),
+    private readonly pilot: PilotService | null = null
   ) {}
 
   ngOnInit(): void {
@@ -214,7 +220,8 @@ export class ProyectoDetalleComponent implements OnInit {
             this.projectAddress,
             this.projectProximity,
             this.quotation.appliedStoreName,
-            this.quotation.appliedStoreId
+            this.quotation.appliedStoreId,
+            this.projectDescription
           );
           this.saveNotice = 'Cotizacion creada correctamente.';
           this.clearDraft();
@@ -235,7 +242,8 @@ export class ProyectoDetalleComponent implements OnInit {
         this.projectAddress,
         this.projectProximity,
         this.quotation.appliedStoreName,
-        this.quotation.appliedStoreId
+        this.quotation.appliedStoreId,
+        this.projectDescription
       );
       if (!updated) {
         this.saveNotice = 'No se pudo actualizar la cotizacion.';
@@ -367,6 +375,8 @@ export class ProyectoDetalleComponent implements OnInit {
       const result = await shareQuotationPdf({
         projectName: this.projectName.trim() || 'Cotizacion',
         projectAddress: this.projectAddress,
+      projectDescription: this.projectDescription,
+      pilot: this.pilot?.enabled() === true,
         maestroName: this.user?.displayName || '',
         quotation: this.quotation,
         proximity: this.projectProximity
@@ -383,18 +393,32 @@ export class ProyectoDetalleComponent implements OnInit {
     }
   }
 
+  protected sendViaWhatsapp(): void {
+    if (!this.hasQuotation) return;
+    try {
+      const url = quotationWhatsappUrl(this.whatsappNumber, this.projectName, this.formatCurrency(this.totalWithIva), this.pilot?.enabled() === true);
+      downloadQuotationPdf({projectName:this.projectName, projectAddress:this.projectAddress, projectDescription:this.projectDescription,
+        maestroName:this.user?.displayName || '', quotation:this.quotation, proximity:this.projectProximity, pilot:this.pilot?.enabled() === true});
+      window.open(url, '_blank', 'noopener,noreferrer');
+      this.shareNotice = 'PDF descargado. Adjunta el archivo en WhatsApp y revisa el mensaje antes de enviarlo.';
+    } catch (error) { this.shareNotice = error instanceof Error ? error.message : 'No se pudo preparar el envío.'; }
+  }
+
   protected exportQuotation(): void {
     if (!this.hasQuotation) {
       return;
     }
 
-    downloadQuotationPdf({
+    try { downloadQuotationPdf({
       projectName: this.projectName.trim() || 'Cotizacion',
       projectAddress: this.projectAddress,
+      projectDescription: this.projectDescription,
+      pilot: this.pilot?.enabled() === true,
       maestroName: this.user?.displayName || '',
       quotation: this.quotation,
       proximity: this.projectProximity
     });
+    } catch (error) { this.saveNotice = error instanceof Error ? error.message : 'No se pudo exportar la cotización.'; }
   }
 
   protected backToProjects(): void {
@@ -418,6 +442,7 @@ export class ProyectoDetalleComponent implements OnInit {
       const nearbyPreference = readNearbySearchPreference();
       this.projectName = draftName || draft?.name || '';
       this.projectAddress = draftAddress || draft?.address || '';
+      this.projectDescription = draft?.description || '';
       this.projectItems = (draft?.items || []).map((item) => ({
         ...item,
           productName: item.productName,
@@ -444,6 +469,7 @@ export class ProyectoDetalleComponent implements OnInit {
       }
       this.projectName = refreshed.name;
       this.projectAddress = refreshed.address || '';
+      this.projectDescription = refreshed.description || '';
       this.projectProximity = refreshed.proximity;
       this.selectedSingleStoreName = refreshed.singleStoreName || '';
       this.selectedSingleStoreId = refreshed.singleStoreId || '';
@@ -458,6 +484,7 @@ export class ProyectoDetalleComponent implements OnInit {
 
     this.projectName = project.name;
     this.projectAddress = project.address || '';
+    this.projectDescription = project.description || '';
     this.projectProximity = project.proximity;
     this.selectedSingleStoreName = project.singleStoreName || '';
     this.selectedSingleStoreId = project.singleStoreId || '';
@@ -479,6 +506,7 @@ export class ProyectoDetalleComponent implements OnInit {
     const payload = {
       name: this.projectName,
       address: this.projectAddress,
+      description: this.projectDescription,
       items: this.projectItems,
       proximity: this.projectProximity,
       singleStoreId: this.quotation.appliedStoreId,
@@ -490,6 +518,7 @@ export class ProyectoDetalleComponent implements OnInit {
   private readDraft(): {
     name: string;
     address: string;
+    description?: string;
     items: ProjectItem[];
     proximity?: SearchProximity;
     singleStoreName?: string;
@@ -509,6 +538,7 @@ export class ProyectoDetalleComponent implements OnInit {
       return JSON.parse(raw) as {
         name: string;
         address: string;
+        description?: string;
         items: ProjectItem[];
         proximity?: SearchProximity;
         singleStoreName?: string;
@@ -538,7 +568,8 @@ export class ProyectoDetalleComponent implements OnInit {
       this.projectAddress,
       this.projectProximity,
       this.quotation.appliedStoreName,
-      this.quotation.appliedStoreId
+      this.quotation.appliedStoreId,
+      this.projectDescription
     );
 
     return !!updated;

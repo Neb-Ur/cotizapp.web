@@ -360,6 +360,7 @@ export interface ProjectItem {
 }
 
 export interface ProjectSummary {
+  description?: string;
   availabilityStatus?: 'draft' | 'incomplete' | 'ready';
   pricesCheckedAt?: string;
   id: string;

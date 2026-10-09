@@ -1,3 +1,4 @@
+import { PilotBannerComponent } from './shared/components/pilot-banner/pilot-banner.component';
 import { WriteFeedbackService } from './core/services/write-feedback.service';
 import { Component, effect, inject } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
@@ -10,7 +11,7 @@ import { SiteFooterComponent } from './shared/components/site-footer/site-footer
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, SiteFooterComponent, HelpWidgetComponent, CookieConsentComponent],
+  imports: [PilotBannerComponent, RouterOutlet, SiteFooterComponent, HelpWidgetComponent, CookieConsentComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

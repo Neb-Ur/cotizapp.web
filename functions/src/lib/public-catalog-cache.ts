@@ -1,3 +1,4 @@
+import { pilotStoresEnabled } from '../services/pilot-stores.service.js';
 import { catalogCacheIsFresh, nextCatalogTransition } from '../domain/catalog-cache-validity.js';
 import { useSqlDatabase } from '../database/config.js';
 import { sqlPool } from '../database/pool.js';
@@ -30,7 +31,7 @@ export type PublicCatalogSnapshot = {
 const META_ID = 'meta';
 const CHUNK_SIZE = 150;
 const CACHE_POLICY = `data-modes-v1:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}`;
-function fresh(meta:any):boolean {return catalogCacheIsFresh(meta,CACHE_POLICY);}
+function fresh(meta:any):boolean {return catalogCacheIsFresh(meta,`${CACHE_POLICY}:pilot=${pilotStoresEnabled()}`);}
 const rebuildPromises = new Map<string, Promise<PublicCatalogSnapshot>>();
 const memorySnapshots = new Map<string, PublicCatalogSnapshot>();
 
@@ -159,7 +160,7 @@ async function materializeSnapshot(): Promise<PublicCatalogSnapshot> {
       generation,
       builtGeneration: generation,
       dirty: false,
-      policy: CACHE_POLICY,
+      policy: `${CACHE_POLICY}:pilot=${pilotStoresEnabled()}`,
       version,
       updatedAt,
       temporalValidityTracked:true,

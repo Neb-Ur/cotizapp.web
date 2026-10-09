@@ -494,3 +494,12 @@ tfoot .total-final td {
     text-align: left;
   }
 }
+
+.editor-panel textarea { width:100%; min-height:96px; resize:vertical; padding:12px 14px; border:1px solid var(--border); border-radius:12px; font:inherit; background:white; color:var(--ink-900); }
+.optional {font-size:.85rem;color:var(--text-muted);font-weight:400;}
+.whatsapp-share {padding:18px;border:1px solid var(--border);border-radius:16px;background:white;margin-top:16px;}
+.whatsapp-share h3 {margin:0 0 8px;}
+.whatsapp-share p {font-size:.875rem;line-height:1.5;color:var(--text-muted);}
+.whatsapp-share-actions {display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;}
+.whatsapp-share-actions label {flex:1;min-width:180px;}
+.whatsapp-share-actions button {min-height:44px;}

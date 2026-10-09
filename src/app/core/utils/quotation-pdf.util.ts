@@ -3,6 +3,8 @@ import { ProjectQuotationView, SearchProximity } from '../models/app.models';
 export interface QuotationPdfInput {
   projectName: string;
   projectAddress?: string;
+  projectDescription?: string;
+  pilot?: boolean;
   maestroName: string;
   quotation: ProjectQuotationView;
   proximity?: SearchProximity;
@@ -52,7 +54,12 @@ function buildQuotationPdfLines(input: QuotationPdfInput, exportedAt: Date): str
   const totalWithIva = input.quotation.optimalTotal;
 
   lines.push('COTIZACION DE MATERIALES');
+  if (input.pilot || input.quotation.lines.some(line => line.bestStoreName.includes('(Prueba)'))) {
+    lines.push('SOLO PRUEBA: ferreterias ficticias; precios y stock simulados.');
+    lines.push('No es una oferta comercial. No existen locales para visitar.');
+  }
   lines.push(`Proyecto: ${input.projectName || 'Sin titulo'}`);
+  if (input.projectDescription?.trim()) lines.push(`Descripcion: ${input.projectDescription.trim()}`);
   lines.push(`Maestro: ${input.maestroName || 'No definido'}`);
   lines.push(`Fecha de exportacion: ${formatExportDate(exportedAt)}`);
   lines.push(`Direccion de obra: ${input.projectAddress?.trim() || 'Sin direccion de obra'}`);
@@ -113,7 +120,7 @@ function buildPdfBlob(lines: string[]): Blob {
     const contentObjectId = pageObjectId + 1;
     pageObjectIds.push(pageObjectId);
 
-    const pageContent = buildPdfPageContent(pageLines, index + 1, pageChunks.length);
+    const pageContent = buildPdfPageContent(pageLines, index + 1, pageChunks.length, lines.some(line => line.startsWith('SOLO PRUEBA:')));
     objects.push(
       `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 ${3 + (pageChunks.length * 2)} 0 R /F2 ${4 + (pageChunks.length * 2)} 0 R >> >> /Contents ${contentObjectId} 0 R >>`
     );
@@ -146,7 +153,7 @@ function buildPdfBlob(lines: string[]): Blob {
   return new Blob([documentContent], { type: 'application/pdf' });
 }
 
-function buildPdfPageContent(lines: string[], pageNumber: number, pageCount: number): string {
+function buildPdfPageContent(lines: string[], pageNumber: number, pageCount: number, pilot = false): string {
   const navy = '0.059 0.176 0.290';
   const orange = '1 0.478 0';
   const gray = '0.420 0.447 0.502';
@@ -165,13 +172,13 @@ function buildPdfPageContent(lines: string[], pageNumber: number, pageCount: num
     const y = 727 - index * 14;
     const heading = ['COTIZACION DE MATERIALES', 'DETALLE DE ARTICULOS', 'RESUMEN DE COTIZACION', 'TOTALES POR FERRETERIA'].includes(line);
     const total = line.startsWith('Total final (IVA incluido):');
-    if (total) commands.push('q 1 0.950 0.890 rg', roundedPdfRect(39, y - 5, 517, 20, 5), 'f Q');
+    if (total) commands.push('q 1 0.950 0.890 rg', roundedPdfRect(39, y - 3, 517, 14, 4), 'f Q');
     commands.push(`BT /${heading || total ? 'F2' : 'F1'} ${heading ? 11 : 10} Tf ${heading || total ? navy : gray} rg 44 ${y} Td (${escapePdfText(line)}) Tj ET`);
   });
 
   commands.push(
     'q 0.86 0.89 0.92 RG 0.5 w 40 60 m 555 60 l S Q',
-    `BT /F1 8 Tf ${gray} rg 44 42 Td (Findi - Cotizacion referencial. Compra directamente en la ferreteria.) Tj ET`,
+    `BT /F1 8 Tf ${gray} rg 44 42 Td (${pilot ? 'Findi - SOLO PRUEBA. Precios simulados; no disponible para compra.' : 'Findi - Cotizacion referencial. Compra directamente en la ferreteria.'}) Tj ET`,
     `BT /F1 8 Tf ${gray} rg 485 42 Td (Pagina ${pageNumber} / ${pageCount}) Tj ET`
   );
   return commands.join('\n');

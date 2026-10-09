@@ -9,7 +9,7 @@ function response(){return {statusCode:200,status(code){this.statusCode=code;ret
 test('direct slug detail returns taxonomy and only attributes from its product and family without offers',async t=>{
  const product={id:'base',nombre:'Abrazadera metálica',categoriaId:'cat',subcategoriaId:'sub',familiaId:'fam',estado:'activo'};
  firestoreFixture(t,{
-  cachePublico:{meta:{dirty:false,version:'detail-fixture',updatedAt:new Date().toISOString(),policy:`data-modes-v1:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']},products:{items:[product]},offers:{items:[]},taxonomy:{categories:[{id:'cat',nombre:'Fijaciones'}],subcategories:[{id:'sub',nombre:'Amarre'}],families:[{id:'fam',nombre:'Amarres'}]}},
+  cachePublico:{meta:{dirty:false,version:'detail-fixture',updatedAt:new Date().toISOString(),policy:`data-modes-v1:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']},products:{items:[product]},offers:{items:[]},taxonomy:{categories:[{id:'cat',nombre:'Fijaciones'}],subcategories:[{id:'sub',nombre:'Amarre'}],families:[{id:'fam',nombre:'Amarres'}]}},
   productosMaestro:{base:{nombre:'Abrazadera metálica',categoriaId:'cat',subcategoriaId:'sub',familiaId:'fam',estado:'activo'}},
   categorias:{cat:{nombre:'Fijaciones'}},subcategorias:{sub:{nombre:'Amarre'}},familias:{fam:{nombre:'Amarres'}},
   atributosProductoMaestro:{right:{productoMaestroId:'base',definicionAtributoId:'material',valorTexto:'Acero'},wrong:{productoMaestroId:'other',definicionAtributoId:'foreign',valorTexto:'No corresponde'}},

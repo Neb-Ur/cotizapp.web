@@ -2,8 +2,7 @@ import { rows } from '../repositories/firestore.repository.js';
 import { COLLECTIONS } from '../lib/collections.js';
 import { coordinateValue, inferMeasurementFromLabel, normalizeText, numberValue, pricePerMeasurement } from '../lib/values.js';
 import type { SearchRow } from '../models/domain.models.js';
-import { CURRENT_STORE_AGREEMENT_VERSION } from '../lib/legal.js';
-import { storeAgreementDocumentHash } from './store-agreement.service.js';
+import { storeCanPublish } from './pilot-stores.service.js';
 export async function buildSearchRows(source?: any[][], asOf?:number): Promise<SearchRow[]> {
   const [offers, products, stores, users, categories, subcategories, families] = source || await Promise.all([
     rows(COLLECTIONS.storeProducts),
@@ -36,10 +35,7 @@ export async function buildSearchRows(source?: any[][], asOf?:number): Promise<S
         || !store
         || !owner
         || product.estado === 'inactivo'
-        || store.estado === 'inactivo'
-        || (store.contratoEstado !== 'vigente'
-          || store.contratoVersion !== CURRENT_STORE_AGREEMENT_VERSION
-          || store.contratoDocumentHash !== storeAgreementDocumentHash())
+        || !storeCanPublish(store)
         || owner.estadoCuenta !== 'activo'
       ) return null;
 

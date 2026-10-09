@@ -1,3 +1,4 @@
+import { pilotStoresEnabled } from './services/pilot-stores.service.js';
 import { dataModeMiddleware } from './lib/data-mode.js';
 import { forwardAsyncErrors } from './lib/async-errors.js';
 import { storeMetricsRouter } from './routes/store-metrics.routes.js';
@@ -69,7 +70,7 @@ app.use(async (req,res,next) => {
 });
 app.get(['/api/config', '/config'], (_req, res) => {
   res.set('Cache-Control', 'no-store');
-  res.json({ ok: true, data: { dataMode: 'real', imageStorage: imageStorageStatus() } });
+  res.json({ ok: true, data: { dataMode: 'real', pilotStoresEnabled: pilotStoresEnabled(), imageStorage: imageStorageStatus() } });
 });
 
 // Supports Firebase Hosting rewrites (/api/**) and the direct function URL.

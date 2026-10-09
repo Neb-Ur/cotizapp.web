@@ -1286,12 +1286,14 @@ export class FirebaseDataService {
     address = '',
     proximity?: SearchProximity,
     singleStoreName?: string,
-    singleStoreId?: string
+    singleStoreId?: string,
+    description = ''
   ): Promise<ProjectSummary> {
     try {
       const created = await this.apiClient.post<any>(`/maestros/${ownerId}/proyectos`, {
         nombre: name.trim(),
         direccionObra: address.trim(),
+        descripcion: description.trim(),
         proximidad: proximity ? {
           latitude: proximity.latitude,
           longitude: proximity.longitude,
@@ -1323,12 +1325,14 @@ export class FirebaseDataService {
     address = '',
     proximity?: SearchProximity,
     singleStoreName?: string,
-    singleStoreId?: string
+    singleStoreId?: string,
+    description = ''
   ): Promise<ProjectSummary | null> {
     try {
       const updated = await this.apiClient.put<any>(`/maestros/${ownerId}/proyectos/${projectId}`, {
         nombre: name.trim(),
         direccionObra: address.trim(),
+        descripcion: description.trim(),
         proximidad: proximity ? {
           latitude: proximity.latitude,
           longitude: proximity.longitude,
@@ -2229,6 +2233,7 @@ export class FirebaseDataService {
         availabilityStatus: row.availabilityStatus,
         pricesCheckedAt: row.pricesCheckedAt,
         id: row.id,
+        description: row.description || '',
         name: row.name,
         address: row.address || '',
         proximity: this.mapSearchProximity(row.proximity),

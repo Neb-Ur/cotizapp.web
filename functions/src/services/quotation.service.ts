@@ -46,6 +46,7 @@ export async function projectView(project: any, offers?: Awaited<ReturnType<type
     id: project.id,
     name: project.name || project.nombre || 'Cotizacion',
     address: project.address || project.direccionObra || '',
+    description: project.description || '',
     proximity: proximity || undefined,
     singleStoreName: optimization.appliedStoreName || undefined,
     singleStoreId: optimization.appliedStoreId || undefined,
