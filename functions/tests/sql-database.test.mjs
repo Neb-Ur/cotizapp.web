@@ -142,3 +142,12 @@ test('active SQL connections validate readiness once, while unactivated migratio
  await pg.query("UPDATE findi.database_migration_state SET status='verified'");const checking=new PostgresDatabase(pool,true);
  await checking.collection('categorias').get();await checking.collection('categorias').get();assert.equal(validations,3);
 });
+
+test('a real external fallback never inherits the generated image source or its rights reference',async t=>{
+ const {db,pg}=await fixture(t);await catalog(db);
+ const main='https://images.example/generated.webp',fallback='https://maker.example/real.jpg';
+ await db.collection('productosMaestro').doc('product').update({imagenPrincipalUrl:main,imagenStorageUrl:main,imagenStoragePath:'p/generated.webp',imagenExternaUrl:fallback,origenImagen:'ai_generated',referenciaAutorizacion:'Generated image reference',proveedorImagen:'OpenAI'});
+ const assets=(await pg.query('SELECT a.url,a.origin,a.rights_id FROM findi.media_assets a JOIN findi.product_media m ON m.asset_id=a.id WHERE m.product_id=$1',['product'])).rows;
+ assert.equal(assets.find(a=>a.url===main).origin,'storage');assert.ok(assets.find(a=>a.url===main).rights_id);
+ assert.equal(assets.find(a=>a.url===fallback).origin,'external_url');assert.equal(assets.find(a=>a.url===fallback).rights_id,null);
+});

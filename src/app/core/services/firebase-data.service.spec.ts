@@ -136,3 +136,13 @@ describe('public catalog browser cache',()=>{
   }finally{localStorage.removeItem(key);}
  });
 });
+
+describe('referential product imagery',()=>{
+ it('keeps catalog identity and makes generic external photos distinguishable from generated imagery',()=>{
+  const {service}=fixture();const base={...master,marca:'Por especificar',imagenStorageUrl:'https://images.example/detail.webp',imagenMiniaturaUrl:'https://images.example/thumb.webp',imagenExternaUrl:'https://maker.example/photo.jpg',imagenReferencial:true};
+  const external=(service as any).mapProductDetail({productoMaestro:{...base,origenImagen:'external_url'},stores:[]});
+  expect(external.brand).toBe('Por especificar');expect(external.imageDisclosure).toContain('Imagen referencial del tipo');expect(external.imageUrl).toBe(base.imagenStorageUrl);expect(external.imageFallbackUrl).toBe(base.imagenExternaUrl);
+  const generated=(service as any).mapProductDetail({productoMaestro:{...base,origenImagen:'ai_generated'},stores:[]});
+  expect(generated.imageDisclosure).toContain('inteligencia artificial');
+ });
+});

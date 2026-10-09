@@ -114,7 +114,8 @@ async function materializeChildren(client:SqlClient,key:string,id:string,data:Da
   let primaryChosen=false;
   for(const [position,item]of urls.entries()){
    const assetId=digest(`product-media:${id}:${position}`),isPrimary:boolean=!primaryChosen&&item.url===data.imagenPrincipalUrl;primaryChosen ||= isPrimary;
-   await upsert(client,'media_assets',{id:assetId,url:item.url,storage_path:item.url===data.imagenStorageUrl?data.imagenStoragePath||null:item.url===data.imagenMiniaturaUrl?data.imagenMiniaturaPath||null:null,origin:item.url===data.imagenStorageUrl||item.url===data.imagenMiniaturaUrl?'storage':data.origenImagen||'unknown',rights_id:data.referenciaAutorizacion?imageRights:null},['id']);
+   const externalFallback=item.url===data.imagenExternaUrl&&item.url!==data.imagenPrincipalUrl;
+   await upsert(client,'media_assets',{id:assetId,url:item.url,storage_path:item.url===data.imagenStorageUrl?data.imagenStoragePath||null:item.url===data.imagenMiniaturaUrl?data.imagenMiniaturaPath||null:null,origin:item.url===data.imagenStorageUrl||item.url===data.imagenMiniaturaUrl?'storage':externalFallback?'external_url':data.origenImagen||'unknown',rights_id:data.referenciaAutorizacion&&!externalFallback?imageRights:null},['id']);
    await upsert(client,'product_media',{product_id:id,asset_id:assetId,position,in_gallery:item.in_gallery,is_primary:isPrimary},['product_id','asset_id']);
   }
   await client.query('DELETE FROM findi.media_assets a WHERE a.id=ANY($1::text[]) AND NOT EXISTS(SELECT 1 FROM findi.product_media m WHERE m.asset_id=a.id)',[Array.from({length:200},(_,position)=>digest(`product-media:${id}:${position}`))]);

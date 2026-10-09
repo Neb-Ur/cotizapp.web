@@ -1583,7 +1583,9 @@ export class FirebaseDataService {
           : (master.imagenPrincipalUrl ? [master.imagenPrincipalUrl] : []),
         imageDisclosure: master.origenImagen === 'ai_generated'
           ? 'Imagen referencial generada con inteligencia artificial. Verifica presentación y características con la ferretería.'
-          : '',
+          : master.imagenReferencial === true
+            ? 'Imagen referencial del tipo de producto. La marca, presentación y medidas son las indicadas en la ficha.'
+            : '',
         sku: raw.stores?.[0]?.sku || '',
         unitLabel: 'Unidad',
         packagingLabel: master.presentacion || 'Unidad',

@@ -1,0 +1,3168 @@
+{
+  "checkedAt": "2026-10-09",
+  "total": 856,
+  "withImage": 330,
+  "r2": 21,
+  "ai": 8,
+  "externalPrimary": 309,
+  "pending": 526,
+  "productMediaAssociations": 366,
+  "pendingProducts": [
+    {
+      "id": "base-fam-elementos-de-puesta-a-tierra--abrazadera-de-puesta-a-tierra",
+      "name": "Abrazadera de puesta a tierra test",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-proteccion-contra-caidas--absorbedor-de-energia",
+      "name": "Absorbedor de energía",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-fittings-de-agua--adaptador-ppr-roscado",
+      "name": "Adaptador PPR roscado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-adhesivos-de-montaje-y-carpinteria--adhesivo-cianoacrilato",
+      "name": "Adhesivo cianoacrilato",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-adhesivos-fragues-y-niveladores--adhesivo-flexible-para-revestimiento",
+      "name": "Adhesivo flexible para revestimiento",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-adhesivos-fragues-y-niveladores--adhesivo-para-ceramica",
+      "name": "Adhesivo para cerámica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-adhesivos-de-montaje-y-carpinteria--adhesivo-para-pisos-vinilicos",
+      "name": "Adhesivo para pisos vinílicos",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-adhesivos-de-montaje-y-carpinteria--adhesivo-poliuretano",
+      "name": "Adhesivo poliuretano",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-aditivos-para-cemento-y-hormigon--aditivo-hidrofugo",
+      "name": "Aditivo hidrófugo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pavimentos-y-elementos-prefabricados--adoquin-de-hormigon",
+      "name": "Adoquín de hormigón",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-aislantes-termicos-y-acusticos--aislante-de-fibra-de-poliester",
+      "name": "Aislante de fibra de poliéster",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-aislantes-termicos-y-acusticos--aislante-de-fibra-reciclada",
+      "name": "Aislante de fibra reciclada",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-aislantes-termicos-y-acusticos--aislante-reflectivo",
+      "name": "Aislante reflectivo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-cables-y-alambres-electricos--alambre-electrico-rigido",
+      "name": "Alambre eléctrico rígido",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-alargadores-conectores-y-terminales--alargador-carrete",
+      "name": "Alargador carrete",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pisos-flotantes-vinilicos-y-textiles--alfombra-modular",
+      "name": "Alfombra modular",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-mezcla-compactacion-y-corte--allanadora-de-pavimento",
+      "name": "Allanadora de pavimento",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ampolletas-y-tubos--ampolleta-halogena",
+      "name": "Ampolleta halógena",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ampolletas-y-tubos--ampolleta-inteligente",
+      "name": "Ampolleta inteligente",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tarugos-y-anclajes--anclaje-basculante",
+      "name": "Anclaje basculante",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-conectores-y-soportes--anclaje-de-estructura",
+      "name": "Anclaje de estructura",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tarugos-y-anclajes--anclaje-de-expansion",
+      "name": "Anclaje de expansión",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tarugos-y-anclajes--anclaje-de-golpe",
+      "name": "Anclaje de golpe",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-proteccion-contra-caidas--anclaje-de-seguridad",
+      "name": "Anclaje de seguridad",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tarugos-y-anclajes--anclaje-hembra",
+      "name": "Anclaje hembra",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-reparadores-y-resinas--anclaje-quimico",
+      "name": "Anclaje químico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tarugos-y-anclajes--anclaje-tipo-cuna",
+      "name": "Anclaje tipo cuña",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-escaleras-andamios-e-izaje--andamio-modular",
+      "name": "Andamio modular",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-estructurales--angulo-de-acero",
+      "name": "Ángulo de acero",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-para-tabiques-y-cielos--angulo-perimetral",
+      "name": "Ángulo perimetral",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pernos-tuercas-y-arandelas--arandela-de-presion",
+      "name": "Arandela de presión",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pernos-tuercas-y-arandelas--arandela-plana",
+      "name": "Arandela plana",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-aridos-de-construccion--arena-de-estuco",
+      "name": "Arena de estuco",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-aridos-de-construccion--arena-fina",
+      "name": "Arena fina",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-aridos-de-construccion--arena-gruesa",
+      "name": "Arena gruesa",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-proteccion-contra-caidas--arnes-de-cuerpo-completo",
+      "name": "Arnés de cuerpo completo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-equipos-y-accesorios-de-herramienta--aspiradora-de-taller",
+      "name": "Aspiradora de taller",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perforacion-y-atornillado--atornillador-para-tabiques",
+      "name": "Atornillador para tabiques",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-canaletas-y-bajadas--bajada-de-agua-metalica",
+      "name": "Bajada de agua metálica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-canaletas-y-bajadas--bajada-de-agua-pvc",
+      "name": "Bajada de agua PVC",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pavimentos-y-elementos-prefabricados--baldosa-de-cemento",
+      "name": "Baldosa de cemento",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ceramicas-porcelanatos-y-piedras--baldosa-hidraulica",
+      "name": "Baldosa hidráulica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-cintas-masillas-y-esquineros--banda-acustica",
+      "name": "Banda acústica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tubos-canaletas-y-cajas--bandeja-portacables",
+      "name": "Bandeja portacables",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-protecciones-y-tableros--barra-de-distribucion",
+      "name": "Barra de distribución",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-barras-y-mallas-de-refuerzo--barra-de-espera",
+      "name": "Barra de espera",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-elementos-de-puesta-a-tierra--barra-de-puesta-a-tierra",
+      "name": "Barra de puesta a tierra",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-protecciones-y-tableros--barra-de-tierra",
+      "name": "Barra de tierra",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-barras-y-mallas-de-refuerzo--barra-estriada",
+      "name": "Barra estriada",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-barras-y-mallas-de-refuerzo--barra-lisa",
+      "name": "Barra lisa",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-estructurales--barra-maciza-cuadrada",
+      "name": "Barra maciza cuadrada",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-y-bases-de-piso--barrera-de-humedad-para-piso",
+      "name": "Barrera de humedad para piso",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-fieltros-y-barreras-de-cubierta--barrera-de-vapor",
+      "name": "Barrera de vapor",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-aridos-de-construccion--base-granular",
+      "name": "Base granular",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-implementos-de-faena--batea",
+      "name": "Batea",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-equipos-y-accesorios-de-herramienta--bateria-de-herramienta",
+      "name": "Batería de herramienta",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-equipos-fotovoltaicos-y-accesorios--bateria-para-sistema-solar",
+      "name": "Batería para sistema solar",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-mezcla-compactacion-y-corte--betonera",
+      "name": "Betonera",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-bisagras-soportes-y-correderas--bisagra-de-cazoleta",
+      "name": "Bisagra de cazoleta",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-bisagras-soportes-y-correderas--bisagra-de-libro",
+      "name": "Bisagra de libro",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-bisagras-soportes-y-correderas--bisagra-de-porton",
+      "name": "Bisagra de portón",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ladrillos-y-bloques--bloque-de-hormigon-celular",
+      "name": "Bloque de hormigón celular",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ladrillos-y-bloques--bloque-de-vidrio",
+      "name": "Bloque de vidrio",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-organizacion-y-transporte-de-herramientas--bolso-de-herramientas",
+      "name": "Bolso de herramientas",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-bombas-estanques-y-tratamiento-de-agua--bomba-de-achique",
+      "name": "Bomba de achique",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-portones-y-automatizacion--brazo-hidraulico",
+      "name": "Brazo hidráulico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-brocas-puntas-y-sierras-copa--broca-para-hormigon",
+      "name": "Broca para hormigón",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-brocas-puntas-y-sierras-copa--broca-para-madera",
+      "name": "Broca para madera",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ventanas-y-accesorios--burlete-de-ventana",
+      "name": "Burlete de ventana",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-remates-y-fijaciones-de-cubierta--caballetes",
+      "name": "Caballetes",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-muebles-y-accesorios-sanitarios--cabina-de-ducha",
+      "name": "Cabina de ducha",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-cables-y-alambres-electricos--cable-coaxial",
+      "name": "Cable coaxial",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-cables-y-alambres-electricos--cable-concentrico",
+      "name": "Cable concéntrico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-amarres-cintas-y-cuerdas--cable-de-acero",
+      "name": "Cable de acero",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-cables-y-alambres-electricos--cable-de-datos",
+      "name": "Cable de datos",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-cables-y-alambres-electricos--cable-de-tierra",
+      "name": "Cable de tierra",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-cables-y-alambres-electricos--cable-electrico-flexible",
+      "name": "Cable eléctrico flexible",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-cables-y-alambres-electricos--cable-multipolar",
+      "name": "Cable multipolar",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-cables-y-alambres-electricos--cable-para-panel-solar",
+      "name": "Cable para panel solar",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-proteccion-contra-caidas--cabo-de-vida",
+      "name": "Cabo de vida",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-amarres-cintas-y-cuerdas--cadena-de-acero",
+      "name": "Cadena de acero",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tubos-canaletas-y-cajas--caja-para-mecanismo",
+      "name": "Caja para mecanismo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-calefonts-termos-y-accesorios--calefont-gas-licuado",
+      "name": "Calefont gas licuado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-calefonts-termos-y-accesorios--calefont-gas-natural",
+      "name": "Calefont gas natural",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-calefonts-termos-y-accesorios--calentador-electrico-instantaneo",
+      "name": "Calentador eléctrico instantáneo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-cementos-y-cales--cal-hidratada",
+      "name": "Cal hidratada",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-instrumentos-de-medicion--calibrador",
+      "name": "Calibrador",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-cementos-y-cales--cal-para-mortero",
+      "name": "Cal para mortero",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-elementos-de-puesta-a-tierra--camara-de-inspeccion-de-tierra",
+      "name": "Cámara de inspección de tierra",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tarugos-y-anclajes--camisa-para-anclaje-quimico",
+      "name": "Camisa para anclaje químico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-para-tabiques-y-cielos--canal-de-tabique",
+      "name": "Canal de tabique",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-canaletas-y-bajadas--canaleta-metalica",
+      "name": "Canaleta metálica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pavimentos-y-elementos-prefabricados--canaleta-prefabricada",
+      "name": "Canaleta prefabricada",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-estructurales--canal-u",
+      "name": "Canal U",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-epp-de-cabeza-ojos-y-respiracion--careta-de-soldar",
+      "name": "Careta de soldar",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-equipos-y-accesorios-de-herramienta--cargador-de-herramienta",
+      "name": "Cargador de herramienta",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-organizacion-y-transporte-de-herramientas--carro-de-herramientas",
+      "name": "Carro de herramientas",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-epp-de-cabeza-ojos-y-respiracion--cartucho-para-respirador",
+      "name": "Cartucho para respirador",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-cementos-y-cales--cemento-blanco",
+      "name": "Cemento blanco",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-cementos-y-cales--cemento-para-albanileria",
+      "name": "Cemento para albañilería",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-electrodos-y-accesorios-de-soldadura--cepillo-de-soldadura",
+      "name": "Cepillo de soldadura",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ceramicas-porcelanatos-y-piedras--ceramica-de-muro",
+      "name": "Cerámica de muro",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-cerraduras-y-seguridad-mecanica--cierra-puerta",
+      "name": "Cierra puerta",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-cerraduras-y-seguridad-mecanica--cilindro-de-cerradura",
+      "name": "Cilindro de cerradura",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-alargadores-conectores-y-terminales--cinta-aisladora",
+      "name": "Cinta aisladora",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-riego-y-mangueras--cinta-de-goteo",
+      "name": "Cinta de goteo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-incendio-senalizacion-y-emergencia--cinta-de-peligro",
+      "name": "Cinta de peligro",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-fieltros-y-barreras-de-cubierta--cinta-de-union-de-membrana",
+      "name": "Cinta de unión de membrana",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-amarres-cintas-y-cuerdas--cinta-perforada",
+      "name": "Cinta perforada",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-consumibles-de-gasfiteria--cinta-ptfe",
+      "name": "Cinta PTFE",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-clavos-grapas-y-remaches--clavo-para-moldura",
+      "name": "Clavo para moldura",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-clavos-grapas-y-remaches--clavo-para-techo",
+      "name": "Clavo para techo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-adhesivos-fragues-y-niveladores--clip-de-nivelacion",
+      "name": "Clip de nivelación",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-canaletas-y-bajadas--codo-de-bajada",
+      "name": "Codo de bajada",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-conectores-y-soportes--colgador-de-vigueta",
+      "name": "Colgador de vigueta",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-sustratos-y-accesorios-de-cultivo--compost",
+      "name": "Compost",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-conduccion-y-accesorios-de-gas--conector-de-artefacto-a-gas",
+      "name": "Conector de artefacto a gas",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-para-tabiques-y-cielos--conector-de-perfileria",
+      "name": "Conector de perfilería",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-elementos-de-puesta-a-tierra--conector-de-tierra",
+      "name": "Conector de tierra",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-proteccion-contra-caidas--conector-mosqueton",
+      "name": "Conector mosquetón",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-equipos-fotovoltaicos-y-accesorios--conector-solar",
+      "name": "Conector solar",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-interruptores-enchufes-y-placas--conmutador",
+      "name": "Conmutador",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-implementos-de-faena--cono-de-faena",
+      "name": "Cono de faena",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-equipos-fotovoltaicos-y-accesorios--controlador-de-carga",
+      "name": "Controlador de carga",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pinturas-y-protectores-especiales--convertidor-de-oxido",
+      "name": "Convertidor de óxido",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-selladores-y-espumas--cordon-de-respaldo",
+      "name": "Cordón de respaldo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-molduras-y-tapacantos--cornisa-de-madera",
+      "name": "Cornisa de madera",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-bisagras-soportes-y-correderas--corredera-de-rodillo",
+      "name": "Corredera de rodillo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-mezcla-compactacion-y-corte--cortadora-de-ceramica-electrica",
+      "name": "Cortadora de cerámica eléctrica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-mezcla-compactacion-y-corte--cortadora-de-pavimento",
+      "name": "Cortadora de pavimento",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-soldadura-compresores-y-accesorios--cortadora-plasma",
+      "name": "Cortadora plasma",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-carpinteria-albanileria-y-sujecion--cortador-de-ceramica",
+      "name": "Cortador de cerámica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-carpinteria-albanileria-y-sujecion--cortatubo",
+      "name": "Cortatubo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-sustratos-y-accesorios-de-cultivo--corteza-decorativa",
+      "name": "Corteza decorativa",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ventanas-y-accesorios--cremona",
+      "name": "Cremona",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-adhesivos-fragues-y-niveladores--cruceta",
+      "name": "Cruceta",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-madera-dimensionada-y-elaborada--cuarton-de-madera",
+      "name": "Cuartón de madera",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-molduras-y-tapacantos--cuarto-rodon",
+      "name": "Cuarto rodón",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pisos-flotantes-vinilicos-y-textiles--cubre-piso",
+      "name": "Cubre piso",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-amarres-cintas-y-cuerdas--cuerda-de-nylon",
+      "name": "Cuerda de nylon",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-remates-y-fijaciones-de-cubierta--cumbrera-metalica",
+      "name": "Cumbrera metálica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-remates-y-fijaciones-de-cubierta--cumbrera-para-teja",
+      "name": "Cumbrera para teja",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-aditivos-para-cemento-y-hormigon--curador-de-hormigon",
+      "name": "Curador de hormigón",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-revestimientos-de-madera-y-compuestos--deck-de-madera",
+      "name": "Deck de madera",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-revestimientos-de-madera-y-compuestos--deck-wpc",
+      "name": "Deck WPC",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-llaves-alicates-y-destornilladores--destornillador-phillips",
+      "name": "Destornillador Phillips",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "comercial-destornillador-phillips-stanley-pro-ph1-x-101-mm-stht69141",
+      "name": "Destornillador Phillips Stanley Pro PH1 x 101 mm STHT69141",
+      "brand": "Stanley",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "comercial-destornillador-phillips-stanley-pro-ph2-x-100-mm-stht69145",
+      "name": "Destornillador Phillips Stanley Pro PH2 x 100 mm STHT69145",
+      "brand": "Stanley",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "comercial-destornillador-phillips-stanley-pro-ph3-x-150-mm-stht69148",
+      "name": "Destornillador Phillips Stanley Pro PH3 x 150 mm STHT69148",
+      "brand": "Stanley",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-incendio-senalizacion-y-emergencia--detector-de-gas",
+      "name": "Detector de gas",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-incendio-senalizacion-y-emergencia--detector-de-humo",
+      "name": "Detector de humo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-instrumentos-de-medicion--detector-de-materiales",
+      "name": "Detector de materiales",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-incendio-senalizacion-y-emergencia--detector-de-monoxido",
+      "name": "Detector de monóxido",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-selladores-pastas-y-diluyentes--diluyente-para-laca",
+      "name": "Diluyente para laca",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-interruptores-enchufes-y-placas--dimmer",
+      "name": "Dimmer",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-discos-hojas-y-abrasivos--disco-de-lijado",
+      "name": "Disco de lijado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-instrumentos-de-medicion--distanciometro",
+      "name": "Distanciómetro",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-luminarias-interiores--downlight-led",
+      "name": "Downlight LED",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-griferias--ducha-telefono",
+      "name": "Ducha teléfono",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-calefonts-termos-y-accesorios--ducto-de-evacuacion",
+      "name": "Ducto de evacuación",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-electrodos-y-accesorios-de-soldadura--electrodo-revestido",
+      "name": "Electrodo revestido",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-riego-y-mangueras--electrovalvula-de-riego",
+      "name": "Electroválvula de riego",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-canaletas-y-bajadas--embudo-de-bajada",
+      "name": "Embudo de bajada",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-consumibles-de-gasfiteria--empaque-de-goma",
+      "name": "Empaque de goma",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-reparadores-y-resinas--endurecedor-superficial",
+      "name": "Endurecedor superficial",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-bombas-estanques-y-tratamiento-de-agua--equipo-hidroneumatico",
+      "name": "Equipo hidroneumático",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-escaleras-andamios-e-izaje--escalera-multiproposito",
+      "name": "Escalera multipropósito",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-barras-y-mallas-de-refuerzo--escalerilla-de-albanileria",
+      "name": "Escalerilla de albañilería",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tubos-canaletas-y-cajas--escalerilla-portacables",
+      "name": "Escalerilla portacables",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-carpinteria-albanileria-y-sujecion--escofina",
+      "name": "Escofina",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-conectores-y-soportes--escuadra-estructural",
+      "name": "Escuadra estructural",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "comercial-esmalte-al-agua-ceresita-pieza-y-fachada-premium-plus-blanco-semibrillo-1-galon",
+      "name": "Esmalte al agua Ceresita Pieza y Fachada Premium Plus blanco semibrillo 1 galón",
+      "brand": "Ceresita",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "comercial-esmalte-al-agua-ceresita-pieza-y-fachada-premium-plus-blanco-semibrillo-5-galones",
+      "name": "Esmalte al agua Ceresita Pieza y Fachada Premium Plus blanco semibrillo 5 galónes",
+      "brand": "Ceresita",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pernos-tuercas-y-arandelas--esparrago-roscado",
+      "name": "Espárrago roscado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "comercial-espuma-expansiva-sika-boom-s-500-ml",
+      "name": "Espuma expansiva Sika Boom S 500 ml",
+      "brand": "Sika",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-y-bases-de-piso--espuma-para-piso-flotante",
+      "name": "Espuma para piso flotante",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-aridos-de-construccion--estabilizado",
+      "name": "Estabilizado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-generacion-y-respaldo-electrico--estacion-de-energia-portatil",
+      "name": "Estación de energía portátil",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-equipos-y-accesorios-de-herramienta--estacion-de-soldadura-electronica",
+      "name": "Estación de soldadura electrónica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-bombas-estanques-y-tratamiento-de-agua--estanque-de-agua",
+      "name": "Estanque de agua",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-barras-y-mallas-de-refuerzo--estribo-prefabricado",
+      "name": "Estribo prefabricado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-alargadores-conectores-y-terminales--extension-electrica",
+      "name": "Extensión eléctrica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-herramientas-y-accesorios-de-pintura--extensor-de-rodillo",
+      "name": "Extensor de rodillo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-incendio-senalizacion-y-emergencia--extintor-co2",
+      "name": "Extintor CO2",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-incendio-senalizacion-y-emergencia--extintor-pqs",
+      "name": "Extintor PQS",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-bombas-estanques-y-tratamiento-de-agua--filtro-de-agua",
+      "name": "Filtro de agua",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-epp-de-cabeza-ojos-y-respiracion--filtro-para-respirador",
+      "name": "Filtro para respirador",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-fittings-de-agua--fitting-de-bronce",
+      "name": "Fitting de bronce",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-fittings-de-agua--fitting-de-cobre",
+      "name": "Fitting de cobre",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-fittings-de-agua--fitting-de-polietileno",
+      "name": "Fitting de polietileno",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-conduccion-y-accesorios-de-gas--fitting-para-gas",
+      "name": "Fitting para gas",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-fittings-de-agua--fitting-pex",
+      "name": "Fitting PEX",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-flexibles-sifones-y-desagues--flexible-para-lavadora",
+      "name": "Flexible para lavadora",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-flexibles-sifones-y-desagues--flexible-para-lavamanos",
+      "name": "Flexible para lavamanos",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-flexibles-sifones-y-desagues--flexible-para-wc",
+      "name": "Flexible para WC",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-portones-y-automatizacion--fotocelula",
+      "name": "Fotocélula",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-adhesivos-fragues-y-niveladores--frague-cementicio",
+      "name": "Fragüe cementicio",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-adhesivos-fragues-y-niveladores--frague-epoxico",
+      "name": "Fragüe epóxico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-incendio-senalizacion-y-emergencia--gabinete-de-extintor",
+      "name": "Gabinete de extintor",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-protecciones-y-tableros--gabinete-electrico",
+      "name": "Gabinete eléctrico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-escaleras-andamios-e-izaje--gata-hidraulica",
+      "name": "Gata hidráulica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-generacion-y-respaldo-electrico--generador-diesel",
+      "name": "Generador diésel",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-generacion-y-respaldo-electrico--generador-inverter",
+      "name": "Generador inverter",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-sustratos-y-accesorios-de-cultivo--geotextil-de-jardin",
+      "name": "Geotextil de jardín",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-riego-y-mangueras--gotero",
+      "name": "Gotero",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-clavos-grapas-y-remaches--grapa-para-cable",
+      "name": "Grapa para cable",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-clavos-grapas-y-remaches--grapa-para-madera",
+      "name": "Grapa para madera",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-aridos-de-construccion--grava",
+      "name": "Grava",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-aridos-de-construccion--gravilla",
+      "name": "Gravilla",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-sustratos-y-accesorios-de-cultivo--gravilla-decorativa",
+      "name": "Gravilla decorativa",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ceramicas-porcelanatos-y-piedras--gres-ceramico",
+      "name": "Gres cerámico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-griferias--griferia-temporizada",
+      "name": "Grifería temporizada",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-morteros-predosificados--grout-cementicio",
+      "name": "Grout cementicio",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-epp-de-manos-pies-y-cuerpo--guante-anticorte",
+      "name": "Guante anticorte",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-epp-de-manos-pies-y-cuerpo--guante-de-cuero",
+      "name": "Guante de cuero",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-epp-de-manos-pies-y-cuerpo--guante-de-nitrilo",
+      "name": "Guante de nitrilo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-epp-de-manos-pies-y-cuerpo--guante-de-soldador",
+      "name": "Guante de soldador",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-epp-de-manos-pies-y-cuerpo--guante-dielectrico",
+      "name": "Guante dieléctrico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-molduras-y-tapacantos--guardapolvo-de-madera",
+      "name": "Guardapolvo de madera",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-y-bases-de-piso--guardapolvo-mdf",
+      "name": "Guardapolvo MDF",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-y-bases-de-piso--guardapolvo-pvc",
+      "name": "Guardapolvo PVC",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-impermeabilizantes--hidrorrepelente-para-fachada",
+      "name": "Hidrorrepelente para fachada",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-discos-hojas-y-abrasivos--hoja-de-sierra-circular",
+      "name": "Hoja de sierra circular",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-hormigones-y-mezclas-secas--hormigon-de-reparacion",
+      "name": "Hormigón de reparación",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-hormigones-y-mezclas-secas--hormigon-para-fundaciones",
+      "name": "Hormigón para fundaciones",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-hormigones-y-mezclas-secas--hormigon-predosificado",
+      "name": "Hormigón predosificado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-sustratos-y-accesorios-de-cultivo--humus",
+      "name": "Humus",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-impermeabilizantes--impermeabilizante-acrilico",
+      "name": "Impermeabilizante acrílico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-impermeabilizantes--impermeabilizante-cementicio",
+      "name": "Impermeabilizante cementicio",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-impermeabilizantes--impermeabilizante-elastomerico",
+      "name": "Impermeabilizante elastomérico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-impermeabilizantes--impermeabilizante-para-fundacion",
+      "name": "Impermeabilizante para fundación",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-equipos-fotovoltaicos-y-accesorios--inversor-solar",
+      "name": "Inversor solar",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-calefonts-termos-y-accesorios--kit-de-instalacion-documentado",
+      "name": "Kit de instalación documentado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-equipos-fotovoltaicos-y-accesorios--kit-solar-documentado",
+      "name": "Kit solar documentado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ladrillos-y-bloques--ladrillo-ceramico-hueco",
+      "name": "Ladrillo cerámico hueco",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ampolletas-y-tubos--lampara-compacta",
+      "name": "Lámpara compacta",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-luminarias-interiores--lampara-de-escritorio",
+      "name": "Lámpara de escritorio",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-aislantes-termicos-y-acusticos--lana-de-roca",
+      "name": "Lana de roca",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pinturas-y-protectores-especiales--lasur",
+      "name": "Lasur",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pinturas-de-muro-y-fachada--latex-exterior",
+      "name": "Látex exterior",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pinturas-de-muro-y-fachada--latex-interior",
+      "name": "Látex interior",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-muebles-y-accesorios-sanitarios--lavadero",
+      "name": "Lavadero",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-wc-lavamanos-y-duchas--lavamanos-de-pedestal",
+      "name": "Lavamanos de pedestal",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-wc-lavamanos-y-duchas--lavamanos-empotrado",
+      "name": "Lavamanos empotrado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-wc-lavamanos-y-duchas--lavamanos-sobrepuesto",
+      "name": "Lavamanos sobrepuesto",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-incendio-senalizacion-y-emergencia--lavaojos",
+      "name": "Lavaojos",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-muebles-y-accesorios-sanitarios--lavaplatos-de-acero-inoxidable",
+      "name": "Lavaplatos de acero inoxidable",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-discos-hojas-y-abrasivos--lija-de-papel",
+      "name": "Lija de papel",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-remates-y-fijaciones-de-cubierta--limahoya",
+      "name": "Limahoya",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-remates-y-fijaciones-de-cubierta--limatesa",
+      "name": "Limatesa",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-selladores-pastas-y-diluyentes--limpiador-de-superficies",
+      "name": "Limpiador de superficies",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-consumibles-de-gasfiteria--limpiador-pvc",
+      "name": "Limpiador PVC",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-proteccion-contra-caidas--linea-de-vida",
+      "name": "Línea de vida",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-madera-dimensionada-y-elaborada--liston-de-madera",
+      "name": "Listón de madera",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-llaves-alicates-y-destornilladores--llave-de-torque",
+      "name": "Llave de torque",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-implementos-de-faena--lona-de-proteccion",
+      "name": "Lona de protección",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-luminarias-exteriores-y-de-emergencia--luminaria-de-jardin",
+      "name": "Luminaria de jardín",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-luminarias-interiores--luminaria-estanca",
+      "name": "Luminaria estanca",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-luminarias-exteriores-y-de-emergencia--luz-de-emergencia",
+      "name": "Luz de emergencia",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-sustratos-y-accesorios-de-cultivo--macetero",
+      "name": "Macetero",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-revestimientos-de-madera-y-compuestos--machihembrado-de-madera",
+      "name": "Machihembrado de madera",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-mallas-alambres-y-cierres--malla-acma-de-cierre",
+      "name": "Malla acma de cierre",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-barras-y-mallas-de-refuerzo--malla-electrosoldada",
+      "name": "Malla electrosoldada",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-mallas-alambres-y-cierres--malla-galvanizada-tejida",
+      "name": "Malla galvanizada tejida",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-mallas-alambres-y-cierres--malla-plastica",
+      "name": "Malla plástica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-muebles-y-accesorios-sanitarios--mampara-de-ducha",
+      "name": "Mampara de ducha",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-riego-y-mangueras--manguera-de-riego",
+      "name": "Manguera de riego",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-soldadura-compresores-y-accesorios--manguera-neumatica",
+      "name": "Manguera neumática",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tuberias-y-accesorios-sanitarios--manguito-sanitario",
+      "name": "Manguito sanitario",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-cerraduras-y-seguridad-mecanica--manilla",
+      "name": "Manilla",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-y-bases-de-piso--manta-acustica-para-piso",
+      "name": "Manta acústica para piso",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-impermeabilizantes--manto-asfaltico",
+      "name": "Manto asfáltico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-puertas-y-marcos--marco-de-puerta-madera",
+      "name": "Marco de puerta madera",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-puertas-y-marcos--marco-de-puerta-metalico",
+      "name": "Marco de puerta metálico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-selladores-pastas-y-diluyentes--masilla-de-reparacion",
+      "name": "Masilla de reparación",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-reparadores-y-resinas--masilla-epoxica",
+      "name": "Masilla epóxica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-muebles-y-accesorios-sanitarios--mecanismo-de-descarga",
+      "name": "Mecanismo de descarga",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-muebles-y-accesorios-sanitarios--mecanismo-de-llenado",
+      "name": "Mecanismo de llenado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-instrumentos-de-medicion--medidor-de-humedad",
+      "name": "Medidor de humedad",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-elementos-de-puesta-a-tierra--mejorador-de-terreno",
+      "name": "Mejorador de terreno",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-fieltros-y-barreras-de-cubierta--membrana-autoadhesiva-de-cubierta",
+      "name": "Membrana autoadhesiva de cubierta",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-impermeabilizantes--membrana-liquida-de-poliuretano",
+      "name": "Membrana líquida de poliuretano",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-fieltros-y-barreras-de-cubierta--membrana-transpirable",
+      "name": "Membrana transpirable",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-equipos-y-accesorios-de-herramienta--mezclador-electrico",
+      "name": "Mezclador eléctrico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-griferias--mezclador-lavamanos",
+      "name": "Mezclador lavamanos",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-griferias--mezclador-lavaplatos",
+      "name": "Mezclador lavaplatos",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-griferias--mezclador-tina-ducha",
+      "name": "Mezclador tina ducha",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-hormigones-y-mezclas-secas--mezcla-para-radier",
+      "name": "Mezcla para radier",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-hormigones-y-mezclas-secas--mezcla-para-sobrelosa",
+      "name": "Mezcla para sobrelosa",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-riego-y-mangueras--microaspersor",
+      "name": "Microaspersor",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-instrumentos-de-medicion--micrometro",
+      "name": "Micrómetro",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-molduras-y-tapacantos--moldura-mdf",
+      "name": "Moldura MDF",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-para-tabiques-y-cielos--montante-de-tabique",
+      "name": "Montante de tabique",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-morteros-predosificados--mortero-autonivelante",
+      "name": "Mortero autonivelante",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-morteros-predosificados--mortero-de-estuco",
+      "name": "Mortero de estuco",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-morteros-predosificados--mortero-de-pega-de-bloques",
+      "name": "Mortero de pega de bloques",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-morteros-predosificados--mortero-de-pega-de-ladrillos",
+      "name": "Mortero de pega de ladrillos",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-morteros-predosificados--mortero-de-relleno",
+      "name": "Mortero de relleno",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ceramicas-porcelanatos-y-piedras--mosaico-ceramico",
+      "name": "Mosaico cerámico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ceramicas-porcelanatos-y-piedras--mosaico-vitreo",
+      "name": "Mosaico vítreo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ventanas-y-accesorios--mosquitero",
+      "name": "Mosquitero",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-portones-y-automatizacion--motor-para-porton-abatible",
+      "name": "Motor para portón abatible",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-portones-y-automatizacion--motor-para-porton-corredera",
+      "name": "Motor para portón corredera",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-equipos-y-accesorios-de-herramienta--multiherramienta-oscilante",
+      "name": "Multiherramienta oscilante",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-adhesivos-fragues-y-niveladores--nivelador-de-piso",
+      "name": "Nivelador de piso",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-organizacion-y-transporte-de-herramientas--organizador-de-tornillos",
+      "name": "Organizador de tornillos",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-consumibles-de-gasfiteria--o-ring",
+      "name": "O-ring",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-policarbonato-y-cubiertas-plasticas--panel-acrilico-de-cubierta",
+      "name": "Panel acrílico de cubierta",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-placas-cementicias-y-fibrocemento--panel-de-cemento-reforzado",
+      "name": "Panel de cemento reforzado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-planchas-de-cubierta-metalicas--panel-de-cubierta-aislado",
+      "name": "Panel de cubierta aislado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-revestimientos-de-madera-y-compuestos--panel-de-listones",
+      "name": "Panel de listones",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-aislantes-termicos-y-acusticos--panel-de-poliuretano",
+      "name": "Panel de poliuretano",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-equipos-fotovoltaicos-y-accesorios--panel-fotovoltaico",
+      "name": "Panel fotovoltaico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-organizacion-y-transporte-de-herramientas--panel-para-herramientas",
+      "name": "Panel para herramientas",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-revestimientos-de-madera-y-compuestos--panel-ranurado-decorativo",
+      "name": "Panel ranurado decorativo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-cintas-masillas-y-esquineros--pasta-de-terminacion",
+      "name": "Pasta de terminación",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-consumibles-de-gasfiteria--pasta-para-soldar-cobre",
+      "name": "Pasta para soldar cobre",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pavimentos-y-elementos-prefabricados--pastelon-de-hormigon",
+      "name": "Pastelón de hormigón",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pavimentos-y-elementos-prefabricados--peldano-prefabricado",
+      "name": "Peldaño prefabricado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-estructurales--perfil-c",
+      "name": "Perfil C",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-y-bases-de-piso--perfil-de-terminacion-ceramica",
+      "name": "Perfil de terminación cerámica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-y-bases-de-piso--perfil-de-transicion",
+      "name": "Perfil de transición",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-remates-y-fijaciones-de-cubierta--perfil-h-para-policarbonato",
+      "name": "Perfil H para policarbonato",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-para-tabiques-y-cielos--perfil-omega",
+      "name": "Perfil omega",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-luminarias-interiores--perfil-para-tira-led",
+      "name": "Perfil para tira LED",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-para-tabiques-y-cielos--perfil-portante",
+      "name": "Perfil portante",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-y-bases-de-piso--perfil-reductor",
+      "name": "Perfil reductor",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-estructurales--perfil-tubular-redondo",
+      "name": "Perfil tubular redondo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-remates-y-fijaciones-de-cubierta--perfil-u-para-policarbonato",
+      "name": "Perfil U para policarbonato",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pernos-tuercas-y-arandelas--perno-ojo",
+      "name": "Perno ojo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-discos-hojas-y-abrasivos--piedra-de-afilar",
+      "name": "Piedra de afilar",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-madera-dimensionada-y-elaborada--pino-dimensionado-seco",
+      "name": "Pino dimensionado seco",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-madera-dimensionada-y-elaborada--pino-impregnado",
+      "name": "Pino impregnado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pinturas-de-muro-y-fachada--pintura-antihumedad",
+      "name": "Pintura antihumedad",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pinturas-y-protectores-especiales--pintura-demarcatoria",
+      "name": "Pintura demarcatoria",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pinturas-y-protectores-especiales--pintura-epoxica",
+      "name": "Pintura epóxica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pinturas-de-muro-y-fachada--pintura-para-cielos",
+      "name": "Pintura para cielos",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pinturas-y-protectores-especiales--pintura-para-pisos",
+      "name": "Pintura para pisos",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pinturas-de-muro-y-fachada--pintura-texturada",
+      "name": "Pintura texturada",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-instrumentos-de-medicion--pinza-amperimetrica",
+      "name": "Pinza amperimétrica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-electrodos-y-accesorios-de-soldadura--pinza-de-masa",
+      "name": "Pinza de masa",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pisos-flotantes-vinilicos-y-textiles--piso-de-madera-de-ingenieria",
+      "name": "Piso de madera de ingeniería",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pisos-flotantes-vinilicos-y-textiles--piso-de-madera-solida",
+      "name": "Piso de madera sólida",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pisos-flotantes-vinilicos-y-textiles--piso-laminado",
+      "name": "Piso laminado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-mezcla-compactacion-y-corte--pison-compactador",
+      "name": "Pisón compactador",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pisos-flotantes-vinilicos-y-textiles--piso-vinilico-en-rollo",
+      "name": "Piso vinílico en rollo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pisos-flotantes-vinilicos-y-textiles--piso-vinilico-lvt",
+      "name": "Piso vinílico LVT",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-equipos-y-accesorios-de-herramienta--pistola-de-pintura",
+      "name": "Pistola de pintura",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-riego-y-mangueras--pistola-de-riego",
+      "name": "Pistola de riego",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-soldadura-compresores-y-accesorios--pistola-neumatica",
+      "name": "Pistola neumática",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-bisagras-soportes-y-correderas--piston-para-mueble",
+      "name": "Pistón para mueble",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-placas-cementicias-y-fibrocemento--placa-cementicia",
+      "name": "Placa cementicia",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-mezcla-compactacion-y-corte--placa-compactadora",
+      "name": "Placa compactadora",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-interruptores-enchufes-y-placas--placa-de-mecanismo",
+      "name": "Placa de mecanismo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-conectores-y-soportes--placa-de-union",
+      "name": "Placa de unión",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-placas-de-yeso-carton--placa-de-yeso-carton-acustica",
+      "name": "Placa de yeso cartón acústica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-placas-de-yeso-carton--placa-de-yeso-carton-de-alta-dureza",
+      "name": "Placa de yeso cartón de alta dureza",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-placas-de-yeso-carton--placa-de-yeso-carton-estandar",
+      "name": "Placa de yeso cartón estándar",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-placas-de-yeso-carton--placa-de-yeso-carton-resistente-a-humedad",
+      "name": "Placa de yeso cartón resistente a humedad",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-placas-de-yeso-carton--placa-de-yeso-carton-resistente-al-fuego",
+      "name": "Placa de yeso cartón resistente al fuego",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-placas-de-yeso-carton--placa-perforada-para-cielos",
+      "name": "Placa perforada para cielos",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "comercial-placa-volcanita-st-br-12-5-mm-1200-x-2400-mm",
+      "name": "Placa Volcanita ST BR 12,5 mm 1200 x 2400 mm",
+      "brand": "Volcanita",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-luminarias-interiores--plafon-led",
+      "name": "Plafón LED",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-planchas-de-cubierta-metalicas--plancha-acanalada-zinc-aluminio",
+      "name": "Plancha acanalada zinc aluminio",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tejas-y-cubiertas-no-metalicas--plancha-bituminosa",
+      "name": "Plancha bituminosa",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-planchas-metalicas--plancha-de-acero-inoxidable",
+      "name": "Plancha de acero inoxidable",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-planchas-metalicas--plancha-de-acero-lisa",
+      "name": "Plancha de acero lisa",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-planchas-metalicas--plancha-de-aluminio-lisa",
+      "name": "Plancha de aluminio lisa",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-policarbonato-y-cubiertas-plasticas--plancha-de-poliester-reforzado",
+      "name": "Plancha de poliéster reforzado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-planchas-metalicas--plancha-desplegada",
+      "name": "Plancha desplegada",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-planchas-metalicas--plancha-galvanizada-lisa",
+      "name": "Plancha galvanizada lisa",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-planchas-de-cubierta-metalicas--plancha-metalica-prepintada",
+      "name": "Plancha metálica prepintada",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tejas-y-cubiertas-no-metalicas--plancha-ondulada-de-fibrocemento",
+      "name": "Plancha ondulada de fibrocemento",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-planchas-de-cubierta-metalicas--plancha-ondulada-galvanizada",
+      "name": "Plancha ondulada galvanizada",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-policarbonato-y-cubiertas-plasticas--plancha-pvc-traslucida",
+      "name": "Plancha PVC traslúcida",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-planchas-de-cubierta-metalicas--plancha-trapezoidal-zinc-aluminio",
+      "name": "Plancha trapezoidal zinc aluminio",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-herramientas-y-accesorios-de-pintura--plastico-protector",
+      "name": "Plástico protector",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-aditivos-para-cemento-y-hormigon--plastificante",
+      "name": "Plastificante",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-escaleras-andamios-e-izaje--plataforma-de-andamio",
+      "name": "Plataforma de andamio",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-policarbonato-y-cubiertas-plasticas--policarbonato-compacto",
+      "name": "Policarbonato compacto",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-aislantes-termicos-y-acusticos--poliestireno-expandido-eps",
+      "name": "Poliestireno expandido EPS",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-aislantes-termicos-y-acusticos--poliestireno-extruido-xps",
+      "name": "Poliestireno extruido XPS",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ceramicas-porcelanatos-y-piedras--porcelanato-esmaltado",
+      "name": "Porcelanato esmaltado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ceramicas-porcelanatos-y-piedras--porcelanato-tecnico",
+      "name": "Porcelanato técnico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-electrodos-y-accesorios-de-soldadura--portaelectrodo",
+      "name": "Portaelectrodo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-carpinteria-albanileria-y-sujecion--prensa-de-banco",
+      "name": "Prensa de banco",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tubos-canaletas-y-cajas--prensaestopa",
+      "name": "Prensaestopa",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-riego-y-mangueras--programador-de-riego",
+      "name": "Programador de riego",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-epp-de-cabeza-ojos-y-respiracion--protector-auditivo-de-copa",
+      "name": "Protector auditivo de copa",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-protecciones-y-tableros--protector-de-sobretension",
+      "name": "Protector de sobretensión",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-epp-de-cabeza-ojos-y-respiracion--protector-facial",
+      "name": "Protector facial",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-luminarias-exteriores-y-de-emergencia--proyector-led",
+      "name": "Proyector LED",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-aditivos-para-cemento-y-hormigon--puente-de-adherencia",
+      "name": "Puente de adherencia",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-puertas-y-marcos--puerta-cortafuego-documentada",
+      "name": "Puerta cortafuego documentada",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-puertas-y-marcos--puerta-de-madera-solida",
+      "name": "Puerta de madera sólida",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-puertas-y-marcos--puerta-exterior-reforzada",
+      "name": "Puerta exterior reforzada",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-puertas-y-marcos--puerta-interior-lisa",
+      "name": "Puerta interior lisa",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-puertas-y-marcos--puerta-interior-moldurada",
+      "name": "Puerta interior moldurada",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-puertas-y-marcos--puerta-metalica",
+      "name": "Puerta metálica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-puertas-y-marcos--puerta-plegable",
+      "name": "Puerta plegable",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-brocas-puntas-y-sierras-copa--punta-allen",
+      "name": "Punta Allen",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-electrodos-y-accesorios-de-soldadura--punta-de-contacto-mig",
+      "name": "Punta de contacto MIG",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-brocas-puntas-y-sierras-copa--punta-torx",
+      "name": "Punta Torx",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tuberias-y-accesorios-sanitarios--registro-sanitario",
+      "name": "Registro sanitario",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-mezcla-compactacion-y-corte--regla-vibratoria",
+      "name": "Regla vibratoria",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-soldadura-compresores-y-accesorios--regulador-de-aire",
+      "name": "Regulador de aire",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-canaletas-y-bajadas--rejilla-de-hojas",
+      "name": "Rejilla de hojas",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-flexibles-sifones-y-desagues--rejilla-de-piso",
+      "name": "Rejilla de piso",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-clavos-grapas-y-remaches--remache-estructural",
+      "name": "Remache estructural",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-selladores-pastas-y-diluyentes--removedor-de-pintura",
+      "name": "Removedor de pintura",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-reparadores-y-resinas--reparador-de-fisuras",
+      "name": "Reparador de fisuras",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-reparadores-y-resinas--reparador-de-madera",
+      "name": "Reparador de madera",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-reparadores-y-resinas--resina-de-inyeccion",
+      "name": "Resina de inyección",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-epp-de-cabeza-ojos-y-respiracion--respirador-reutilizable",
+      "name": "Respirador reutilizable",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-proteccion-contra-caidas--retractil-anticaidas",
+      "name": "Retráctil anticaídas",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ceramicas-porcelanatos-y-piedras--revestimiento-de-piedra-natural",
+      "name": "Revestimiento de piedra natural",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-revestimientos-de-madera-y-compuestos--revestimiento-wall-panel-wpc",
+      "name": "Revestimiento wall panel WPC",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-aridos-de-construccion--ripio",
+      "name": "Ripio",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-epp-de-manos-pies-y-cuerpo--rodillera",
+      "name": "Rodillera",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-herramientas-y-accesorios-de-pintura--rodillo-de-lana",
+      "name": "Rodillo de lana",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perforacion-y-atornillado--rotomartillo-sds-max",
+      "name": "Rotomartillo SDS Max",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-escaleras-andamios-e-izaje--rueda-de-andamio",
+      "name": "Rueda de andamio",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-cintas-masillas-y-esquineros--sellador-acustico",
+      "name": "Sellador acústico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-selladores-pastas-y-diluyentes--sellador-de-muro",
+      "name": "Sellador de muro",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-consumibles-de-gasfiteria--sellador-de-roscas",
+      "name": "Sellador de roscas",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-selladores-y-espumas--sellador-hibrido",
+      "name": "Sellador híbrido",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-selladores-y-espumas--sellador-refractario",
+      "name": "Sellador refractario",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-incendio-senalizacion-y-emergencia--senal-de-seguridad",
+      "name": "Señal de seguridad",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-luminarias-exteriores-y-de-emergencia--senal-luminosa-de-salida",
+      "name": "Señal luminosa de salida",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-placas-cementicias-y-fibrocemento--siding-de-fibrocemento",
+      "name": "Siding de fibrocemento",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-revestimientos-de-madera-y-compuestos--siding-de-madera",
+      "name": "Siding de madera",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-brocas-puntas-y-sierras-copa--sierra-copa-diamantada",
+      "name": "Sierra copa diamantada",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-flexibles-sifones-y-desagues--sifon-botella",
+      "name": "Sifón botella",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-flexibles-sifones-y-desagues--sifon-flexible",
+      "name": "Sifón flexible",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-flexibles-sifones-y-desagues--sifon-tubular",
+      "name": "Sifón tubular",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-selladores-y-espumas--silicona-sanitaria",
+      "name": "Silicona sanitaria",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-soldadura-compresores-y-accesorios--soldadora-mig-mag",
+      "name": "Soldadora MIG MAG",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-soldadura-compresores-y-accesorios--soldadora-mma",
+      "name": "Soldadora MMA",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-soldadura-compresores-y-accesorios--soldadora-tig",
+      "name": "Soldadora TIG",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-elementos-de-puesta-a-tierra--soldadura-exotermica",
+      "name": "Soldadura exotérmica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-consumibles-de-gasfiteria--soldadura-para-cobre",
+      "name": "Soldadura para cobre",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pavimentos-y-elementos-prefabricados--solera",
+      "name": "Solera",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-canaletas-y-bajadas--soporte-de-canaleta",
+      "name": "Soporte de canaleta",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-equipos-fotovoltaicos-y-accesorios--soporte-de-panel-solar",
+      "name": "Soporte de panel solar",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-conectores-y-soportes--soporte-de-poste",
+      "name": "Soporte de poste",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-aditivos-para-cemento-y-hormigon--superplastificante",
+      "name": "Superplastificante",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-para-tabiques-y-cielos--suspensor-de-cielo",
+      "name": "Suspensor de cielo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-sustratos-y-accesorios-de-cultivo--sustrato-de-cultivo",
+      "name": "Sustrato de cultivo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-madera-dimensionada-y-elaborada--tabla-de-madera",
+      "name": "Tabla de madera",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-aglomerados--tablero-de-particulas",
+      "name": "Tablero de partículas",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-protecciones-y-tableros--tablero-electrico",
+      "name": "Tablero eléctrico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tableros-enchapados--tablero-enchapado",
+      "name": "Tablero enchapado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-hardboard--tablero-hardboard",
+      "name": "Tablero hardboard",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-hdf--tablero-hdf",
+      "name": "Tablero HDF",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-mdf--tablero-mdf-ranurado",
+      "name": "Tablero MDF ranurado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-mdf--tablero-mdf-resistente-a-humedad",
+      "name": "Tablero MDF resistente a humedad",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tableros-melaminicos--tablero-melaminico",
+      "name": "Tablero melamínico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-olb--tablero-olb",
+      "name": "Tablero OLB",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-osb--tablero-osb-para-revestimiento",
+      "name": "Tablero OSB para revestimiento",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perforacion-y-atornillado--taladro-electrico",
+      "name": "Taladro eléctrico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-remates-y-fijaciones-de-cubierta--tapacan-metalico",
+      "name": "Tapacán metálico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-molduras-y-tapacantos--tapacanto-melaminico",
+      "name": "Tapacanto melamínico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pavimentos-y-elementos-prefabricados--tapa-de-camara-de-hormigon",
+      "name": "Tapa de cámara de hormigón",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-molduras-y-tapacantos--tapajunta",
+      "name": "Tapajunta",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-epp-de-cabeza-ojos-y-respiracion--tapon-auditivo",
+      "name": "Tapón auditivo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tuberias-y-accesorios-sanitarios--tapon-sanitario",
+      "name": "Tapón sanitario",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tarugos-y-anclajes--tarugo-para-tabique",
+      "name": "Tarugo para tabique",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-escaleras-andamios-e-izaje--tecle-manual",
+      "name": "Teclé manual",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-fittings-de-agua--tee-hidraulica-pvc",
+      "name": "Tee hidráulica PVC",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tejas-y-cubiertas-no-metalicas--teja-asfaltica",
+      "name": "Teja asfáltica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tejas-y-cubiertas-no-metalicas--teja-de-arcilla",
+      "name": "Teja de arcilla",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tejas-y-cubiertas-no-metalicas--teja-de-hormigon",
+      "name": "Teja de hormigón",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-planchas-de-cubierta-metalicas--teja-metalica",
+      "name": "Teja metálica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tejas-y-cubiertas-no-metalicas--teja-plastica",
+      "name": "Teja plástica",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-terciados--terciado-marino",
+      "name": "Terciado marino",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-alargadores-conectores-y-terminales--terminal-electrico",
+      "name": "Terminal eléctrico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-instrumentos-de-medicion--termometro-infrarrojo",
+      "name": "Termómetro infrarrojo",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-calefonts-termos-y-accesorios--termo-solar",
+      "name": "Termo solar",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-herramientas-y-maquinas-de-jardin--tijera-de-podar",
+      "name": "Tijera de podar",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-luminarias-interiores--tira-led",
+      "name": "Tira LED",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-electrodos-y-accesorios-de-soldadura--tobera-mig",
+      "name": "Tobera MIG",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-interruptores-enchufes-y-placas--toma-industrial",
+      "name": "Toma industrial",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-interruptores-enchufes-y-placas--toma-usb",
+      "name": "Toma USB",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-alargadores-conectores-y-terminales--toma-volante",
+      "name": "Toma volante",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tornillos--tornillo-para-cubierta",
+      "name": "Tornillo para cubierta",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tornillos--tornillo-para-hormigon",
+      "name": "Tornillo para hormigón",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tornillos--tornillo-para-maquina",
+      "name": "Tornillo para máquina",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tornillos--tornillo-para-yeso-carton",
+      "name": "Tornillo para yeso cartón",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-epp-de-manos-pies-y-cuerpo--traje-impermeable",
+      "name": "Traje impermeable",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-implementos-de-faena--transpaleta-manual",
+      "name": "Transpaleta manual",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tubos-canaletas-y-cajas--tubo-conduit-metalico",
+      "name": "Tubo conduit metálico",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tubos-canaletas-y-cajas--tubo-corrugado",
+      "name": "Tubo corrugado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tuberias-para-agua--tubo-de-acero-galvanizado",
+      "name": "Tubo de acero galvanizado",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tuberias-para-agua--tubo-de-cobre",
+      "name": "Tubo de cobre",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-conduccion-y-accesorios-de-gas--tubo-de-cobre-para-gas",
+      "name": "Tubo de cobre para gas",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tuberias-para-agua--tubo-de-polietileno",
+      "name": "Tubo de polietileno",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tuberias-para-agua--tubo-multicapa",
+      "name": "Tubo multicapa",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tuberias-para-agua--tubo-pex",
+      "name": "Tubo PEX",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tuberias-para-agua--tubo-pp-rct",
+      "name": "Tubo PP-RCT",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tuberias-y-accesorios-sanitarios--tubo-pvc-de-ventilacion",
+      "name": "Tubo PVC de ventilación",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-alargadores-conectores-y-terminales--tubo-termocontraible",
+      "name": "Tubo termocontraíble",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pernos-tuercas-y-arandelas--tuerca-autofrenante",
+      "name": "Tuerca autofrenante",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-pernos-tuercas-y-arandelas--tuerca-mariposa",
+      "name": "Tuerca mariposa",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-sustratos-y-accesorios-de-cultivo--tutor-de-plantas",
+      "name": "Tutor de plantas",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-generacion-y-respaldo-electrico--ups",
+      "name": "UPS",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-llaves-y-valvulas--valvula-de-compuerta",
+      "name": "Válvula de compuerta",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-llaves-y-valvulas--valvula-de-retencion",
+      "name": "Válvula de retención",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-llaves-y-valvulas--valvula-de-seguridad",
+      "name": "Válvula de seguridad",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-llaves-y-valvulas--valvula-flotador",
+      "name": "Válvula flotador",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-llaves-y-valvulas--valvula-reductora-de-presion",
+      "name": "Válvula reductora de presión",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-electrodos-y-accesorios-de-soldadura--varilla-tig",
+      "name": "Varilla TIG",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ventanas-y-accesorios--ventana-abatible",
+      "name": "Ventana abatible",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ventanas-y-accesorios--ventana-aluminio-corredera",
+      "name": "Ventana aluminio corredera",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ventanas-y-accesorios--ventana-fija",
+      "name": "Ventana fija",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ventanas-y-accesorios--ventana-proyectante",
+      "name": "Ventana proyectante",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ventanas-y-accesorios--ventana-pvc-corredera",
+      "name": "Ventana PVC corredera",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-ventanas-y-accesorios--ventana-termopanel",
+      "name": "Ventana termopanel",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-mezcla-compactacion-y-corte--vibrador-de-hormigon",
+      "name": "Vibrador de hormigón",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-estructurales--viga-h",
+      "name": "Viga H",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-perfiles-estructurales--viga-i",
+      "name": "Viga I",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-madera-dimensionada-y-elaborada--viga-laminada",
+      "name": "Viga laminada",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-wc-lavamanos-y-duchas--wc-de-dos-piezas",
+      "name": "WC de dos piezas",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-wc-lavamanos-y-duchas--wc-de-una-pieza",
+      "name": "WC de una pieza",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-wc-lavamanos-y-duchas--wc-suspendido",
+      "name": "WC suspendido",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-tuberias-y-accesorios-sanitarios--yee-sanitaria",
+      "name": "Yee sanitaria",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    },
+    {
+      "id": "base-fam-epp-de-manos-pies-y-cuerpo--zapato-de-seguridad",
+      "name": "Zapato de seguridad",
+      "brand": "Por especificar",
+      "reason": "Sin imagen validada que corresponda a la ficha"
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "checkedAt": "2026-10-09",
+  "images": [
+    {
+      "productId": "base-fam-amarres-cintas-y-cuerdas--abrazadera-metalica",
+      "name": "Abrazadera metálica",
+      "file": "docs/catalogo/imagenes/ia-tanda-01/clamp.webp",
+      "tool": "built-in image_gen",
+      "prompt": "Use case: product-mockup. Asset type: Findi construction catalog product photograph. Subject: one generic stainless steel worm-drive hose clamp (abrazadera metálica), circular perforated steel band with realistic screw housing and one screw. Scene: seamless pure white studio background. Composition: centered isolated whole product, three-quarter view, occupies 70% of a square image with generous clean margin. Photorealistic studio product photography, soft neutral lighting and subtle natural shadow, sharp physically plausible metal texture. No logos, brand names, lettering, watermark, packaging, hands or other objects. Referential illustration of an unspecified generic product, do not invent certifications or dimensions.",
+      "sha256": "6942b6ba61fd08912cc7aa4168907eac50cd55c105031f2f2feae0876f1b3376",
+      "referential": true,
+      "sourceType": "ai_generated",
+      "provider": "OpenAI",
+      "checkedAt": "2026-10-09"
+    },
+    {
+      "productId": "base-fam-amarres-cintas-y-cuerdas--abrazadera-plastica",
+      "name": "Abrazadera plástica",
+      "file": "docs/catalogo/imagenes/ia-tanda-01/plastic-clamp.webp",
+      "tool": "built-in image_gen",
+      "prompt": "Use case: product-mockup. Asset type: Findi construction catalog referential product photograph for 'Abrazadera plástica'. Subject: a small neatly arranged group of three generic black nylon cable ties (zip ties), one looped and two straight, realistic ratchet locking heads and toothed flexible narrow straps. Seamless pure white studio background; isolated entire subject centered with 15 percent margins, square product photography, soft neutral studio light and subtle natural shadow. Accurate physically plausible materials and shape, sharp detail, coherent professional catalog style. No text, brands, watermark, people, hands, packaging, scenery, extra tools, annotations or collage. Do not invent dimensions or certifications. This is a generic unbranded product.",
+      "sha256": "2e66981d7f30aed3b11a7f4e821a1883d0e46c78cc5d9397b19fd6e008999663",
+      "referential": true,
+      "sourceType": "ai_generated",
+      "provider": "OpenAI",
+      "checkedAt": "2026-10-09"
+    },
+    {
+      "productId": "base-fam-osb--tablero-osb-estructural",
+      "name": "Tablero OSB estructural",
+      "file": "docs/catalogo/imagenes/ia-tanda-01/osb.webp",
+      "tool": "built-in image_gen",
+      "prompt": "Use case: product-mockup. Asset type: Findi construction catalog referential product photograph for 'Tablero OSB estructural'. Subject: one rectangular OSB wood board, oriented strand board with clearly visible pressed irregular tan wood chips, thickness edge visible, three-quarter view, no printed grade stamps. Seamless pure white studio background; isolated entire subject centered with 15 percent margins, square product photography, soft neutral studio light and subtle natural shadow. Accurate physically plausible materials and shape, sharp detail, coherent professional catalog style. No text, brands, watermark, people, hands, packaging, scenery, extra tools, annotations or collage. Do not invent dimensions or certifications. This is a generic unbranded product.",
+      "sha256": "71a6cb469f68668699c02d6af3faea5b00c812016c303396f4a2d4b34b7ef5a2",
+      "referential": true,
+      "sourceType": "ai_generated",
+      "provider": "OpenAI",
+      "checkedAt": "2026-10-09"
+    },
+    {
+      "productId": "base-fam-ladrillos-y-bloques--bloque-de-hormigon",
+      "name": "Bloque de hormigón",
+      "file": "docs/catalogo/imagenes/ia-tanda-01/concrete-block.webp",
+      "tool": "built-in image_gen",
+      "prompt": "Use case: product-mockup. Asset type: Findi construction catalog referential product photograph for 'Bloque de hormigón'. Subject: one grey hollow concrete masonry block with exactly two rectangular open cavities, coarse porous concrete texture, three-quarter view showing top and front. Seamless pure white studio background; isolated entire subject centered with 15 percent margins, square product photography, soft neutral studio light and subtle natural shadow. Accurate physically plausible materials and shape, sharp detail, coherent professional catalog style. No text, brands, watermark, people, hands, packaging, scenery, extra tools, annotations or collage. Do not invent dimensions or certifications. This is a generic unbranded product.",
+      "sha256": "1e2dfcf5c635904af0e9c88819ca5b59d05e34b88c5333b466b9f586e67f8513",
+      "referential": true,
+      "sourceType": "ai_generated",
+      "provider": "OpenAI",
+      "checkedAt": "2026-10-09"
+    },
+    {
+      "productId": "base-fam-ladrillos-y-bloques--ladrillo-fiscal",
+      "name": "Ladrillo fiscal",
+      "file": "docs/catalogo/imagenes/ia-tanda-01/brick.webp",
+      "tool": "built-in image_gen",
+      "prompt": "Use case: product-mockup. Asset type: Findi construction catalog referential product photograph for 'Ladrillo fiscal'. Subject: one solid rectangular Chilean fiscal clay brick, reddish terracotta, subtle rough fired-clay texture, solid top surface WITHOUT hollow holes, three-quarter view. Seamless pure white studio background; isolated entire subject centered with 15 percent margins, square product photography, soft neutral studio light and subtle natural shadow. Accurate physically plausible materials and shape, sharp detail, coherent professional catalog style. No text, brands, watermark, people, hands, packaging, scenery, extra tools, annotations or collage. Do not invent dimensions or certifications. This is a generic unbranded product.",
+      "sha256": "70f55f32849003795cd2635e206670d36bbca471aff78238c717a491731962d7",
+      "referential": true,
+      "sourceType": "ai_generated",
+      "provider": "OpenAI",
+      "checkedAt": "2026-10-09"
+    },
+    {
+      "productId": "base-fam-epp-de-cabeza-ojos-y-respiracion--casco-de-seguridad",
+      "name": "Casco de seguridad",
+      "file": "docs/catalogo/imagenes/ia-tanda-01/helmet.webp",
+      "tool": "built-in image_gen",
+      "prompt": "Use case: product-mockup. Asset type: Findi construction catalog referential product photograph for 'Casco de seguridad'. Subject: one generic yellow construction hard hat, rigid plastic shell, short front brim and realistic internal suspension barely visible, three-quarter view, NO logos or printed safety-certification marks. Seamless pure white studio background; isolated entire subject centered with 15 percent margins, square product photography, soft neutral studio light and subtle natural shadow. Accurate physically plausible materials and shape, sharp detail, coherent professional catalog style. No text, brands, watermark, people, hands, packaging, scenery, extra tools, annotations or collage. Do not invent dimensions or certifications. This is a generic unbranded product.",
+      "sha256": "18b3e5d7675a5113ee9d8aad6e2b94cec261beadc190905d47bdb776f443d5cf",
+      "referential": true,
+      "sourceType": "ai_generated",
+      "provider": "OpenAI",
+      "checkedAt": "2026-10-09"
+    },
+    {
+      "productId": "base-fam-tornillos--tornillo-para-madera",
+      "name": "Tornillo para madera",
+      "file": "docs/catalogo/imagenes/ia-tanda-01/wood-screw.webp",
+      "tool": "built-in image_gen",
+      "prompt": "Use case: product-mockup. Asset type: Findi construction catalog referential product photograph for 'Tornillo para madera'. Subject: three generic zinc-plated countersunk Phillips wood screws, each with one pointed tip and coarse single continuous helical thread, arranged separately and diagonally, realistic screw geometry. Seamless pure white studio background; isolated entire subject centered with 15 percent margins, square product photography, soft neutral studio light and subtle natural shadow. Accurate physically plausible materials and shape, sharp detail, coherent professional catalog style. No text, brands, watermark, people, hands, packaging, scenery, extra tools, annotations or collage. Do not invent dimensions or certifications. This is a generic unbranded product.",
+      "sha256": "cd13d39db4a8a0cdfd0260091614df16133bc6e1d7045ca737cff036dd495710",
+      "referential": true,
+      "sourceType": "ai_generated",
+      "provider": "OpenAI",
+      "checkedAt": "2026-10-09"
+    },
+    {
+      "productId": "base-fam-implementos-de-faena--balde-de-construccion",
+      "name": "Balde de construcción",
+      "file": "docs/catalogo/imagenes/ia-tanda-01/bucket.webp",
+      "tool": "built-in image_gen",
+      "prompt": "Use case: product-mockup. Asset type: Findi construction catalog referential product photograph for 'Balde de construcción'. Subject: one generic black round construction bucket made of flexible heavy-duty plastic, open empty top and raised thin steel wire carrying handle, realistic three-quarter view. Seamless pure white studio background; isolated entire subject centered with 15 percent margins, square product photography, soft neutral studio light and subtle natural shadow. Accurate physically plausible materials and shape, sharp detail, coherent professional catalog style. No text, brands, watermark, people, hands, packaging, scenery, extra tools, annotations or collage. Do not invent dimensions or certifications. This is a generic unbranded product.",
+      "sha256": "ee6601e4377d5980b1c2187b4ba86d24954334717f4120b17337aecb453fb985",
+      "referential": true,
+      "sourceType": "ai_generated",
+      "provider": "OpenAI",
+      "checkedAt": "2026-10-09"
+    }
+  ]
+}
