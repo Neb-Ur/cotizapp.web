@@ -8,7 +8,7 @@ import {replicateDocument} from '../lib/database/replication.js';
 import {useSqlDatabase} from '../lib/database/config.js';
 async function fixture(t,ready=true){
  const pg=new PGlite();
- for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql'])await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
+ for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql'])await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
  const pool={connect:async()=>({query:pg.query.bind(pg),release(){}})};
  const db=new PostgresDatabase(pool,ready);
  t.after(()=>pg.close());
@@ -150,4 +150,11 @@ test('a real external fallback never inherits the generated image source or its 
  const assets=(await pg.query('SELECT a.url,a.origin,a.rights_id FROM findi.media_assets a JOIN findi.product_media m ON m.asset_id=a.id WHERE m.product_id=$1',['product'])).rows;
  assert.equal(assets.find(a=>a.url===main).origin,'storage');assert.ok(assets.find(a=>a.url===main).rights_id);
  assert.equal(assets.find(a=>a.url===fallback).origin,'external_url');assert.equal(assets.find(a=>a.url===fallback).rights_id,null);
+});
+
+test('verification records are persisted by code and cannot be overwritten',async t=>{
+ const {db}=await fixture(t);const ref=db.collection('real_cotizacionesVerificables').doc('FND-AAAA-BBBB-CCCC-DDDD');
+ const snapshot={code:ref.id,quotationReference:'quote',issuedAt:'2026-10-09T12:00:00Z',recommendedUntil:'2026-09-01T12:00:00Z',lines:[{storeId:'store',productName:'Cemento',unitPrice:1000,quantity:2,subtotal:2000}]};
+ await ref.set(snapshot);assert.deepEqual((await ref.get()).data(),snapshot);
+ await assert.rejects(ref.update({lines:[]}));assert.deepEqual((await ref.get()).data(),snapshot);
 });

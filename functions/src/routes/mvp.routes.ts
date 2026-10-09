@@ -1,3 +1,4 @@
+import { storeQuotationsRouter } from './store-quotations.routes.js';
 import { Router } from 'express';
 import { imagesRouter } from './images.routes.js';
 import { contactRouter } from './contact.routes.js';
@@ -34,5 +35,6 @@ mvpRouter.use(masterProductsRouter);
 mvpRouter.use(searchRouter);
 mvpRouter.use(storeCatalogRouter);
 mvpRouter.use(projectsRouter);
+mvpRouter.use(storeQuotationsRouter);
 mvpRouter.use(productRequestsRouter);
 mvpRouter.use(adminUsersRouter);

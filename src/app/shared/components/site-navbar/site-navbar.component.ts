@@ -88,6 +88,7 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
     {label:'Mi catálogo',icon:'pi pi-box',section:'catalogo'},
     {label:'Agregar productos',icon:'pi pi-plus',section:'catalogo',accion:'agregar'},
     {label:'Carga por Excel',icon:'pi pi-upload',section:'catalogo',accion:'archivo'},
+    {label:'Cotizaciones',icon:'pi pi-file-check',section:'cotizaciones'},
     {label:'Mi perfil',icon:'pi pi-user',section:'perfil'}
   ];
   protected get isFerreteria(): boolean { return this.authService.currentUser()?.role === 'ferreteria'; }

@@ -1,3 +1,4 @@
+import { StoreQuotationVerifierComponent } from '../../shared/components/store-quotation-verifier/store-quotation-verifier.component';
 import { StoreDailyAnalytics } from '../../core/models/app.models';
 import { Subscription } from 'rxjs';
 import { WriteFeedbackService } from '../../core/services/write-feedback.service';
@@ -28,7 +29,7 @@ import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.c
 import { UiModalComponent } from '../../shared/components/ui-modal/ui-modal.component';
 import { StoreOnboardingComponent } from '../../shared/components/store-onboarding/store-onboarding.component';
 
-type FerreteriaSection = 'inicio' | 'catalogo' | 'perfil';
+type FerreteriaSection = 'inicio' | 'catalogo' | 'cotizaciones' | 'perfil';
 type CatalogUploadMode = 'buscar' | 'archivo' | 'solicitud';
 
 interface FerreteriaSectionMeta {
@@ -46,7 +47,7 @@ interface MasterCatalogSelectionDraft {
 @Component({
   selector: 'app-dashboard-ferreteria',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginatorModule, UiModalComponent, UiLoaderComponent, StoreOnboardingComponent],
+  imports: [StoreQuotationVerifierComponent, CommonModule, FormsModule, PaginatorModule, UiModalComponent, UiLoaderComponent, StoreOnboardingComponent],
   templateUrl: './dashboard-ferreteria.component.html',
   styleUrl: './dashboard-ferreteria.component.scss'
 })
@@ -60,6 +61,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   protected readonly sections: FerreteriaSectionMeta[] = [
     { id: 'inicio', label: 'Inicio', description: 'Resumen de la actividad de tu ferretería.' },
     { id: 'catalogo', label: 'Mantener catálogo', description: 'Mantiene precio, stock y agrega productos cuando lo necesites.' },
+    { id: 'cotizaciones', label: 'Verificar cotizaciones', description: 'Consulta el código del maestro y verifica los productos cotizados con tu ferretería.' },
     { id: 'perfil', label: 'Editar perfil', description: 'Actualiza los datos visibles y la ubicación de tu ferretería.' }
   ];
 
@@ -163,7 +165,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
     this.syncProfileDraftFromUser();
     this.querySubscription = this.route.queryParamMap.subscribe(params => {
       const section = params.get('section');
-      const requested = section === 'catalogo' || section === 'perfil' ? section : 'inicio';
+      const requested = section === 'catalogo' || section === 'perfil' || section === 'cotizaciones' ? section : 'inicio';
       const action = params.get('accion');
       const mode = action === 'archivo' ? 'archivo' : 'buscar';
       const view = requested === 'catalogo' && (action === 'agregar' || action === 'archivo') ? 'add' : 'maintain';

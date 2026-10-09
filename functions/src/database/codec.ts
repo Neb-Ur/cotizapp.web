@@ -82,6 +82,7 @@ export async function writeDocument(client:SqlClient,collection:string,id:string
   if(refs[data.targetType])values[{master_product:'product_id',store_offer:'offer_id',store:'store_id'}[data.targetType as 'store']]=await resolved(client,refs[data.targetType],data.targetId);
  }
  if(key==='storeDailyAnalytics')for(const [field,col]of Object.entries({total:'catalog_total',published:'catalog_published',inStock:'catalog_in_stock',outOfStock:'catalog_out_of_stock',stalePrices:'catalog_stale_prices'}))values[col]=data.catalog?.[field]??0;
+ if(key==='quotationVerifications')values.store_lines=JSON.stringify(data.lines || []);
  const keys=Object.keys(primaryKey(table,id,data));
  const missing=tableColumns(table).filter(c=>c.is_nullable==='NO'&&c.column_default===null&&values[c.column_name]===undefined);
  if(missing.length)throw new Error(`SQL_REQUIRED_FIELDS:${collection}:${missing.map(c=>c.column_name).join(',')}`);

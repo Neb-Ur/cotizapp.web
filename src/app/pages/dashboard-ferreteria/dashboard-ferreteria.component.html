@@ -35,6 +35,8 @@
       <p class="flush-copy">Puedes preparar tu catálogo, pero tus precios no participan en el comparador hasta que Findi active la cuenta.</p>
     </article>
 
+    <article class="panel" *ngIf="onboardingReady && currentSection === 'cotizaciones'"><app-store-quotation-verifier [storeId]="user?.ferreteriaId || ''" /></article>
+
     <article class="panel panel--loading" *ngIf="isInitialLoading || isSectionLoading">
       <app-ui-loader [label]="isInitialLoading ? 'Cargando ferretería...' : 'Cargando sección...'" />
     </article>

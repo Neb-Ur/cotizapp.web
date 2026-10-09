@@ -1,27 +1,38 @@
-# Vigencia y precios de las cotizaciones
+# Cotizaciones: plazo informativo y verificación por código
 
-Las cotizaciones guardadas conservan sus precios durante 10 días exactos desde la captura, con fecha y hora visibles en el detalle y en el PDF. Findi genera cotizaciones de materiales y no procesa compras. Se eliminó la referencia a «Despacho no incluido» de los detalles, las comparaciones, el dashboard y el PDF.
+Los 10 días son una recomendación: «Genera tu cotización y realiza la compra dentro de los 10 días para mantener los precios cotizados». No bloquean la edición, descarga, envío ni consulta del documento después de ese plazo. Findi permite preparar cotizaciones, no procesa compras ni reserva stock.
 
-## Funcionamiento
+## Código y documento verificable
 
-- El servidor captura las ofertas correspondientes a los artículos al guardar. El cliente no puede enviar ni modificar los precios de esa captura.
-- Se almacenan `pricingOffers`, `pricesCapturedAt`, `validUntil` y `pricingMode: snapshot` en el registro persistido de la cotización (`findi.quotations.api_payload`). Así se conserva su información sin depender de cambios posteriores en el catálogo.
-- Cambiar nombre, descripción, cantidad o estrategia conserva los precios capturados y la misma fecha de vencimiento. Al agregar un producto nuevo se capturan sus ofertas actuales sin modificar las de los productos anteriores.
-- Detalle, listado, PDF y envío usan la misma captura. Exportar o compartir de nuevo no extiende el plazo.
-- Al vencer se mantienen el documento y sus artículos, pero se debe pulsar «Renovar precios y vigencia» para guardar cambios o volver a exportar. Esta acción consulta las ofertas actuales e inicia otro período de 10 días.
-- Los indicadores diarios de las ferreterías usan los precios guardados cuando están disponibles y excluyen cotizaciones vencidas de los montos activos.
-- La vigencia corresponde a los precios registrados en la cotización. No constituye una compra ni una reserva de stock.
+Al guardar una cotización el servidor emite un código aleatorio, por ejemplo `FND-1234-ABCD-5678-EF90`. Se muestra en el detalle, se puede copiar y aparece en el PDF y el mensaje de WhatsApp.
 
-Los precios ficticios del piloto mantienen su identificación y advertencia también en las cotizaciones guardadas. Al retirar las tiendas del piloto, sus ofertas desaparecen del catálogo público. Los documentos existentes conservan su captura hasta el vencimiento; una renovación ya no incorpora esas ofertas retiradas.
+Cada modificación guardada emite un nuevo código. El anterior conserva su versión original: no cambia silenciosamente el contenido de un PDF que ya se entregó. El maestro debe guardar sus cambios antes de descargar o enviar la versión modificada.
 
-## Cotizaciones anteriores
+El precio se calcula en el servidor desde las ofertas guardadas de la cotización. El cliente no puede asignar precios a los registros verificables. Un artículo inventado, una oferta que no corresponde o un producto sin precio disponible no se incorpora como una línea válida de la ferretería.
 
-Se inicializó la vigencia de las dos cotizaciones existentes tomando las ofertas disponibles al momento de esta actualización, sin modificar sus artículos, propietario, nombre ni fecha de creación. No se reconstruyeron precios históricos inexistentes. Se guardó una copia privada anterior a la modificación.
+## Consulta de la ferretería
 
-Para inicializar únicamente cotizaciones que todavía no tengan una captura, desde la raíz del repositorio:
+En el menú de la ferretería se agregó **Cotizaciones**. El local ingresa el código presentado por el maestro y consulta:
+
+- Productos que quedaron asignados a esa ferretería en la cotización guardada.
+- Cantidades, precios unitarios, subtotales y total con IVA de sus productos.
+- Fecha de los precios registrados y plazo recomendado de compra.
+- Identificación de prueba si corresponde al piloto.
+
+Las alternativas de otras ferreterías y los datos personales, dirección de obra y descripción privada del maestro no se entregan a ese local. Si no tiene productos asignados en esa versión, la API devuelve el mismo resultado que para un código inexistente. Consultar fuera de los 10 días sigue permitido y muestra un aviso informativo.
+
+La consulta requiere Firebase Authentication, rol ferretería y propiedad del local solicitado. El administrador puede consultar como parte de su gestión. No existe una consulta pública por código.
+
+## Persistencia
+
+`findi.quotations.api_payload` conserva los artículos y precios capturados, más el código de su versión actual. `findi.quotation_verifications` contiene las versiones verificables, indexadas por código, con sus líneas y metadatos mínimos. La creación de la versión y la actualización de la cotización son una única transacción.
+
+Una restricción de PostgreSQL impide modificar las versiones emitidas. Las migraciones `011-quotation-verification.sql` y `012-advisory-quotation-period.sql` crean la tabla y permiten que se emita un nuevo código incluso fuera del plazo informativo original. Sus registros no almacenan identidad ni contacto del maestro.
+
+Las dos cotizaciones existentes recibieron código sin cambiar artículos ni precios. Para completar únicamente registros que todavía no tengan código:
 
 ```sh
-CONFIRM_PROJECT_ID=cotizapp-d71c8 node --env-file=functions/.env functions/scripts/initialize-quotation-validity.mjs --apply --firebase-cli-auth
+CONFIRM_PROJECT_ID=cotizapp-d71c8 node functions/scripts/initialize-quotation-codes.mjs --apply --firebase-cli-auth
 ```
 
-El script respeta las capturas existentes y verifica el estado de cada cotización dentro de la transacción.
+El script hace copia privada previa, conserva los códigos existentes y verifica cada cotización dentro de la transacción.

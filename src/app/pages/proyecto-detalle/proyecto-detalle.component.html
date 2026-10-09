@@ -64,21 +64,24 @@
           Puedes aumentar el radio o usar todas las ferreterías.
         </p>
 
-        <section class="quotation-validity" [class.expired]="quotationExpired">
-          <strong>{{ quotationExpired ? 'Cotización vencida' : 'Vigencia de la cotización: 10 días' }}</strong>
-          <p *ngIf="validUntil">Precios guardados el {{ pricesCapturedAt | date:'dd/MM/yyyy HH:mm' }}. Válida hasta el {{ validUntil | date:'dd/MM/yyyy HH:mm' }}.</p>
-          <p *ngIf="!validUntil">Guarda la cotización para fijar sus precios durante 10 días y poder descargarla o enviarla.</p>
-          <p *ngIf="quotationExpired">Renueva los precios para volver a guardar, descargar o enviar esta cotización.</p>
-          <button *ngIf="!isNewProject" type="button" class="secondary" (click)="saveProject(true)" [disabled]="isSaving">{{ isSaving ? 'Guardando…' : 'Renovar precios y vigencia' }}</button>
+        <section class="quotation-validity">
+          <strong>Compra dentro de los 10 días de generar tu cotización</strong>
+          <p>Usa este plazo como referencia para mantener los precios cotizados. La ferretería podrá consultar el código y validar los productos y precios registrados.</p>
+          <p *ngIf="validUntil">Generada el {{ pricesCapturedAt | date:'dd/MM/yyyy HH:mm' }} · Fecha orientativa: {{ validUntil | date:'dd/MM/yyyy HH:mm' }}.</p>
+          <p *ngIf="quotationExpired">Han pasado más de 10 días. Puedes seguir usando la cotización y consultar los precios con la ferretería.</p>
+          <p *ngIf="!validUntil">Guarda la cotización para obtener su código de verificación.</p>
+          <div class="verification-code" *ngIf="verificationCode"><span>Código de cotización</span><strong>{{ verificationCode }}</strong><button type="button" class="secondary" (click)="copyVerificationCode()">Copiar código</button></div>
+          <button *ngIf="!isNewProject" type="button" class="secondary" (click)="saveProject(true)" [disabled]="isSaving">{{ isSaving ? 'Guardando…' : 'Actualizar precios actuales' }}</button>
+          <p *ngIf="hasUnsavedChanges">Guarda los cambios para obtener un código actualizado antes de descargar o enviar.</p>
         </section>
         <div class="actions">
           <button type="button" (click)="saveProject()" [disabled]="isSaving">
             <i *ngIf="isSaving" class="pi pi-spin pi-spinner" aria-hidden="true"></i>{{ isSaving ? 'Guardando…' : (!user ? 'Crear cuenta para guardar' : (isNewProject ? 'Guardar cotización' : 'Actualizar cotización')) }}
           </button>
-          <button type="button" class="export" [disabled]="!hasQuotation || isNewProject" (click)="exportQuotation()">
+          <button type="button" class="export" [disabled]="!hasQuotation || isNewProject || hasUnsavedChanges" (click)="exportQuotation()">
             Exportar cotización PDF
           </button>
-          <button *ngIf="!isNewProject" type="button" [disabled]="!hasQuotation" (click)="shareQuotation()">
+          <button *ngIf="!isNewProject" type="button" [disabled]="!hasQuotation || hasUnsavedChanges" (click)="shareQuotation()">
             Enviar al cliente
           </button>
         </div>
@@ -90,7 +93,7 @@
           <p>Descarga el PDF y abre un mensaje para tu cliente. Adjunta el archivo en WhatsApp antes de enviarlo.</p>
           <div class="whatsapp-share-actions">
             <label>Número del destinatario<input type="tel" [(ngModel)]="whatsappNumber" autocomplete="tel" placeholder="+56 9 1234 5678" /></label>
-            <button type="button" class="secondary" (click)="sendViaWhatsapp()" [disabled]="!whatsappNumber.trim()"><i class="pi pi-whatsapp" aria-hidden="true"></i> Preparar envío</button>
+            <button type="button" class="secondary" (click)="sendViaWhatsapp()" [disabled]="!whatsappNumber.trim() || hasUnsavedChanges"><i class="pi pi-whatsapp" aria-hidden="true"></i> Preparar envío</button>
           </div>
           <p role="status" *ngIf="shareNotice">{{ shareNotice }}</p>
         </section>

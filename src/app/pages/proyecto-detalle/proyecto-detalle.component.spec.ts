@@ -18,3 +18,9 @@ describe('quotation drafts isolated by account and environment',()=>{
     mode='real';expect(component.readDraft()?.items).toEqual([{productName:'Cemento',quantity:2}]);
   });
 });
+it('keeps the displayed verification code synchronized after saving a store selection',async()=>{
+ const api={buildProjectQuotation:()=>({appliedStoreName:'Local',appliedStoreId:'store'}),updateProject:async()=>({verificationCode:'FND-AAAA-BBBB-CCCC-DDDD',pricingOffers:[],validUntil:'2026-10-19T12:00:00Z',pricesCapturedAt:'2026-10-09T12:00:00Z'})};
+ const component=new ProyectoDetalleComponent({mode:()=> 'real'} as unknown as DataModeService,{} as ActivatedRoute,{} as Router,{currentUser:()=>({id:'user',role:'maestro'})} as unknown as AuthService,api as unknown as FirebaseDataService) as any;
+ component.isNewProject=false;component.projectId='quote';component.selectedSingleStoreName='Local';component.selectedSingleStoreId='store';
+ expect(await component.persistExistingPurchaseSelection()).toBe(true);expect(component.verificationCode).toBe('FND-AAAA-BBBB-CCCC-DDDD');expect(component.hasUnsavedChanges).toBe(false);
+});

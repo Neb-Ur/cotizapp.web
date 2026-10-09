@@ -4334,5 +4334,69 @@
     "udt_name": "timestamptz",
     "is_nullable": "YES",
     "column_default": null
+  },
+  {
+    "table_name": "quotation_verifications",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "quotation_verifications",
+    "column_name": "code",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "quotation_verifications",
+    "column_name": "quotation_reference",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "quotation_verifications",
+    "column_name": "issued_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "quotation_verifications",
+    "column_name": "recommended_until",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "quotation_verifications",
+    "column_name": "store_lines",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "quotation_verifications",
+    "column_name": "api_payload",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "quotation_verifications",
+    "column_name": "api_version",
+    "data_type": "bigint",
+    "udt_name": "int8",
+    "is_nullable": "NO",
+    "column_default": "1"
   }
 ]

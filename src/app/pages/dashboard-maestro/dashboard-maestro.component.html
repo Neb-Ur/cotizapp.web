@@ -42,7 +42,7 @@
           <thead><tr><th>Cotización</th><th>Fecha</th><th>Ítems</th><th>Ahorro</th><th></th></tr></thead>
           <tbody>
             <tr *ngFor="let project of recentProjects">
-              <td>{{ project.name }}<small *ngIf="project.validUntil" style="display:block">{{ project.expired ? 'Vencida' : 'Vigente hasta' }} · {{ project.validUntil | date:'dd/MM/yyyy' }}</small></td>
+              <td>{{ project.name }}<small *ngIf="project.verificationCode" style="display:block">{{ project.verificationCode }}</small><small *ngIf="project.validUntil" style="display:block">{{ project.expired ? 'Más de 10 días' : 'Compra recomendada hasta' }} · {{ project.validUntil | date:'dd/MM/yyyy' }}</small></td>
               <td>{{ project.createdAt | date:'short' }}</td>
               <td>{{ project.items.length }}</td>
               <td>{{ formatCurrency(project.saving) }}</td>
@@ -246,7 +246,7 @@
           <thead><tr><th>Cotización</th><th>Fecha</th><th>Ítems</th><th>Total óptimo</th><th>Ahorro</th><th>Acciones</th></tr></thead>
           <tbody>
             <tr *ngFor="let project of projects">
-              <td>{{ project.name }}<small *ngIf="project.validUntil" style="display:block">{{ project.expired ? 'Vencida' : 'Vigente hasta' }} · {{ project.validUntil | date:'dd/MM/yyyy' }}</small></td>
+              <td>{{ project.name }}<small *ngIf="project.verificationCode" style="display:block">{{ project.verificationCode }}</small><small *ngIf="project.validUntil" style="display:block">{{ project.expired ? 'Más de 10 días' : 'Compra recomendada hasta' }} · {{ project.validUntil | date:'dd/MM/yyyy' }}</small></td>
               <td>{{ project.createdAt | date:'short' }}</td>
               <td>{{ project.items.length }}</td>
               <td>{{ project.availabilityStatus === 'incomplete' ? 'Incompleta: revisar ofertas' : formatCurrency(project.totalOptimal) }}</td>
@@ -267,7 +267,7 @@
       <h3>Historial de cotizaciones</h3>
       <div class="history-grid" *ngIf="projects.length > 0; else emptyHistory">
         <article *ngFor="let project of projects">
-          <h4>{{ project.name }}</h4><p *ngIf="project.validUntil">{{ project.expired ? 'Vencida' : 'Vigente hasta' }} · {{ project.validUntil | date:'dd/MM/yyyy' }}</p>
+          <h4>{{ project.name }}</h4><p *ngIf="project.validUntil">{{ project.expired ? 'Más de 10 días' : 'Compra recomendada hasta' }} · {{ project.validUntil | date:'dd/MM/yyyy' }}</p>
           <p>{{ project.createdAt | date:'short' }}</p>
           <p>Items: {{ project.items.length }}</p>
           <p>Total optimo: {{ project.availabilityStatus === 'incomplete' ? 'Incompleta: revisar ofertas' : formatCurrency(project.totalOptimal) }}</p>

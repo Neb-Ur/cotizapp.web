@@ -14,6 +14,7 @@ const names = {
   priceHistory: 'historialPrecios',
   storeAgreements: 'contratosFerreteria',
   projects: 'proyectos',
+  quotationVerifications: 'cotizacionesVerificables',
   productRequests: 'solicitudesCreacionProducto',
   contactRequests: 'solicitudesContacto',
   consentRecords: 'registrosConsentimiento',

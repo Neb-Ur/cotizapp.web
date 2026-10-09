@@ -1,6 +1,6 @@
 # Diagrama completo de la base de datos Findi
 
-Generado a partir de las claves y columnas reales de [001-schema.sql](../../sql/findi/001-schema.sql) [005-runtime-compatibility.sql](../../sql/findi/005-runtime-compatibility.sql) y [008-location-reference-tables.sql](../../sql/findi/008-location-reference-tables.sql). Incluye **57 tablas del esquema findi y 2 tablas temporales de findi_migration**, todas sus columnas y las 99 claves foráneas declaradas. El servidor ya admite este modelo; Firestore sigue activo mientras USE_SQL_DATABASE sea false.
+Generado a partir de las claves y columnas reales de [001-schema.sql](../../sql/findi/001-schema.sql) [005-runtime-compatibility.sql](../../sql/findi/005-runtime-compatibility.sql) [008-location-reference-tables.sql](../../sql/findi/008-location-reference-tables.sql), [011-quotation-verification.sql](../../sql/findi/011-quotation-verification.sql) y [012-advisory-quotation-period.sql](../../sql/findi/012-advisory-quotation-period.sql). Incluye **58 tablas del esquema findi y 2 tablas temporales de findi_migration**, todas sus columnas y las 99 claves foráneas declaradas. El servidor ya admite este modelo; Firestore sigue activo mientras USE_SQL_DATABASE sea false.
 
 Abre la vista previa Markdown para visualizarlo. El [archivo Mermaid independiente](diagrama-completo.mmd) permite ampliar y exportar el diagrama en un visor compatible. Al final hay vistas por área para explorar el mismo modelo con menos cruces.
 
@@ -563,6 +563,16 @@ erDiagram
     text store_reference "nullable"
     text offer_reference "nullable"
     text resolution_state "NOT NULL"
+  }
+  quotation_verifications["Verificación de cotizaciones por código"] {
+    text id PK "Código aleatorio del servidor"
+    text code UK "Código visible"
+    text quotation_reference "Referencia histórica, sin FK"
+    timestamptz issued_at "Emisión de esta versión"
+    timestamptz recommended_until "Plazo informativo"
+    jsonb store_lines "Productos y precios por ferretería"
+    jsonb api_payload "Versión inmutable"
+    bigint api_version "NOT NULL"
   }
   quotations["Cotizaciones"] {
     text id PK "NOT NULL"

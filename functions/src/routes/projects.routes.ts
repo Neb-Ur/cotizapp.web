@@ -1,4 +1,4 @@
-import { quotationExpired } from '../domain/quotation-validity.js';
+import { verificationSnapshot, newVerificationCode } from '../services/quotation-verification.service.js';
 import { buildSearchRows } from '../services/catalog-search.service.js';
 import { Router } from 'express';
 import { db } from '../lib/firebase.js';
@@ -39,6 +39,9 @@ projectsRouter.post('/maestros/:ownerId/proyectos', requireAuth, requireRole('ma
   };
   Object.assign(payload, await captureProjectPricing(payload));
   const ref = db.collection(COLLECTIONS.projects).doc();
+  const code = newVerificationCode();
+  Object.assign(payload, {verificationCode:code});
+  const verification = verificationSnapshot({...payload,id:ref.id},code);
   const created = await db.runTransaction(async tx => {
     const lock = db.collection(COLLECTIONS.projectOwnerLocks).doc(req.params.ownerId);
     await tx.get(lock);
@@ -46,6 +49,7 @@ projectsRouter.post('/maestros/:ownerId/proyectos', requireAuth, requireRole('ma
     if (existing.size >= 2) return null;
     tx.set(lock, { updatedAt: nowIso() });
     tx.create(ref, payload);
+    tx.create(db.collection(COLLECTIONS.quotationVerifications).doc(code), verification);
     return { id: ref.id, ...payload };
   });
   if (!created) return fail(res, 'COTIZACION_LIMIT_REACHED', 'Puedes guardar un maximo de 2 cotizaciones. Elimina una para crear otra.', 409);
@@ -64,7 +68,6 @@ projectsRouter.put('/maestros/:ownerId/proyectos/:projectId', requireAuth, requi
   const project = await row(COLLECTIONS.projects, req.params.projectId);
   if (!project || project.ownerId !== req.params.ownerId) return fail(res, 'PROYECTO_NOT_FOUND', 'No existe la cotizacion indicada.', 404);
   const renew = req.body?.renovarPrecios === true;
-  if (quotationExpired(project) && !renew) return fail(res, 'QUOTATION_EXPIRED', 'La cotización venció. Renueva los precios para obtener otros 10 días de vigencia.', 409);
   const patch = {
     name: normalizeText(req.body?.nombre) || project.name,
     address: normalizeText(req.body?.direccionObra),
@@ -75,7 +78,20 @@ projectsRouter.put('/maestros/:ownerId/proyectos/:projectId', requireAuth, requi
     singleStoreId: normalizeText(req.body?.ferreteriaUnicaId) || null,
     updatedAt: nowIso()
   };
-  const updated = await patchRow(COLLECTIONS.projects, req.params.projectId, {...patch, ...await captureProjectPricing({...project, ...patch}, project, renew)});
+  const pricedPatch={...patch,...await captureProjectPricing({...project,...patch},project,renew)};
+  const code=newVerificationCode();
+  const updated=await db.runTransaction(async tx=>{
+    const ref=db.collection(COLLECTIONS.projects).doc(project.id),snapshot=await tx.get(ref);
+    const latest=snapshot.data();if(!snapshot.exists||latest?.ownerId!==req.params.ownerId)return null;
+    // Do not overwrite a simultaneous edit with a snapshot computed from older items/prices.
+    const content=(value:Record<string,unknown>)=>JSON.stringify(Object.fromEntries(Object.entries(value).filter(([k])=>k!=='id')));
+    if(content(latest)!==content(project))return null;
+    const data={...latest,...pricedPatch,verificationCode:code};
+    tx.update(ref,{...pricedPatch,verificationCode:code});
+    tx.create(db.collection(COLLECTIONS.quotationVerifications).doc(code),verificationSnapshot({...data,id:project.id},code));
+    return {id:project.id,...data};
+  });
+  if(!updated)return fail(res,'QUOTATION_CHANGED','La cotización cambió. Vuelve a cargarla antes de guardar.',409);
   return ok(res, await projectView(updated));
 });
 
@@ -88,13 +104,14 @@ projectsRouter.post('/maestros/:ownerId/proyectos/:projectId/items', requireAuth
     const latest = await tx.get(ref);
     if (!latest.exists || latest.data()?.['ownerId'] !== req.params.ownerId) return null;
     const data = latest.data()!;
-    if (quotationExpired(data)) return { expired: true };
     const patch = { items: [...normalizeItems(data['items']), ...normalizeItems([req.body])], updatedAt: nowIso() };
     Object.assign(patch, await captureProjectPricing({...data, ...patch}, data));
+    const code=newVerificationCode();
+    Object.assign(patch,{verificationCode:code});
     tx.update(ref, patch);
+    tx.create(db.collection(COLLECTIONS.quotationVerifications).doc(code),verificationSnapshot({...data,...patch,id:ref.id},code));
     return { id: ref.id, ...data, ...patch };
   });
-  if (updated && 'expired' in updated) return fail(res, 'QUOTATION_EXPIRED', 'Renueva los precios de la cotización vencida antes de agregar productos.', 409);
   if (!updated) return fail(res, 'PROYECTO_NOT_FOUND', 'No existe la cotizacion indicada.', 404);
   return ok(res, await projectView(updated), 201);
 });

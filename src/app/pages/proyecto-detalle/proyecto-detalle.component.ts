@@ -42,6 +42,11 @@ export class ProyectoDetalleComponent implements OnInit {
   protected pricingOffers?: SavedQuotationOffer[];
   protected validUntil = '';
   protected pricesCapturedAt = '';
+  protected verificationCode = '';
+  private savedFingerprint = '';
+  private quotationFingerprint():string {return JSON.stringify([this.projectName,this.projectAddress,this.projectDescription,this.projectItems,this.projectProximity,this.selectedSingleStoreName,this.selectedSingleStoreId]);}
+  protected get hasUnsavedChanges():boolean {return !this.isNewProject && this.savedFingerprint !== this.quotationFingerprint();}
+  protected async copyVerificationCode():Promise<void>{try{await navigator.clipboard.writeText(this.verificationCode);this.saveNotice='Código copiado.';}catch{this.saveNotice='Puedes seleccionar y copiar el código visible.';}}
   protected get quotationExpired(): boolean { return !!this.validUntil && Date.parse(this.validUntil) <= Date.now(); }
   protected whatsappNumber = '';
   protected shareNotice = '';
@@ -153,7 +158,7 @@ export class ProyectoDetalleComponent implements OnInit {
 
 
   protected get hasQuotation(): boolean {
-    return !this.quotationExpired && this.quotation.lines.length > 0
+    return this.quotation.lines.length > 0
       && this.quotation.lines.every((line) => line.unitPrice > 0);
   }
 
@@ -258,10 +263,12 @@ export class ProyectoDetalleComponent implements OnInit {
         return;
       }
 
+      this.verificationCode = updated.verificationCode || "";
       this.pricingOffers = updated.pricingOffers;
       this.validUntil = updated.validUntil || '';
       this.pricesCapturedAt = updated.pricesCapturedAt || '';
-      this.saveNotice = renewPrices ? 'Precios renovados. La cotización tiene 10 días de vigencia.' : 'Cotización actualizada conservando los precios guardados.';
+      this.savedFingerprint = this.quotationFingerprint();
+      this.saveNotice = renewPrices ? 'Precios actualizados. Recomendamos comprar dentro de 10 días.' : 'Cotización actualizada conservando los precios guardados.';
       } catch (error) { this.saveNotice = error instanceof Error ? error.message : 'No se pudo guardar la cotización.'; }
       finally { this.isSaving = false; }
 
@@ -378,7 +385,7 @@ export class ProyectoDetalleComponent implements OnInit {
   }
 
   protected async shareQuotation(): Promise<void> {
-    if (!this.hasQuotation || this.isNewProject) {
+    if (!this.hasQuotation || this.isNewProject || this.hasUnsavedChanges) {
       return;
     }
 
@@ -388,6 +395,7 @@ export class ProyectoDetalleComponent implements OnInit {
         projectAddress: this.projectAddress,
       projectDescription: this.projectDescription,
       validUntil: this.validUntil || undefined,
+      verificationCode: this.verificationCode || undefined,
       pricesCapturedAt: this.pricesCapturedAt || undefined,
       pilot: this.pilot?.enabled() === true,
         maestroName: this.user?.displayName || '',
@@ -407,10 +415,10 @@ export class ProyectoDetalleComponent implements OnInit {
   }
 
   protected sendViaWhatsapp(): void {
-    if (!this.hasQuotation || this.isNewProject) return;
+    if (!this.hasQuotation || this.isNewProject || this.hasUnsavedChanges) return;
     try {
-      const url = quotationWhatsappUrl(this.whatsappNumber, this.projectName, this.formatCurrency(this.totalWithIva), this.pilot?.enabled() === true, this.validUntil || undefined);
-      downloadQuotationPdf({projectName:this.projectName, projectAddress:this.projectAddress, projectDescription:this.projectDescription, validUntil:this.validUntil || undefined, pricesCapturedAt:this.pricesCapturedAt || undefined,
+      const url = quotationWhatsappUrl(this.whatsappNumber, this.projectName, this.formatCurrency(this.totalWithIva), this.pilot?.enabled() === true, this.validUntil || undefined, this.verificationCode || undefined);
+      downloadQuotationPdf({projectName:this.projectName, projectAddress:this.projectAddress, projectDescription:this.projectDescription, verificationCode:this.verificationCode || undefined, validUntil:this.validUntil || undefined, pricesCapturedAt:this.pricesCapturedAt || undefined,
         maestroName:this.user?.displayName || '', quotation:this.quotation, proximity:this.projectProximity, pilot:this.pilot?.enabled() === true});
       window.open(url, '_blank', 'noopener,noreferrer');
       this.shareNotice = 'PDF descargado. Adjunta el archivo en WhatsApp y revisa el mensaje antes de enviarlo.';
@@ -418,7 +426,7 @@ export class ProyectoDetalleComponent implements OnInit {
   }
 
   protected exportQuotation(): void {
-    if (!this.hasQuotation || this.isNewProject) {
+    if (!this.hasQuotation || this.isNewProject || this.hasUnsavedChanges) {
       return;
     }
 
@@ -427,6 +435,7 @@ export class ProyectoDetalleComponent implements OnInit {
       projectAddress: this.projectAddress,
       projectDescription: this.projectDescription,
       validUntil: this.validUntil || undefined,
+      verificationCode: this.verificationCode || undefined,
       pricesCapturedAt: this.pricesCapturedAt || undefined,
       pilot: this.pilot?.enabled() === true,
       maestroName: this.user?.displayName || '',
@@ -455,7 +464,7 @@ export class ProyectoDetalleComponent implements OnInit {
     if (this.isNewProject) {
       const draft = this.readDraft();
       const nearbyPreference = readNearbySearchPreference();
-      this.pricingOffers = undefined; this.validUntil = ''; this.pricesCapturedAt = '';
+      this.pricingOffers = undefined; this.validUntil = ''; this.pricesCapturedAt = ''; this.verificationCode = ''; this.savedFingerprint = '';
       this.projectName = draftName || draft?.name || '';
       this.projectAddress = draftAddress || draft?.address || '';
       this.projectDescription = draft?.description || '';
@@ -486,7 +495,7 @@ export class ProyectoDetalleComponent implements OnInit {
       this.projectName = refreshed.name;
       this.projectAddress = refreshed.address || '';
       this.projectDescription = refreshed.description || '';
-      this.pricingOffers = refreshed.pricingOffers; this.validUntil = refreshed.validUntil || ''; this.pricesCapturedAt = refreshed.pricesCapturedAt || '';
+      this.pricingOffers = refreshed.pricingOffers; this.validUntil = refreshed.validUntil || ''; this.pricesCapturedAt = refreshed.pricesCapturedAt || ''; this.verificationCode = refreshed.verificationCode || '';
       this.projectProximity = refreshed.proximity;
       this.selectedSingleStoreName = refreshed.singleStoreName || '';
       this.selectedSingleStoreId = refreshed.singleStoreId || '';
@@ -496,13 +505,14 @@ export class ProyectoDetalleComponent implements OnInit {
           productName: item.productName,
         quantity: item.quantity
       }));
+      this.savedFingerprint = this.quotationFingerprint();
       return;
     }
 
     this.projectName = project.name;
     this.projectAddress = project.address || '';
     this.projectDescription = project.description || '';
-    this.pricingOffers = project.pricingOffers; this.validUntil = project.validUntil || ''; this.pricesCapturedAt = project.pricesCapturedAt || '';
+    this.pricingOffers = project.pricingOffers; this.validUntil = project.validUntil || ''; this.pricesCapturedAt = project.pricesCapturedAt || ''; this.verificationCode = project.verificationCode || '';
     this.projectProximity = project.proximity;
     this.selectedSingleStoreName = project.singleStoreName || '';
     this.selectedSingleStoreId = project.singleStoreId || '';
@@ -512,6 +522,7 @@ export class ProyectoDetalleComponent implements OnInit {
           productName: item.productName,
       quantity: item.quantity
     }));
+    this.savedFingerprint = this.quotationFingerprint();
   }
 
 
@@ -590,6 +601,13 @@ export class ProyectoDetalleComponent implements OnInit {
       this.projectDescription
     );
 
+    if(updated){
+      this.verificationCode=updated.verificationCode || '';
+      this.pricingOffers=updated.pricingOffers;
+      this.validUntil=updated.validUntil || '';
+      this.pricesCapturedAt=updated.pricesCapturedAt || '';
+      this.savedFingerprint=this.quotationFingerprint();
+    }
     return !!updated;
   }
 

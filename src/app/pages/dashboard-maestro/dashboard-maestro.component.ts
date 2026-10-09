@@ -541,6 +541,7 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
         projectDescription: project.description || '',
         pricesCapturedAt: project.pricesCapturedAt,
         validUntil: project.validUntil,
+        verificationCode: project.verificationCode,
         maestroName: this.user?.displayName || '',
         quotation,
         proximity: project.proximity

@@ -672,5 +672,19 @@
     "notes": "Replaced by users SELECT FOR UPDATE + enforce_quotation_limit trigger; no durable lock table needed.",
     "sourceCollection": "real_projectOwnerLocks",
     "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
+  },
+  "quotationVerifications": {
+    "tables": [
+      "quotation_verifications"
+    ],
+    "fields": {
+      "code": "quotation_verifications.code",
+      "quotationReference": "quotation_verifications.quotation_reference",
+      "issuedAt": "quotation_verifications.issued_at",
+      "recommendedUntil": "quotation_verifications.recommended_until",
+      "lines": "quotation_verifications.store_lines"
+    },
+    "sourceCollection": "real_cotizacionesVerificables",
+    "idStrategy": "Server-generated random code. Immutable price verification, no customer identity."
   }
 }

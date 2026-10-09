@@ -29,6 +29,7 @@ import {
   SearchProximity,
   SearchRow,
   SavedQuotationOffer,
+  StoreQuotationVerification,
   SessionUser,
   TaxonomyOption
 } from '../models/app.models';
@@ -1504,6 +1505,11 @@ export class FirebaseDataService {
     try { await this.apiClient.post('/metricas/oferta', { offerId, event }, false); } catch { /* Metrics never block a purchase flow. */ }
   }
 
+  async getStoreQuotation(storeId:string,code:string):Promise<StoreQuotationVerification> {
+    try {return await this.apiClient.get<StoreQuotationVerification>(`/ferreterias/${encodeURIComponent(storeId)}/cotizaciones/${encodeURIComponent(code.trim())}`,true);}
+    catch(error){throw this.normalizeError(error,'No pudimos verificar el código de cotización.');}
+  }
+
   async loadStoreDailyDashboard(ownerId: string): Promise<{reports:StoreDailyAnalytics[]}> {
     return this.apiClient.get(`/ferreterias/propietario/${ownerId}/dashboard`, true);
   }
@@ -2238,6 +2244,7 @@ export class FirebaseDataService {
       return {
         availabilityStatus: row.availabilityStatus,
         pricesCheckedAt: row.pricesCheckedAt,
+        verificationCode: row.verificationCode,
         pricesCapturedAt: row.pricesCapturedAt,
         validUntil: row.validUntil,
         expired: row.expired,

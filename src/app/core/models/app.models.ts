@@ -367,6 +367,7 @@ export interface SavedQuotationOffer extends SearchRow {
 }
 
 export interface ProjectSummary {
+  verificationCode?: string;
   pricesCapturedAt?: string;
   validUntil?: string;
   expired?: boolean;
@@ -635,4 +636,9 @@ export interface StoreDailyAnalytics {
   recentQuotationCount: number; previousQuotationCount: number; views: number; selections: number;
   catalog: {total:number;published:number;inStock:number;outOfStock:number;stalePrices:number};
   topProducts: Array<{productId:string;name:string;quotationCount:number;units:number;activeAmount:number;stock:number}>;
+}
+
+export interface StoreQuotationVerification {
+  code:string; issuedAt:string; pricesCapturedAt:string; recommendedUntil:string; withinRecommendedPeriod:boolean; pilot:boolean; total:number; includesVat:boolean;
+  lines:Array<{productId:string|null;offerId:string|null;productName:string;quantity:number;unitPrice:number;subtotal:number}>;
 }

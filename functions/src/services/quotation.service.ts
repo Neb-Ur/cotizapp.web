@@ -50,6 +50,7 @@ export async function projectView(project: any, offers?: Awaited<ReturnType<type
   const optimization = await optimizeItems(items, proximity, requestedStoreName, pricing, normalizeText(project.singleStoreId ?? project.ferreteriaUnicaId));
   return {
     id: project.id,
+    verificationCode: project.verificationCode,
     name: project.name || project.nombre || 'Cotizacion',
     address: project.address || project.direccionObra || '',
     description: project.description || '',

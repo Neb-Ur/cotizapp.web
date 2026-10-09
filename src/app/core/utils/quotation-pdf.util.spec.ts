@@ -29,9 +29,13 @@ it('includes description and an unmistakable pilot disclaimer in the PDF',async(
  const text=await new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=reject;reader.readAsText(file);});
  expect(text).toContain('Reparacion cocina');expect(text).toContain('SOLO PRUEBA');expect(text).toContain('precios y stock simulados');
 });
-it('prints the saved deadline and prevents an expired PDF from being exported',async()=>{
+it('prints the advisory purchase period and allows old quotations to be exported',async()=>{
  const file=buildQuotationPdfFile({...input,pricesCapturedAt:'2026-10-09T12:00:00Z',validUntil:'2026-10-19T12:00:00Z',exportedAt:new Date('2026-10-10T12:00:00Z')});
  const text=await new Promise<string>(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.readAsText(file);});
- expect(text).toContain('Vigencia: 10 dias');expect(text).not.toContain('Despacho no incluido');
- expect(()=>buildQuotationPdfFile({...input,validUntil:'2026-10-19T12:00:00Z',exportedAt:new Date('2026-10-19T12:00:00Z')})).toThrow('venció');
+ expect(text).toContain('Plazo orientativo de compra: 10 dias');expect(text).not.toContain('Despacho no incluido');
+ expect(()=>buildQuotationPdfFile({...input,validUntil:'2026-10-19T12:00:00Z',exportedAt:new Date('2026-10-19T12:00:00Z')})).not.toThrow();
+});
+it('includes the server-issued code used to verify the PDF',async()=>{
+ const file=buildQuotationPdfFile({...input,verificationCode:'FND-AAAA-BBBB-CCCC-DDDD'});
+ const text=await new Promise<string>(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.readAsText(file);});expect(text).toContain('FND-AAAA-BBBB-CCCC-DDDD');
 });

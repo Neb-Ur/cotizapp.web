@@ -545,6 +545,16 @@ erDiagram
     text offer_reference "nullable"
     text resolution_state "NOT NULL"
   }
+  quotation_verifications["Verificación de cotizaciones por código"] {
+    text id PK "Código aleatorio del servidor"
+    text code UK "Código visible"
+    text quotation_reference "Referencia histórica, sin FK"
+    timestamptz issued_at "Emisión de esta versión"
+    timestamptz recommended_until "Plazo informativo"
+    jsonb store_lines "Productos y precios por ferretería"
+    jsonb api_payload "Versión inmutable"
+    bigint api_version "NOT NULL"
+  }
   quotations["Cotizaciones"] {
     text id PK "NOT NULL"
     text owner_id FK "NOT NULL"
