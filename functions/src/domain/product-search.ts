@@ -31,6 +31,7 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
     productoMaestroId: string;
     productName: string;
     imageUrl: string;
+    imageFallbackUrl: string;
     minPrice: number;
     maxPrice: number;
     brand: string;
@@ -56,6 +57,7 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
       productName: name,
       imageUrl: product.imagenPrincipalUrl && !product.imagenPrincipalUrl.includes('via.placeholder.com')
         ? product.imagenPrincipalUrl : '',
+      imageFallbackUrl: product.imagenExternaUrl || '',
       minPrice: 0,
       maxPrice: 0,
       brand: product.marca || 'Sin marca',

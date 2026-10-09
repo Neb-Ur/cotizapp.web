@@ -192,8 +192,7 @@
         >
           <div class="product-main">
             <div class="product-image-slot">
-              <img *ngIf="row.imageUrl" [src]="row.imageUrl" [alt]="row.productName" width="280" height="180" loading="lazy" decoding="async" />
-              <img *ngIf="!row.imageUrl" class="product-image-fallback" src="assets/cotizapp-mark.svg" alt="" width="120" height="120" loading="lazy" />
+              <img [findiProductImage]="row.imageUrl" [externalImageUrl]="row.imageFallbackUrl" [alt]="row.productName" width="280" height="180" loading="lazy" decoding="async" />
             </div>
             <div class="product-text">
               <h4>{{ row.productName }}</h4>

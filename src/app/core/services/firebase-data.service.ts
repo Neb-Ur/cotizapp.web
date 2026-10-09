@@ -63,6 +63,8 @@ interface ProductoMaestroApi {
   descripcionCorta?: string;
   descripcionLarga?: string;
   imagenPrincipalUrl?: string;
+  imagenStorageUrl?: string;
+  imagenExternaUrl?: string;
   galeriaJson?: string[];
   caracteristicasDestacadas?: string[];
   pesoLogisticoKg?: number | null;
@@ -563,6 +565,8 @@ export class FirebaseDataService {
       descripcionCorta: raw.descripcionCorta,
       descripcionLarga: raw.descripcionLarga,
       imagenPrincipalUrl: raw.imagenPrincipalUrl,
+      imagenStorageUrl: raw.imagenStorageUrl,
+      imagenExternaUrl: raw.imagenExternaUrl,
       galeriaJson: raw.galeriaJson,
       caracteristicasDestacadas: raw.caracteristicasDestacadas,
       pesoLogisticoKg: raw.pesoLogisticoKg,
@@ -1377,6 +1381,7 @@ export class FirebaseDataService {
       brand: string;
       productType: string;
       imageUrl: string;
+      imageFallbackUrl?: string;
       nearestDistanceKm?: number;
     }>();
 
@@ -1400,6 +1405,7 @@ export class FirebaseDataService {
           brand: master?.brand || 'Sin marca',
           productType: master?.productType || 'Producto ferretero',
           imageUrl: master?.imageUrl && !master.imageUrl.includes('via.placeholder.com') ? master.imageUrl : '',
+          imageFallbackUrl: master?.imageFallbackUrl || '',
           nearestDistanceKm: rowDistance
         };
 
@@ -1422,7 +1428,7 @@ export class FirebaseDataService {
       byProduct.set(master.name, {
         productName: master.name, minPrice: 0, maxPrice: 0,
         sellers: new Set<string>(), storeIds: new Set<string>(),
-        brand: master.brand, productType: master.productType, imageUrl: master.imageUrl
+        brand: master.brand, productType: master.productType, imageUrl: master.imageUrl, imageFallbackUrl: master.imageFallbackUrl
       });
     }
 
@@ -1549,7 +1555,8 @@ export class FirebaseDataService {
         seoPath:master.seoPath,
         productoMaestroId: master.id,
         productName: master.nombre,
-        imageUrl: master.imagenPrincipalUrl || '',
+        imageUrl: master.imagenStorageUrl || master.imagenPrincipalUrl || master.imagenExternaUrl || '',
+      imageFallbackUrl: master.imagenExternaUrl || '',
         gallery: Array.isArray(master.galeriaJson) && master.galeriaJson.length > 0
           ? master.galeriaJson
           : (master.imagenPrincipalUrl ? [master.imagenPrincipalUrl] : []),
@@ -2099,7 +2106,8 @@ export class FirebaseDataService {
       price: minPrice,
       stock: 0,
       sku: '',
-      imageUrl: product.imagenPrincipalUrl || '',
+      imageUrl: product.imagenStorageUrl || product.imagenPrincipalUrl || product.imagenExternaUrl || '',
+      imageFallbackUrl: product.imagenExternaUrl || '',
       isPublished: product.estado !== 'inactivo',
       shortDescription: product.descripcionCorta || '',
       descriptionBlocks: product.descripcionLarga ? [{ text: product.descripcionLarga }] : [],
@@ -2151,7 +2159,8 @@ export class FirebaseDataService {
       price: Number(row.precio) || 0,
       stock: Number(row.stock) || 0,
       sku: row.skuFerreteria || '',
-      imageUrl: master.imagenPrincipalUrl || '',
+      imageUrl: master.imagenStorageUrl || master.imagenPrincipalUrl || master.imagenExternaUrl || '',
+      imageFallbackUrl: master.imagenExternaUrl || '',
       isPublished: Boolean(row.publicado),
       shortDescription: master.descripcionCorta || '',
       descriptionBlocks: master.descripcionLarga ? [{ text: master.descripcionLarga }] : [],

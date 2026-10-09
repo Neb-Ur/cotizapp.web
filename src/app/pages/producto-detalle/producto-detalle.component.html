@@ -29,8 +29,7 @@
     <section class="hero-grid">
       <div class="gallery-panel">
         <div class="main-image">
-          <img *ngIf="currentImageUrl" [src]="currentImageUrl" [alt]="product.productName" width="720" height="540" fetchpriority="high" decoding="async" />
-          <span *ngIf="!currentImageUrl">Imagen del producto</span>
+          <img [findiProductImage]="currentImageUrl" [externalImageUrl]="product.imageFallbackUrl" [alt]="product.productName" width="720" height="540" fetchpriority="high" decoding="async" />
         </div>
         <div class="thumb-strip">
           <button
@@ -39,7 +38,7 @@
             [class.active]="i === selectedImageIndex"
             (click)="selectImage(i)"
           >
-            <img [src]="image" [alt]="product.productName + ' vista ' + (i + 1)" width="96" height="72" loading="lazy" decoding="async" />
+            <img [findiProductImage]="image" [externalImageUrl]="product.imageFallbackUrl" [alt]="product.productName + ' vista ' + (i + 1)" width="96" height="72" loading="lazy" decoding="async" />
           </button>
         </div>
         <p class="image-disclosure" *ngIf="product.imageDisclosure">{{ product.imageDisclosure }}</p>

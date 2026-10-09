@@ -10,7 +10,7 @@ import { rows, row, createRow, patchRow, deleteRowsByIds } from '../repositories
 import { resolveProductBrand } from '../lib/brands.js';
 export const masterProductsRouter = Router();
 
-const validImageSources = ['ai_generated', 'manufacturer_authorized', 'store_authorized', 'licensed_stock', 'original', 'other'];
+const validImageSources = ['external_url', 'ai_generated', 'manufacturer_authorized', 'store_authorized', 'licensed_stock', 'original', 'other'];
 const validContentSources = ['manufacturer_authorized', 'store_authorized', 'licensed', 'original', 'ai_assisted_original', 'public_domain', 'other'];
 
 function additionalFields(body: Record<string, unknown>): Record<string, unknown> {
@@ -19,6 +19,12 @@ function additionalFields(body: Record<string, unknown>): Record<string, unknown
   for (const key of ['pesoLogisticoKg', 'volumenLogisticoM3', 'unidadesPorPallet']) {
     if (body[key] !== undefined) fields[key] = body[key] === null ? null : Math.max(0, numberValue(body[key]));
   }
+  for (const key of ['imagenStorageUrl','imagenExternaUrl','imagenStoragePath']) if(body[key] !== undefined) {
+    const value=normalizeText(body[key]);
+    fields[key]=key==='imagenStoragePath' ? value : (/^https:\/\//i.test(value) ? value : '');
+  }
+  if(body['imagenStorageUrl'] !== undefined || body['imagenExternaUrl'] !== undefined)
+    fields['imagenPrincipalUrl']=fields['imagenStorageUrl'] || fields['imagenExternaUrl'] || normalizeText(body['imagenPrincipalUrl']);
   return fields;
 }
 
@@ -32,6 +38,10 @@ function imageRightsPayload(body: Record<string, any>, reviewerId: string | unde
   const authorizationReference = normalizeText(body?.['referenciaAutorizacion']).slice(0, 500);
   const containsThirdPartyMarks = body?.['contieneMarcasTerceros'] === true;
   const trademarkAuthorizationReference = normalizeText(body?.['referenciaAutorizacionMarca']).slice(0, 500);
+  if(sourceType==='external_url') {
+    try {const url=new URL(imageUrl);if(url.protocol!=='https:'||url.username||url.password)return null;return {origenImagen:sourceType,proveedorImagen:provider||url.hostname,referenciaAutorizacion:null,derechosRevisadosEn:null,derechosRevisadosPor:null};}
+    catch {return null;}
+  }
   if (!validImageSources.includes(sourceType) || provider.length < 2 || authorizationReference.length < 3) return null;
   if ((sourceType === 'ai_generated' || sourceType === 'licensed_stock') && !/^https?:\/\//i.test(sourceTermsUrl)) return null;
   if (containsThirdPartyMarks && trademarkAuthorizationReference.length < 3) return null;
@@ -152,6 +162,12 @@ masterProductsRouter.patch('/productos-maestro/:id', requireAuth, requireRole('a
   if (!current) return fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro.', 404);
   const nextImageUrl = req.body?.imagenPrincipalUrl !== undefined ? req.body.imagenPrincipalUrl : current.imagenPrincipalUrl;
   const rightsInput = { ...current, ...(req.body || {}), imagenPrincipalUrl: nextImageUrl };
+  // The existing editor changes one URL; keep its replacement/removal semantics.
+  if(req.body?.imagenPrincipalUrl !== undefined && req.body?.imagenExternaUrl === undefined
+    && nextImageUrl !== current.imagenStorageUrl) {
+    rightsInput.imagenExternaUrl=nextImageUrl;
+    if(current.imagenStorageUrl && req.body?.imagenStorageUrl === undefined) {rightsInput.imagenStorageUrl='';rightsInput.imagenStoragePath='';}
+  }
   const imageRights = imageRightsPayload(rightsInput, req.authUserId);
   if (imageRights === null) return fail(res, 'PRODUCT_IMAGE_RIGHTS_REQUIRED', 'Registra el origen, proveedor y respaldo de derechos de la imagen. Las marcas de terceros requieren autorización específica.', 400);
   const contentRights = contentRightsPayload(rightsInput, req.authUserId);
@@ -160,7 +176,7 @@ masterProductsRouter.patch('/productos-maestro/:id', requireAuth, requireRole('a
     'categoriaId', 'subcategoriaId', 'familiaId', 'nombre', 'marca', 'codigoBarras',
     'descripcionCorta', 'descripcionLarga', 'imagenPrincipalUrl', 'galeriaJson', 'estado', 'tipoProducto', 'unidadVenta', 'presentacion'
   ];
-  const patch: Record<string, unknown> = { ...imageRights, ...contentRights, ...additionalFields(req.body || {}), actualizadoEn: nowIso() };
+  const patch: Record<string, unknown> = { ...imageRights, ...contentRights, ...additionalFields(rightsInput), actualizadoEn: nowIso() };
   allowed.forEach((key) => { if (req.body?.[key] !== undefined) patch[key] = req.body[key]; });
   Object.assign(patch, await resolveProductBrand(req.body?.marca !== undefined ? req.body.marca : current.marca));
   const updated = await patchRow(COLLECTIONS.masterProducts, req.params.id, patch);

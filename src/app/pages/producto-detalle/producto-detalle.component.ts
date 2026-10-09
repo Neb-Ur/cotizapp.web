@@ -1,3 +1,4 @@
+import { ProductImageDirective } from '../../shared/directives/product-image.directive';
 import { productSlug } from '../../core/utils/product-url.util';
 import { QuotationSelectionService } from '../../core/services/quotation-selection.service';
 import { CommonModule, Location, isPlatformBrowser } from '@angular/common';
@@ -21,7 +22,7 @@ import {
 @Component({
   selector: 'app-producto-detalle',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, UiModalComponent],
+  imports: [ProductImageDirective, CommonModule, FormsModule, RouterLink, UiModalComponent],
   templateUrl: './producto-detalle.component.html',
   styleUrl: './producto-detalle.component.scss'
 })

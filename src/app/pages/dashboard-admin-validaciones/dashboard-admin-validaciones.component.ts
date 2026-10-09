@@ -2278,6 +2278,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   private validImageRightsDraft(): boolean {
     const draft = this.masterDetailDraft;
     if (!draft.imageUrl.trim()) return true;
+    if (draft.imageSourceType === 'external_url') return /^https:\/\//i.test(draft.imageUrl.trim());
     if (!draft.imageSourceType || draft.imageProvider.trim().length < 2 || draft.imageAuthorizationReference.trim().length < 3) return false;
     if ((draft.imageSourceType === 'ai_generated' || draft.imageSourceType === 'licensed_stock')
       && !/^https?:\/\//i.test(draft.imageSourceTermsUrl.trim())) return false;

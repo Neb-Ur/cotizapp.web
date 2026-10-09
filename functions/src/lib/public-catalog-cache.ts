@@ -105,7 +105,9 @@ async function materializeSnapshot(): Promise<PublicCatalogSnapshot> {
       marcaId: item.marcaId || null,
       descripcionCorta: item.descripcionCorta || '',
       descripcionLarga: item.descripcionLarga || '',
-      imagenPrincipalUrl: item.imagenPrincipalUrl || '',
+      imagenPrincipalUrl: item.imagenStorageUrl || item.imagenPrincipalUrl || item.imagenExternaUrl || '',
+      imagenStorageUrl: item.imagenStorageUrl || '',
+      imagenExternaUrl: item.imagenExternaUrl || '',
       galeriaJson: Array.isArray(item.galeriaJson) ? item.galeriaJson : [],
       catalogoNivel: item.catalogoNivel || 'producto_comercial',
       estado: item.estado || 'activo'

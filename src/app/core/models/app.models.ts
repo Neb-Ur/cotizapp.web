@@ -256,6 +256,7 @@ export interface FamilyProductRow {
   productoMaestroId?: string;
   productName: string;
   imageUrl: string;
+  imageFallbackUrl?: string;
   minPrice: number;
   maxPrice: number;
   storeCount: number;
@@ -324,6 +325,7 @@ export interface ProductDetailView {
   productoMaestroId?: string;
   productName: string;
   imageUrl: string;
+  imageFallbackUrl?: string;
   gallery: string[];
   imageDisclosure: string;
   sku: string;
@@ -431,6 +433,7 @@ export interface CatalogProduct {
   stock: number;
   sku: string;
   imageUrl: string;
+  imageFallbackUrl?: string;
   isPublished: boolean;
   shortDescription: string;
   descriptionBlocks: ProductDescriptionBlock[];
@@ -447,7 +450,7 @@ export interface CatalogProduct {
   measurementUnit?: 'kg' | 'l' | 'm' | 'm2' | 'm3' | 'unidad' | '';
   measurementQuantity?: number | null;
   imageRights?: {
-    sourceType: 'ai_generated' | 'manufacturer_authorized' | 'store_authorized' | 'licensed_stock' | 'original' | 'other' | '';
+    sourceType: 'external_url' | 'ai_generated' | 'manufacturer_authorized' | 'store_authorized' | 'licensed_stock' | 'original' | 'other' | '';
     provider: string;
     sourceTermsUrl: string;
     authorizationReference: string;

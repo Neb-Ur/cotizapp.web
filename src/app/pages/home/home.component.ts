@@ -1,3 +1,4 @@
+import { ProductImageDirective } from '../../shared/directives/product-image.directive';
 import { productSlug } from '../../core/utils/product-url.util';
 import { categoryIcon } from '../../core/utils/category-icon.util';
 import { CommonModule } from '@angular/common';
@@ -16,7 +17,7 @@ interface HomeCategory extends TaxonomyOption {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink, SkeletonModule],
+  imports: [ProductImageDirective, CommonModule, RouterLink, SkeletonModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })

@@ -51,8 +51,7 @@
     <div class="home-product-grid" *ngIf="featuredProducts.length > 0">
       <a class="home-product-card" *ngFor="let product of featuredProducts | slice:0:4" [href]="productUrl(product.productName)" (click)="openProductCard($event, product)">
         <span class="home-product-image">
-          <img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.productName" width="360" height="240" loading="lazy" decoding="async" />
-          <img *ngIf="!product.imageUrl" class="fallback" src="assets/cotizapp-mark.svg" alt="" width="180" height="180" loading="lazy" />
+          <img [findiProductImage]="product.imageUrl" [externalImageUrl]="product.imageFallbackUrl" [alt]="product.productName" width="360" height="240" loading="lazy" decoding="async" />
         </span>
         <span class="home-product-meta">{{ product.brand === 'Por especificar' ? 'Producto base' : product.brand }} · {{ product.productType }}</span>
         <span class="home-product-name">{{ product.productName }}</span>

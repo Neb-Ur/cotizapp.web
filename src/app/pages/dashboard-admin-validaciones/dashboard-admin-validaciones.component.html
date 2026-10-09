@@ -1240,7 +1240,7 @@
             <div class="request-detail-form">
               <label>Origen
                 <select [(ngModel)]="masterDetailDraft.imageSourceType" [disabled]="masterDetailReadonly">
-                  <option value="">Selecciona</option><option value="ai_generated">Generada por IA</option><option value="manufacturer_authorized">Fabricante autorizado</option><option value="store_authorized">Ferretería autorizada</option><option value="licensed_stock">Banco de imágenes con licencia</option><option value="original">Creación propia</option><option value="other">Otro respaldo</option>
+                  <option value="">Selecciona</option><option value="external_url">URL externa</option><option value="ai_generated">Generada por IA</option><option value="manufacturer_authorized">Fabricante autorizado</option><option value="store_authorized">Ferretería autorizada</option><option value="licensed_stock">Banco de imágenes con licencia</option><option value="original">Creación propia</option><option value="other">Otro respaldo</option>
                 </select>
               </label>
               <label>Proveedor o titular<input type="text" [(ngModel)]="masterDetailDraft.imageProvider" [disabled]="masterDetailReadonly" placeholder="OpenAI, fabricante o fotógrafo" /></label>
@@ -1392,7 +1392,7 @@
             <div class="request-detail-form">
               <label>Origen
                 <select [(ngModel)]="masterDetailDraft.imageSourceType">
-                  <option value="">Selecciona</option><option value="ai_generated">Generada por IA</option><option value="manufacturer_authorized">Fabricante autorizado</option><option value="store_authorized">Ferretería autorizada</option><option value="licensed_stock">Banco de imágenes con licencia</option><option value="original">Creación propia</option><option value="other">Otro respaldo</option>
+                  <option value="">Selecciona</option><option value="external_url">URL externa</option><option value="ai_generated">Generada por IA</option><option value="manufacturer_authorized">Fabricante autorizado</option><option value="store_authorized">Ferretería autorizada</option><option value="licensed_stock">Banco de imágenes con licencia</option><option value="original">Creación propia</option><option value="other">Otro respaldo</option>
                 </select>
               </label>
               <label>Proveedor o titular<input type="text" [(ngModel)]="masterDetailDraft.imageProvider" placeholder="OpenAI, fabricante o fotógrafo" /></label>
