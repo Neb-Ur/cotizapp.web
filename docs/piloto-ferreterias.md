@@ -54,7 +54,7 @@ firebase deploy --only functions:api --project cotizapp-d71c8
 
 La desactivación pone las cuatro tiendas y propietarios inactivos y sus ofertas no publicadas, invalida el catálogo y excluye sus precios de la búsqueda y de nuevas comparaciones. La variable también impide publicarlas si se mantuviera algún registro activo por error. El banner se oculta cuando la API devuelve la variable desactivada.
 
-Las cotizaciones conservan sus artículos; al recalcular dejan de usar precios ficticios. Si todavía no existen ofertas reales, se informan como incompletas y no se permite exportar un total comercial inventado. Las imágenes y productos base continúan visibles.
+Las cotizaciones conservan sus artículos y los precios guardados durante sus 10 días de vigencia, identificados como prueba. Al renovar una cotización después de retirar el piloto, se consultan únicamente las ofertas reales disponibles. Si no existen ofertas reales, se informa como incompleta y no se permite exportar un total inventado. Las imágenes y productos base continúan visibles.
 
 ## Verificación
 

@@ -1,3 +1,4 @@
+import { quotationExpired } from '../domain/quotation-validity.js';
 import { buildSearchRows } from '../services/catalog-search.service.js';
 import { Router } from 'express';
 import { db } from '../lib/firebase.js';
@@ -7,7 +8,7 @@ import { COLLECTIONS } from '../lib/collections.js';
 import { nowIso, normalizeText, normalizeProjectProximity } from '../lib/values.js';
 import { rows, row, createRow, patchRow } from '../repositories/firestore.repository.js';
 import { canAccessOwner } from '../lib/ownership.js';
-import { normalizeItems, optimizeItems, projectView } from '../services/quotation.service.js';
+import { normalizeItems, optimizeItems, projectView, captureProjectPricing } from '../services/quotation.service.js';
 export const projectsRouter = Router();
 
 projectsRouter.get('/maestros/:ownerId/proyectos', requireAuth, requireRole('maestro', 'admin'), async (req, res) => {
@@ -36,6 +37,7 @@ projectsRouter.post('/maestros/:ownerId/proyectos', requireAuth, requireRole('ma
     singleStoreId: normalizeText(req.body?.ferreteriaUnicaId) || null,
     createdAt: nowIso()
   };
+  Object.assign(payload, await captureProjectPricing(payload));
   const ref = db.collection(COLLECTIONS.projects).doc();
   const created = await db.runTransaction(async tx => {
     const lock = db.collection(COLLECTIONS.projectOwnerLocks).doc(req.params.ownerId);
@@ -61,7 +63,9 @@ projectsRouter.put('/maestros/:ownerId/proyectos/:projectId', requireAuth, requi
   if (!canAccessOwner(req, req.params.ownerId)) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para esta cotizacion.', 403);
   const project = await row(COLLECTIONS.projects, req.params.projectId);
   if (!project || project.ownerId !== req.params.ownerId) return fail(res, 'PROYECTO_NOT_FOUND', 'No existe la cotizacion indicada.', 404);
-  const updated = await patchRow(COLLECTIONS.projects, req.params.projectId, {
+  const renew = req.body?.renovarPrecios === true;
+  if (quotationExpired(project) && !renew) return fail(res, 'QUOTATION_EXPIRED', 'La cotización venció. Renueva los precios para obtener otros 10 días de vigencia.', 409);
+  const patch = {
     name: normalizeText(req.body?.nombre) || project.name,
     address: normalizeText(req.body?.direccionObra),
     description: req.body?.descripcion === undefined ? (project.description || '') : normalizeText(req.body.descripcion).slice(0, 2000),
@@ -70,7 +74,8 @@ projectsRouter.put('/maestros/:ownerId/proyectos/:projectId', requireAuth, requi
     singleStoreName: normalizeText(req.body?.ferreteriaUnica) || null,
     singleStoreId: normalizeText(req.body?.ferreteriaUnicaId) || null,
     updatedAt: nowIso()
-  });
+  };
+  const updated = await patchRow(COLLECTIONS.projects, req.params.projectId, {...patch, ...await captureProjectPricing({...project, ...patch}, project, renew)});
   return ok(res, await projectView(updated));
 });
 
@@ -83,10 +88,13 @@ projectsRouter.post('/maestros/:ownerId/proyectos/:projectId/items', requireAuth
     const latest = await tx.get(ref);
     if (!latest.exists || latest.data()?.['ownerId'] !== req.params.ownerId) return null;
     const data = latest.data()!;
+    if (quotationExpired(data)) return { expired: true };
     const patch = { items: [...normalizeItems(data['items']), ...normalizeItems([req.body])], updatedAt: nowIso() };
+    Object.assign(patch, await captureProjectPricing({...data, ...patch}, data));
     tx.update(ref, patch);
     return { id: ref.id, ...data, ...patch };
   });
+  if (updated && 'expired' in updated) return fail(res, 'QUOTATION_EXPIRED', 'Renueva los precios de la cotización vencida antes de agregar productos.', 409);
   if (!updated) return fail(res, 'PROYECTO_NOT_FOUND', 'No existe la cotizacion indicada.', 404);
   return ok(res, await projectView(updated), 201);
 });

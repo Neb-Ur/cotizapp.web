@@ -1,3 +1,4 @@
+import { captureQuotationPricing, quotationExpired } from '../domain/quotation-validity.js';
 import { buildQuotationOptimization } from '../domain/quotation.js';
 import type { ProjectItem, ProjectProximity } from '../models/domain.models.js';
 import { normalizeText, numberValue, normalizeProjectProximity, geographicDistanceKm, nowIso } from '../lib/values.js';
@@ -37,11 +38,16 @@ export async function optimizeItems(
   return buildQuotationOptimization(normalizeItems(items), searchRows, requestedStoreName, requestedStoreId);
 }
 
+export async function captureProjectPricing(project: any, previous?: any, renew = false) {
+  return captureQuotationPricing(project, previous, await buildSearchRows(), Date.now(), renew);
+}
+
 export async function projectView(project: any, offers?: Awaited<ReturnType<typeof buildSearchRows>>): Promise<any> {
   const items = normalizeItems(project.items);
   const proximity = normalizeProjectProximity(project.proximity ?? project.proximidad);
   const requestedStoreName = normalizeText(project.singleStoreName ?? project.ferreteriaUnica);
-  const optimization = await optimizeItems(items, proximity, requestedStoreName, offers, normalizeText(project.singleStoreId ?? project.ferreteriaUnicaId));
+  const pricing = Array.isArray(project.pricingOffers) ? project.pricingOffers : offers;
+  const optimization = await optimizeItems(items, proximity, requestedStoreName, pricing, normalizeText(project.singleStoreId ?? project.ferreteriaUnicaId));
   return {
     id: project.id,
     name: project.name || project.nombre || 'Cotizacion',
@@ -53,8 +59,12 @@ export async function projectView(project: any, offers?: Awaited<ReturnType<type
     createdAt: project.createdAt || project.creadoEn || nowIso(),
     items,
     availabilityStatus: items.length === 0 ? 'draft' : optimization.lines.some((line: any) => line.unitPrice <= 0) ? 'incomplete' : 'ready',
-    pricesCheckedAt: nowIso(),
-    pricingMode: 'live',
+    pricesCheckedAt: project.pricesCapturedAt || nowIso(),
+    pricesCapturedAt: project.pricesCapturedAt,
+    validUntil: project.validUntil,
+    expired: quotationExpired(project),
+    pricingOffers: project.pricingOffers,
+    pricingMode: project.pricingMode || 'live',
     totalOptimal: optimization.optimalTotal,
     saving: optimization.mixedSaving
   };

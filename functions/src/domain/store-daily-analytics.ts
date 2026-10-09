@@ -44,12 +44,12 @@ export function aggregateStoreDailyAnalytics(stores: Row[], projects: Row[], off
     const quoteId = String(project.id || index);
     const updated = Date.parse(project.updatedAt || project.createdAt || '');
     const created = Date.parse(project.createdAt || '');
-    const active = updated >= cutoff && updated <= now.getTime() && !['closed', 'archived', 'cerrado', 'archivado'].includes(project.status || project.estado);
+    const active = updated >= cutoff && updated <= now.getTime() && !['closed', 'archived', 'cerrado', 'archivado'].includes(project.status || project.estado) && (!project.validUntil || Date.parse(project.validUntil) > now.getTime());
     const candidates = [...new Map(items.flatMap(item => offersByProduct.get(item.productoMaestroId ? `id:${item.productoMaestroId}` : `name:${item.productName.trim().toLocaleLowerCase('es-CL')}`) || []).map(offer => [offer.productoFerreteriaId || `${offer.storeId}:${offer.productName}`, offer])).values()];
     const proximity = project.proximity;
     const scoped = proximity ? candidates.filter(offer => Number.isFinite(offer.storeLatitude) && Number.isFinite(offer.storeLongitude) && geographicDistanceKm(proximity, {latitude: offer.storeLatitude, longitude: offer.storeLongitude}) <= Number(proximity.radiusKm)) : candidates;
     const singleId = project.singleStoreId || (project.singleStoreName ? legacyStore(project.singleStoreName) : undefined);
-    const optimized = buildQuotationOptimization(items, scoped, project.singleStoreName, singleId);
+    const optimized = buildQuotationOptimization(items, Array.isArray(project.pricingOffers) ? project.pricingOffers : scoped, project.singleStoreName, singleId);
     const touched = new Set<string>();
     for (const line of optimized.lines) {
       const originalOffer = rawOfferById.get(line.productoFerreteriaId || '');

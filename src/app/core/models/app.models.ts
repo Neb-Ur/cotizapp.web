@@ -359,7 +359,18 @@ export interface ProjectItem {
   productoMaestroId?: string;
 }
 
+export interface SavedQuotationOffer extends SearchRow {
+  productoMaestroId: string;
+  productoFerreteriaId: string;
+  sku: string;
+  stock: number;
+}
+
 export interface ProjectSummary {
+  pricesCapturedAt?: string;
+  validUntil?: string;
+  expired?: boolean;
+  pricingOffers?: SavedQuotationOffer[];
   description?: string;
   availabilityStatus?: 'draft' | 'incomplete' | 'ready';
   pricesCheckedAt?: string;

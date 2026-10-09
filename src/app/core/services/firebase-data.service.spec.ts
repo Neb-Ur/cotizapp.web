@@ -146,3 +146,13 @@ describe('referential product imagery',()=>{
   expect(generated.imageDisclosure).toContain('inteligencia artificial');
  });
 });
+
+describe('saved quotation prices',()=>{
+ it('uses saved prices for the detail and comparisons without loading the live catalog',()=>{
+  const {service,api}=fixture();const offer={productName:'Cemento',storeName:'Local',storeId:'store',productoMaestroId:'cement',productoFerreteriaId:'offer',price:1000,stock:30,sku:'SKU',categoryId:'cat',categoryName:'Construcción',subcategoryId:'sub',subcategoryName:'Cementos',familyId:'fam',familyName:'Cemento'};
+  (service as any).searchRows=[{...offer,price:9000}];
+  expect(service.buildProjectQuotation([{productName:'Cemento',quantity:2}],undefined,undefined,undefined,[offer]).optimalTotal).toBe(2000);
+  expect(service.getProjectComparisonStrategies([{productName:'Cemento',quantity:2}],'',undefined,undefined,undefined,[offer])[0].total).toBe(2000);
+  expect(api.get).not.toHaveBeenCalled();
+ });
+});

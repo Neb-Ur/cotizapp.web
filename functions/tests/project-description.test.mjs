@@ -16,3 +16,10 @@ test('description persists through create, updates and item additions without af
  assert.equal(legacy.body.data.description,'Instalar muebles');
  assert.equal(fixture.rows('proyectos')[0].description,'Instalar muebles');
 });
+test('expired quotations reject silent saves and require explicit price renewal',async t=>{
+ firestoreFixture(t,{usuarios:{master:{rol:'maestro',estadoCuenta:'activo'}},proyectos:{quote:{ownerId:'master',name:'Obra',items:[],pricingOffers:[],pricesCapturedAt:'2020-01-01T00:00:00Z',validUntil:'2020-01-11T00:00:00Z',createdAt:'2020-01-01T00:00:00Z'}}});
+ const req={authRole:'maestro',authUserId:'master',params:{ownerId:'master',projectId:'quote'},body:{nombre:'Obra',items:[]}};
+ const refused=response();await handler('put','/maestros/:ownerId/proyectos/:projectId')(req,refused);assert.equal(refused.statusCode,409);assert.equal(refused.body.error.code,'QUOTATION_EXPIRED');
+ const renewed=response();await handler('put','/maestros/:ownerId/proyectos/:projectId')({...req,body:{...req.body,renovarPrecios:true}},renewed);assert.equal(renewed.statusCode,200);assert.equal(renewed.body.data.expired,false);
+ assert.equal(Date.parse(renewed.body.data.validUntil)-Date.parse(renewed.body.data.pricesCapturedAt),10*86400000);
+});

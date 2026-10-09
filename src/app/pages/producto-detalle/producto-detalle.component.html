@@ -144,7 +144,7 @@
                   <p class="offer-facts">
                     Actualizado {{ store.priceUpdatedAt | date:'dd/MM/yyyy, HH:mm' }} ·
                     {{ store.includesVat ? 'IVA incluido' : 'IVA no incluido' }} ·
-                    Despacho no incluido
+                    Cotización de materiales
                   </p>
                   <p class="comparison-exclusion" *ngIf="!store.comparisonEligible">No participa en “mejor precio” porque no declara IVA incluido.</p>
                   <p class="offer-validity">
@@ -192,7 +192,7 @@
               <span>Ferretería seleccionada</span>
               <strong>{{ store.storeName }}</strong>
               <small>{{ selectedQuantity }} × {{ formatCurrency(store.price) }} por {{ quantityLabel.toLowerCase() }}</small>
-              <small>{{ store.includesVat ? 'IVA incluido' : 'IVA no incluido' }} · despacho no incluido</small>
+              <small>{{ store.includesVat ? 'IVA incluido' : 'IVA no incluido' }}</small>
             </div>
             <p><span>Total estimado sin despacho</span><strong>{{ formatCurrency(selectedTotal) }}</strong></p>
           </section>

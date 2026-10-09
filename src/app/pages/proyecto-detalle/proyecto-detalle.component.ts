@@ -12,6 +12,7 @@ import {
   ProjectItem,
   ProjectQuotationView,
   SearchProximity,
+  SavedQuotationOffer,
   SessionUser
 } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
@@ -38,6 +39,10 @@ export class ProyectoDetalleComponent implements OnInit {
   protected projectName = '';
   protected projectAddress = '';
   protected projectDescription = '';
+  protected pricingOffers?: SavedQuotationOffer[];
+  protected validUntil = '';
+  protected pricesCapturedAt = '';
+  protected get quotationExpired(): boolean { return !!this.validUntil && Date.parse(this.validUntil) <= Date.now(); }
   protected whatsappNumber = '';
   protected shareNotice = '';
   protected projectItems: ProjectItem[] = [];
@@ -99,7 +104,7 @@ export class ProyectoDetalleComponent implements OnInit {
   }
 
   protected get mixedQuotation(): ProjectQuotationView {
-    return this.apiService.buildProjectQuotation(this.projectItems, this.projectProximity);
+    return this.apiService.buildProjectQuotation(this.projectItems, this.projectProximity, undefined, undefined, this.pricingOffers);
   }
 
   protected get quotation(): ProjectQuotationView {
@@ -107,7 +112,8 @@ export class ProyectoDetalleComponent implements OnInit {
       this.projectItems,
       this.projectProximity,
       this.selectedSingleStoreName || undefined,
-      this.selectedSingleStoreId || undefined
+      this.selectedSingleStoreId || undefined,
+      this.pricingOffers
     );
   }
 
@@ -117,7 +123,8 @@ export class ProyectoDetalleComponent implements OnInit {
       this.projectAddress,
       this.projectProximity,
       this.quotation.appliedStoreName,
-      this.quotation.appliedStoreId
+      this.quotation.appliedStoreId,
+      this.pricingOffers
     );
   }
 
@@ -146,7 +153,7 @@ export class ProyectoDetalleComponent implements OnInit {
 
 
   protected get hasQuotation(): boolean {
-    return this.quotation.lines.length > 0
+    return !this.quotationExpired && this.quotation.lines.length > 0
       && this.quotation.lines.every((line) => line.unitPrice > 0);
   }
 
@@ -192,7 +199,7 @@ export class ProyectoDetalleComponent implements OnInit {
     return this.getRowUnitPrice(item) * quantity;
   }
 
-  protected async saveProject(): Promise<void> {
+  protected async saveProject(renewPrices = false): Promise<void> {
     await this.writeFeedback.run('proyecto-detalle:saveProject', async () => {
       if (this.isSaving) return;
       this.isSaving = true;
@@ -243,14 +250,18 @@ export class ProyectoDetalleComponent implements OnInit {
         this.projectProximity,
         this.quotation.appliedStoreName,
         this.quotation.appliedStoreId,
-        this.projectDescription
+        this.projectDescription,
+        renewPrices
       );
       if (!updated) {
         this.saveNotice = 'No se pudo actualizar la cotizacion.';
         return;
       }
 
-      this.saveNotice = 'Cotizacion actualizada correctamente.';
+      this.pricingOffers = updated.pricingOffers;
+      this.validUntil = updated.validUntil || '';
+      this.pricesCapturedAt = updated.pricesCapturedAt || '';
+      this.saveNotice = renewPrices ? 'Precios renovados. La cotización tiene 10 días de vigencia.' : 'Cotización actualizada conservando los precios guardados.';
       } catch (error) { this.saveNotice = error instanceof Error ? error.message : 'No se pudo guardar la cotización.'; }
       finally { this.isSaving = false; }
 
@@ -376,6 +387,8 @@ export class ProyectoDetalleComponent implements OnInit {
         projectName: this.projectName.trim() || 'Cotizacion',
         projectAddress: this.projectAddress,
       projectDescription: this.projectDescription,
+      validUntil: this.validUntil || undefined,
+      pricesCapturedAt: this.pricesCapturedAt || undefined,
       pilot: this.pilot?.enabled() === true,
         maestroName: this.user?.displayName || '',
         quotation: this.quotation,
@@ -394,10 +407,10 @@ export class ProyectoDetalleComponent implements OnInit {
   }
 
   protected sendViaWhatsapp(): void {
-    if (!this.hasQuotation) return;
+    if (!this.hasQuotation || this.isNewProject) return;
     try {
-      const url = quotationWhatsappUrl(this.whatsappNumber, this.projectName, this.formatCurrency(this.totalWithIva), this.pilot?.enabled() === true);
-      downloadQuotationPdf({projectName:this.projectName, projectAddress:this.projectAddress, projectDescription:this.projectDescription,
+      const url = quotationWhatsappUrl(this.whatsappNumber, this.projectName, this.formatCurrency(this.totalWithIva), this.pilot?.enabled() === true, this.validUntil || undefined);
+      downloadQuotationPdf({projectName:this.projectName, projectAddress:this.projectAddress, projectDescription:this.projectDescription, validUntil:this.validUntil || undefined, pricesCapturedAt:this.pricesCapturedAt || undefined,
         maestroName:this.user?.displayName || '', quotation:this.quotation, proximity:this.projectProximity, pilot:this.pilot?.enabled() === true});
       window.open(url, '_blank', 'noopener,noreferrer');
       this.shareNotice = 'PDF descargado. Adjunta el archivo en WhatsApp y revisa el mensaje antes de enviarlo.';
@@ -405,7 +418,7 @@ export class ProyectoDetalleComponent implements OnInit {
   }
 
   protected exportQuotation(): void {
-    if (!this.hasQuotation) {
+    if (!this.hasQuotation || this.isNewProject) {
       return;
     }
 
@@ -413,6 +426,8 @@ export class ProyectoDetalleComponent implements OnInit {
       projectName: this.projectName.trim() || 'Cotizacion',
       projectAddress: this.projectAddress,
       projectDescription: this.projectDescription,
+      validUntil: this.validUntil || undefined,
+      pricesCapturedAt: this.pricesCapturedAt || undefined,
       pilot: this.pilot?.enabled() === true,
       maestroName: this.user?.displayName || '',
       quotation: this.quotation,
@@ -440,6 +455,7 @@ export class ProyectoDetalleComponent implements OnInit {
     if (this.isNewProject) {
       const draft = this.readDraft();
       const nearbyPreference = readNearbySearchPreference();
+      this.pricingOffers = undefined; this.validUntil = ''; this.pricesCapturedAt = '';
       this.projectName = draftName || draft?.name || '';
       this.projectAddress = draftAddress || draft?.address || '';
       this.projectDescription = draft?.description || '';
@@ -470,6 +486,7 @@ export class ProyectoDetalleComponent implements OnInit {
       this.projectName = refreshed.name;
       this.projectAddress = refreshed.address || '';
       this.projectDescription = refreshed.description || '';
+      this.pricingOffers = refreshed.pricingOffers; this.validUntil = refreshed.validUntil || ''; this.pricesCapturedAt = refreshed.pricesCapturedAt || '';
       this.projectProximity = refreshed.proximity;
       this.selectedSingleStoreName = refreshed.singleStoreName || '';
       this.selectedSingleStoreId = refreshed.singleStoreId || '';
@@ -485,6 +502,7 @@ export class ProyectoDetalleComponent implements OnInit {
     this.projectName = project.name;
     this.projectAddress = project.address || '';
     this.projectDescription = project.description || '';
+    this.pricingOffers = project.pricingOffers; this.validUntil = project.validUntil || ''; this.pricesCapturedAt = project.pricesCapturedAt || '';
     this.projectProximity = project.proximity;
     this.selectedSingleStoreName = project.singleStoreName || '';
     this.selectedSingleStoreId = project.singleStoreId || '';

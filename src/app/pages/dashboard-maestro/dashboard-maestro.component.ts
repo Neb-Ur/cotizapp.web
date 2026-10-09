@@ -520,7 +520,8 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
       project.items,
       project.proximity,
       project.singleStoreName,
-      project.singleStoreId
+      project.singleStoreId,
+      project.pricingOffers
     );
     if (quotation.lines.length === 0) {
       this.quotationNotice = 'Esta cotizacion no tiene productos para enviar.';
@@ -537,6 +538,9 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
       const result = await shareQuotationPdf({
         projectName: project.name,
         projectAddress: project.address || '',
+        projectDescription: project.description || '',
+        pricesCapturedAt: project.pricesCapturedAt,
+        validUntil: project.validUntil,
         maestroName: this.user?.displayName || '',
         quotation,
         proximity: project.proximity

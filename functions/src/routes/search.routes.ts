@@ -173,7 +173,7 @@ searchRouter.get('/productos/detalle', async (req, res) => {
     stores,
     minPrice: stores.length ? Math.min(...stores.map((item) => item.price)) : 0,
     maxPrice: stores.length ? Math.max(...stores.map((item) => item.price)) : 0,
-    comparisonCriteria: 'Menor precio final unitario con IVA incluido, informado para la misma ficha de producto, con oferta activa y vigente. El patrocinio no altera el orden. El despacho no está incluido.'
+    comparisonCriteria: 'Menor precio final unitario con IVA incluido, informado para la misma ficha de producto, con oferta activa y vigente. El patrocinio no altera el orden.'
   });
 });
 

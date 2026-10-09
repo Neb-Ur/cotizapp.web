@@ -28,6 +28,7 @@ import {
   SearchFilters,
   SearchProximity,
   SearchRow,
+  SavedQuotationOffer,
   SessionUser,
   TaxonomyOption
 } from '../models/app.models';
@@ -1326,13 +1327,15 @@ export class FirebaseDataService {
     proximity?: SearchProximity,
     singleStoreName?: string,
     singleStoreId?: string,
-    description = ''
+    description = '',
+    renewPrices = false
   ): Promise<ProjectSummary | null> {
     try {
       const updated = await this.apiClient.put<any>(`/maestros/${ownerId}/proyectos/${projectId}`, {
         nombre: name.trim(),
         direccionObra: address.trim(),
         descripcion: description.trim(),
+        renovarPrecios: renewPrices,
         proximidad: proximity ? {
           latitude: proximity.latitude,
           longitude: proximity.longitude,
@@ -1612,7 +1615,7 @@ export class FirebaseDataService {
         maxPrice: Number(raw.maxPrice) || 0,
         stores,
         comparisonCriteria: raw.comparisonCriteria
-          || 'Menor precio final unitario con IVA incluido, informado para la misma ficha de producto, con oferta activa y vigente. El patrocinio no altera el orden. El despacho no está incluido.'
+          || 'Menor precio final unitario con IVA incluido, informado para la misma ficha de producto, con oferta activa y vigente. El patrocinio no altera el orden.'
       };
 
   }
@@ -1708,8 +1711,10 @@ export class FirebaseDataService {
     items: ProjectItem[],
     proximity?: SearchProximity,
     singleStoreName?: string,
-    singleStoreId?: string
+    singleStoreId?: string,
+    pricingOffers?: SavedQuotationOffer[]
   ): ProjectQuotationView {
+    if (pricingOffers) return buildQuotationOptimization(items, this.filterSearchRowsByProximity(pricingOffers, proximity), singleStoreName, singleStoreId);
     this.observeLoad(this.ensureSearchRowsLoaded());
     const key = JSON.stringify([items, proximity, singleStoreName, singleStoreId]);
     const cached = this.quotationCache.get(key);
@@ -1726,11 +1731,12 @@ export class FirebaseDataService {
     _projectAddress = '',
     proximity?: SearchProximity,
     singleStoreName?: string,
-    singleStoreId?: string
+    singleStoreId?: string,
+    pricingOffers?: SavedQuotationOffer[]
   ): ProjectComparisonStrategy[] {
-    const quotation = this.buildProjectQuotation(items, proximity, singleStoreName, singleStoreId);
+    const quotation = this.buildProjectQuotation(items, proximity, singleStoreName, singleStoreId, pricingOffers);
     const mixedStoresUsed = new Set(
-      this.buildProjectQuotation(items, proximity).lines
+      this.buildProjectQuotation(items, proximity, undefined, undefined, pricingOffers).lines
         .map((line) => line.bestStoreId || line.bestStoreName)
         .filter((name) => name && name !== 'Sin datos')
     ).size;
@@ -2232,6 +2238,10 @@ export class FirebaseDataService {
       return {
         availabilityStatus: row.availabilityStatus,
         pricesCheckedAt: row.pricesCheckedAt,
+        pricesCapturedAt: row.pricesCapturedAt,
+        validUntil: row.validUntil,
+        expired: row.expired,
+        pricingOffers: row.pricingOffers,
         id: row.id,
         description: row.description || '',
         name: row.name,

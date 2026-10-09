@@ -503,3 +503,5 @@ tfoot .total-final td {
 .whatsapp-share-actions {display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;}
 .whatsapp-share-actions label {flex:1;min-width:180px;}
 .whatsapp-share-actions button {min-height:44px;}
+
+.quotation-validity{border:1px solid var(--border);border-radius:14px;background:#fff8ee;padding:16px;margin:16px 0;font-size:.875rem;line-height:1.5}.quotation-validity p{margin:6px 0 12px}.quotation-validity.expired{background:#fff1f1;border-color:#e6aaaa;}

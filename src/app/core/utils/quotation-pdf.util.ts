@@ -5,6 +5,8 @@ export interface QuotationPdfInput {
   projectAddress?: string;
   projectDescription?: string;
   pilot?: boolean;
+  pricesCapturedAt?: string;
+  validUntil?: string;
   maestroName: string;
   quotation: ProjectQuotationView;
   proximity?: SearchProximity;
@@ -14,6 +16,7 @@ export interface QuotationPdfInput {
 export function buildQuotationPdfFile(input: QuotationPdfInput): File {
   if (!input.quotation.lines.length || input.quotation.lines.some(line => line.unitPrice <= 0)) throw new Error('Revisa los productos sin oferta disponible antes de exportar.');
   const exportedAt = input.exportedAt || new Date();
+  if (input.validUntil && Date.parse(input.validUntil) <= exportedAt.getTime()) throw new Error('La cotización venció. Renueva los precios antes de exportarla.');
   const lines = buildQuotationPdfLines(input, exportedAt);
   const blob = buildPdfBlob(lines);
   const filename = `${toFileSafeName(input.projectName || 'cotizacion')}-${buildFilenameDate(exportedAt)}.pdf`;
@@ -62,6 +65,10 @@ function buildQuotationPdfLines(input: QuotationPdfInput, exportedAt: Date): str
   if (input.projectDescription?.trim()) lines.push(`Descripcion: ${input.projectDescription.trim()}`);
   lines.push(`Maestro: ${input.maestroName || 'No definido'}`);
   lines.push(`Fecha de exportacion: ${formatExportDate(exportedAt)}`);
+  const capturedAt = input.pricesCapturedAt ? new Date(input.pricesCapturedAt) : exportedAt;
+  const validUntil = input.validUntil ? new Date(input.validUntil) : new Date(capturedAt.getTime() + 10 * 86400000);
+  lines.push(`Precios guardados: ${formatExportDate(capturedAt)}`);
+  lines.push(`Vigencia: 10 dias, hasta ${formatExportDate(validUntil)}`);
   lines.push(`Direccion de obra: ${input.projectAddress?.trim() || 'Sin direccion de obra'}`);
   lines.push(
     input.proximity
@@ -99,9 +106,9 @@ function buildQuotationPdfLines(input: QuotationPdfInput, exportedAt: Date): str
 
   lines.push('');
   lines.push('Precios finales con IVA incluido, informados por las ferreterias.');
-  lines.push('Cotizacion referencial: stock y precios sujetos a confirmacion. Despacho no incluido.');
+  lines.push('Los precios de esta cotizacion se conservan durante su vigencia de 10 dias.');
   lines.push('Esta cotizacion no constituye una compra, un pedido ni una reserva de productos.');
-  lines.push('La compra se realiza directamente con cada ferreteria.');
+  lines.push('Findi permite crear cotizaciones; no procesa compras.');
   lines.push('Documento generado por Findi.');
 
   return lines.flatMap((line) => wrapLine(line, 95));
