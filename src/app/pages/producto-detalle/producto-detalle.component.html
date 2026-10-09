@@ -19,11 +19,13 @@
   } @else {
   <article class="detail-card" *ngIf="detail as product; else noData">
     <nav class="breadcrumb" aria-label="Ruta de navegación">
-      <a routerLink="/">Inicio</a>
-      <a [routerLink]="catalogPath('categorias',product.categoryName)">{{ product.categoryName }}</a>
-      <a routerLink="/buscar">{{ product.subcategoryName }}</a>
-      <a [routerLink]="catalogPath('familias',product.familyName)">{{ product.familyName }}</a>
-      <span aria-current="page">{{ product.productName }}</span>
+      <ol>
+        <li><a routerLink="/">Inicio</a></li>
+        <li><a [routerLink]="catalogPath('categorias',product.categoryName)">{{ product.categoryName }}</a></li>
+        <li><a routerLink="/buscar">{{ product.subcategoryName }}</a></li>
+        <li><a [routerLink]="catalogPath('familias',product.familyName)">{{ product.familyName }}</a></li>
+        <li><span aria-current="page">{{ product.productName }}</span></li>
+      </ol>
     </nav>
 
     <section class="hero-grid">
@@ -133,16 +135,22 @@
                 <div>
                   <p class="store-name">
                     {{ store.storeName }}
-                    <span class="sponsored-label" *ngIf="store.sponsored">Patrocinado</span>
                   </p>
                   <p class="store-stock">Stock: {{ store.stock }}</p>
+
+                </div>
+              </div>
+                  <app-info-panel class="offer-information" [title]="store.storeName" [label]="'Información de la oferta de ' + store.storeName">
+                    <p *ngIf="store.sponsored"><strong>Oferta patrocinada</strong></p>
                   <p class="store-distance" *ngIf="store.distanceKm !== undefined">
                     <i class="pi pi-map-marker" aria-hidden="true"></i>
                     A {{ formatDistance(store.distanceKm) }} de ti<span *ngIf="store.commune"> · {{ store.commune }}</span>
                   </p>
                   <p class="offer-facts">Actualizado {{ store.priceUpdatedAt | date:'dd/MM/yyyy, HH:mm' }}</p>
-                  <details class="offer-details" (click)="$event.stopPropagation()">
-                    <summary>Condiciones y contacto</summary>
+
+                    <p>Precio unitario: <strong>{{ formatCurrency(store.price) }}</strong>. {{ store.includesVat ? 'IVA incluido.' : 'IVA no incluido.' }}</p>
+                    <p *ngIf="store.pricePerMeasurement">{{ formatCurrency(store.pricePerMeasurement) }} / {{ measurementLabel(store.measurementUnit) }}</p>
+                    <p>Total por {{ selectedQuantity }}: {{ formatCurrency(storeTotal(store)) }}</p>
                     <p>{{ store.offerConditions }}</p>
                     <p *ngIf="!store.includesVat">IVA no incluido en el precio informado. Confirma el precio final con la ferretería.</p>
                     <p class="offer-validity">
@@ -166,16 +174,11 @@
                         [queryParams]="{ product: product.productName, store: store.storeName, storeId: store.storeId, offerId: store.offerId, price: store.price }"
                       >Reportar precio incorrecto</a>
                     </p>
-                  </details>
-                </div>
-              </div>
+                  </app-info-panel>
               <div class="store-price-block">
                 <span>Precio unitario</span>
                 <strong>{{ formatCurrency(store.price) }}</strong>
-                <em *ngIf="store.pricePerMeasurement">
-                  {{ formatCurrency(store.pricePerMeasurement) }} / {{ measurementLabel(store.measurementUnit) }}
-                </em>
-                <small>Total por {{ selectedQuantity }}: {{ formatCurrency(storeTotal(store)) }}</small>
+
               </div>
             </li>
           </ul>

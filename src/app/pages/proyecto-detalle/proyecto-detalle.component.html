@@ -5,30 +5,115 @@
       <h1>{{ isNewProject ? 'Nueva cotización' : 'Detalle de cotización' }}</h1>
       <p>
         {{ isNewProject
-          ? 'Completa los datos base y luego agrega productos desde el buscador.'
-          : 'Revisa, ajusta y exporta tu cotización de materiales.' }}
+          ? 'Agrega productos y guarda tu cotización.'
+          : 'Revisa tus productos y el total.' }}
       </p>
     </div>
   </header>
 
   <article class="detail-card">
-    <section class="editor-grid" >
-      <article class="editor-panel">
+    <article class="summary">
+        <div class="summary-heading">
+          <h2>Resumen</h2>
+          <app-info-panel title="Comparación de compra" label="Información del resumen de la cotización">
+          <div class="store-summary" *ngIf="!isNewProject && comparisonStrategies.length > 0">
+          <h3>Comparacion de compra</h3>
+          <p *ngFor="let strategy of comparisonStrategies">
+            <strong>{{ strategy.title }}:</strong>
+            {{ strategy.subtitle }} -
+            {{ formatCurrency(strategy.total) }}
+            <span *ngIf="strategy.saving !== undefined"> | Ahorras {{ formatCurrency(strategy.saving || 0) }}</span>
+          </p>
+        </div>
+          <p>El total incluye IVA. Los precios corresponden a las ofertas guardadas en tu cotización.</p>
+          </app-info-panel>
+        </div>
+        <div class="summary-kpis">
+          <p>
+            <span>Productos</span>
+            <strong>{{ validItemCount }}</strong>
+          </p>
+          <p>
+            <span>Unidades</span>
+            <strong>{{ totalQuantity }}</strong>
+          </p>
+          <p class="highlight">
+            <span>Total con IVA</span>
+            <strong>{{ formatCurrency(totalWithIva) }}</strong>
+          </p>
+        </div>
+
+
+      </article>
+    <section class="quotation-table-card">
+      <div class="quote-table-header">
+        <div>
+          <h2>Productos</h2>
+        </div>
+        <button type="button" class="secondary add-products" [disabled]="isSaving" (click)="goToSearchForProduct()"><i class="pi pi-plus" aria-hidden="true"></i> Agregar productos</button>
+      </div>
+      <div class="table-wrap" *ngIf="hasItemsInTable; else emptyQuotation">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre de producto</th>
+              <th>Cantidad</th>
+              <th>Precio unitario</th>
+              <th>Total</th>
+              <th>Accion</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of projectItems; let i = index">
+              <td class="product-cell">
+                <select [attr.aria-label]="'Producto de la fila ' + (i + 1)" [(ngModel)]="item.productName">
+                  <option value="">Selecciona producto</option>
+                  <option *ngFor="let option of productOptions" [value]="option">{{ option }}</option>
+                </select>
+                <p class="line-meta">Mejor tienda: {{ getRowBestStore(item) }}</p>
+              </td>
+              <td class="quantity-cell" data-label="Cantidad">
+                <input [attr.aria-label]="'Cantidad de ' + (item.productName || 'producto')" [(ngModel)]="item.quantity" type="number" min="1" placeholder="Cantidad" />
+              </td>
+              <td class="unit-price-cell" data-label="Precio unitario">{{ formatCurrency(getRowUnitPrice(item)) }}</td>
+              <td class="total-cell" data-label="Total">{{ formatCurrency(getRowTotal(item)) }}</td>
+              <td class="remove-cell">
+                <button type="button" class="danger small" [attr.aria-label]="'Quitar ' + (item.productName || 'producto')" title="Quitar producto" (click)="removeProjectItem(i)"><i class="pi pi-trash" aria-hidden="true"></i></button>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="totals-row total-final">
+              <th colspan="3">Total final (IVA incluido)</th>
+              <td>{{ formatCurrency(totalWithIva) }}</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <ng-template #emptyQuotation>
+        <div class="empty-state">
+          <p class="empty-title">Aún no hay productos en esta cotización.</p>
+          <p>Empieza a agregar productos desde el buscador para armar el presupuesto.</p>
+        </div>
+      </ng-template>
+    </section>
+    <article class="editor-panel">
         <h2>Datos de la cotización</h2>
-        <label>
-          Nombre del proyecto
-          <input [(ngModel)]="projectName" type="text" placeholder="Ej: Ampliacion quincho" />
-        </label>
-        <label>
-          Dirección de obra
-          <input [(ngModel)]="projectAddress" type="text" placeholder="Ej: Av. Principal 1234, Maipu" />
-        </label>
-
-        <label>
-          Descripción <span class="optional">(opcional)</span>
-          <textarea [(ngModel)]="projectDescription" maxlength="2000" rows="3" placeholder="Describe el trabajo, alcance o notas para tu cliente"></textarea>
-        </label>
-
+        <div class="validity-note">
+          <span>La cotización es válida durante 10 días a partir de su creación.</span>
+          <app-info-panel title="Información de la cotización" label="Ver vigencia, código y ferreterías de la cotización">
+        <section class="quotation-validity">
+          <strong>Vigencia de la cotización</strong>
+          <p>La cotización es válida durante 10 días a partir de su creación. La ferretería puede consultar el código para verificar los productos y precios registrados. Confirma el stock y las condiciones con el local antes de comprar.</p>
+          <p *ngIf="validUntil">Generada el {{ pricesCapturedAt | date:'dd/MM/yyyy HH:mm' }} · Válida hasta: {{ validUntil | date:'dd/MM/yyyy HH:mm' }}.</p>
+          <p *ngIf="quotationExpired">La vigencia ha terminado. Consulta los precios y el stock actuales con la ferretería.</p>
+          <p *ngIf="!validUntil">Guarda la cotización para obtener su código de verificación.</p>
+          <div class="verification-code" *ngIf="verificationCode"><span>Código de cotización</span><strong>{{ verificationCode }}</strong><button type="button" class="secondary" (click)="copyVerificationCode()">Copiar código</button></div>
+          <button *ngIf="!isNewProject" type="button" class="secondary" (click)="saveProject(true)" [disabled]="isSaving">{{ isSaving ? 'Guardando…' : 'Actualizar precios actuales' }}</button>
+          <p *ngIf="hasUnsavedChanges">Guarda los cambios para obtener un código actualizado antes de descargar o enviar.</p>
+        </section>
         <section class="quotation-nearby-card">
           <div class="quotation-nearby-copy">
             <span class="quotation-nearby-label">Ferreterías consideradas</span>
@@ -59,21 +144,31 @@
           <p class="nearby-error" *ngIf="locationError">{{ locationError }}</p>
         </section>
 
+
+            <p>Cotización referencial: no constituye una compra, un pedido ni una reserva. Los precios y el stock son informados por cada ferretería.</p>
+          </app-info-panel>
+        </div>
+        <div class="project-fields">
+        <label>
+          Nombre
+          <input [(ngModel)]="projectName" type="text" placeholder="Ej.: Remodelación de cocina" />
+        </label>
+        <label>
+          Dirección (opcional)
+          <input [(ngModel)]="projectAddress" type="text" placeholder="Dirección del proyecto" />
+        </label>
+
+        <label class="description-field">
+          Descripción (opcional)
+          <textarea [(ngModel)]="projectDescription" maxlength="2000" rows="2" placeholder="Notas para tu cliente"></textarea>
+        </label>
+
+        </div>
         <p class="nearby-warning" *ngIf="unavailableItemCount > 0">
           {{ unavailableItemCount }} producto(s) no tienen una oferta vigente con stock suficiente. Revisa cantidades y la ferretería seleccionada antes de exportar.
           Puedes aumentar el radio o usar todas las ferreterías.
         </p>
 
-        <section class="quotation-validity">
-          <strong>Compra dentro de los 10 días de generar tu cotización</strong>
-          <p>Usa este plazo como referencia para mantener los precios cotizados. La ferretería podrá consultar el código y validar los productos y precios registrados.</p>
-          <p *ngIf="validUntil">Generada el {{ pricesCapturedAt | date:'dd/MM/yyyy HH:mm' }} · Fecha orientativa: {{ validUntil | date:'dd/MM/yyyy HH:mm' }}.</p>
-          <p *ngIf="quotationExpired">Han pasado más de 10 días. Puedes seguir usando la cotización y consultar los precios con la ferretería.</p>
-          <p *ngIf="!validUntil">Guarda la cotización para obtener su código de verificación.</p>
-          <div class="verification-code" *ngIf="verificationCode"><span>Código de cotización</span><strong>{{ verificationCode }}</strong><button type="button" class="secondary" (click)="copyVerificationCode()">Copiar código</button></div>
-          <button *ngIf="!isNewProject" type="button" class="secondary" (click)="saveProject(true)" [disabled]="isSaving">{{ isSaving ? 'Guardando…' : 'Actualizar precios actuales' }}</button>
-          <p *ngIf="hasUnsavedChanges">Guarda los cambios para obtener un código actualizado antes de descargar o enviar.</p>
-        </section>
         <div class="actions">
           <button type="button" (click)="saveProject()" [disabled]="isSaving">
             <i *ngIf="isSaving" class="pi pi-spin pi-spinner" aria-hidden="true"></i>{{ isSaving ? 'Guardando…' : (!user ? 'Crear cuenta para guardar' : (isNewProject ? 'Guardar cotización' : 'Actualizar cotización')) }}
@@ -88,103 +183,17 @@
 
 
 
-        <section class="whatsapp-share" *ngIf="hasQuotation && !isNewProject">
-          <h3>Enviar por WhatsApp</h3>
+        <details class="whatsapp-share" *ngIf="hasQuotation && !isNewProject">
+          <summary>Enviar por WhatsApp</summary>
           <p>Descarga el PDF y abre un mensaje para tu cliente. Adjunta el archivo en WhatsApp antes de enviarlo.</p>
           <div class="whatsapp-share-actions">
             <label>Número del destinatario<input type="tel" [(ngModel)]="whatsappNumber" autocomplete="tel" placeholder="+56 9 1234 5678" /></label>
             <button type="button" class="secondary" (click)="sendViaWhatsapp()" [disabled]="!whatsappNumber.trim() || hasUnsavedChanges"><i class="pi pi-whatsapp" aria-hidden="true"></i> Preparar envío</button>
           </div>
           <p role="status" *ngIf="shareNotice">{{ shareNotice }}</p>
-        </section>
+        </details>
         <p class="saved" *ngIf="saveNotice">{{ saveNotice }}</p>
       </article>
-
-      <article class="summary">
-        <h2>Resumen general</h2>
-        <div class="summary-kpis">
-          <p>
-            <span>Items cargados</span>
-            <strong>{{ validItemCount }}</strong>
-          </p>
-          <p>
-            <span>Cantidad total</span>
-            <strong>{{ totalQuantity }}</strong>
-          </p>
-          <p class="highlight">
-            <span>Total final (IVA incluido)</span>
-            <strong>{{ formatCurrency(totalWithIva) }}</strong>
-          </p>
-        </div>
-
-        <div class="store-summary" *ngIf="!isNewProject && comparisonStrategies.length > 0">
-          <h3>Comparacion de compra</h3>
-          <p *ngFor="let strategy of comparisonStrategies">
-            <strong>{{ strategy.title }}:</strong>
-            {{ strategy.subtitle }} -
-            {{ formatCurrency(strategy.total) }}
-            <span *ngIf="strategy.saving !== undefined"> | Ahorras {{ formatCurrency(strategy.saving || 0) }}</span>
-          </p>
-        </div>
-      </article>
-    </section>
-
-    <section class="quotation-table-card">
-      <div class="quote-table-header">
-        <div>
-          <h2>Detalle de cotización</h2>
-          <p>Administra productos, cantidades y costo unitario.</p>
-        </div>
-        <button type="button" class="secondary" (click)="goToSearchForProduct()">Agregar productos</button>
-      </div>
-      <div class="table-wrap" *ngIf="hasItemsInTable; else emptyQuotation">
-        <table>
-          <thead>
-            <tr>
-              <th>Nombre de producto</th>
-              <th>Cantidad</th>
-              <th>Precio unitario</th>
-              <th>Total</th>
-              <th>Accion</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let item of projectItems; let i = index">
-              <td>
-                <select [(ngModel)]="item.productName">
-                  <option value="">Selecciona producto</option>
-                  <option *ngFor="let option of productOptions" [value]="option">{{ option }}</option>
-                </select>
-                <p class="line-meta">Mejor tienda: {{ getRowBestStore(item) }}</p>
-              </td>
-              <td>
-                <input [(ngModel)]="item.quantity" type="number" min="1" placeholder="Cantidad" />
-              </td>
-              <td>{{ formatCurrency(getRowUnitPrice(item)) }}</td>
-              <td>{{ formatCurrency(getRowTotal(item)) }}</td>
-              <td>
-                <button type="button" class="danger small" (click)="removeProjectItem(i)">Quitar</button>
-              </td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr class="totals-row total-final">
-              <th colspan="3">Total final (IVA incluido)</th>
-              <td>{{ formatCurrency(totalWithIva) }}</td>
-              <td></td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-
-      <ng-template #emptyQuotation>
-        <div class="empty-state">
-          <p class="empty-title">Aún no hay productos en esta cotización.</p>
-          <p>Empieza a agregar productos desde el buscador para armar el presupuesto.</p>
-        </div>
-      </ng-template>
-    </section>
-
     <section class="same-store-card" *ngIf="hasItemsInTable">
       <div class="same-store-header">
         <div>
@@ -252,5 +261,4 @@
       <p class="saved" *ngIf="singleStoreNotice">{{ singleStoreNotice }}</p>
     </section>
   </article>
-  <p class="quotation-disclaimer">Cotización referencial: no constituye una compra, un pedido ni una reserva. Precios con IVA y stock informados por cada ferretería; confírmalos con el local antes de comprar.</p>
 </main>

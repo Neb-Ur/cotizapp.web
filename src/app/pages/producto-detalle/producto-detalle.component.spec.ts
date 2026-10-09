@@ -152,3 +152,20 @@ describe('product authentication navigation', () => {
  }
  }
 });
+
+it('opens offer information without selecting or expanding the offer row', async () => {
+ const {fixture,resolvers,offerResolvers,component}=await setup();
+ const store={storeId:'s',storeName:'Ferretería Norte',stock:20,price:1200,offerConditions:'Retiro en local',includesVat:true,validFrom:'2026-10-09',priceUpdatedAt:'2026-10-09T12:00:00Z',source:'Ferretería',address:'Av. Principal 123'};
+ resolvers[0](detail);await Promise.resolve();
+ offerResolvers[0]({...detail,stores:[store]});await Promise.resolve();await Promise.resolve();fixture.detectChanges();
+ const row=fixture.nativeElement.querySelector('.quick-stores li');
+ expect(row.textContent).not.toContain('Actualizado');
+ expect(row.textContent).not.toContain('Retiro en local');
+ row.querySelector('app-info-panel button').click();fixture.detectChanges();
+ expect(component.selectedStoreId).toBe('');
+ const dialog=fixture.nativeElement.querySelector('[role="dialog"]');
+ expect(dialog.textContent).toContain('Retiro en local');
+ expect(dialog.textContent).toContain('Av. Principal 123');
+ document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'}));fixture.detectChanges();
+ expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
+});

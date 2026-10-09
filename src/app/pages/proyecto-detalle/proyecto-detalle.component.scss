@@ -507,3 +507,65 @@ tfoot .total-final td {
 .quotation-validity{border:1px solid var(--border);border-radius:14px;background:#fff8ee;padding:16px;margin:16px 0;font-size:.875rem;line-height:1.5}.quotation-validity p{margin:6px 0 12px}.quotation-validity.expired{background:#fff1f1;border-color:#e6aaaa;}
 
 .verification-code{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:14px 0;padding:12px;background:white;border-radius:10px}.verification-code strong{font-family:monospace;letter-spacing:.04em;user-select:all;}
+
+/* Keep every grid track and control shrinkable at narrow widths and browser zoom. */
+.project-detail-page, .detail-card, .editor-panel, .summary, .quotation-table-card, .same-store-card { min-width: 0; }
+.project-detail-page { max-width: 100%; }
+.page-header { flex-wrap: wrap; }
+.page-title { min-width: 0; }
+.page-title h1 { font-size: clamp(1.35rem, 3vw, 2rem); overflow-wrap: anywhere; }
+.editor-panel { border: 1px solid var(--border-soft); border-radius: var(--r-md); padding: 1rem; }
+.project-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem .8rem; }
+.project-fields label { margin-top: 0; min-width: 0; }
+.project-fields .description-field { grid-column: 1 / -1; }
+.project-fields :is(input, textarea) { min-width: 0; width: 100%; }
+.project-fields textarea { min-height: 64px; }
+.summary-heading { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.summary-heading h2 { margin: 0; }
+.summary-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: .6rem; }
+.summary-kpis p { padding: .5rem; }
+.summary-kpis span { font-size: .75rem; }
+.summary-kpis .highlight strong { font-size: 1.2rem; overflow-wrap: anywhere; }
+.validity-note { display: flex; align-items: center; gap: .6rem; padding: .55rem 0; margin-bottom: .6rem; color: var(--ink-700); font-size: .8rem; }
+.validity-note span { flex: 1; }
+.verification-code strong { overflow-wrap: anywhere; min-width: 0; }
+.quotation-nearby-card { grid-template-columns: minmax(0, 1fr); }
+.quotation-nearby-actions { min-width: 0; }
+.whatsapp-share summary { font-weight: 700; cursor: pointer; }
+.whatsapp-share-actions label { min-width: 0; flex-basis: 180px; }
+.quotation-table-card .table-wrap { min-width: 0; }
+.table-wrap table { table-layout: fixed; }
+.table-wrap th:first-child { width: 38%; }
+.table-wrap th:last-child { width: 64px; }
+.table-wrap :is(input, select) { min-width: 0; max-width: 100%; }
+.table-wrap td { overflow-wrap: anywhere; }
+.line-meta { font-size: .75rem; }
+button.danger.small { width: 44px; height: 44px; padding: 0; }
+.same-store-option { min-width: 0; grid-template-columns: minmax(0, 1fr) minmax(0, auto) auto; }
+.same-store-option h3 { overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+  .project-detail-page { width: calc(100% - 1rem); }
+  .page-header { gap: .5rem; }
+  .page-title p { font-size: .8rem; }
+  .summary-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .summary-kpis .highlight { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+  .project-fields { grid-template-columns: minmax(0, 1fr); }
+  .quote-table-header .add-products { width: 100%; min-height: 44px; }
+  .table-wrap { overflow: visible; }
+  .table-wrap table, .table-wrap tbody { display: block; }
+  .table-wrap thead { display: none; }
+  .table-wrap tbody tr { display: grid; grid-template-columns: 68px minmax(0, 1fr) minmax(0, 1fr) 44px; gap: .5rem; padding: .75rem 0; border-top: 1px solid var(--border-soft); align-items: end; }
+  .table-wrap tbody td { display: block; padding: 0; border: 0; min-width: 0; font-size: .8rem; }
+  .table-wrap tbody td[data-label]::before { content: attr(data-label); display: block; margin-bottom: .3rem; color: var(--ink-500); font-size: .65rem; }
+  .table-wrap .product-cell { grid-column: 1 / -1; }
+  .table-wrap select, .table-wrap input { min-height: 44px; font-size: .85rem; }
+  .table-wrap .total-cell { font-weight: 800; }
+  .table-wrap tfoot { display: block; }
+  .table-wrap tfoot tr { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem; background: var(--ink-50); padding: .6rem; }
+  .table-wrap tfoot :is(th, td) { display: block; width: auto; padding: 0; border: 0; background: transparent; font-size: .8rem; }
+  .table-wrap tfoot td:last-child { display: none; }
+  .same-store-option { grid-template-columns: minmax(0, 1fr) auto; gap: .6rem; }
+  .same-store-option > button { grid-column: 1 / -1; }
+  .same-store-price { text-align: right; }
+  .same-store-price span { font-size: .7rem; }
+}

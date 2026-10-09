@@ -1,3 +1,4 @@
+import { InfoPanelComponent } from '../../shared/components/info-panel/info-panel.component';
 import { PilotService } from '../../core/services/pilot.service';
 import { quotationWhatsappUrl } from '../../core/utils/quotation-whatsapp.util';
 import { WriteFeedbackService } from '../../core/services/write-feedback.service';
@@ -28,7 +29,7 @@ import { shareQuotationPdf, downloadQuotationPdf } from '../../core/utils/quotat
 @Component({
   selector: 'app-proyecto-detalle',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [InfoPanelComponent, CommonModule, FormsModule],
   templateUrl: './proyecto-detalle.component.html',
   styleUrl: './proyecto-detalle.component.scss'
 })
@@ -268,17 +269,22 @@ export class ProyectoDetalleComponent implements OnInit {
       this.validUntil = updated.validUntil || '';
       this.pricesCapturedAt = updated.pricesCapturedAt || '';
       this.savedFingerprint = this.quotationFingerprint();
-      this.saveNotice = renewPrices ? 'Precios actualizados. Recomendamos comprar dentro de 10 días.' : 'Cotización actualizada conservando los precios guardados.';
+      this.saveNotice = renewPrices ? 'Precios de la cotización actualizados.' : 'Cotización actualizada conservando los precios guardados.';
       } catch (error) { this.saveNotice = error instanceof Error ? error.message : 'No se pudo guardar la cotización.'; }
       finally { this.isSaving = false; }
 
     });
   }
 
-  protected goToSearchForProduct(): void {
+  protected async goToSearchForProduct(): Promise<void> {
+    if (this.isSaving) return;
+    if (!this.isNewProject && this.hasUnsavedChanges) {
+      await this.saveProject();
+      if (this.hasUnsavedChanges) return;
+    }
     const projectTarget = this.isNewProject ? 'nuevo' : this.projectId;
     this.persistDraftIfNeeded();
-    this.syncNearbyPreference();
+    clearNearbySearchPreference();
     this.router.navigate(['/buscar'], {
       queryParams: {
         projectTarget,
