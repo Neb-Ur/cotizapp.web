@@ -3,10 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FirebaseDataService } from '../../../core/services/firebase-data.service';
 import { StoreQuotationVerification } from '../../../core/models/app.models';
+const money=new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0});
 @Component({selector:'app-store-quotation-verifier',standalone:true,imports:[CommonModule,FormsModule],
  templateUrl:'./store-quotation-verifier.component.html',styleUrl:'./store-quotation-verifier.component.scss'})
 export class StoreQuotationVerifierComponent {
  @Input() storeId='';
+ protected formatCurrency(value:number):string{return money.format(value);}
  protected quotationCode='';
  protected quotationResult:StoreQuotationVerification|null=null;
  protected quotationLookupError='';
