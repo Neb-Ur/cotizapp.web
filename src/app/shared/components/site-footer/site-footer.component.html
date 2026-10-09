@@ -1,45 +1,47 @@
 <footer class="footer">
-  <div class="footer-inner">
-    <div class="footer-brand">
-      <app-brand-mark />
-      <div>
-        <p class="brand-name">Trovio</p>
-        <p class="brand-desc">Compara precios, optimiza proyectos<br>y conecta con ferreterías locales.</p>
+  <div class="footer-panel">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <app-brand-mark />
+        <div>
+          <p class="brand-name">Trovio</p>
+          <p class="brand-desc">Compara precios, optimiza proyectos y conecta con ferreterías locales.</p>
+        </div>
       </div>
+
+      <nav class="footer-links" aria-label="Plataforma">
+        <p class="footer-heading">Plataforma</p>
+        <a routerLink="/maestros">Para Maestros</a>
+        <a routerLink="/ferreterias">Para Ferreterías</a>
+        <a routerLink="/ferreterias">Piloto</a>
+      </nav>
+
+      <nav class="footer-links" aria-label="Soporte">
+        <p class="footer-heading">Soporte</p>
+        <a routerLink="/preguntas-frecuentes">Preguntas frecuentes</a>
+        <a routerLink="/contacto">Contacto</a>
+      </nav>
+
+      <nav class="footer-links footer-legal" aria-label="Información legal">
+        <p class="footer-heading">Información legal</p>
+        <a routerLink="/terminos-condiciones">Términos y condiciones</a>
+        <a routerLink="/privacidad">Política de privacidad</a>
+        <a routerLink="/propiedad-intelectual">Propiedad intelectual</a>
+        @if (auth.isLoggedIn()) {
+          <a routerLink="/cuenta/privacidad-datos">Privacidad y datos de mi cuenta</a>
+          @if (auth.currentUser()?.role === 'ferreteria') {
+            <a routerLink="/cuenta/contrato-ferreteria">Contrato comercial y comprobante</a>
+          }
+        }
+        <a routerLink="/desuscribir">Dejar de recibir publicidad</a>
+        <button type="button" (click)="openCookieSettings()">Configurar cookies</button>
+      </nav>
     </div>
 
-    <nav class="footer-links">
-      <p class="footer-heading">Plataforma</p>
-      <a routerLink="/maestros">Para Maestros</a>
-      <a routerLink="/ferreterias">Para Ferreterías</a>
-      <a routerLink="/ferreterias">Piloto</a>
-    </nav>
-
-    <nav class="footer-links">
-      <p class="footer-heading">Soporte</p>
-      <a routerLink="/preguntas-frecuentes">Preguntas frecuentes</a>
-      <a routerLink="/contacto">Contacto</a>
-    </nav>
-
-    <nav class="footer-links" aria-label="Información legal">
-      <p class="footer-heading">Información legal</p>
-      <a routerLink="/terminos-condiciones">Términos y condiciones</a>
-      <a routerLink="/privacidad">Política de privacidad</a>
-      <a routerLink="/propiedad-intelectual">Propiedad intelectual</a>
-      @if (auth.isLoggedIn()) {
-        <a routerLink="/cuenta/privacidad-datos">Privacidad y datos de mi cuenta</a>
-        @if (auth.currentUser()?.role === 'ferreteria') {
-          <a routerLink="/cuenta/contrato-ferreteria">Contrato comercial y comprobante</a>
-        }
-      }
-      <a routerLink="/desuscribir">Dejar de recibir publicidad</a>
-      <button type="button" (click)="openCookieSettings()">Configurar cookies</button>
-    </nav>
-  </div>
-
-  <div class="footer-bottom">
-    <p>© 2026 Trovio. Todos los derechos reservados.</p>
-    <p class="legal-identity">Marcha blanca · Operado por {{ legalIdentity.legalName }} · <a routerLink="/contacto">Contacto</a></p>
-    <p>Compara y cotiza. Las compras se realizan directamente con cada ferretería.</p>
+    <div class="footer-bottom">
+      <p>© 2026 Trovio. Todos los derechos reservados.</p>
+      <p class="legal-identity">Marcha blanca · Operado por {{ legalIdentity.legalName }} · <a routerLink="/contacto">Contacto</a></p>
+      <p>Compara y cotiza. Las compras se realizan directamente con cada ferretería.</p>
+    </div>
   </div>
 </footer>
