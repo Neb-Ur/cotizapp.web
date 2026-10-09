@@ -2,7 +2,9 @@
 
 ## Estado
 
-La integración está implementada. El bucket confirmado es `findi` y la URL pública configurada es `https://pub-2e849653aba84af8958b9be3963f820d.r2.dev`. Faltan el Account ID y los secretos de acceso para activar las cargas. Las 12 imágenes externas actuales siguen funcionando mientras tanto. Todavía no se han copiado imágenes a R2 desde Findi.
+R2 está configurado para el bucket `findi` y la URL pública `https://pub-2e849653aba84af8958b9be3963f820d.r2.dev`. El Account ID está en el archivo local `functions/.env`; las dos credenciales permanecen en Secret Manager de Firebase. `IMAGE_STORAGE_PROVIDER=r2` activa las cargas del administrador.
+
+La activación del 9 de octubre de 2026 incluye la migración de las 12 imágenes existentes a 24 archivos WebP: detalle y miniatura por producto. Sus URL externas se conservan como respaldo. La URL `r2.dev` actual sirve para probar; sigue pendiente conectar un dominio propio para disponer de caché CDN y escalar el tráfico.
 
 ## Funcionamiento
 
@@ -41,7 +43,7 @@ La URL actual `r2.dev` permite probar las cargas y la lectura pública; tiene l�
 
 Conservar todas las variables PostgreSQL existentes. El endpoint S3 se construye con el Account ID; no debe confundirse con la URL pública.
 
-6. Compilar y desplegar. El descubrimiento de funciones incorpora los dos secretos a `api` cuando `IMAGE_STORAGE_PROVIDER=r2`:
+6. Compilar y desplegar. La función `api` vincula explícitamente ambos secretos. Deben estar creados antes de desplegar, incluso si las cargas están temporalmente desactivadas; el proveedor controla el uso de R2 en las solicitudes:
 
 ```sh
 npm run build
@@ -65,3 +67,16 @@ Los archivos previamente publicados se conservan al sustituir una imagen para no
 Para detener nuevas cargas: `IMAGE_STORAGE_PROVIDER=disabled` y desplegar `api`. Las imágenes ya publicadas continúan visibles mientras su dominio y objetos sigan activos.
 
 Referencias oficiales: [SDK S3 para R2](https://developers.cloudflare.com/r2/examples/aws/aws-sdk-js-v3/), [bucket público y caché con dominio propio](https://developers.cloudflare.com/r2/buckets/public-buckets/), [credenciales de R2](https://developers.cloudflare.com/r2/api/tokens/).
+
+
+## Migrar la tanda inicial
+
+El script solo copia las imágenes de los 12 productos del manifiesto verificado. Exige coincidencia exacta por nombre y URL original, conserva imágenes propias existentes, guarda un respaldo privado en `tmp/sql-migration/`, valida la lectura pública de ambas versiones y escribe las asociaciones mediante el adaptador PostgreSQL. No cambia la procedencia ni las referencias de derechos del contenido. La escritura invalida el catálogo mediante el mecanismo SQL existente.
+
+Desde la raíz, con Node 22 y Firebase CLI autenticado:
+
+```sh
+CONFIRM_PROJECT_ID=cotizapp-d71c8 node --env-file=functions/.env functions/scripts/migrate-product-images-to-r2.mjs --apply --firebase-cli-auth
+```
+
+Puede ejecutarse nuevamente: omite productos que ya tienen `imagenStorageUrl`. Si una carga se completa pero falla la validación pública o el guardado posterior, sus archivos pueden quedar sin asociación; se aplica la revisión de limpieza descrita arriba.

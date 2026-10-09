@@ -122,7 +122,9 @@ export const api = onRequest(
     region: 'southamerica-west1',
     cors: false,
     maxInstances: 10,
-    secrets: [sqlPassword, ...(process.env['IMAGE_STORAGE_PROVIDER'] === 'r2' ? ['FINDI_R2_ACCESS_KEY_ID', 'FINDI_R2_SECRET_ACCESS_KEY'] : [])]
+    // Discovery can run before dotenv is loaded. Bind provisioned R2 secrets
+    // explicitly; the provider flag still controls whether uploads are allowed.
+    secrets: [sqlPassword, 'FINDI_R2_ACCESS_KEY_ID', 'FINDI_R2_SECRET_ACCESS_KEY']
   },
   app
 );
