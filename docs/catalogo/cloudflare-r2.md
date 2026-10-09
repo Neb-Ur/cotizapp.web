@@ -2,7 +2,7 @@
 
 ## Estado
 
-La integración está implementada. No se activa hasta configurar la cuenta, el bucket, su dominio público y las credenciales. Las 12 imágenes externas actuales siguen funcionando mientras tanto. No se han creado recursos ni copiado imágenes a una cuenta de Cloudflare.
+La integración está implementada. El bucket confirmado es `findi` y la URL pública configurada es `https://pub-2e849653aba84af8958b9be3963f820d.r2.dev`. Faltan el Account ID y los secretos de acceso para activar las cargas. Las 12 imágenes externas actuales siguen funcionando mientras tanto. Todavía no se han copiado imágenes a R2 desde Findi.
 
 ## Funcionamiento
 
@@ -33,9 +33,11 @@ Cada comando solicita el valor de forma interactiva.
 ```dotenv
 IMAGE_STORAGE_PROVIDER=r2
 R2_ACCOUNT_ID=<identificador-de-cuenta-de-32-caracteres>
-R2_BUCKET=findi-imagenes
-R2_PUBLIC_BASE_URL=https://imagenes.tu-dominio.cl
+R2_BUCKET=findi
+R2_PUBLIC_BASE_URL=https://pub-2e849653aba84af8958b9be3963f820d.r2.dev
 ```
+
+La URL actual `r2.dev` permite probar las cargas y la lectura pública; tiene límites de tráfico y no ofrece la caché CDN de un dominio propio. Antes de escalar producción, conectar un dominio propio y actualizar `R2_PUBLIC_BASE_URL`.
 
 Conservar todas las variables PostgreSQL existentes. El endpoint S3 se construye con el Account ID; no debe confundirse con la URL pública.
 
