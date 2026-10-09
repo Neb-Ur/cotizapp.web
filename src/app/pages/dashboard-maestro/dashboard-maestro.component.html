@@ -3,10 +3,6 @@
     <p>{{ dataLoadError }}</p>
     <button type="button" (click)="retryDataLoad()">Reintentar carga</button>
   </div>
-  <nav class="account-tabs" *ngIf="user && currentSection !== 'buscar'" aria-label="Mi cuenta">
-    <button *ngFor="let section of sections" [hidden]="section.id === 'buscar'" [class.active]="currentSection === section.id" (click)="setSection(section.id)">{{ section.label }}</button>
-  </nav>
-
   <section class="content">
     <header class="content-header" *ngIf="user && currentSection !== 'buscar'">
       <div class="title-row">

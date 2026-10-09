@@ -6,7 +6,7 @@
   aria-label="Cerrar menu"
 ></button>
 
-<header class="navbar" [class.navbar--store]="isStoreDashboard">
+<header class="navbar" [class.navbar--store]="isStoreDashboard" [class.navbar--maestro]="isMaestro">
   <a class="brand" routerLink="/" aria-label="Trovio · Ir al inicio" (click)="closeMenu()">
     <app-brand-mark />
     <span class="brand-wordmark" aria-hidden="true">trov<span>ı</span>o</span>
@@ -114,12 +114,8 @@
     </ng-container>
 
     <ng-template #loggedActions>
-      <div class="auth-group">
-        <ng-container *ngIf="isMaestro; else managementLink">
-          <a routerLink="/dashboard/maestro" [queryParams]="{section:'cotizaciones'}" class="account-nav-icon" (click)="closeMenu()" aria-label="Mis cotizaciones" title="Mis cotizaciones"><i class="pi pi-file" aria-hidden="true"></i></a>
-          <a routerLink="/dashboard/maestro" [queryParams]="{section:'perfil'}" class="account-nav-icon" (click)="closeMenu()" aria-label="Mi perfil" title="Mi perfil"><i class="pi pi-user" aria-hidden="true"></i></a>
-        </ng-container>
-        <ng-template #managementLink><a [routerLink]="dashboardUrl" class="nav-login" (click)="closeMenu()">{{ isFerreteria ? 'Ir a dashboard' : 'Mi panel' }}</a></ng-template>
+      <div class="auth-group" *ngIf="!isMaestro">
+        <a [routerLink]="dashboardUrl" class="nav-login" (click)="closeMenu()">{{ isFerreteria ? 'Ir a dashboard' : 'Mi panel' }}</a>
         <button type="button" class="btn btn-outline btn-sm" (click)="logout()">Salir</button>
       </div>
     </ng-template>
@@ -151,15 +147,17 @@
       <span>Iniciar sesión</span>
       <fa-icon class="drawer-chevron" [icon]="faChevronRight" aria-hidden="true" />
     </a>
-    <a *ngIf="isLogged" class="drawer-login" [routerLink]="isMaestro ? '/dashboard/maestro' : dashboardUrl" [queryParams]="isMaestro ? {section:'perfil'} : null" (click)="closeMenu()">
+    <a *ngIf="isLogged && !isMaestro" class="drawer-login" [routerLink]="dashboardUrl" (click)="closeMenu()">
       <fa-icon class="drawer-item-icon" [icon]="faLogin" aria-hidden="true" />
-      <span>{{ isMaestro ? 'Mi perfil' : (isFerreteria ? 'Ir a dashboard' : 'Mi panel') }}</span>
+      <span>{{ isFerreteria ? 'Ir a dashboard' : 'Mi panel' }}</span>
       <fa-icon class="drawer-chevron" [icon]="faChevronRight" aria-hidden="true" />
     </a>
 
-    <a class="drawer-link" routerLink="/" (click)="closeMenu()"><i class="pi pi-home" aria-hidden="true"></i> Inicio</a>
+    <ng-container *ngIf="isMaestro">
+      <a class="drawer-link" *ngFor="let item of maestroNavigation" routerLink="/dashboard/maestro" [queryParams]="{section:item.section}" [class.active]="maestroLinkActive(item.section)" [attr.aria-current]="maestroLinkActive(item.section) ? 'page' : null" (click)="closeMenu()"><i [class]="item.icon" aria-hidden="true"></i>{{ item.label }}</a>
+    </ng-container>
+    <a class="drawer-link" *ngIf="!isMaestro" routerLink="/" (click)="closeMenu()"><i class="pi pi-home" aria-hidden="true"></i> Inicio</a>
     <a class="drawer-link" routerLink="/ferreterias" (click)="closeMenu()"><i class="pi pi-shop" aria-hidden="true"></i> Ferreterías</a>
-    <a class="drawer-link" *ngIf="isMaestro" routerLink="/dashboard/maestro" [queryParams]="{section:'cotizaciones'}" (click)="closeMenu()"><i class="pi pi-file" aria-hidden="true"></i> Mis cotizaciones</a>
     <a class="drawer-link" *ngIf="isLogged" routerLink="/cuenta/cambiar-contrasena" (click)="closeMenu()">Cambiar contraseña</a>
     <button class="drawer-link" *ngIf="isLogged" type="button" (click)="logout()"><i class="pi pi-sign-out" aria-hidden="true"></i> Cerrar sesión</button>
     <section class="drawer-categories">

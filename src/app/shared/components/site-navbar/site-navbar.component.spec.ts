@@ -23,6 +23,18 @@ async function setup() {
 describe('header navigation and search',()=>{
   afterEach(()=>{ TestBed.resetTestingModule(); vi.restoreAllMocks(); });
 
+  it('keeps maestro account sections in the shared menu with the active destination marked',async()=>{
+    const {fixture,router}=await setup();const auth=TestBed.inject(AuthService) as any;
+    auth.currentUser=()=>({role:'maestro'});auth.isLoggedIn=()=>true;
+    vi.spyOn(router,'url','get').mockReturnValue('/dashboard/maestro?section=historial');fixture.detectChanges();
+    const links=Array.from(fixture.nativeElement.querySelectorAll('.mobile-drawer a[href^="/dashboard/maestro"]')) as HTMLAnchorElement[];
+    expect(links.map(a=>a.textContent?.trim())).toEqual(['Inicio','Mis cotizaciones','Historial','Perfil']);
+    expect(links.map(a=>a.getAttribute('href'))).toEqual(['inicio','cotizaciones','historial','perfil'].map(section=>`/dashboard/maestro?section=${section}`));
+    expect(links.filter(a=>a.getAttribute('aria-current')==='page').map(a=>a.textContent?.trim())).toEqual(['Historial']);
+    expect(fixture.nativeElement.querySelector('.navbar .account-nav-icon')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.navbar').classList.contains('navbar--maestro')).toBe(true);
+  });
+
   it('submits a trimmed query and keeps search outside the mobile drawer',async()=>{
     const {fixture,component,router}=await setup();
     const navigate=vi.spyOn(router,'navigate').mockResolvedValue(true);

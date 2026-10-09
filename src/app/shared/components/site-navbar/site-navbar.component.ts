@@ -102,6 +102,16 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
 
   protected get returnUrl(): string { return this.router.url; }
   protected get isMaestro(): boolean { return this.authService.currentUser()?.role === 'maestro'; }
+  protected readonly maestroNavigation = [
+    {label:'Inicio',icon:'pi pi-home',section:'inicio'},
+    {label:'Mis cotizaciones',icon:'pi pi-file',section:'cotizaciones'},
+    {label:'Historial',icon:'pi pi-history',section:'historial'},
+    {label:'Perfil',icon:'pi pi-user',section:'perfil'}
+  ];
+  protected maestroLinkActive(section: string): boolean {
+    return this.router.url.startsWith('/dashboard/maestro') &&
+      (this.router.parseUrl(this.router.url).queryParams['section'] || 'inicio') === section;
+  }
 
   protected onSearchInput():void {
     const now = Date.now();
@@ -168,7 +178,7 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
 
   @HostListener('window:resize')
   protected onResize(): void {
-    if (typeof window !== 'undefined' && window.innerWidth > 1000) this.closeMenu();
+    if (typeof window !== 'undefined' && window.innerWidth > 1000 && !this.isMaestro) this.closeMenu();
   }
 
   private preloadTaxonomy():void {void this.dataService.refreshSearchTaxonomy().catch(()=>undefined).finally(()=>this.changeDetector.markForCheck());}
