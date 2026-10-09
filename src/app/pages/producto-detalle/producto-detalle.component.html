@@ -141,32 +141,13 @@
                 </div>
               </div>
                   <app-info-panel class="offer-information" [title]="store.storeName" [label]="'Información de la oferta de ' + store.storeName">
-                    <p *ngIf="store.sponsored"><strong>Oferta patrocinada</strong></p>
-                  <p class="store-distance" *ngIf="store.distanceKm !== undefined">
-                    <i class="pi pi-map-marker" aria-hidden="true"></i>
-                    A {{ formatDistance(store.distanceKm) }} de ti<span *ngIf="store.commune"> · {{ store.commune }}</span>
-                  </p>
-                  <p class="offer-facts">Actualizado {{ store.priceUpdatedAt | date:'dd/MM/yyyy, HH:mm' }}</p>
-
-                    <p>Precio unitario: <strong>{{ formatCurrency(store.price) }}</strong>. {{ store.includesVat ? 'IVA incluido.' : 'IVA no incluido.' }}</p>
-                    <p *ngIf="store.pricePerMeasurement">{{ formatCurrency(store.pricePerMeasurement) }} / {{ measurementLabel(store.measurementUnit) }}</p>
-                    <p>Total por {{ selectedQuantity }}: {{ formatCurrency(storeTotal(store)) }}</p>
-                    <p>{{ store.offerConditions }}</p>
-                    <p *ngIf="!store.includesVat">IVA no incluido en el precio informado. Confirma el precio final con la ferretería.</p>
                     <p class="offer-validity">
                       Oferta vigente desde {{ store.validFrom | date:'dd/MM/yyyy' }}
                       <span *ngIf="store.validUntil"> hasta {{ store.validUntil | date:'dd/MM/yyyy' }}</span>
                       <span *ngIf="!store.validUntil"> mientras esté publicada y exista stock</span>.
                     </p>
-                    <p *ngIf="store.pricePerMeasurement">{{ store.measurementSource === 'store_reported' ? 'Medida informada por la ferretería' : 'Medida calculada desde la presentación de la ficha' }}.</p>
-                    <p><strong>{{ store.storeName }}</strong><span *ngIf="store.rut"> · RUT {{ store.rut }}</span></p>
-                    <p *ngIf="store.address">{{ store.address }}<span *ngIf="store.commune">, {{ store.commune }}</span></p>
-                    <p>
-                      <a *ngIf="store.email" [href]="'mailto:' + store.email">{{ store.email }}</a>
-                      <span *ngIf="store.email && store.phone"> · </span>
-                      <a *ngIf="store.phone" [href]="'tel:' + store.phone">{{ store.phone }}</a>
-                      <span *ngIf="!store.email && !store.phone">Contacto comercial no informado.</span>
-                    </p>
+                    <p><strong>{{ store.storeName }}</strong></p>
+                    <p *ngIf="store.email"><a [href]="'mailto:' + store.email">{{ store.email }}</a></p>
                     <p>Fuente: {{ store.source }}.</p>
                     <p>
                       <a
