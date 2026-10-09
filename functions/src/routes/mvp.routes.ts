@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { imagesRouter } from './images.routes.js';
 import { contactRouter } from './contact.routes.js';
 import { authRouter } from './auth.routes.js';
 import { taxonomyRouter } from './taxonomy.routes.js';
@@ -18,6 +19,7 @@ import { priceReportsRouter } from './price-reports.routes.js';
 
 // Preserve route registration order and the existing /api and direct URL contracts.
 export const mvpRouter = Router();
+mvpRouter.use(imagesRouter);
 mvpRouter.use(contactRouter);
 mvpRouter.use(marketingRouter);
 mvpRouter.use(priceReportsRouter);

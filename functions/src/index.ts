@@ -10,6 +10,7 @@ import { publicCatalogRouter } from './routes/public-catalog.routes.js';
 import { accountRateLimit, generalRateLimit, sensitiveWriteRateLimit, statusLookupRateLimit, writeRateLimit } from './lib/rate-limit.js';
 
 import { sqlPassword } from './database/pool.js';
+import { imageStorageStatus } from './services/image-storage.service.js';
 import { acquireFirestoreWriteLease,activateSqlIfRequested } from './database/cutover.js';
 
 const app = express();
@@ -68,7 +69,7 @@ app.use(async (req,res,next) => {
 });
 app.get(['/api/config', '/config'], (_req, res) => {
   res.set('Cache-Control', 'no-store');
-  res.json({ ok: true, data: { dataMode: 'real' } });
+  res.json({ ok: true, data: { dataMode: 'real', imageStorage: imageStorageStatus() } });
 });
 
 // Supports Firebase Hosting rewrites (/api/**) and the direct function URL.
@@ -121,7 +122,7 @@ export const api = onRequest(
     region: 'southamerica-west1',
     cors: false,
     maxInstances: 10,
-    secrets: [sqlPassword]
+    secrets: [sqlPassword, ...(process.env['IMAGE_STORAGE_PROVIDER'] === 'r2' ? ['FINDI_R2_ACCESS_KEY_ID', 'FINDI_R2_SECRET_ACCESS_KEY'] : [])]
   },
   app
 );

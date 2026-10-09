@@ -104,7 +104,7 @@ async function materializeChildren(client:SqlClient,key:string,id:string,data:Da
   await client.query('DELETE FROM findi.product_media WHERE product_id=$1',[id]);
   const gallery=Array.isArray(data.galeriaJson)?data.galeriaJson:[];
   const urls=gallery.map((url:any)=>({url, in_gallery:true}));
-  for(const url of [data.imagenStorageUrl,data.imagenPrincipalUrl,data.imagenExternaUrl])if(url&&!urls.some(item=>item.url===url))urls.push({url,in_gallery:false});
+  for(const url of [data.imagenStorageUrl,data.imagenPrincipalUrl,data.imagenExternaUrl,data.imagenMiniaturaUrl])if(url&&!urls.some(item=>item.url===url))urls.push({url,in_gallery:false});
   const imageRights=digest('image-rights:'+id),textRights=digest('text-rights:'+id);
   if(data.referenciaAutorizacion)await upsert(client,'content_rights',{id:imageRights,source_type:data.origenImagen||'unknown',provider:data.proveedorImagen||null,source_terms_url:data.terminosFuenteUrl||null,authorization_reference:data.referenciaAutorizacion,contains_third_party_marks:!!data.contieneMarcasTerceros,trademark_authorization_reference:data.referenciaAutorizacionMarca||null,reviewed_by:data.derechosRevisadosPor||null,reviewed_at:data.derechosRevisadosEn||null},['id']);
   if(data.referenciaDerechosContenido){
@@ -114,7 +114,7 @@ async function materializeChildren(client:SqlClient,key:string,id:string,data:Da
   let primaryChosen=false;
   for(const [position,item]of urls.entries()){
    const assetId=digest(`product-media:${id}:${position}`),isPrimary:boolean=!primaryChosen&&item.url===data.imagenPrincipalUrl;primaryChosen ||= isPrimary;
-   await upsert(client,'media_assets',{id:assetId,url:item.url,storage_path:item.url===data.imagenStorageUrl?data.imagenStoragePath||null:null,origin:item.url===data.imagenStorageUrl?'storage':data.origenImagen||'unknown',rights_id:data.referenciaAutorizacion?imageRights:null},['id']);
+   await upsert(client,'media_assets',{id:assetId,url:item.url,storage_path:item.url===data.imagenStorageUrl?data.imagenStoragePath||null:item.url===data.imagenMiniaturaUrl?data.imagenMiniaturaPath||null:null,origin:item.url===data.imagenStorageUrl||item.url===data.imagenMiniaturaUrl?'storage':data.origenImagen||'unknown',rights_id:data.referenciaAutorizacion?imageRights:null},['id']);
    await upsert(client,'product_media',{product_id:id,asset_id:assetId,position,in_gallery:item.in_gallery,is_primary:isPrimary},['product_id','asset_id']);
   }
   await client.query('DELETE FROM findi.media_assets a WHERE a.id=ANY($1::text[]) AND NOT EXISTS(SELECT 1 FROM findi.product_media m WHERE m.asset_id=a.id)',[Array.from({length:200},(_,position)=>digest(`product-media:${id}:${position}`))]);

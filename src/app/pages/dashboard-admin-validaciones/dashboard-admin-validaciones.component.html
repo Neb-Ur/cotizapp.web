@@ -1130,7 +1130,7 @@
           </div>
           <div class="actions">
             <button type="button" class="ghost product-back" (click)="closeMasterProductModal()" [disabled]="masterDetailSaving">Volver al listado</button>
-            <button type="button" class="product-save" *ngIf="!masterDetailReadonly" (click)="saveMasterProduct()" [disabled]="masterDetailSaving || masterDetailLoading"><i [class]="masterDetailSaving ? 'pi pi-spin pi-spinner' : 'pi pi-check'" aria-hidden="true"></i> {{ masterDetailSaving ? 'Guardando…' : 'Guardar cambios' }}</button>
+            <button type="button" class="product-save" *ngIf="!masterDetailReadonly" (click)="saveMasterProduct()" [disabled]="masterDetailSaving || masterDetailLoading || imageUploadBusy"><i [class]="masterDetailSaving ? 'pi pi-spin pi-spinner' : 'pi pi-check'" aria-hidden="true"></i> {{ masterDetailSaving ? 'Guardando…' : 'Guardar cambios' }}</button>
           </div>
         </div>
 
@@ -1227,6 +1227,7 @@
             </div>
           </section>
           <details class="product-extra"><summary>Imágenes y respaldo de derechos</summary>
+          <app-product-image-upload *ngIf="!masterDetailReadonly" [disabled]="masterDetailSaving" (uploaded)="onMasterImageUploaded($event)" (busyChange)="imageUploadBusy = $event" />
           <label>
             Imagen principal (URL)
             <input type="text" [(ngModel)]="masterDetailDraft.imageUrl" [disabled]="masterDetailReadonly" />

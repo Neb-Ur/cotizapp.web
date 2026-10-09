@@ -19,9 +19,9 @@ function additionalFields(body: Record<string, unknown>): Record<string, unknown
   for (const key of ['pesoLogisticoKg', 'volumenLogisticoM3', 'unidadesPorPallet']) {
     if (body[key] !== undefined) fields[key] = body[key] === null ? null : Math.max(0, numberValue(body[key]));
   }
-  for (const key of ['imagenStorageUrl','imagenExternaUrl','imagenStoragePath']) if(body[key] !== undefined) {
+  for (const key of ['imagenStorageUrl','imagenExternaUrl','imagenStoragePath','imagenMiniaturaUrl','imagenMiniaturaPath']) if(body[key] !== undefined) {
     const value=normalizeText(body[key]);
-    fields[key]=key==='imagenStoragePath' ? value : (/^https:\/\//i.test(value) ? value : '');
+    fields[key]=key.endsWith('Path') ? value : (/^https:\/\//i.test(value) ? value : '');
   }
   if(body['imagenStorageUrl'] !== undefined || body['imagenExternaUrl'] !== undefined)
     fields['imagenPrincipalUrl']=fields['imagenStorageUrl'] || fields['imagenExternaUrl'] || normalizeText(body['imagenPrincipalUrl']);
@@ -164,9 +164,9 @@ masterProductsRouter.patch('/productos-maestro/:id', requireAuth, requireRole('a
   const rightsInput = { ...current, ...(req.body || {}), imagenPrincipalUrl: nextImageUrl };
   // The existing editor changes one URL; keep its replacement/removal semantics.
   if(req.body?.imagenPrincipalUrl !== undefined && req.body?.imagenExternaUrl === undefined
-    && nextImageUrl !== current.imagenStorageUrl) {
+    && nextImageUrl !== (req.body?.imagenStorageUrl || current.imagenStorageUrl)) {
     rightsInput.imagenExternaUrl=nextImageUrl;
-    if(current.imagenStorageUrl && req.body?.imagenStorageUrl === undefined) {rightsInput.imagenStorageUrl='';rightsInput.imagenStoragePath='';}
+    if(current.imagenStorageUrl && req.body?.imagenStorageUrl === undefined) {rightsInput.imagenStorageUrl='';rightsInput.imagenStoragePath='';rightsInput.imagenMiniaturaUrl='';rightsInput.imagenMiniaturaPath='';}
   }
   const imageRights = imageRightsPayload(rightsInput, req.authUserId);
   if (imageRights === null) return fail(res, 'PRODUCT_IMAGE_RIGHTS_REQUIRED', 'Registra el origen, proveedor y respaldo de derechos de la imagen. Las marcas de terceros requieren autorización específica.', 400);

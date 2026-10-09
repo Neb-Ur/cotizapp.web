@@ -1,5 +1,11 @@
 [
   {
+    "method": "post",
+    "path": "/admin/imagenes/productos",
+    "auth": true,
+    "middlewareCount": 4
+  },
+  {
     "method": "get",
     "path": "/health",
     "auth": false,

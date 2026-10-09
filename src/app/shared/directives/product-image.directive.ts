@@ -12,6 +12,7 @@ function imageUrl(value: string | null | undefined): string {
 @Directive({ selector: 'img[findiProductImage]', standalone: true })
 export class ProductImageDirective implements OnChanges {
   @Input() findiProductImage: string | null | undefined;
+  @Input() fullImageUrl: string | null | undefined;
   @Input() externalImageUrl: string | null | undefined;
   @HostBinding('attr.src') src: string | null = PRODUCT_IMAGE_PLACEHOLDER;
   @HostBinding('attr.referrerpolicy') readonly referrerPolicy = 'no-referrer';
@@ -20,7 +21,7 @@ export class ProductImageDirective implements OnChanges {
   private position = 0;
 
   ngOnChanges(): void {
-    this.candidates = [...new Set([imageUrl(this.findiProductImage), imageUrl(this.externalImageUrl), PRODUCT_IMAGE_PLACEHOLDER].filter(Boolean))];
+    this.candidates = [...new Set([imageUrl(this.findiProductImage), imageUrl(this.fullImageUrl), imageUrl(this.externalImageUrl), PRODUCT_IMAGE_PLACEHOLDER].filter(Boolean))];
     this.position = 0;
     this.showCandidate();
   }

@@ -64,6 +64,9 @@ interface ProductoMaestroApi {
   descripcionLarga?: string;
   imagenPrincipalUrl?: string;
   imagenStorageUrl?: string;
+  imagenStoragePath?: string;
+  imagenMiniaturaUrl?: string;
+  imagenMiniaturaPath?: string;
   imagenExternaUrl?: string;
   galeriaJson?: string[];
   caracteristicasDestacadas?: string[];
@@ -571,6 +574,9 @@ export class FirebaseDataService {
       descripcionLarga: raw.descripcionLarga,
       imagenPrincipalUrl: raw.imagenPrincipalUrl,
       imagenStorageUrl: raw.imagenStorageUrl,
+      imagenStoragePath: raw.imagenStoragePath,
+      imagenMiniaturaUrl: raw.imagenMiniaturaUrl,
+      imagenMiniaturaPath: raw.imagenMiniaturaPath,
       imagenExternaUrl: raw.imagenExternaUrl,
       galeriaJson: raw.galeriaJson,
       caracteristicasDestacadas: raw.caracteristicasDestacadas,
@@ -621,6 +627,10 @@ export class FirebaseDataService {
       descripcionCorta: payload.shortDescription || payload.descriptionText,
       descripcionLarga: payload.descriptionBlocks?.[0]?.text || payload.descriptionText,
       imagenPrincipalUrl: payload.imageUrl,
+      imagenStorageUrl: payload.storageImageUrl,
+      imagenStoragePath: payload.storageImagePath,
+      imagenMiniaturaUrl: payload.thumbnailImageUrl,
+      imagenMiniaturaPath: payload.thumbnailImagePath,
       galeriaJson: payload.gallery || [],
       caracteristicasDestacadas: payload.featureBullets,
       pesoLogisticoKg: payload.logisticsWeightKg,
@@ -661,6 +671,10 @@ export class FirebaseDataService {
       descripcionCorta: patch.shortDescription || patch.descriptionText,
       descripcionLarga: patch.descriptionBlocks?.[0]?.text || patch.descriptionText,
       imagenPrincipalUrl: patch.imageUrl,
+      imagenStorageUrl: patch.storageImageUrl,
+      imagenStoragePath: patch.storageImagePath,
+      imagenMiniaturaUrl: patch.thumbnailImageUrl,
+      imagenMiniaturaPath: patch.thumbnailImagePath,
       galeriaJson: patch.gallery,
       caracteristicasDestacadas: patch.featureBullets,
       pesoLogisticoKg: patch.logisticsWeightKg,
@@ -1387,6 +1401,7 @@ export class FirebaseDataService {
       productType: string;
       imageUrl: string;
       imageFallbackUrl?: string;
+      fullImageUrl?: string;
       nearestDistanceKm?: number;
     }>();
 
@@ -1409,7 +1424,8 @@ export class FirebaseDataService {
           storeIds: new Set<string>(),
           brand: master?.brand || 'Sin marca',
           productType: master?.productType || 'Producto ferretero',
-          imageUrl: master?.imageUrl && !master.imageUrl.includes('via.placeholder.com') ? master.imageUrl : '',
+          imageUrl: master?.thumbnailImageUrl || (master?.imageUrl && !master.imageUrl.includes('via.placeholder.com') ? master.imageUrl : ''),
+          fullImageUrl: master?.imageUrl || '',
           imageFallbackUrl: master?.imageFallbackUrl || '',
           nearestDistanceKm: rowDistance
         };
@@ -1433,7 +1449,7 @@ export class FirebaseDataService {
       byProduct.set(master.name, {
         productName: master.name, minPrice: 0, maxPrice: 0,
         sellers: new Set<string>(), storeIds: new Set<string>(),
-        brand: master.brand, productType: master.productType, imageUrl: master.imageUrl, imageFallbackUrl: master.imageFallbackUrl
+        brand: master.brand, productType: master.productType, imageUrl: master.thumbnailImageUrl || master.imageUrl, fullImageUrl: master.imageUrl, imageFallbackUrl: master.imageFallbackUrl
       });
     }
 
@@ -2117,6 +2133,10 @@ export class FirebaseDataService {
       price: minPrice,
       stock: 0,
       sku: '',
+      storageImageUrl: product.imagenStorageUrl || '',
+      storageImagePath: product.imagenStoragePath || '',
+      thumbnailImageUrl: product.imagenMiniaturaUrl || '',
+      thumbnailImagePath: product.imagenMiniaturaPath || '',
       imageUrl: product.imagenStorageUrl || product.imagenPrincipalUrl || product.imagenExternaUrl || '',
       imageFallbackUrl: product.imagenExternaUrl || '',
       isPublished: product.estado !== 'inactivo',

@@ -54,6 +54,13 @@ export class ApiClientService {
     return response.data;
   }
 
+  async uploadImage<T>(path: string, file: File): Promise<T> {
+    const response = await firstValueFrom(this.http.post<ApiEnvelope<T>>(`${this.apiBaseUrl}${path}`, file, {
+      headers: this.headers(true).set('Content-Type', file.type)
+    }));
+    return response.data;
+  }
+
   async patch<T>(path: string, body: unknown, requireAuth = false): Promise<T> {
     const response = await firstValueFrom(
       this.http.patch<ApiEnvelope<T>>(`${this.apiBaseUrl}${path}`, body, {

@@ -619,6 +619,12 @@
       "path": "/catalogo-inicio",
       "source": "functions/src/routes/public-catalog.routes.ts",
       "line": 69
+    },
+    {
+      "method": "POST",
+      "path": "/admin/imagenes/productos",
+      "source": "functions/src/routes/images.routes.ts",
+      "line": 7
     }
   ]
 }

@@ -126,11 +126,11 @@ test('final cutover reconciliation includes the last Firestore changes atomicall
 });
 test('SQL preserves Storage and external fallback assets without duplicate images or invented permissions',async t=>{
  const {db,pg}=await fixture(t);await catalog(db);
- const storage='https://storage.example/product.webp',external='https://maker.example/product.webp';
- await db.collection('productosMaestro').doc('product').update({imagenPrincipalUrl:storage,imagenStorageUrl:storage,imagenStoragePath:'productos/product/main.webp',imagenExternaUrl:external,galeriaJson:[storage],origenImagen:'external_url'});
+ const storage='https://storage.example/product.webp',external='https://maker.example/product.webp',thumbnail='https://storage.example/thumbnail.webp';
+ await db.collection('productosMaestro').doc('product').update({imagenPrincipalUrl:storage,imagenStorageUrl:storage,imagenStoragePath:'productos/product/main.webp',imagenMiniaturaUrl:thumbnail,imagenMiniaturaPath:'productos/product/thumbnail.webp',imagenExternaUrl:external,galeriaJson:[storage],origenImagen:'external_url'});
  const assets=(await pg.query('SELECT a.url,a.storage_path,a.rights_id,m.is_primary FROM findi.media_assets a JOIN findi.product_media m ON m.asset_id=a.id WHERE m.product_id=$1 ORDER BY m.position',['product'])).rows;
- assert.equal(assets.length,2);assert.equal(assets[0].url,storage);assert.equal(assets[0].storage_path,'productos/product/main.webp');assert.equal(assets[0].is_primary,true);assert.equal(assets[1].url,external);assert.equal(assets[1].is_primary,false);assert.ok(assets.every(a=>a.rights_id===null));
- await db.collection('productosMaestro').doc('product').update({imagenPrincipalUrl:'',imagenStorageUrl:'',imagenExternaUrl:'',galeriaJson:[]});
+ assert.equal(assets.length,3);assert.equal(assets[2].url,thumbnail);assert.equal(assets[2].storage_path,'productos/product/thumbnail.webp');assert.equal(assets[2].is_primary,false);assert.equal(assets[0].url,storage);assert.equal(assets[0].storage_path,'productos/product/main.webp');assert.equal(assets[0].is_primary,true);assert.equal(assets[1].url,external);assert.equal(assets[1].is_primary,false);assert.ok(assets.every(a=>a.rights_id===null));
+ await db.collection('productosMaestro').doc('product').update({imagenPrincipalUrl:'',imagenStorageUrl:'',imagenMiniaturaUrl:'',imagenExternaUrl:'',galeriaJson:[]});
  assert.equal((await pg.query('SELECT count(*)::int n FROM findi.product_media')).rows[0].n,0);
 });
 test('active SQL connections validate readiness once, while unactivated migrations remain checked',async t=>{

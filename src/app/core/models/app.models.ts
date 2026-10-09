@@ -252,6 +252,7 @@ export interface FamilyTemplate {
 }
 
 export interface FamilyProductRow {
+  fullImageUrl?: string;
   seoPath?:string;
   productoMaestroId?: string;
   productName: string;
@@ -432,6 +433,10 @@ export interface CatalogProduct {
   price: number;
   stock: number;
   sku: string;
+  storageImageUrl?: string;
+  storageImagePath?: string;
+  thumbnailImageUrl?: string;
+  thumbnailImagePath?: string;
   imageUrl: string;
   imageFallbackUrl?: string;
   isPublished: boolean;

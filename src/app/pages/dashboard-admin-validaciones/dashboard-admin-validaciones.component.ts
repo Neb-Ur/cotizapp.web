@@ -1,3 +1,4 @@
+import { ProductImageUploadComponent, UploadedProductImage } from '../../shared/components/product-image-upload/product-image-upload.component';
 import { WriteFeedbackService } from '../../core/services/write-feedback.service';
 import { CATEGORY_ICONS, categoryIcon } from '../../core/utils/category-icon.util';
 import { PasswordFieldComponent } from '../../shared/components/password-field/password-field.component';
@@ -56,6 +57,10 @@ import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.c
 type AdminSection = 'ferreterias' | 'productos' | 'solicitudes' | 'contacto' | 'precios' | 'propiedad' | 'privacidad' | 'gobierno' | 'usuarios';
 
 interface MasterProductDraft {
+  storageImageUrl?: string;
+  storageImagePath?: string;
+  thumbnailImageUrl?: string;
+  thumbnailImagePath?: string;
   isPublished: boolean;
   masterProductId: string;
   name: string;
@@ -139,6 +144,7 @@ interface AdminSectionMeta {
   selector: 'app-dashboard-admin-validaciones',
   standalone: true,
   imports: [
+    ProductImageUploadComponent,
     PasswordFieldComponent,
     CommonModule,
     FormsModule,
@@ -1058,9 +1064,18 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     this.syncMasterAttributeDrafts();
   }
 
+  protected imageUploadBusy = false;
+
+  protected onMasterImageUploaded(image: UploadedProductImage): void {
+    const previous = this.masterDetailDraft.imageUrl;
+    const gallery = this.parseGallery(this.masterDetailDraft.galleryText).filter(url => url !== previous && url !== image.storageImageUrl);
+    Object.assign(this.masterDetailDraft, image, { imageUrl: image.storageImageUrl, galleryText: [image.storageImageUrl, ...gallery].join('\n') });
+    this.changeDetector.detectChanges();
+  }
+
   protected async saveMasterProduct(): Promise<void> {
     await this.writeFeedback.run('dashboard-admin-validaciones:saveMasterProduct', async () => {
-      if (this.masterDetailReadonly || this.masterDetailLoading || this.masterDetailSaving) {
+      if (this.masterDetailReadonly || this.masterDetailLoading || this.masterDetailSaving || this.imageUploadBusy) {
         return;
       }
 
@@ -1114,6 +1129,10 @@ export class DashboardAdminValidacionesComponent implements OnInit {
           shortDescription: this.masterDetailDraft.shortDescription.trim() || descriptionText,
           descriptionBlocks: descriptionText ? [{ text: descriptionText }] : undefined,
           imageUrl: this.masterDetailDraft.imageUrl.trim(),
+          storageImageUrl: this.masterDetailDraft.imageUrl.trim() === this.masterDetailDraft.storageImageUrl ? this.masterDetailDraft.storageImageUrl : '',
+          storageImagePath: this.masterDetailDraft.imageUrl.trim() === this.masterDetailDraft.storageImageUrl ? this.masterDetailDraft.storageImagePath : '',
+          thumbnailImageUrl: this.masterDetailDraft.imageUrl.trim() === this.masterDetailDraft.storageImageUrl ? this.masterDetailDraft.thumbnailImageUrl : '',
+          thumbnailImagePath: this.masterDetailDraft.imageUrl.trim() === this.masterDetailDraft.storageImageUrl ? this.masterDetailDraft.thumbnailImagePath : '',
           imageRights: this.serializeImageRightsDraft(),
           contentRights: this.serializeContentRightsDraft(),
           gallery,
@@ -2158,6 +2177,10 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       shortDescription: product.shortDescription || '',
       descriptionText: product.descriptionBlocks[0]?.text || product.shortDescription || '',
       imageUrl: product.imageUrl || '',
+      storageImageUrl: product.storageImageUrl,
+      storageImagePath: product.storageImagePath,
+      thumbnailImageUrl: product.thumbnailImageUrl,
+      thumbnailImagePath: product.thumbnailImagePath,
       imageSourceType: product.imageRights?.sourceType || '',
       imageProvider: product.imageRights?.provider || '',
       imageSourceTermsUrl: product.imageRights?.sourceTermsUrl || '',

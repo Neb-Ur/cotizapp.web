@@ -40,7 +40,7 @@
     <div class="home-product-grid">
       <a class="home-product-card" *ngFor="let product of featuredProducts() | slice:0:4" [href]="product.seoPath || productUrl(product.productName)" (click)="openProductCard($event, product)">
         <span class="home-product-image">
-          <img [findiProductImage]="product.imageUrl" [externalImageUrl]="product.imageFallbackUrl" [alt]="product.productName" width="360" height="240" loading="lazy" decoding="async" />
+          <img [findiProductImage]="product.imageUrl" [fullImageUrl]="product.fullImageUrl" [externalImageUrl]="product.imageFallbackUrl" [alt]="product.productName" width="360" height="240" loading="lazy" decoding="async" />
         </span>
         <span class="home-product-meta">{{ product.brand === 'Por especificar' ? 'Producto base' : product.brand }} · {{ product.productType }}</span>
         <span class="home-product-name">{{ product.productName }}</span>
