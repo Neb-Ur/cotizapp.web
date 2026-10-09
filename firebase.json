@@ -12,7 +12,7 @@
   },
   "hosting": {
     "public": "dist/cotizacion-web/browser",
-    "predeploy": [],
+    "predeploy": ["node scripts/preserve-hosted-bundles.mjs"],
     "ignore": [
       "firebase.json",
       "**/.*",

@@ -162,6 +162,7 @@ jobs:
 
           if [[ "${{ github.event_name }}" == "push" && "${{ contains(github.event.head_commit.message, '[hosting-only]') }}" == "true" ]]; then
             DEPLOY_TARGETS="hosting"
+            export PRESERVE_HOSTED_BUNDLES=true
             echo "Hosting-only push: deploying only Hosting."
           elif [[ "${{ github.event_name }}" == "push" && "${{ contains(github.event.head_commit.message, '[firestore-deploy]') }}" == "true" ]]; then
             DEPLOY_TARGETS="functions,hosting,firestore:rules,firestore:indexes"
