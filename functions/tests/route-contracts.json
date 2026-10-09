@@ -504,6 +504,12 @@
     "middlewareCount": 3
   },
   {
+    "method": "get",
+    "path": "/ferreterias/:storeId/cotizaciones/:code",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
     "method": "post",
     "path": "/ferreterias/:storeId/solicitudes-creacion-producto",
     "auth": true,

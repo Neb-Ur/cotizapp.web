@@ -59,6 +59,9 @@
               ],
               "outputHashing": "all"
             },
+            "test": {
+              "externalDependencies": ["firebase/auth"]
+            },
             "development": {
               "optimization": false,
               "extractLicenses": false,
@@ -103,10 +106,11 @@
           "options": {
             "tsConfig": "tsconfig.spec.json",
             "runner": "vitest",
+            "runnerConfig": "vitest-base.config.ts",
             "setupFiles": [
               "src/firebase-test-setup.ts"
             ],
-            "buildTarget": "::development"
+            "buildTarget": "::development,test"
           }
         }
       }

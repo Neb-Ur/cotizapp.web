@@ -171,7 +171,10 @@ jobs:
             echo "Standard push: deploying Functions and Hosting. Firestore rules/indexes are unchanged."
           fi
 
-          npx --yes firebase-tools@15.32.1 deploy             --only "$DEPLOY_TARGETS"             --project "$FIREBASE_PROJECT_ID"             --non-interactive
+          npm exec --yes --package=firebase-tools@15.32.1 -- npm run deploy -- \
+            --only "$DEPLOY_TARGETS" \
+            --project "$FIREBASE_PROJECT_ID" \
+            --non-interactive
 
       - name: Smoke test production
         run: node scripts/smoke-production.mjs

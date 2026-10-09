@@ -43,7 +43,7 @@ interface MaestroProfileDraft {
   standalone: true,
   imports: [ProductImageDirective, CommonModule, RouterLink, FormsModule, FontAwesomeModule, PaginatorModule, UiLoaderComponent],
   templateUrl: './dashboard-maestro.component.html',
-  styleUrl: './dashboard-maestro.component.scss'
+  styleUrls: ['./dashboard-maestro.component.scss', './dashboard-maestro-quotations.scss']
 })
 export class DashboardMaestroComponent implements OnInit, OnDestroy {
   @Input() landing?: CatalogLandingView;

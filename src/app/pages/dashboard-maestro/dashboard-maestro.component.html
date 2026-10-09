@@ -240,21 +240,23 @@
         <button type="button" (click)="goToNewProject()" [disabled]="!canCreateQuotation">Nueva cotización</button>
       </div>
       <p class="saved" *ngIf="quotationNotice">{{ quotationNotice }}</p>
-      <div class="table-wrap" *ngIf="projects.length > 0; else emptyQuotes">
-        <table>
+      <div class="table-wrap quotations-wrap" *ngIf="projects.length > 0; else emptyQuotes">
+        <table class="quotations-table">
           <caption class="visually-hidden">Cotizaciones guardadas</caption>
-          <thead><tr><th>Cotización</th><th>Fecha</th><th>Ítems</th><th>Total óptimo</th><th>Ahorro</th><th>Acciones</th></tr></thead>
+          <thead><tr><th>Cotización</th><th class="quotation-desktop">Fecha</th><th class="quotation-desktop">Ítems</th><th>Total óptimo</th><th class="quotation-desktop">Ahorro</th><th>Acciones</th></tr></thead>
           <tbody>
             <tr *ngFor="let project of projects">
-              <td>{{ project.name }}<small *ngIf="project.verificationCode" style="display:block">{{ project.verificationCode }}</small><small *ngIf="project.validUntil" style="display:block">{{ project.expired ? 'Más de 10 días' : 'Compra recomendada hasta' }} · {{ project.validUntil | date:'dd/MM/yyyy' }}</small></td>
-              <td>{{ project.createdAt | date:'short' }}</td>
-              <td>{{ project.items.length }}</td>
-              <td>{{ project.availabilityStatus === 'incomplete' ? 'Incompleta: revisar ofertas' : formatCurrency(project.totalOptimal) }}</td>
-              <td>{{ formatCurrency(project.saving) }}</td>
-              <td class="row-actions">
-                <button type="button" class="secondary" (click)="goToProjectDetail(project.id)">Editar</button>
-                <button type="button" (click)="shareProject(project)">Enviar al cliente</button>
-                <button type="button" class="danger" (click)="deleteProject(project.id)">Eliminar</button>
+              <td class="quotation-identity"><span class="quotation-name" [title]="project.name">{{ project.name }}</span><small *ngIf="project.verificationCode" class="quotation-code">{{ project.verificationCode }}</small><small *ngIf="project.validUntil" class="quotation-desktop quotation-validity">{{ project.expired ? 'Más de 10 días' : 'Compra recomendada hasta' }} · {{ project.validUntil | date:'dd/MM/yyyy' }}</small></td>
+              <td class="quotation-desktop">{{ project.createdAt | date:'short' }}</td>
+              <td class="quotation-desktop">{{ project.items.length }}</td>
+              <td class="quotation-total">{{ project.availabilityStatus === 'incomplete' ? 'Incompleta: revisar ofertas' : formatCurrency(project.totalOptimal) }}</td>
+              <td class="quotation-desktop">{{ formatCurrency(project.saving) }}</td>
+              <td class="quotation-actions-cell">
+                <div class="row-actions quotation-actions">
+                  <button type="button" class="secondary" title="Editar cotización" [attr.aria-label]="'Editar cotización ' + project.name" (click)="goToProjectDetail(project.id)"><i class="pi pi-pencil" aria-hidden="true"></i></button>
+                  <button type="button" class="quotation-share" title="Enviar al cliente" [attr.aria-label]="'Enviar cotización ' + project.name + ' al cliente'" (click)="shareProject(project)"><i class="pi pi-send" aria-hidden="true"></i></button>
+                  <button type="button" class="danger" title="Eliminar cotización" [attr.aria-label]="'Eliminar cotización ' + project.name" (click)="deleteProject(project.id)"><i class="pi pi-trash" aria-hidden="true"></i></button>
+                </div>
               </td>
             </tr>
           </tbody>
