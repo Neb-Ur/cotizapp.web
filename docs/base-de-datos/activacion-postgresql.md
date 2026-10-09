@@ -2,10 +2,12 @@
 
 ## Selección de base de datos
 
+**Estado actual: PostgreSQL activo**, desplegado y verificado el 8 de octubre de 2026 (hora de Chile). El control de migración está en `active` y la réplica desde Firestore está detenida.
+
 La variable pertenece al **servidor** y está en `functions/.env`:
 
 ```dotenv
-USE_SQL_DATABASE=false
+USE_SQL_DATABASE=true
 ```
 
 - `false`: la API sigue usando Firestore; la réplica mantiene PostgreSQL actualizado.
@@ -104,3 +106,13 @@ Las pruebas del backend cubren los flujos existentes. Las pruebas SQL usan Postg
 Estas cantidades son el corte de conciliación, no límites del catálogo. La réplica admite cambios posteriores y la activación realiza la conciliación final bajo bloqueo.
 
 La carga de referencia añade la división territorial oficial de Chile y las agrupaciones de ciudades de los formularios; ver [estado de carga](estado-de-carga.md). Los vínculos territoriales de cuentas y ferreterías se actualizan automáticamente con los cambios de sus campos de ubicación.
+
+## Verificación de la activación en producción
+
+La conciliación previa coincidió con las 28 colecciones de origen y las 108 pruebas del backend pasaron. Se desplegaron todas las funciones con `USE_SQL_DATABASE=true`. La primera solicitud ejecutó la conciliación final y dejó el estado en `active`, eliminando las versiones pendientes de réplica.
+
+`node functions/scripts/verify-sql-activation.mjs --firebase-cli-auth` verifica la configuración desplegada, el estado real en SQL, el catálogo, un detalle, el índice de sugerencias y el rechazo de acceso anónimo al admin. No fabrica datos comerciales. `node scripts/smoke-production.mjs` comprobó HTML de producto, canonical, JSON-LD, páginas de categorías/familias/marcas, sitemap, noindex privado y 404 reales. El resultado fue 856 productos y 0 ofertas activas.
+
+En la prueba inicial, la primera solicitud, que incluye arranque y conciliación, tardó aproximadamente 25 segundos y la primera consulta de catálogo unos 16 segundos. En consultas posteriores, el detalle respondió entre 0,8 y 1 segundo y la búsqueda aproximadamente 0,6 segundos. Una carga completa posterior de catálogo tomó 8,4 segundos y el índice de sugerencias 2,8 segundos: estas rutas todavía tienen margen de optimización. Son mediciones puntuales de extremo a extremo, no una garantía de latencia. El buscador del navegador conserva su índice local en caché; la primera descarga sigue dependiendo de la API.
+
+Firestore se conserva como copia del momento del cambio, sin recibir las nuevas escrituras SQL. No ejecutar nuevamente la importación desde Firestore ni volver a `false` sin preparar la sincronización inversa.

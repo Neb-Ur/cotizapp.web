@@ -19,7 +19,7 @@ La división territorial procede de [SUBDERE, Códigos Únicos Territoriales](ht
 
 Una tabla de actividad vacía no indica una carga faltante. No existen ofertas ni precios de ferreterías, imágenes autorizadas, reclamos, importaciones históricas o solicitudes de privacidad en el origen. Las 2 cotizaciones existentes todavía no tienen líneas, por lo que tampoco hay productos más cotizados. Estos datos se generan con acciones reales. Las preferencias entre dispositivos, eventos pendientes y tablas temporales de conciliación no se rellenaron con registros ficticios.
 
-Las agrupaciones de ciudades, los índices y las rutas son referencias o derivados. Las referencias territoriales de cuentas/ferreterías se mantienen automáticamente con triggers al cambiar sus campos. El buscador y SEO públicos siguen usando sus servicios actuales; estos índices SQL se pueden reconstruir mediante la carga de referencia. No se modificaron la interfaz ni la base activa: `USE_SQL_DATABASE=false` sigue vigente.
+Las agrupaciones de ciudades, los índices y las rutas son referencias o derivados. Las referencias territoriales de cuentas/ferreterías se mantienen automáticamente con triggers al cambiar sus campos. El buscador y SEO públicos siguen usando sus servicios actuales; estos índices SQL se pueden reconstruir mediante la carga de referencia. No se modificó la interfaz. Después de verificar la carga, se activó PostgreSQL con `USE_SQL_DATABASE=true`; la API ya usa esa base y Firebase Authentication conserva las cuentas.
 
 ## Repetir y verificar
 
