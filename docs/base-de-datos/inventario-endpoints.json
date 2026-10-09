@@ -613,6 +613,12 @@
       "path": "/familias/:familyId/atributos-definicion/:definitionId",
       "source": "functions/src/routes/taxonomy.routes.ts",
       "line": 137
+    },
+    {
+      "method": "GET",
+      "path": "/catalogo-inicio",
+      "source": "functions/src/routes/public-catalog.routes.ts",
+      "line": 69
     }
   ]
 }

@@ -1,5 +1,6 @@
+import { paginateProductSearch } from '../domain/product-search.js';
 import { Router } from 'express';
-import { catalogLandings, seoSlug, seoProductSlug } from '../domain/catalog-seo.js';
+import { catalogLandings, seoSlug, seoProductSlug, productSeoSlugIndex } from '../domain/catalog-seo.js';
 import { createHash } from 'node:crypto';
 import { brandIdentity } from '../domain/brand-identity.js';
 import { getStaticCatalog, staticCatalogRevision } from '../lib/product-sheet-cache.js';
@@ -64,6 +65,14 @@ publicCatalogRouter.get('/catalogo-publico/version', async (_req, res) => {
   });
 });
 
+// The home page needs four cards, not the entire browser catalog download.
+publicCatalogRouter.get('/catalogo-inicio', async (_req,res)=>{
+  const snapshot=await getPublicCatalogSnapshot();
+  const {items}=paginateProductSearch(snapshot,{sort:'stores',page:1,size:4});
+  res.set('Cache-Control','no-store');
+  return res.json({ok:true,data:{products:items,categories:snapshot.taxonomy.categories.slice(0,8).map(item=>({id:item.id,name:item.nombre,icon:item.icono}))}});
+});
+
 publicCatalogRouter.get('/catalogo-publico', async (req, res) => {
   const requestedVersion = String(req.query['v'] || '').trim();
   const snapshot = await getPublicCatalogSnapshot({
@@ -85,6 +94,7 @@ publicCatalogRouter.get('/catalogo-publico', async (req, res) => {
 publicCatalogRouter.get('/catalogo-busqueda', async (req, res) => {
   const [products, categories, subcategories, families, brands] = await getStaticCatalog();
   const brandNames = new Map(brands.map(item=>[item.id,item.nombre]));
+  const slugs=productSeoSlugIndex(products);
   const options = (items: any[]) => items.map(item => ({ id: item.id, name: item.nombre,
     ...(item.categoriaId ? { categoryId: item.categoriaId } : {}),
     ...(item.subcategoriaId ? { subcategoryId: item.subcategoriaId } : {})
@@ -92,7 +102,7 @@ publicCatalogRouter.get('/catalogo-busqueda', async (req, res) => {
   const payload = {
     schema: 1, catalogRevision: staticCatalogRevision(),
     products: products.filter(item => item.estado !== 'inactivo').map(item => ({
-      id: item.id, name: item.nombre, path:`/productos/${seoProductSlug(item,products)}`, brandId: item.marcaId || brandIdentity(item.marca)?.id || null,
+      id: item.id, name: item.nombre, path:`/productos/${slugs.get(item.id)}`, brandId: item.marcaId || brandIdentity(item.marca)?.id || null,
       brand: brandNames.get(item.marcaId) || item.marca || '', type: item.tipoProducto || '',
       categoryId: item.categoriaId, subcategoryId: item.subcategoriaId, familyId: item.familiaId
     })).sort((a, b) => a.id.localeCompare(b.id)),

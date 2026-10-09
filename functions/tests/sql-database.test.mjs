@@ -133,3 +133,12 @@ test('SQL preserves Storage and external fallback assets without duplicate image
  await db.collection('productosMaestro').doc('product').update({imagenPrincipalUrl:'',imagenStorageUrl:'',imagenExternaUrl:'',galeriaJson:[]});
  assert.equal((await pg.query('SELECT count(*)::int n FROM findi.product_media')).rows[0].n,0);
 });
+test('active SQL connections validate readiness once, while unactivated migrations remain checked',async t=>{
+ const {pg}=await fixture(t);let validations=0;
+ const pool={connect:async()=>({query:(sql,values)=>{if(sql.includes('SELECT status FROM findi.database_migration_state'))validations++;return pg.query(sql,values);},release(){}})};
+ const db=new PostgresDatabase(pool,true);
+ await pg.query("UPDATE findi.database_migration_state SET status='active'");
+ await db.collection('categorias').get();await db.collection('categorias').get();assert.equal(validations,1);
+ await pg.query("UPDATE findi.database_migration_state SET status='verified'");const checking=new PostgresDatabase(pool,true);
+ await checking.collection('categorias').get();await checking.collection('categorias').get();assert.equal(validations,3);
+});

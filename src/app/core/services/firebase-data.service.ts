@@ -186,6 +186,7 @@ export class FirebaseDataService {
   private readonly catalogPromiseByOwner = new Map<string, Promise<void>>();
   private validationPromise: Promise<void> | null = null;
   private publicCatalogVersion = '';
+  private publicCatalogNeedsPriceRefresh = false;
 
   constructor(
     private readonly apiClient: ApiClientService,
@@ -227,6 +228,10 @@ export class FirebaseDataService {
     }
   }
 
+  async getHomeCatalogPreview():Promise<{products:FamilyProductRow[];categories:TaxonomyOption[]}> {
+    return this.apiClient.get('/catalogo-inicio');
+  }
+
   async refreshPublicCatalogSection(force = false): Promise<void> {
     if (!force && this.restorePublicCatalogBrowserCache()) {
       return;
@@ -246,7 +251,7 @@ export class FirebaseDataService {
   async refreshPublicCatalogEnhancements(force = false): Promise<void> {
     try {
       const metadata = await this.apiClient.get<{ version: string; updatedAt: string }>('/catalogo-publico/version');
-      if (!force && metadata.version && metadata.version === this.publicCatalogVersion) {
+      if (!force && !this.publicCatalogNeedsPriceRefresh && metadata.version && metadata.version === this.publicCatalogVersion) {
         return;
       }
       await this.fetchPublicCatalogSnapshot(metadata.version);
@@ -1770,12 +1775,14 @@ export class FirebaseDataService {
       localStorage.removeItem(LEGACY_PUBLIC_CATALOG_STORAGE_KEY);
       const raw = localStorage.getItem(this.publicCatalogStorageKey);
       if (!raw) return false;
-      const snapshot = JSON.parse(raw) as PublicCatalogSnapshotApi;
-      if (!this.isUsablePublicCatalogSnapshot(snapshot) || Date.now() - Date.parse(snapshot.updatedAt || '') > 60_000) {
+      const snapshot = JSON.parse(raw) as PublicCatalogSnapshotApi & {cachedAt?:number};
+      const age=Date.now()-(snapshot.cachedAt || Date.parse(snapshot.updatedAt || ''));
+      if (!this.isUsablePublicCatalogSnapshot(snapshot) || !Number.isFinite(age) || age > 7 * 24 * 60 * 60_000) {
         localStorage.removeItem(this.publicCatalogStorageKey);
         return false;
       }
-      this.applyPublicCatalogSnapshot(snapshot);
+      this.publicCatalogNeedsPriceRefresh=age>60_000;
+      this.applyPublicCatalogSnapshot(this.publicCatalogNeedsPriceRefresh?{...snapshot,searchRows:[]}:snapshot);
       return true;
     } catch {
       localStorage.removeItem(this.publicCatalogStorageKey);
@@ -1789,11 +1796,12 @@ export class FirebaseDataService {
       throw new Error('El catalogo publico recibido no contiene productos disponibles.');
     }
     this.applyPublicCatalogSnapshot(snapshot);
+    this.publicCatalogNeedsPriceRefresh=false;
     ['basic-taxonomy', 'taxonomy', 'master', 'search', 'catalog'].forEach(key => this.clearLoadError(key));
 
     if (typeof localStorage !== 'undefined') {
       try {
-        localStorage.setItem(this.publicCatalogStorageKey, JSON.stringify(snapshot));
+        localStorage.setItem(this.publicCatalogStorageKey, JSON.stringify({...snapshot,cachedAt:Date.now()}));
       } catch {
         // Browser storage is optional; server-side cache remains authoritative.
       }
@@ -1829,7 +1837,10 @@ export class FirebaseDataService {
       name: item.nombre, icon: item.icono
     })));
 
-    const mappedSearchRows: SearchRowExtended[] = (snapshot.searchRows || []).map((item) => ({
+    const now=Date.now();
+    const mappedSearchRows: SearchRowExtended[] = (snapshot.searchRows || []).filter(item=>
+      (!item.validFrom || Date.parse(item.validFrom)<=now) && (!item.validUntil || Date.parse(item.validUntil)>now)
+    ).map((item) => ({
       ...item,
       productName: item.productName,
       storeName: item.storeName,

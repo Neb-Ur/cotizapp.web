@@ -1,3 +1,6 @@
+import { catalogCacheIsFresh, nextCatalogTransition } from '../domain/catalog-cache-validity.js';
+import { useSqlDatabase } from '../database/config.js';
+import { sqlPool } from '../database/pool.js';
 import { rows } from '../repositories/firestore.repository.js';
 import { COLLECTIONS } from './collections.js';
 import { dataMode } from './data-mode.js';
@@ -27,10 +30,7 @@ export type PublicCatalogSnapshot = {
 const META_ID = 'meta';
 const CHUNK_SIZE = 150;
 const CACHE_POLICY = `data-modes-v1:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}`;
-const MAX_AGE_MS = 60_000;
-function fresh(meta: any): boolean {
-  return meta?.policy === CACHE_POLICY && Date.now() - Date.parse(meta.updatedAt || '') < MAX_AGE_MS;
-}
+function fresh(meta:any):boolean {return catalogCacheIsFresh(meta,CACHE_POLICY);}
 const rebuildPromises = new Map<string, Promise<PublicCatalogSnapshot>>();
 const memorySnapshots = new Map<string, PublicCatalogSnapshot>();
 
@@ -82,13 +82,13 @@ async function materializeSnapshot(): Promise<PublicCatalogSnapshot> {
   const metaBefore = await metaRef.get();
   const generation = Number(metaBefore.data()?.generation || 0);
 
-  const [searchRows, products, categories, subcategories, families] = await Promise.all([
-    buildSearchRows(),
-    rows(COLLECTIONS.masterProducts),
-    rows(COLLECTIONS.categories),
-    rows(COLLECTIONS.subcategories),
-    rows(COLLECTIONS.families)
+  const [offers, products, stores, users, categories, subcategories, families] = await Promise.all([
+    rows(COLLECTIONS.storeProducts), rows(COLLECTIONS.masterProducts), rows(COLLECTIONS.stores),
+    rows(COLLECTIONS.users), rows(COLLECTIONS.categories), rows(COLLECTIONS.subcategories), rows(COLLECTIONS.families)
   ]);
+  const asOf=Date.now();
+  const searchRows = await buildSearchRows([offers, products, stores, users, categories, subcategories, families],asOf);
+  const nextTransitionAt=nextCatalogTransition(offers,asOf);
 
   const activeProducts = products
     .filter((item) => item.estado !== 'inactivo')
@@ -128,6 +128,10 @@ async function materializeSnapshot(): Promise<PublicCatalogSnapshot> {
   const offerDocIds = offerChunks.map((_, index) => `offers-${version}-${String(index).padStart(4, '0')}`);
   const productDocIds = productChunks.map((_, index) => `products-${version}-${String(index).padStart(4, '0')}`);
 
+  const snapshot: PublicCatalogSnapshot = {version, updatedAt, taxonomy, products:activeProducts, searchRows};
+  const snapshotDocId = useSqlDatabase() ? `snapshot-${version}` : null;
+  if(snapshotDocId) await db.collection(COLLECTIONS.publicCache).doc(snapshotDocId).set({...snapshot});
+  else {
   await writeChunkDocuments([
     {
       id: taxonomyDocId,
@@ -143,6 +147,8 @@ async function materializeSnapshot(): Promise<PublicCatalogSnapshot> {
     }))
   ]);
 
+  }
+
   await db.runTransaction(async (transaction) => {
     const latest = await transaction.get(metaRef);
     const latestGeneration = Number(latest.data()?.generation || 0);
@@ -155,28 +161,23 @@ async function materializeSnapshot(): Promise<PublicCatalogSnapshot> {
       policy: CACHE_POLICY,
       version,
       updatedAt,
-      taxonomyDocId,
-      offerDocIds,
-      productDocIds
+      temporalValidityTracked:true,
+      nextTransitionAt,
+      snapshotDocId,
+      taxonomyDocId: snapshotDocId ? null : taxonomyDocId,
+      offerDocIds: snapshotDocId ? [] : offerDocIds,
+      productDocIds: snapshotDocId ? [] : productDocIds
     }, { merge: true });
   });
 
-  const snapshot: PublicCatalogSnapshot = {
-    version,
-    updatedAt,
-    taxonomy,
-    products: activeProducts,
-    searchRows
-  };
-
-
-  // Keep a grace period so concurrent readers retain their published chunks.
-  const expired = await db.collection(COLLECTIONS.publicCache).where('updatedAt', '<', new Date(Date.now() - 3_600_000).toISOString()).limit(400).get();
-  const obsolete = expired.docs.filter(doc => doc.id !== META_ID);
-  if (obsolete.length) {
-    const batch = db.batch();
-    obsolete.forEach(doc => batch.delete(doc.ref));
-    await batch.commit();
+  // One SQL deletion rather than a document transaction per expired chunk.
+  const cutoff=new Date(Date.now()-3_600_000).toISOString();
+  const protectedKeys=[META_ID,'catalog-revision',...(snapshotDocId?[snapshotDocId]:[taxonomyDocId,...offerDocIds,...productDocIds])];
+  if(useSqlDatabase()) await (await sqlPool()).query('DELETE FROM findi.public_cache_artifacts WHERE updated_at<$1 AND NOT(key=ANY($2::text[]))',[cutoff,protectedKeys]);
+  else {
+    const expired=await db.collection(COLLECTIONS.publicCache).where('updatedAt','<',cutoff).limit(400).get();
+    const obsolete=expired.docs.filter(doc=>!protectedKeys.includes(doc.id));
+    if(obsolete.length){const batch=db.batch();obsolete.forEach(doc=>batch.delete(doc.ref));await batch.commit();}
   }
   return snapshot;
 }
@@ -211,6 +212,11 @@ async function rebuildPublicCatalogCache(): Promise<PublicCatalogSnapshot> {
 }
 
 async function readPublishedSnapshot(meta: any): Promise<PublicCatalogSnapshot> {
+  if(meta.snapshotDocId){
+    const published=await db.collection(COLLECTIONS.publicCache).doc(String(meta.snapshotDocId)).get();
+    const snapshot=published.data() as PublicCatalogSnapshot|undefined;
+    if(snapshot && snapshot.version===String(meta.version) && Array.isArray(snapshot.products) && Array.isArray(snapshot.searchRows))return rememberSnapshot(snapshot);
+  }
   const taxonomyRef = db.collection(COLLECTIONS.publicCache).doc(String(meta.taxonomyDocId));
   const offerRefs: DocumentReference[] = (Array.isArray(meta.offerDocIds) ? meta.offerDocIds : [])
     .map((id: unknown) => db.collection(COLLECTIONS.publicCache).doc(String(id)));
@@ -289,10 +295,10 @@ export async function getPublicCatalogSnapshot(
   const metaSnapshot = await metaRef.get();
   const meta = metaSnapshot.exists ? metaSnapshot.data() as any : null;
 
-  if (meta?.version && meta?.taxonomyDocId && meta.dirty === false && fresh(meta)) {
+  if (meta?.version && (meta?.snapshotDocId || meta?.taxonomyDocId) && meta.dirty === false && fresh(meta)) {
     const memorySnapshot = memorySnapshots.get(dataMode());
     if (memorySnapshot?.version === String(meta.version)) return memorySnapshot;
-    return readPublishedSnapshot(meta);
+    try{return await readPublishedSnapshot(meta);}catch{/* Rebuild incomplete or evicted published artifacts. */}
   }
   return rememberSnapshot(await rebuildPublicCatalogCache());
 }

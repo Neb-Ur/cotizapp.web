@@ -52,7 +52,7 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
     if (options.subcategoryId && product.subcategoriaId !== options.subcategoryId) continue;
     if (options.familyId && product.familiaId !== options.familyId) continue;
     grouped.set(product.id, {
-      seoPath:`/productos/${seoProductSlug(product,snapshot.products)}`,
+      seoPath:'',
       productoMaestroId: product.id,
       productName: name,
       imageUrl: product.imagenPrincipalUrl && !product.imagenPrincipalUrl.includes('via.placeholder.com')
@@ -102,7 +102,7 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
   const totalPages = Math.max(1, Math.ceil(total / options.size));
   const page = Math.min(options.page, totalPages);
   return {
-    items: results.slice((page - 1) * options.size, page * options.size),
+    items: results.slice((page - 1) * options.size, page * options.size).map(item=>({...item,seoPath:`/productos/${seoProductSlug(snapshot.products.find(p=>p.id===item.productoMaestroId),snapshot.products)}`})),
     page, size: options.size, total, totalPages, version: snapshot.version
   };
 }

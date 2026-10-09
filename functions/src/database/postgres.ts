@@ -33,10 +33,11 @@ function materialize(value:any,previous:any):any {
  return value;
 }
 export class PostgresDatabase implements Database {
+ private activatedReady=false;
  constructor(private readonly pool:ConnectionPool,private readonly requireReady=true){}
  async withClient<T>(callback:(client:SqlClient)=>Promise<T>):Promise<T>{
   const client=await this.pool.connect();try{
-   if(this.requireReady){const state=await client.query("SELECT status FROM findi.database_migration_state WHERE id='firestore-to-sql'");if(!['verified','active'].includes(state.rows[0]?.status))throw new Error('SQL_MIGRATION_NOT_VERIFIED');}
+   if(this.requireReady && !this.activatedReady){const state=await client.query("SELECT status FROM findi.database_migration_state WHERE id='firestore-to-sql'");if(!['verified','active'].includes(state.rows[0]?.status))throw new Error('SQL_MIGRATION_NOT_VERIFIED');this.activatedReady=state.rows[0]?.status==='active';}
    return await callback(client);
   }finally{client.release();}
  }

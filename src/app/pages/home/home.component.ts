@@ -2,7 +2,7 @@ import { ProductImageDirective } from '../../shared/directives/product-image.dir
 import { productSlug } from '../../core/utils/product-url.util';
 import { categoryIcon } from '../../core/utils/category-icon.util';
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { SkeletonModule } from 'primeng/skeleton';
 import { FamilyProductRow, TaxonomyOption } from '../../core/models/app.models';
@@ -23,9 +23,9 @@ interface HomeCategory extends TaxonomyOption {
 })
 export class HomeComponent implements OnInit {
   protected readonly storeAccessWhatsappUrl = STORE_ACCESS_WHATSAPP_URL;
-  protected featuredProducts: FamilyProductRow[] = [];
+  protected readonly featuredProducts = signal<FamilyProductRow[]>([]);
   protected featuredCategories: HomeCategory[] = [];
-  protected catalogLoading = true;
+  protected readonly catalogLoading = signal(true);
   protected catalogError = '';
 
 
@@ -40,7 +40,7 @@ export class HomeComponent implements OnInit {
   }
 
   protected openProduct(product: FamilyProductRow): void {
-    void this.router.navigateByUrl(productPath(product.productName));
+    void this.router.navigateByUrl(product.seoPath || productPath(product.productName));
   }
 
   protected categoryPath(name:string):string {return `/categorias/${productSlug(name)}`;}
@@ -63,12 +63,20 @@ export class HomeComponent implements OnInit {
   }
 
   private async loadCatalog(): Promise<void> {
-    this.catalogLoading = true;
+    this.catalogLoading.set(true);
     this.catalogError = '';
 
     try {
       const initialLoad = this.dataService.refreshPublicCatalogSection();
       this.syncCatalogView();
+      if(this.featuredProducts().length===0) {
+        void this.dataService.getHomeCatalogPreview().then(preview=>{
+          if(this.featuredProducts().length!==0 || !this.catalogLoading())return;
+          this.featuredCategories=preview.categories.map(category=>({...category,icon:categoryIcon(category)}));
+          this.featuredProducts.set(preview.products);
+          if(preview.products.length)this.catalogLoading.set(false);
+        }).catch(()=>undefined);
+      }
       await initialLoad;
       this.syncCatalogView();
 
@@ -78,12 +86,12 @@ export class HomeComponent implements OnInit {
     } catch {
       this.catalogError = 'No fue posible cargar los productos disponibles.';
     } finally {
-      this.catalogLoading = false;
+      this.catalogLoading.set(false);
     }
   }
 
   private syncCatalogView(): void {
-    this.featuredProducts = this.dataService.getPopularProductRows('', 12, undefined, false);
+    this.featuredProducts.set(this.dataService.getPopularProductRows('', 12, undefined, false));
     this.featuredCategories = this.dataService.getCategoryOptions(false)
       .slice(0, 8)
       .map((category) => ({

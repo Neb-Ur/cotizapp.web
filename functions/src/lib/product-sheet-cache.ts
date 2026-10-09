@@ -47,7 +47,7 @@ export async function getProductSheet(name: string, slug: string): Promise<any |
       const labels = new Map(definitions.docs.map(doc => [doc.id, doc.data()['etiqueta']]));
       // Explicit public fields; internal review and rights records are never cached in the browser.
       const fields = ['id', 'nombre', 'categoriaId', 'subcategoriaId', 'familiaId', 'marca', 'marcaId', 'tipoProducto',
-        'unidadVenta', 'presentacion', 'descripcionCorta', 'descripcionLarga', 'imagenPrincipalUrl', 'galeriaJson', 'origenImagen', 'catalogoNivel', 'caracteristicasDestacadas'];
+        'unidadVenta', 'presentacion', 'descripcionCorta', 'descripcionLarga', 'imagenPrincipalUrl', 'imagenStorageUrl', 'imagenExternaUrl', 'galeriaJson', 'origenImagen', 'catalogoNivel', 'caracteristicasDestacadas'];
       return {
         productoMaestro: {...Object.fromEntries(fields.filter(field => product[field] !== undefined).map(field => [field, product[field]])),seoPath:`/productos/${seoProductSlug(product,products)}`},
         categoryName: categories.find((item: any) => item.id === product.categoriaId)?.nombre || 'Sin categoria',

@@ -36,20 +36,9 @@
       <a routerLink="/buscar">Ver más productos <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
     </div>
 
-    <div class="product-skeletons" *ngIf="catalogLoading && featuredProducts.length === 0" aria-label="Cargando productos">
-      <div *ngFor="let item of [1,2,3,4,5,6]">
-        <p-skeleton height="11rem" styleClass="product-skeleton-image" />
-        <p-skeleton width="82%" height="1rem" />
-        <p-skeleton width="48%" height="1.35rem" />
-      </div>
-    </div>
-
-    <p class="catalog-message" *ngIf="catalogError && featuredProducts.length === 0">{{ catalogError }}</p>
-
-    <p class="catalog-message" *ngIf="!catalogLoading && !catalogError && featuredProducts.length === 0">No hay productos disponibles en el catálogo.</p>
-
-    <div class="home-product-grid" *ngIf="featuredProducts.length > 0">
-      <a class="home-product-card" *ngFor="let product of featuredProducts | slice:0:4" [href]="productUrl(product.productName)" (click)="openProductCard($event, product)">
+    @if (featuredProducts().length > 0) {
+    <div class="home-product-grid">
+      <a class="home-product-card" *ngFor="let product of featuredProducts() | slice:0:4" [href]="product.seoPath || productUrl(product.productName)" (click)="openProductCard($event, product)">
         <span class="home-product-image">
           <img [findiProductImage]="product.imageUrl" [externalImageUrl]="product.imageFallbackUrl" [alt]="product.productName" width="360" height="240" loading="lazy" decoding="async" />
         </span>
@@ -63,6 +52,18 @@
         <span class="home-product-stores" *ngIf="product.storeCount > 0"><i class="pi pi-shop" aria-hidden="true"></i> {{ product.storeCount }} {{ product.storeCount === 1 ? 'ferretería' : 'ferreterías' }}</span>
       </a>
     </div>
+    } @else if (catalogLoading()) {
+      <div class="product-skeletons" aria-label="Cargando productos">
+        <div *ngFor="let item of [1,2,3,4]">
+          <p-skeleton height="11rem" styleClass="product-skeleton-image" />
+          <p-skeleton width="82%" height="1rem" />
+          <p-skeleton width="48%" height="1.35rem" />
+        </div>
+      </div>
+    } @else {
+      <p class="catalog-message">{{ catalogError || 'No hay productos disponibles en el catálogo.' }}</p>
+    }
+
   </section>
 
   <section class="category-section" aria-labelledby="featured-categories-title" *ngIf="featuredCategories.length > 0">

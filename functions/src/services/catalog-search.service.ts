@@ -4,8 +4,8 @@ import { coordinateValue, inferMeasurementFromLabel, normalizeText, numberValue,
 import type { SearchRow } from '../models/domain.models.js';
 import { CURRENT_STORE_AGREEMENT_VERSION } from '../lib/legal.js';
 import { storeAgreementDocumentHash } from './store-agreement.service.js';
-export async function buildSearchRows(): Promise<SearchRow[]> {
-  const [offers, products, stores, users, categories, subcategories, families] = await Promise.all([
+export async function buildSearchRows(source?: any[][], asOf?:number): Promise<SearchRow[]> {
+  const [offers, products, stores, users, categories, subcategories, families] = source || await Promise.all([
     rows(COLLECTIONS.storeProducts),
     rows(COLLECTIONS.masterProducts),
     rows(COLLECTIONS.stores),
@@ -15,6 +15,7 @@ export async function buildSearchRows(): Promise<SearchRow[]> {
     rows(COLLECTIONS.families)
   ]);
 
+  const referenceTime=asOf ?? Date.now();
   const productById = new Map(products.map((item) => [item.id, item]));
   const storeById = new Map(stores.map((item) => [item.id, item]));
   const userById = new Map(users.map((item) => [item.id, item]));
@@ -24,8 +25,8 @@ export async function buildSearchRows(): Promise<SearchRow[]> {
 
   return offers
     .filter((offer) => offer.activo !== false && offer.publicado !== false)
-    .filter((offer) => !offer.vigenteDesde || new Date(offer.vigenteDesde).getTime() <= Date.now())
-    .filter((offer) => !offer.vigenteHasta || new Date(offer.vigenteHasta).getTime() >= Date.now())
+    .filter((offer) => !offer.vigenteDesde || new Date(offer.vigenteDesde).getTime() <= referenceTime)
+    .filter((offer) => !offer.vigenteHasta || new Date(offer.vigenteHasta).getTime() > referenceTime)
     .map((offer) => {
       const product = productById.get(offer.productoMaestroId);
       const store = storeById.get(offer.ferreteriaId);

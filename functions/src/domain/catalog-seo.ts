@@ -7,6 +7,14 @@ export function seoProductSlug(product:any, products:any[]):string {
   const matches=products.filter(p=>p.estado!=='inactivo' && seoSlug(p.nombre)===slug).sort((a,b)=>String(a.id).localeCompare(String(b.id)));
   return matches.length>1 && matches[0].id!==product.id ? `${slug.slice(0,109)}-${createHash('sha256').update(String(product.id)).digest('hex').slice(0,8)}` : slug;
 }
+// Batch normalization avoids scanning the whole catalog once for every index row.
+export function productSeoSlugIndex(products:any[]):Map<string,string> {
+  const groups=new Map<string,any[]>();
+  for(const product of products){if(product.estado==='inactivo')continue;const slug=seoSlug(product.nombre);const group=groups.get(slug)||[];group.push(product);groups.set(slug,group);}
+  const result=new Map<string,string>();
+  for(const [slug,group]of groups){group.sort((a,b)=>String(a.id).localeCompare(String(b.id)));group.forEach((product,i)=>result.set(product.id,i?`${slug.slice(0,109)}-${createHash('sha256').update(String(product.id)).digest('hex').slice(0,8)}`:slug));}
+  return result;
+}
 export interface CatalogLanding {
   path: string; name: string; title: string; description: string;
   filters: Record<string, string>; products: any[];

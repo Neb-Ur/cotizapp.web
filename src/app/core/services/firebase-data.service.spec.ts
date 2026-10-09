@@ -121,3 +121,18 @@ it('persists only the sheet across service instances and requests offers indepen
   expect(second.api.get).toHaveBeenLastCalledWith('/productos/detalle',false,{producto:undefined,slug:'cemento-gris-25-kg',vista:'ficha'});
  } finally { localStorage.removeItem(key); }
 });
+
+describe('public catalog browser cache',()=>{
+ it('keeps previous product sheets available but drops old prices and refreshes even when the revision is unchanged',async()=>{
+  const key='cotizapp.publicCatalog.v3:real';
+  const snapshot={version:'cached-version',updatedAt:new Date(Date.now()-3600000).toISOString(),products:[master],taxonomy:{categories:[],subcategories:[],families:[]},searchRows:[{productName:master.nombre,productoMaestroId:'master',productoFerreteriaId:'offer',storeId:'store',storeName:'Local',price:1000,stock:10}],cachedAt:Date.now()-3600000};
+  localStorage.setItem(key,JSON.stringify(snapshot));
+  try {
+   const {service,api}=fixture();
+   const original=api.get.getMockImplementation();api.get.mockImplementation(async(path:string):Promise<any>=>path==='/catalogo-publico/version'?{version:'cached-version'}:path==='/catalogo-publico'?{...snapshot,searchRows:[]}:original!(path));
+   await service.refreshPublicCatalogSection();expect(api.get).not.toHaveBeenCalled();
+   const cards=service.getFamilyProductRows('', '',undefined,false);expect(cards.length).toBe(1);expect(cards[0].storeCount).toBe(0);expect(cards[0].minPrice).toBe(0);
+   await service.refreshPublicCatalogEnhancements();expect(api.get).toHaveBeenCalledWith('/catalogo-publico',false,{v:'cached-version'});
+  }finally{localStorage.removeItem(key);}
+ });
+});

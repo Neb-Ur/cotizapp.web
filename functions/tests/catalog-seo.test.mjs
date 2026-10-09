@@ -33,3 +33,11 @@ test('identical product names in different families keep distinct URLs and prese
  assert.equal(first,'conector-rapido');assert.notEqual(first,second);assert.equal(seoProductSlug(items[1],[...items].reverse()),second);
  assert.equal((await getProductSheet('',first)).productoMaestro.id,'electric');assert.equal((await getProductSheet('',second)).productoMaestro.id,'water');
 });
+
+test('batch search slugs preserve the canonical identity of duplicate product names',async()=>{
+ const {productSeoSlugIndex,seoProductSlug}=await import('../lib/domain/catalog-seo.js');
+ const products=[{id:'b',nombre:'Conector rápido'},{id:'a',nombre:'Conector rápido'},{id:'c',nombre:'MDF negro 18 mm'},{id:'hidden',nombre:'MDF negro 18 mm',estado:'inactivo'}];
+ const slugs=productSeoSlugIndex(products);
+ for(const product of products.filter(p=>p.estado!=='inactivo'))assert.equal(slugs.get(product.id),seoProductSlug(product,products));
+ assert.equal(slugs.has('hidden'),false);
+});
