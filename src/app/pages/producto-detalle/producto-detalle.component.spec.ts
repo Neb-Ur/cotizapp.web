@@ -1,6 +1,10 @@
 import { TestBed } from '@angular/core/testing';
-import { BehaviorSubject } from 'rxjs';
-import { convertToParamMap, ActivatedRoute, Router } from '@angular/router';
+import { BehaviorSubject, firstValueFrom, filter } from 'rxjs';
+import { convertToParamMap, ActivatedRoute, Router, provideRouter, NavigationEnd } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
+import { LoginComponent } from '../auth/login/login.component';
+import { RegisterComponent } from '../auth/register/register.component';
+import { provideLocationMocks } from '@angular/common/testing';
 import { Location } from '@angular/common';
 import { vi } from 'vitest';
 import { ProductoDetalleComponent } from './producto-detalle.component';
@@ -98,4 +102,53 @@ describe('product quotation workflow',()=>{
   expect((api as any).addItemToProject).toHaveBeenCalledWith('owner','q',expect.objectContaining({productoMaestroId:'p',storeId:'s',productoFerreteriaId:'offer',quantity:2}));
   finish({name:'Mi obra'});await adding;expect(component.isAddingToQuotation).toBe(false);
  });
+});
+
+
+describe('product authentication navigation', () => {
+ afterEach(() => TestBed.resetTestingModule());
+ for (const existingAccount of [false, true]) {
+ for (const productUrl of ['/productos/abrazadera-metalica', '/producto?product=Abrazadera%20met%C3%A1lica']) {
+  it(`returns to the same product from ${existingAccount ? 'login' : 'registration'}: ${productUrl}`, async () => {
+   const api = {
+    loadProductSheet: vi.fn(async (name?: string, slug?: string) => name === detail.productName || slug === 'abrazadera-metalica' ? detail : null),
+    loadProductOffers: vi.fn(async () => detail), formatCurrency: String, getProjects: () => []
+   };
+   await TestBed.configureTestingModule({providers: [
+    provideRouter([
+     {path: 'productos/:slug', component: ProductoDetalleComponent},
+     {path: 'producto', component: ProductoDetalleComponent},
+     {path: 'registro', component: RegisterComponent},
+     {path: 'login', component: LoginComponent}
+    ]), provideLocationMocks(),
+    {provide: FirebaseDataService, useValue: api},
+    {provide: AuthService, useValue: {currentUser: () => null}},
+    {provide: SeoService, useValue: {updateProduct: vi.fn(), markProductNotFound: vi.fn()}}
+   ]}).compileComponents();
+   const harness = await RouterTestingHarness.create();
+   const product = await harness.navigateByUrl(productUrl, ProductoDetalleComponent) as any;
+   await harness.fixture.whenStable(); harness.detectChanges();
+   product.goToLoginFromQuotationModal(existingAccount); await harness.fixture.whenStable(); harness.detectChanges();
+   const returnUrl = TestBed.inject(Router).parseUrl(TestBed.inject(Router).url).queryParams['returnUrl'];
+   expect(returnUrl).toContain('crearCotizacion=1');
+   expect(TestBed.inject(Router).url).toMatch(existingAccount ? /^\/login\?/ : /^\/registro\?/);
+   const backLink = harness.routeNativeElement!.querySelector('.back-link') as HTMLAnchorElement;
+   expect(backLink.getAttribute('href')).toBe(returnUrl);
+   await harness.navigateByUrl(backLink.getAttribute('href')!, ProductoDetalleComponent);
+   await harness.fixture.whenStable(); harness.detectChanges();
+   expect(harness.routeNativeElement!.textContent).toContain('Abrazadera metálica');
+   expect(harness.routeNativeElement!.textContent).not.toContain('No se encontro el producto');
+   // Also cover the browser history back button, after a second visit to authentication.
+   await harness.navigateByUrl(returnUrl, ProductoDetalleComponent);
+   const returnedProduct = harness.routeDebugElement!.componentInstance as any;
+   returnedProduct.goToLoginFromQuotationModal(existingAccount); await harness.fixture.whenStable();
+   TestBed.inject(Router).setUpLocationChangeListener();
+   const historyNavigation = firstValueFrom(TestBed.inject(Router).events.pipe(filter(event => event instanceof NavigationEnd)));
+   TestBed.inject(Location).back(); await historyNavigation; await harness.fixture.whenStable(); harness.detectChanges();
+   await harness.fixture.whenStable(); harness.detectChanges();
+   expect(harness.routeNativeElement!.textContent).toContain('Abrazadera metálica');
+   expect(api.loadProductSheet.mock.calls.every(([name, slug]) => name === detail.productName || slug === 'abrazadera-metalica')).toBe(true);
+  });
+ }
+ }
 });

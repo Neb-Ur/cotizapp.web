@@ -3,7 +3,7 @@ import { PasswordFieldComponent } from '../../../shared/components/password-fiel
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink, UrlTree } from '@angular/router';
 import { RegisterPayload } from '../../../core/models/app.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { resolvePostAuthUrl, sanitizeReturnUrl } from '../../../core/utils/auth-navigation.util';
@@ -56,6 +56,11 @@ export class RegisterComponent {
       this.form.controls.password.clearValidators();
       this.form.controls.password.updateValueAndValidity();
     }
+  }
+
+  protected get backLink(): UrlTree {
+    if (this.isCompletingProfile) return this.router.createUrlTree(['/login'], { queryParams: this.authQueryParams });
+    return this.router.parseUrl(this.returnUrl || '/');
   }
 
   protected get authQueryParams(): Record<string, string> | null {

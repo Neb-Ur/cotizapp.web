@@ -2,7 +2,7 @@ import { PasswordFieldComponent } from '../../../shared/components/password-fiel
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink, UrlTree } from '@angular/router';
 import {
   AuthService,
   LOGIN_SUPPORT_ERROR_MESSAGE,
@@ -41,6 +41,10 @@ export class LoginComponent {
     if (this.route.snapshot.queryParamMap.get('reason') === 'inactivity') {
       this.errorMessage = 'Tu sesión se cerró después de 30 minutos sin actividad. Inicia sesión nuevamente.';
     }
+  }
+
+  protected get backLink(): UrlTree {
+    return this.router.parseUrl(this.returnUrl || '/');
   }
 
   protected get authQueryParams(): Record<string, string> | null {

@@ -50,10 +50,7 @@
         <p class="sku">SKU {{ product.sku }}</p>
         <p class="type">{{ product.productType }}</p>
         <p class="price-range" *ngIf="displayStores.length > 0">{{ formatCurrency(visibleMinPrice) }} - {{ formatCurrency(visibleMaxPrice) }}</p>
-        <p class="best-price" *ngIf="displayStores.length > 0">Mejor precio en <strong>{{ bestPriceStoreName }}</strong></p>
-        <section class="comparison-method" aria-label="Cómo se comparan los precios">
-          <strong>Criterio de comparación</strong>
-          <p>{{ product.comparisonCriteria }}</p>
+        <section class="comparison-method" aria-label="Fuente de los precios">
           <p><strong>Fuente:</strong> precios informados por cada ferretería. Trovio no vende ni reserva productos. La compra se realiza directamente con la ferretería.</p>
         </section>
 
@@ -74,6 +71,7 @@
 
           <section class="quotation-destination" *ngIf="canUseQuotations">
             <div class="quotation-destination-heading"><h3>Tu cotización</h3><button type="button" class="new-quotation-button" (click)="openCreateQuotationModal()"><i class="pi pi-plus" aria-hidden="true"></i> Crear cotización</button></div>
+            <p class="quotation-validity">Tu cotización tiene una vigencia de 10 días desde su creación. Preséntala en la ferretería dentro de ese plazo para mantener los precios cotizados.</p>
             <ng-container *ngIf="user; else guestQuotation">
               <label class="quantity-field">Cotización seleccionada<select [ngModel]="selectedProjectId" (ngModelChange)="onProjectChange($event)"><option value="">Selecciona una cotización</option><option *ngFor="let project of projects" [value]="project.id">{{ project.name }}</option></select></label>
               <p *ngIf="!hasProjects" class="quick-stores-hint">Crea una cotización para empezar a agregar tus materiales.</p>
@@ -123,10 +121,11 @@
               [class.selected]="storeSelectionId(store) === selectedStoreId"
               (click)="selectStore(store.storeName, storeSelectionId(store))"
             >
-              <label class="store-select">
+              <div class="store-select">
                 <input
                   type="radio"
                   name="store-selection"
+                  [attr.aria-label]="'Seleccionar oferta de ' + store.storeName"
                   [value]="storeSelectionId(store)"
                   [ngModel]="selectedStoreId"
                   (ngModelChange)="selectStore(store.storeName, $event)"
@@ -136,25 +135,22 @@
                     {{ store.storeName }}
                     <span class="sponsored-label" *ngIf="store.sponsored">Patrocinado</span>
                   </p>
-                  <p class="store-stock">Stock informado por la ferretería: {{ store.stock }} {{ product.unitLabel.toLowerCase() }}</p>
+                  <p class="store-stock">Stock: {{ store.stock }}</p>
                   <p class="store-distance" *ngIf="store.distanceKm !== undefined">
                     <i class="pi pi-map-marker" aria-hidden="true"></i>
                     A {{ formatDistance(store.distanceKm) }} de ti<span *ngIf="store.commune"> · {{ store.commune }}</span>
                   </p>
-                  <p class="offer-facts">
-                    Actualizado {{ store.priceUpdatedAt | date:'dd/MM/yyyy, HH:mm' }} ·
-                    {{ store.includesVat ? 'IVA incluido' : 'IVA no incluido' }} ·
-                    Cotización de materiales
-                  </p>
-                  <p class="comparison-exclusion" *ngIf="!store.comparisonEligible">No participa en “mejor precio” porque no declara IVA incluido.</p>
-                  <p class="offer-validity">
-                    Vigente desde {{ store.validFrom | date:'dd/MM/yyyy' }}
-                    <span *ngIf="store.validUntil"> hasta {{ store.validUntil | date:'dd/MM/yyyy' }}</span>
-                    <span *ngIf="!store.validUntil"> mientras esté publicada y exista stock</span>.
-                  </p>
+                  <p class="offer-facts">Actualizado {{ store.priceUpdatedAt | date:'dd/MM/yyyy, HH:mm' }}</p>
                   <details class="offer-details" (click)="$event.stopPropagation()">
                     <summary>Condiciones y contacto</summary>
                     <p>{{ store.offerConditions }}</p>
+                    <p *ngIf="!store.includesVat">IVA no incluido en el precio informado. Confirma el precio final con la ferretería.</p>
+                    <p class="offer-validity">
+                      Oferta vigente desde {{ store.validFrom | date:'dd/MM/yyyy' }}
+                      <span *ngIf="store.validUntil"> hasta {{ store.validUntil | date:'dd/MM/yyyy' }}</span>
+                      <span *ngIf="!store.validUntil"> mientras esté publicada y exista stock</span>.
+                    </p>
+                    <p *ngIf="store.pricePerMeasurement">{{ store.measurementSource === 'store_reported' ? 'Medida informada por la ferretería' : 'Medida calculada desde la presentación de la ficha' }}.</p>
                     <p><strong>{{ store.storeName }}</strong><span *ngIf="store.rut"> · RUT {{ store.rut }}</span></p>
                     <p *ngIf="store.address">{{ store.address }}<span *ngIf="store.commune">, {{ store.commune }}</span></p>
                     <p>
@@ -172,16 +168,13 @@
                     </p>
                   </details>
                 </div>
-              </label>
+              </div>
               <div class="store-price-block">
                 <span>Precio unitario</span>
                 <strong>{{ formatCurrency(store.price) }}</strong>
                 <em *ngIf="store.pricePerMeasurement">
                   {{ formatCurrency(store.pricePerMeasurement) }} / {{ measurementLabel(store.measurementUnit) }}
                 </em>
-                <span class="measurement-source" *ngIf="store.pricePerMeasurement">
-                  {{ store.measurementSource === 'store_reported' ? 'Medida informada por la ferretería' : 'Calculado desde la presentación de la ficha' }}
-                </span>
                 <small>Total por {{ selectedQuantity }}: {{ formatCurrency(storeTotal(store)) }}</small>
               </div>
             </li>
@@ -329,6 +322,7 @@
     (closed)="closeCreateQuotationModal()"
   >
       <form class="quotation-form" (ngSubmit)="createQuotation()">
+        <p class="quick-stores-hint">La cotización tiene una vigencia de 10 días desde su creación para mantener los precios cotizados al presentarla en la ferretería.</p>
         <label>
           <span class="field-label">Nombre <strong aria-hidden="true">*</strong></span>
           <input

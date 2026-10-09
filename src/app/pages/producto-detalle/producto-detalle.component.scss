@@ -230,8 +230,7 @@
 }
 
 .sku,
-.type,
-.best-price {
+.type {
   margin: 0;
   color: var(--slate-700);
 }
@@ -494,7 +493,8 @@
 
 .store-select {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  min-width: 0;
   gap: 0.48rem;
   cursor: pointer;
 }
@@ -503,6 +503,7 @@
   margin: 0.1rem 0 0;
   width: 18px;
   height: 18px;
+  flex-shrink: 0;
 }
 
 .store-name,
@@ -534,13 +535,6 @@
   color: var(--ink-600);
   font-size: 0.72rem;
   line-height: 1.35;
-}
-
-.comparison-exclusion {
-  margin: 0.18rem 0 0;
-  color: #9b1f1f;
-  font-size: 0.7rem;
-  font-weight: 750;
 }
 
 .offer-details {
@@ -605,14 +599,6 @@
   font-size: 0.78rem;
   font-style: normal;
   font-weight: 800;
-}
-
-.store-price-block .measurement-source {
-  max-width: 150px;
-  color: var(--ink-500);
-  font-size: 0.62rem;
-  line-height: 1.2;
-  white-space: normal;
 }
 
 .selected-total {

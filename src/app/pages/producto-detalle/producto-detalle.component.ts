@@ -195,12 +195,6 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
     return currentUser?.role === 'maestro' ? currentUser : null;
   }
 
-  protected get bestPriceStoreName(): string {
-    return this.displayStores
-      .filter((store) => store.comparisonEligible)
-      .sort((left, right) => left.price - right.price)[0]?.storeName || 'Sin oferta comparable';
-  }
-
   protected get visibleMinPrice(): number {
     return this.displayStores.length > 0
       ? Math.min(...this.displayStores.map((store) => store.price))

@@ -1,6 +1,6 @@
 <main class="register-page">
   <section class="auth-card auth-card--wide">
-    <a [routerLink]="isCompletingProfile ? '/login' : (returnUrl || '/')" [queryParams]="isCompletingProfile ? authQueryParams : null" class="back-link">
+    <a [routerLink]="backLink" class="back-link">
       &larr; {{ isCompletingProfile ? 'Volver al inicio de sesión' : (returnUrl ? 'Volver al producto' : 'Volver al inicio') }}
     </a>
     <div class="auth-header">
