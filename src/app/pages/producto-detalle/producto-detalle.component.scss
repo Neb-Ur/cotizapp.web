@@ -224,18 +224,35 @@
   color: var(--navy-900);
 }
 
-.comparison-method {
-  border: 1px solid #d5e2f3;
-  border-radius: var(--r-sm);
-  background: #fff;
-  padding: 0.65rem;
-  color: var(--ink-700);
-  font-size: 0.78rem;
-  line-height: 1.45;
+.price-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.comparison-method p {
-  margin: 0.2rem 0 0;
+.price-summary .price-range {
+  margin: 0;
+  min-width: 0;
+}
+
+.quotation-destination {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.8rem;
+}
+
+.quotation-destination .quotation-selector {
+  margin: 0;
+}
+
+.quotation-destination .existing-account-link {
+  justify-self: start;
+  min-height: 44px;
+}
+
+.quotation-destination .existing-account-link:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 .stock-chip {

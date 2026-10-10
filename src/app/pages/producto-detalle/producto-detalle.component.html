@@ -51,10 +51,12 @@
         <h1>{{ product.productName }}</h1>
         <p class="sku">SKU {{ product.sku }}</p>
         <p class="type">{{ product.productType }}</p>
-        <p class="price-range" *ngIf="displayStores.length > 0">{{ formatCurrency(visibleMinPrice) }} - {{ formatCurrency(visibleMaxPrice) }}</p>
-        <section class="comparison-method" aria-label="Fuente de los precios">
-          <p><strong>Fuente:</strong> precios informados por cada ferretería. Trovio no vende ni reserva productos. La compra se realiza directamente con la ferretería.</p>
-        </section>
+        <div class="price-summary" *ngIf="displayStores.length > 0">
+          <p class="price-range">{{ formatCurrency(visibleMinPrice) }} - {{ formatCurrency(visibleMaxPrice) }}</p>
+          <app-info-panel title="Fuente de los precios" label="Información sobre la fuente de los precios">
+            <p><strong>Fuente:</strong> precios informados por cada ferretería. Trovio no vende ni reserva productos. La compra se realiza directamente con la ferretería.</p>
+          </app-info-panel>
+        </div>
 
         <p class="product-unavailable-alert" *ngIf="displayStores.length === 0 && !loadError && !offersLoading && !offersError" role="alert">
           <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
@@ -73,15 +75,14 @@
 
           <section class="quotation-destination" *ngIf="canUseQuotations">
             <div class="quotation-destination-heading"><h3>Tu cotización</h3><button type="button" class="new-quotation-button" (click)="openCreateQuotationModal()"><i class="pi pi-plus" aria-hidden="true"></i> Crear cotización</button></div>
-            <p class="quotation-validity">Al guardar la cotización en tu cuenta, obtendrás el PDF y una vigencia de 10 días.</p>
-            <ng-container>
-              <label class="quantity-field">Cotización seleccionada<select [ngModel]="selectedProjectId" (ngModelChange)="onProjectChange($event)"><option value="">Selecciona una cotización</option><option *ngFor="let project of projects" [value]="project.id">{{ project.name }}</option></select></label>
-              <p *ngIf="!hasProjects" class="quick-stores-hint">Crea una cotización para empezar a agregar tus materiales.</p>
-              <p *ngIf="selectedQuotationName" class="selected-quotation-label"><i class="pi pi-file" aria-hidden="true"></i> Los productos se agregarán a <strong>{{ selectedQuotationName }}</strong>.</p>
-            </ng-container>
-            <p *ngIf="!user" class="quick-stores-hint">Puedes crear y revisar la cotización sin cuenta. Te pediremos iniciar sesión al descargar el PDF.</p>
-            <button *ngIf="selectedProjectId" type="button" class="existing-account-link" (click)="goToSelectedQuotation()">Ver cotización <i class="pi pi-arrow-right" aria-hidden="true"></i></button>
-
+            <label class="quantity-field quotation-selector">
+              <span class="sr-only">Cotización seleccionada</span>
+              <select [ngModel]="selectedProjectId" (ngModelChange)="onProjectChange($event)" aria-label="Cotización seleccionada">
+                <option value="">Selecciona una cotización</option>
+                <option *ngFor="let project of projects" [value]="project.id">{{ project.name }}</option>
+              </select>
+            </label>
+            <button type="button" class="existing-account-link" [disabled]="!selectedProjectId" (click)="goToSelectedQuotation()">Ver cotización <i class="pi pi-arrow-right" aria-hidden="true"></i></button>
           </section>
 
           <label class="quantity-field">
