@@ -6,7 +6,7 @@
   aria-label="Cerrar menu"
 ></button>
 
-<header class="navbar" [class.navbar--store]="isStoreDashboard" [class.navbar--maestro]="isMaestro">
+<header class="navbar" [class.navbar--store]="isStoreDashboard" [class.navbar--maestro]="isMaestro" [class.navbar--guest]="!isLogged && !isStoreDashboard">
   <a class="brand" routerLink="/" aria-label="Trovio · Ir al inicio" (click)="closeMenu()">
     <app-brand-mark />
     <span class="brand-wordmark" aria-hidden="true">trov<span>ı</span>o</span>

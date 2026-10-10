@@ -32,6 +32,10 @@
   box-shadow: var(--shadow-sm);
 }
 
+.navbar--guest {
+  grid-template-columns: auto auto minmax(180px, 1fr) auto auto auto;
+}
+
 .brand {
   display: flex;
   align-items: center;
@@ -44,6 +48,7 @@
 }
 
 .links > a {
+  white-space: nowrap;
   padding: 0.6rem 0.9rem;
   border-radius: var(--r-sm);
   color: var(--ink-700);
@@ -287,6 +292,7 @@
 }
 
 .nav-login {
+  white-space: nowrap;
   padding: 0.6rem 0.9rem;
   border-radius: var(--r-sm);
   color: var(--ink-700);
