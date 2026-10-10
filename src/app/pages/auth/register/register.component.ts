@@ -6,7 +6,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink, UrlTree } from '@angular/router';
 import { RegisterPayload } from '../../../core/models/app.models';
 import { AuthService } from '../../../core/services/auth.service';
-import { resolvePostAuthUrl, sanitizeReturnUrl } from '../../../core/utils/auth-navigation.util';
+import { localQuotationAuthId, resolvePostAuthUrl, sanitizeReturnUrl } from '../../../core/utils/auth-navigation.util';
 import { LEGAL_IDENTITY } from '../../../core/config/legal-identity.config';
 
 @Component({
@@ -58,9 +58,12 @@ export class RegisterComponent {
     }
   }
 
+  protected get downloadingQuotation(): boolean { return !!localQuotationAuthId(this.returnUrl); }
+
   protected get backLink(): UrlTree {
     if (this.isCompletingProfile) return this.router.createUrlTree(['/login'], { queryParams: this.authQueryParams });
-    return this.router.parseUrl(this.returnUrl || '/');
+    const localId = localQuotationAuthId(this.returnUrl);
+    return this.router.parseUrl(localId ? `/cotizaciones/local/${encodeURIComponent(localId)}` : this.returnUrl || '/');
   }
 
   protected get authQueryParams(): Record<string, string> | null {

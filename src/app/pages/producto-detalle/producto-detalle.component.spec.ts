@@ -74,26 +74,19 @@ describe('product detail loading',()=>{
 });
 
 describe('product quotation workflow',()=>{
- beforeEach(()=>localStorage.clear());
- it('adds a guest material with its offer and quantity without opening authentication',async()=>{
-  const {component,fixture}=await setup();const router=TestBed.inject(Router) as any;
-  component.detail={...detail,productoMaestroId:'p'};component.selectedStoreId='s';component.selectedQuantity=3;
-  component.displayStores=[{storeId:'s',storeName:'Local',offerId:'o',price:1000,stock:5}];component.isLoading=false;component.offersLoading=false;
-  component.addToMaterialList();fixture.detectChanges();
-  expect(component.materialList.items()).toEqual([expect.objectContaining({productoMaestroId:'p',storeId:'s',productoFerreteriaId:'o',quantity:3,unitPrice:1000})]);
-  expect(router.navigate).not.toHaveBeenCalled();expect(fixture.nativeElement.textContent).toContain('Revisar mi lista');
-  component.selectedQuantity=6;component.addToMaterialList();expect(component.materialList.items()[0].quantity).toBe(3);
- });
-
  afterEach(()=>TestBed.resetTestingModule());
- it('preserves product, selected store and quantity when a guest creates a quotation',async()=>{
-  const {component}=await setup();const router=TestBed.inject(Router) as any;
-  router.createUrlTree=vi.fn(()=>({}));router.serializeUrl=vi.fn(()=>'/productos/abrazadera-metalica?crearCotizacion=1&ferreteriaId=s&cantidad=3');
-  component.selectedStoreName='Tienda';component.selectedStoreId='s';component.selectedQuantity=3;
-  component.openCreateQuotationModal();
-  expect(component.isCreateQuotationModalOpen).toBe(false);
-  expect(router.createUrlTree).toHaveBeenCalledWith([],expect.objectContaining({queryParams:expect.objectContaining({crearCotizacion:'1',ferreteriaId:'s',cantidad:3})}));
-  expect(router.navigate).toHaveBeenCalledWith(['/registro'],expect.objectContaining({queryParams:expect.objectContaining({returnUrl:expect.stringContaining('crearCotizacion=1')})}));
+ beforeEach(()=>localStorage.clear());
+ it('creates a guest quotation and adds the selected offer without opening authentication',async()=>{
+  const {component,api}=await setup();const router=TestBed.inject(Router) as any;
+  component.openCreateQuotationModal();expect(component.isCreateQuotationModalOpen).toBe(true);
+  component.newQuotationName='Mi cocina';await component.createQuotation();
+  component.detail={...detail,productoMaestroId:'p'};component.selectedStoreId='s';component.selectedQuantity=3;
+  component.displayStores=[{storeId:'s',storeName:'Local',offerId:'o',price:1000,stock:5}];
+  await component.addToQuotation();
+  const quote=component.guestQuotations.get(component.selectedProjectId);
+  expect(quote.name).toBe('Mi cocina');expect(quote.items).toEqual([expect.objectContaining({productoMaestroId:'p',storeId:'s',productoFerreteriaId:'o',quantity:3})]);
+  expect(router.navigate).not.toHaveBeenCalled();component.goToSelectedQuotation();
+  expect(router.navigate).toHaveBeenCalledWith(['/cotizaciones/local',quote.id]);
  });
  it('creates and selects the quotation in a modal without adding the product twice',async()=>{
   const {component,api}=await setup();const auth=TestBed.inject(AuthService) as any;auth.currentUser=()=>({id:'owner',role:'maestro'});

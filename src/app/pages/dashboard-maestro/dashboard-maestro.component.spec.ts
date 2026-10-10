@@ -69,7 +69,7 @@ describe('product card navigation',()=>{
   expect(modified.defaultPrevented).toBe(false);expect(component.router.navigateByUrl).not.toHaveBeenCalled();
   component.projectTarget='nuevo';
   component.selectProductCard(new MouseEvent('click',{cancelable:true,button:0}),'Abrazadera metálica');
-  expect(component.router.navigate).toHaveBeenCalledWith(['/dashboard/maestro/cotizaciones/nuevo'],expect.objectContaining({queryParams:expect.objectContaining({addProduct:'Abrazadera metálica'})}));
+  expect(component.router.navigate).toHaveBeenCalledWith(['/cotizaciones/nueva'],expect.objectContaining({queryParams:expect.objectContaining({addProduct:'Abrazadera metálica'})}));
  });
 });
 

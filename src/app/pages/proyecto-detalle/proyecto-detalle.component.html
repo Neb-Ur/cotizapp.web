@@ -1,11 +1,11 @@
 <main class="project-detail-page">
   <header class="page-header">
-    <button type="button" (click)="backToProjects()">{{ user ? 'Volver a mis cotizaciones' : 'Volver al buscador' }}</button>
+    <button type="button" (click)="backToProjects()">Volver a mis cotizaciones</button>
     <div class="page-title">
-      <h1>{{ isLoading ? 'Cargando cotización…' : (isNewProject ? (fromMaterialList ? 'Guarda tu cotización' : 'Nueva cotización') : 'Detalle de cotización') }}</h1>
+      <h1>{{ isLoading ? 'Cargando cotización…' : (isNewProject ? 'Nueva cotización' : 'Detalle de cotización') }}</h1>
       <p *ngIf="!isLoading && !loadError">
         {{ isNewProject
-          ? (fromMaterialList ? 'Tu lista está lista. Revisa los precios, dale un nombre y guarda para poder enviarla.' : 'Agrega productos y guarda tu cotización.')
+          ? 'Agrega productos y revisa los precios. Puedes crear la cotización sin cuenta.'
           : 'Revisa tus productos y el total.' }}
       </p>
     </div>
@@ -16,7 +16,6 @@
   } @else if (loadError) {
     <section class="detail-card" role="alert"><p>{{ loadError }}</p><button type="button" (click)="retryLoad()">Reintentar</button></section>
   } @else {
-  <app-quotation-steps *ngIf="fromMaterialList" [step]="3" />
   <article class="detail-card">
     <article class="summary">
         <div class="summary-heading">
@@ -31,7 +30,7 @@
             <span *ngIf="strategy.saving !== undefined"> | Ahorras {{ formatCurrency(strategy.saving || 0) }}</span>
           </p>
         </div>
-          <p>El total incluye IVA. Los precios corresponden a las ofertas guardadas en tu cotización.</p>
+          <p>El total incluye IVA. {{ isLocalQuotation ? 'Los precios y el stock se consultan al revisar la cotización. Se confirmarán al guardarla en tu cuenta para descargar.' : 'Los precios corresponden a las ofertas guardadas en tu cotización.' }}</p>
           </app-info-panel>
         </div>
         <div class="summary-kpis">
@@ -72,8 +71,8 @@
           <tbody>
             <tr *ngFor="let item of projectItems; let i = index">
               <td class="product-cell">
-                <strong *ngIf="fromMaterialList">{{ item.productName }}</strong>
-                <select *ngIf="!fromMaterialList" [attr.aria-label]="'Producto de la fila ' + (i + 1)" [(ngModel)]="item.productName">
+                <strong *ngIf="isLocalQuotation">{{ item.productName }}</strong>
+                <select *ngIf="!isLocalQuotation" [attr.aria-label]="'Producto de la fila ' + (i + 1)" [(ngModel)]="item.productName">
                   <option value="">Selecciona producto</option>
                   <option *ngFor="let option of productOptions" [value]="option">{{ option }}</option>
                 </select>
@@ -109,14 +108,14 @@
     <article class="editor-panel">
         <h2>Datos de la cotización</h2>
         <div class="validity-note">
-          <span>La cotización es válida durante 10 días a partir de su creación.</span>
+          <span>{{ isLocalQuotation ? 'Al guardarla en tu cuenta para descargar, tendrá una vigencia de 10 días.' : 'La cotización es válida durante 10 días a partir de su creación.' }}</span>
           <app-info-panel title="Información de la cotización" label="Ver vigencia, código y ferreterías de la cotización">
         <section class="quotation-validity">
           <strong>Vigencia de la cotización</strong>
           <p>La cotización es válida durante 10 días a partir de su creación. La ferretería puede consultar el código para verificar los productos y precios registrados. Confirma el stock y las condiciones con el local antes de comprar.</p>
           <p *ngIf="validUntil">Generada el {{ pricesCapturedAt | date:'dd/MM/yyyy HH:mm' }} · Válida hasta: {{ validUntil | date:'dd/MM/yyyy HH:mm' }}.</p>
           <p *ngIf="quotationExpired">La vigencia ha terminado. Consulta los precios y el stock actuales con la ferretería.</p>
-          <p *ngIf="!validUntil">Guarda la cotización para obtener su código de verificación.</p>
+          <p *ngIf="!validUntil">Al guardarla en tu cuenta para descargar, obtendrás el código de verificación.</p>
           <div class="verification-code" *ngIf="verificationCode"><span>Código de cotización</span><strong>{{ verificationCode }}</strong><button type="button" class="secondary" (click)="copyVerificationCode()">Copiar código</button></div>
           <button *ngIf="!isNewProject" type="button" class="secondary" (click)="saveProject(true)" [disabled]="isSaving">{{ isSaving ? 'Guardando…' : 'Actualizar precios actuales' }}</button>
           <p *ngIf="hasUnsavedChanges">Guarda los cambios para obtener un código actualizado antes de descargar o enviar.</p>
@@ -178,19 +177,19 @@
 
         <div class="actions">
           <button type="button" (click)="saveProject()" [disabled]="isSaving">
-            <i *ngIf="isSaving" class="pi pi-spin pi-spinner" aria-hidden="true"></i>{{ isSaving ? 'Guardando…' : (!user ? 'Crear cuenta para guardar' : (isNewProject ? 'Guardar cotización' : 'Actualizar cotización')) }}
+            <i *ngIf="isSaving" class="pi pi-spin pi-spinner" aria-hidden="true"></i>{{ isSaving ? 'Guardando…' : (isNewProject ? 'Crear cotización' : 'Guardar cambios') }}
           </button>
-          <button *ngIf="!isNewProject" type="button" class="export" [disabled]="!hasQuotation || isNewProject || hasUnsavedChanges" (click)="exportQuotation()">
-            Exportar cotización PDF
+          <button type="button" class="export" [disabled]="!hasQuotation || isSaving || isPreparingPdf" (click)="exportQuotation()">
+            {{ isPreparingPdf ? 'Preparando PDF…' : 'Descargar PDF' }}
           </button>
-          <button *ngIf="!isNewProject" type="button" [disabled]="!hasQuotation || hasUnsavedChanges" (click)="shareQuotation()">
+          <button *ngIf="user && !isLocalQuotation && !isNewProject" type="button" [disabled]="!hasQuotation || hasUnsavedChanges" (click)="shareQuotation()">
             Enviar al cliente
           </button>
         </div>
 
 
 
-        <details class="whatsapp-share" *ngIf="hasQuotation && !isNewProject">
+        <details class="whatsapp-share" *ngIf="user && !isLocalQuotation && hasQuotation && !isNewProject">
           <summary>Enviar por WhatsApp</summary>
           <p>Descarga el PDF y abre un mensaje para tu cliente. Adjunta el archivo en WhatsApp antes de enviarlo.</p>
           <div class="whatsapp-share-actions">
@@ -199,10 +198,10 @@
           </div>
           <p role="status" *ngIf="shareNotice">{{ shareNotice }}</p>
         </details>
+        <p class="section-note" *ngIf="!user">Puedes revisar y editar la cotización sin cuenta. Para descargar el PDF, crea una cuenta de maestro o inicia sesión.</p>
         <p class="saved" *ngIf="saveNotice">{{ saveNotice }}</p>
       </article>
-    <details class="purchase-alternatives" *ngIf="hasItemsInTable" [open]="!fromMaterialList"><summary>Comparar compra en una sola ferretería</summary>
-    <section class="same-store-card">
+    <section class="same-store-card" *ngIf="hasItemsInTable">
       <div class="same-store-header">
         <div>
           <h2>Si compras todo en una misma ferretería</h2>
@@ -268,7 +267,6 @@
 
       <p class="saved" *ngIf="singleStoreNotice">{{ singleStoreNotice }}</p>
     </section>
-    </details>
   </article>
   }
 </main>

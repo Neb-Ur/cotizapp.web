@@ -42,3 +42,11 @@ it('preserves the product and modal intent through a mandatory legal update',()=
  expect(destination).toContain('/cuenta/privacidad-datos?');
  expect(new URL(destination,'https://findi.test').searchParams.get('returnUrl')).toBe(product);
 });
+
+it('recognizes only a local quotation PDF return and preserves its public back destination', async () => {
+  const { localQuotationAuthId } = await import('./auth-navigation.util');
+  expect(localQuotationAuthId('/dashboard/maestro/cotizaciones/nuevo?cotizacionLocal=guest-123&descargar=1')).toBe('guest-123');
+  expect(localQuotationAuthId('https://example.com/dashboard/maestro/cotizaciones/nuevo?cotizacionLocal=guest-123&descargar=1')).toBeNull();
+  expect(localQuotationAuthId('/dashboard/maestro/cotizaciones/nuevo?cotizacionLocal=../private&descargar=1')).toBeNull();
+  expect(localQuotationAuthId('/producto?cotizacionLocal=guest-123&descargar=1')).toBeNull();
+});

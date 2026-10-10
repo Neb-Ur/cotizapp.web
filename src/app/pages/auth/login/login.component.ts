@@ -8,7 +8,7 @@ import {
   LOGIN_SUPPORT_ERROR_MESSAGE,
   ProfileCompletionRequiredError
 } from '../../../core/services/auth.service';
-import { resolvePostAuthUrl, sanitizeReturnUrl } from '../../../core/utils/auth-navigation.util';
+import { localQuotationAuthId, resolvePostAuthUrl, sanitizeReturnUrl } from '../../../core/utils/auth-navigation.util';
 import { BrandMarkComponent } from '../../../shared/components/brand-mark/brand-mark.component';
 import { UiLoaderComponent } from '../../../shared/components/ui-loader/ui-loader.component';
 
@@ -43,8 +43,11 @@ export class LoginComponent {
     }
   }
 
+  protected get downloadingQuotation(): boolean { return !!localQuotationAuthId(this.returnUrl); }
+
   protected get backLink(): UrlTree {
-    return this.router.parseUrl(this.returnUrl || '/');
+    const localId = localQuotationAuthId(this.returnUrl);
+    return this.router.parseUrl(localId ? `/cotizaciones/local/${encodeURIComponent(localId)}` : this.returnUrl || '/');
   }
 
   protected get authQueryParams(): Record<string, string> | null {

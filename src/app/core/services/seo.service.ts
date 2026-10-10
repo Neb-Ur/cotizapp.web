@@ -25,7 +25,7 @@ const PAGE_SEO: Record<string, SeoPage> = {
     title: 'Buscar materiales y comparar precios | Trovio',
     description: 'Busca materiales de construcción y compara precios y disponibilidad entre ferreterías activas sin crear una cuenta.'
   },
-  '/lista': { title: 'Mi lista de materiales | Trovio', description: 'Revisa cantidades y prepara tu cotización de materiales.', index: false },
+  '/cotizaciones': { title: 'Mis cotizaciones | Trovio', description: 'Crea y revisa cotizaciones antes de iniciar sesión.', index: false },
   '/producto': {
     title: 'Comparar precios de productos | Trovio',
     description: 'Revisa precios, stock y alternativas disponibles para tus materiales de construcción.'

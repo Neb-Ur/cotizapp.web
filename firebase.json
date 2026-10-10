@@ -12,7 +12,9 @@
   },
   "hosting": {
     "public": "dist/cotizacion-web/browser",
-    "predeploy": ["node scripts/preserve-hosted-bundles.mjs"],
+    "predeploy": [
+      "node scripts/preserve-hosted-bundles.mjs"
+    ],
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -47,7 +49,7 @@
         ]
       },
       {
-        "source": "/@(lista|login|registro|recuperar-clave|auth|producto)",
+        "source": "/@(lista|cotizaciones|login|registro|recuperar-clave|auth|producto)",
         "headers": [
           {
             "key": "X-Robots-Tag",
@@ -63,9 +65,22 @@
             "value": "noindex, nofollow"
           }
         ]
+      },
+      {
+        "source": "/cotizaciones/**",
+        "headers": [
+          {
+            "key": "X-Robots-Tag",
+            "value": "noindex, nofollow"
+          }
+        ]
       }
     ],
     "rewrites": [
+      {
+        "source": "/cotizaciones/**",
+        "destination": "/index.html"
+      },
       {
         "source": "/ferreterias/**",
         "destination": "/index.html"
@@ -120,7 +135,7 @@
         }
       },
       {
-        "source": "/@(lista|buscar|producto|maestros|ferreterias|contacto|terminos-condiciones|privacidad|propiedad-intelectual|desuscribir|reportar-precio|preguntas-frecuentes|login|registro|recuperar-clave|auth)",
+        "source": "/@(lista|cotizaciones|buscar|producto|maestros|ferreterias|contacto|terminos-condiciones|privacidad|propiedad-intelectual|desuscribir|reportar-precio|preguntas-frecuentes|login|registro|recuperar-clave|auth)",
         "destination": "/index.html"
       },
       {

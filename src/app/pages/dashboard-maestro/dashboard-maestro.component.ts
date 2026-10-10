@@ -1,4 +1,3 @@
-import { QuotationStepsComponent } from '../../shared/components/quotation-steps/quotation-steps.component';
 import { StoreDirectoryService } from '../../core/services/store-directory.service';
 import { ProductImageDirective } from '../../shared/directives/product-image.directive';
 import type { CatalogLandingView } from '../catalog-landing/catalog-landing.component';
@@ -43,7 +42,7 @@ interface MaestroProfileDraft {
 @Component({
   selector: 'app-dashboard-maestro',
   standalone: true,
-  imports: [QuotationStepsComponent,ProductImageDirective, CommonModule, RouterLink, FormsModule, FontAwesomeModule, PaginatorModule, UiLoaderComponent],
+  imports: [ProductImageDirective, CommonModule, RouterLink, FormsModule, FontAwesomeModule, PaginatorModule, UiLoaderComponent],
   templateUrl: './dashboard-maestro.component.html',
   styleUrls: ['./dashboard-maestro.component.scss', './dashboard-maestro-quotations.scss']
 })
@@ -530,22 +529,23 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
   protected addProductToProject(productName: string): void {
     if (!this.projectTarget) return;
 
-    const commands = this.projectTarget === 'nuevo'
-      ? ['/dashboard/maestro/cotizaciones/nuevo']
-      : ['/dashboard/maestro/cotizaciones', this.projectTarget];
+    const localTarget = this.projectTarget.startsWith('local:') ? this.projectTarget.slice(6) : '';
+    const commands = localTarget ? (localTarget === 'nuevo' ? ['/cotizaciones/nueva'] : ['/cotizaciones/local', localTarget])
+      : this.projectTarget === 'nuevo' ? (this.user ? ['/dashboard/maestro/cotizaciones/nuevo'] : ['/cotizaciones/nueva'])
+      : (this.user ? ['/dashboard/maestro/cotizaciones', this.projectTarget] : ['/cotizaciones/local', this.projectTarget]);
 
     this.router.navigate(commands, {
       queryParams: {
         addProduct: productName,
-        draftName: this.projectTarget === 'nuevo' ? this.draftProjectName : null,
-        draftAddress: this.projectTarget === 'nuevo' ? this.draftProjectAddress : null
+        draftName: (this.projectTarget === 'nuevo' || localTarget === 'nuevo') ? this.draftProjectName : null,
+        draftAddress: (this.projectTarget === 'nuevo' || localTarget === 'nuevo') ? this.draftProjectAddress : null
       }
     });
   }
 
   protected goToNewProject(): void {
     if (!this.user) {
-      this.router.navigate(['/dashboard/maestro/cotizaciones/nuevo']);
+      this.router.navigate(['/cotizaciones/nueva']);
       return;
     }
     if (!this.canCreateQuotation) {

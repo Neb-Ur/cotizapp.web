@@ -105,7 +105,7 @@
         <p class="search-keyboard-hint">↑ ↓ para explorar · Enter para abrir · Esc para cerrar</p>
       </section>
     </div>
-    <a class="desktop-link" *ngIf="(!isLogged || isMaestro) && materialList?.items()?.length" routerLink="/lista" (click)="closeMenu()">Mi lista ({{ materialList?.items()?.length }})</a>
+    <a class="desktop-link" *ngIf="!isLogged" routerLink="/cotizaciones" (click)="closeMenu()">Mis cotizaciones</a>
     <a class="desktop-link" routerLink="/ferreterias" routerLinkActive="active" (click)="closeMenu()">Ferreterías</a>
 
     <ng-container *ngIf="!isLogged; else loggedActions">
@@ -158,7 +158,7 @@
       <a class="drawer-link" *ngFor="let item of maestroNavigation" routerLink="/dashboard/maestro" [queryParams]="{section:item.section}" [class.active]="maestroLinkActive(item.section)" [attr.aria-current]="maestroLinkActive(item.section) ? 'page' : null" (click)="closeMenu()"><i [class]="item.icon" aria-hidden="true"></i>{{ item.label }}</a>
     </ng-container>
     <a class="drawer-link" *ngIf="!isMaestro" routerLink="/" (click)="closeMenu()"><i class="pi pi-home" aria-hidden="true"></i> Inicio</a>
-    <a class="drawer-link" *ngIf="!isLogged || isMaestro" routerLink="/lista" (click)="closeMenu()"><i class="pi pi-list" aria-hidden="true"></i> Mi lista ({{ materialList?.items()?.length || 0 }})</a>
+    <a class="drawer-link" *ngIf="!isLogged" routerLink="/cotizaciones" (click)="closeMenu()"><i class="pi pi-file" aria-hidden="true"></i> Mis cotizaciones</a>
     <a class="drawer-link" routerLink="/ferreterias" (click)="closeMenu()"><i class="pi pi-shop" aria-hidden="true"></i> Ferreterías</a>
     <a class="drawer-link" *ngIf="isLogged" routerLink="/cuenta/cambiar-contrasena" (click)="closeMenu()">Cambiar contraseña</a>
     <button class="drawer-link" *ngIf="isLogged" type="button" (click)="logout()"><i class="pi pi-sign-out" aria-hidden="true"></i> Cerrar sesión</button>

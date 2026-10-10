@@ -35,3 +35,13 @@ export function resolvePostAuthUrl(
 
   return returnUrl;
 }
+
+export function localQuotationAuthId(returnUrl: string | null): string | null {
+  if (!returnUrl) return null;
+  try {
+    const url = new URL(returnUrl, APP_ORIGIN);
+    if (url.origin !== APP_ORIGIN || url.pathname !== '/dashboard/maestro/cotizaciones/nuevo' || url.searchParams.get('descargar') !== '1') return null;
+    const id = url.searchParams.get('cotizacionLocal');
+    return id && /^[a-zA-Z0-9-]{1,100}$/.test(id) ? id : null;
+  } catch { return null; }
+}

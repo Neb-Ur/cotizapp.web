@@ -22,8 +22,8 @@
 
     <a routerLink="/" class="home-link"><i class="pi pi-home" aria-hidden="true"></i> Inicio</a>
     <div class="auth-header">
-      <h1>Bienvenido</h1>
-      <p>Accede a tu cuenta para continuar.</p>
+      <h1>{{ downloadingQuotation ? 'Inicia sesión para descargar' : 'Bienvenido' }}</h1>
+      <p>{{ downloadingQuotation ? 'Tu cotización está conservada. Inicia sesión como maestro o crea una cuenta para guardarla y descargar el PDF.' : 'Accede a tu cuenta para continuar.' }}</p>
     </div>
 
     <div class="support-banner" *ngIf="supportBannerMessage" role="alert">

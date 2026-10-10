@@ -1,5 +1,4 @@
-import { MaterialListService } from '../../core/services/material-list.service';
-import { QuotationStepsComponent } from '../../shared/components/quotation-steps/quotation-steps.component';
+import { GuestQuotationService } from '../../core/services/guest-quotation.service';
 import { InfoPanelComponent } from '../../shared/components/info-panel/info-panel.component';
 import { ProductImageDirective } from '../../shared/directives/product-image.directive';
 import { productSlug } from '../../core/utils/product-url.util';
@@ -25,13 +24,13 @@ import {
 @Component({
   selector: 'app-producto-detalle',
   standalone: true,
-  imports: [QuotationStepsComponent, InfoPanelComponent, ProductImageDirective, CommonModule, FormsModule, RouterLink, UiModalComponent],
+  imports: [InfoPanelComponent, ProductImageDirective, CommonModule, FormsModule, RouterLink, UiModalComponent],
   templateUrl: './producto-detalle.component.html',
   styleUrl: './producto-detalle.component.scss'
 })
 export class ProductoDetalleComponent implements OnInit, OnDestroy {
   protected catalogPath(kind:string,name:string):string {return `/${kind}/${productSlug(name)}`;}
-  protected readonly materialList = inject(MaterialListService);
+  protected readonly guestQuotations = inject(GuestQuotationService);
   private readonly quotationSelection = inject(QuotationSelectionService);
   protected isAddingToQuotation = false;
   private readonly platformId = inject(PLATFORM_ID);
@@ -224,7 +223,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   protected get canUseQuotations(): boolean { const session = this.authService.currentUser(); return !session || session.role === 'maestro'; }
 
   protected get canShowAddToQuotation(): boolean {
-    return !!this.user && !!this.selectedStore && !!this.selectedProjectId && this.selectedQuantity > 0 && !this.exceedsSelectedStock;
+    return this.canUseQuotations && !!this.selectedStore && !!this.selectedProjectId && this.selectedQuantity > 0 && !this.exceedsSelectedStock;
   }
 
   protected get selectedTotal(): number {
@@ -293,21 +292,17 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   protected onProjectChange(projectId: string): void {
     if (projectId === this.createQuotationOptionValue) {
       this.selectedProjectId = '';
-      if (!this.user) {
-        this.goToLoginFromQuotationModal();
-        return;
-      }
       this.openCreateQuotationModal();
       return;
     }
 
     this.selectedProjectId = projectId;
-    if (this.user) this.quotationSelection.select(this.user.id, projectId);
+    this.quotationSelection.select(this.user?.id || 'guest', projectId);
     this.quoteFeedback = '';
   }
 
   protected openCreateQuotationModal(): void {
-    if (!this.user) { this.goToLoginFromQuotationModal(); return; }
+    if (!this.canUseQuotations) return;
     this.newQuotationName = '';
     this.newQuotationAddress = '';
     this.createQuotationError = '';
@@ -325,10 +320,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
     const currentUser = this.user;
     const name = this.newQuotationName.trim();
 
-    if (!currentUser) {
-      this.createQuotationError = 'Inicia sesion como maestro para crear una cotizacion.';
-      return;
-    }
+    if (!this.canUseQuotations) return;
 
     if (!name) {
       this.createQuotationError = 'Escribe un nombre para la cotizacion.';
@@ -339,16 +331,13 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
     this.createQuotationError = '';
 
     try {
-      const created = await this.apiService.saveProject(
-        currentUser.id,
-        name,
-        [],
-        this.newQuotationAddress
-      );
-      this.projects = [...this.apiService.getProjects(currentUser.id)];
+      const created = currentUser
+        ? await this.apiService.saveProject(currentUser.id, name, [], this.newQuotationAddress)
+        : this.guestQuotations.create(name, this.newQuotationAddress);
+      this.projects = currentUser ? [...this.apiService.getProjects(currentUser.id)] : this.guestQuotations.all();
       if (!this.projects.some(project => project.id === created.id)) this.projects = [...this.projects, created];
       this.selectedProjectId = created.id;
-      this.quotationSelection.select(currentUser.id, created.id);
+      this.quotationSelection.select(currentUser?.id || 'guest', created.id);
       this.isCreateQuotationModalOpen = false;
       this.quoteFeedback = `Cotización “${created.name}” creada y seleccionada. Usa “Agregar a cotización seleccionada” para incluir este producto.`;
     } catch (error) {
@@ -394,25 +383,24 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   }
 
   protected async addToQuotation(): Promise<void> {
-    if (this.isAddingToQuotation || !this.user || !this.detail || !this.selectedProjectId || !this.canShowAddToQuotation) return;
+    if (this.isAddingToQuotation || !this.detail || !this.selectedProjectId || !this.canShowAddToQuotation) return;
     this.isAddingToQuotation = true; this.quoteFeedback = ''; this.changeDetector.markForCheck();
     try {
-      const updated = await this.apiService.addItemToProject(this.user.id, this.selectedProjectId, {
-        productName: this.detail.productName, productoMaestroId: this.detail.productoMaestroId,
+      const item = { productName: this.detail.productName, productoMaestroId: this.detail.productoMaestroId,
         storeId: this.selectedStore?.storeId, storeName: this.selectedStore?.storeName,
-        productoFerreteriaId: this.selectedStore?.offerId, quantity: this.selectedQuantity
-      });
+        productoFerreteriaId: this.selectedStore?.offerId, quantity: this.selectedQuantity };
+      const updated = this.user
+        ? await this.apiService.addItemToProject(this.user.id, this.selectedProjectId, item)
+        : this.guestQuotations.add(this.selectedProjectId, item);
+      if (!this.user) this.projects = this.guestQuotations.all();
       this.quoteFeedback = updated ? `Agregado a “${updated.name}”: ${this.selectedQuantity} ${this.quantityLabel.toLowerCase()}.` : 'No se pudo agregar el producto a la cotización.';
     } catch (error) { this.quoteFeedback = error instanceof Error ? error.message : 'No se pudo agregar el producto. Intenta nuevamente.'; }
     finally { this.isAddingToQuotation = false; this.changeDetector.markForCheck(); }
   }
 
-  protected addToMaterialList(): void {
-    if (!this.detail || !this.selectedStore || this.exceedsSelectedStock || !this.canUseQuotations) return;
-    this.materialList.add({ productName: this.detail.productName, productoMaestroId: this.detail.productoMaestroId,
-      storeId: this.selectedStore.storeId, storeName: this.selectedStore.storeName,
-      productoFerreteriaId: this.selectedStore.offerId, quantity: this.selectedQuantity, unitPrice: this.selectedStore.price });
-    this.quoteFeedback = `Agregaste ${this.selectedQuantity} ${this.quantityLabel.toLowerCase()} a tu lista.`;
+  protected goToSelectedQuotation(): void {
+    if (!this.selectedProjectId) return;
+    void this.router.navigate(this.user ? ['/dashboard/maestro/cotizaciones', this.selectedProjectId] : ['/cotizaciones/local', this.selectedProjectId]);
   }
 
   protected backToSearch(): void {
@@ -470,11 +458,12 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
 
   private loadProjects(): void {
     const currentUser = this.user;
-    this.projects = currentUser ? this.apiService.getProjects(currentUser.id) : [];
-    if (currentUser) {
-      const candidate = this.selectedProjectId || this.quotationSelection.read(currentUser.id);
+    this.projects = currentUser ? this.apiService.getProjects(currentUser.id) : this.guestQuotations.all();
+    {
+      const ownerId = currentUser?.id || 'guest';
+      const candidate = this.selectedProjectId || this.quotationSelection.read(ownerId);
       this.selectedProjectId = this.projects.some(project => project.id === candidate) ? candidate : '';
-      if (this.projects.length && candidate && !this.selectedProjectId) this.quotationSelection.select(currentUser.id, '');
+      if (this.projects.length && candidate && !this.selectedProjectId) this.quotationSelection.select(ownerId, '');
     }
   }
 

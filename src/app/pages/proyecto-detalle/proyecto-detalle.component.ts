@@ -1,5 +1,4 @@
-import { QuotationStepsComponent } from '../../shared/components/quotation-steps/quotation-steps.component';
-import { MaterialListService } from '../../core/services/material-list.service';
+import { GuestQuotationService } from '../../core/services/guest-quotation.service';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 import { InfoPanelComponent } from '../../shared/components/info-panel/info-panel.component';
 import { PilotService } from '../../core/services/pilot.service';
@@ -27,12 +26,12 @@ import {
   readNearbySearchPreference,
   saveNearbySearchPreference
 } from '../../core/utils/location.util';
-import { shareQuotationPdf, downloadQuotationPdf } from '../../core/utils/quotation-pdf.util';
+import { QuotationPdfService } from '../../core/services/quotation-pdf.service';
 
 @Component({
   selector: 'app-proyecto-detalle',
   standalone: true,
-  imports: [QuotationStepsComponent, UiLoaderComponent, InfoPanelComponent, CommonModule, FormsModule],
+  imports: [UiLoaderComponent, InfoPanelComponent, CommonModule, FormsModule],
   templateUrl: './proyecto-detalle.component.html',
   styleUrl: './proyecto-detalle.component.scss'
 })
@@ -40,8 +39,10 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
   protected isLoading = true;
   protected loadError = '';
   private loadGeneration = 0;
-  private importedListFingerprint = '';
-  protected fromMaterialList = false;
+  private importedGuestId = '';
+  private handledDownloadIntent = false;
+  protected isPreparingPdf = false;
+  protected get isLocalQuotation(): boolean { return this.route.snapshot?.data?.['localQuotation'] === true; }
   private routeSubscription?: Subscription;
   private get draftStorageKey(): string { return `cotizapp-project-draft:${this.dataMode.mode()}:${this.user?.id || 'guest'}`; }
   protected projectId = '';
@@ -81,7 +82,8 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
     private readonly writeFeedback: WriteFeedbackService = new WriteFeedbackService(),
     private readonly pilot: PilotService | null = null,
     private readonly changeDetector: ChangeDetectorRef | null = null,
-    private readonly materialList: MaterialListService | null = null
+    private readonly guestQuotations: GuestQuotationService | null = null,
+    private readonly pdf: QuotationPdfService = new QuotationPdfService()
   ) {}
 
   ngOnInit(): void {
@@ -105,6 +107,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
     try {
       const currentUser = this.user;
       if (currentUser) await this.apiService.refreshMaestroData(currentUser.id);
+      else await this.apiService.refreshPublicCatalogSection(true);
       if (generation !== this.loadGeneration) return;
       await this.loadProject(incomingId, draftName, draftAddress);
       if (generation !== this.loadGeneration) return;
@@ -112,6 +115,10 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
         this.projectItems = [...this.projectItems, { productName: addProduct.trim(), quantity: 1 }];
         this.saveNotice = `Producto agregado: ${addProduct}.`;
         this.persistDraftIfNeeded(); this.clearAddProductQueryParams();
+      }
+      if (this.user && this.route.snapshot?.queryParamMap?.get('descargar') === '1' && !this.handledDownloadIntent) {
+        this.handledDownloadIntent = true;
+        await this.exportQuotation();
       }
     } catch (error) {
       if (generation === this.loadGeneration) this.loadError = error instanceof Error ? error.message : 'No se pudo cargar la cotización.';
@@ -233,11 +240,18 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       this.isSaving = true;
       try {
       const currentUser = this.user;
-      if (!currentUser) {
-        this.persistDraftIfNeeded();
-        await this.router.navigate(['/registro'], {
-          queryParams: { returnUrl: '/dashboard/maestro/cotizaciones/nuevo' }
-        });
+      if (this.isLocalQuotation || !currentUser) {
+        if (!this.guestQuotations) return;
+        const data = { name: this.projectName.trim() || 'Mi cotización', address: this.projectAddress,
+          description: this.projectDescription, items: this.projectItems, proximity: this.projectProximity,
+          singleStoreName: this.selectedSingleStoreName, singleStoreId: this.selectedSingleStoreId,
+          totalOptimal: this.totalWithIva, saving: this.quotation.mixedSaving };
+        if (this.isNewProject) {
+          const created = this.guestQuotations.create(data.name, data.address, data.items);
+          this.guestQuotations.update(created.id, data); this.clearDraft();
+          void this.router.navigate(['/cotizaciones/local', created.id]);
+        } else { this.guestQuotations.update(this.projectId, data); this.savedFingerprint = this.quotationFingerprint(); }
+        this.saveNotice = 'Cotización guardada en este navegador.';
         return;
       }
 
@@ -259,8 +273,12 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
             this.projectDescription
           );
           this.saveNotice = 'Cotizacion creada correctamente.';
-          if (this.importedListFingerprint) this.materialList?.clearIfUnchanged(this.importedListFingerprint);
           this.clearDraft();
+          if (this.importedGuestId) this.guestQuotations?.remove(this.importedGuestId);
+          this.projectId = created.id; this.isNewProject = false;
+          this.verificationCode = created.verificationCode || ''; this.validUntil = created.validUntil || '';
+          this.pricesCapturedAt = created.pricesCapturedAt || ''; this.pricingOffers = created.pricingOffers;
+          this.savedFingerprint = this.quotationFingerprint();
           this.router.navigate(['/dashboard/maestro/cotizaciones', created.id]);
         } catch (error) {
           this.saveNotice = error instanceof Error
@@ -305,7 +323,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       await this.saveProject();
       if (this.hasUnsavedChanges) return;
     }
-    const projectTarget = this.isNewProject ? 'nuevo' : this.projectId;
+    const projectTarget = this.isLocalQuotation ? `local:${this.isNewProject ? 'nuevo' : this.projectId}` : (this.isNewProject ? 'nuevo' : this.projectId);
     this.persistDraftIfNeeded();
     clearNearbySearchPreference();
     this.router.navigate(['/buscar'], {
@@ -414,12 +432,10 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
   }
 
   protected async shareQuotation(): Promise<void> {
-    if (!this.hasQuotation || this.isNewProject || this.hasUnsavedChanges) {
-      return;
-    }
+    if (!await this.preparePdf()) return;
 
     try {
-      const result = await shareQuotationPdf({
+      const result = await this.pdf.share({
         projectName: this.projectName.trim() || 'Cotizacion',
         projectAddress: this.projectAddress,
       projectDescription: this.projectDescription,
@@ -444,22 +460,22 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
   }
 
   protected sendViaWhatsapp(): void {
-    if (!this.hasQuotation || this.isNewProject || this.hasUnsavedChanges) return;
+    if (!this.user || this.isLocalQuotation || !this.hasQuotation || this.isNewProject || this.hasUnsavedChanges) return;
     try {
       const url = quotationWhatsappUrl(this.whatsappNumber, this.projectName, this.formatCurrency(this.totalWithIva), this.pilot?.enabled() === true, this.validUntil || undefined, this.verificationCode || undefined);
-      downloadQuotationPdf({projectName:this.projectName, projectAddress:this.projectAddress, projectDescription:this.projectDescription, verificationCode:this.verificationCode || undefined, validUntil:this.validUntil || undefined, pricesCapturedAt:this.pricesCapturedAt || undefined,
+      this.pdf.download({projectName:this.projectName, projectAddress:this.projectAddress, projectDescription:this.projectDescription, verificationCode:this.verificationCode || undefined, validUntil:this.validUntil || undefined, pricesCapturedAt:this.pricesCapturedAt || undefined,
         maestroName:this.user?.displayName || '', quotation:this.quotation, proximity:this.projectProximity, pilot:this.pilot?.enabled() === true});
       window.open(url, '_blank', 'noopener,noreferrer');
       this.shareNotice = 'PDF descargado. Adjunta el archivo en WhatsApp y revisa el mensaje antes de enviarlo.';
     } catch (error) { this.shareNotice = error instanceof Error ? error.message : 'No se pudo preparar el envío.'; }
   }
 
-  protected exportQuotation(): void {
-    if (!this.hasQuotation || this.isNewProject || this.hasUnsavedChanges) {
-      return;
-    }
-
-    try { downloadQuotationPdf({
+  protected async exportQuotation(): Promise<void> {
+    if (this.isPreparingPdf) return;
+    this.isPreparingPdf = true;
+    try {
+      if (!await this.preparePdf()) return;
+      this.pdf.download({
       projectName: this.projectName.trim() || 'Cotizacion',
       projectAddress: this.projectAddress,
       projectDescription: this.projectDescription,
@@ -472,10 +488,32 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       proximity: this.projectProximity
     });
     } catch (error) { this.saveNotice = error instanceof Error ? error.message : 'No se pudo exportar la cotización.'; }
+    finally { this.isPreparingPdf = false; this.changeDetector?.markForCheck(); }
+  }
+
+  private async preparePdf(): Promise<boolean> {
+    if (this.isSaving || !this.hasQuotation) return false;
+    if (!this.user || this.isLocalQuotation) {
+      if (!this.guestQuotations) return false;
+      this.persistDraftIfNeeded();
+      let guestId = this.isLocalQuotation && !this.isNewProject ? this.projectId : this.importedGuestId;
+      const data = { name: this.projectName.trim() || 'Mi cotización', address: this.projectAddress,
+        description: this.projectDescription, items: this.projectItems, proximity: this.projectProximity,
+        singleStoreName: this.selectedSingleStoreName, singleStoreId: this.selectedSingleStoreId };
+      if (!guestId) guestId = this.guestQuotations.create(data.name, data.address, data.items).id;
+      this.guestQuotations.update(guestId, data);
+      const returnUrl = `/dashboard/maestro/cotizaciones/nuevo?cotizacionLocal=${encodeURIComponent(guestId)}&descargar=1`;
+      if (this.user) await this.router.navigateByUrl(returnUrl);
+      else await this.router.navigate(['/login'], { queryParams: { returnUrl } });
+      return false;
+    }
+    if (this.isNewProject || this.hasUnsavedChanges) await this.saveProject();
+    return !!this.user && !this.isNewProject && !this.hasUnsavedChanges && this.hasQuotation;
   }
 
   protected backToProjects(): void {
     this.persistDraftIfNeeded();
+    if (this.isLocalQuotation || !this.user) { void this.router.navigate(['/cotizaciones']); return; }
     this.router.navigate(['/dashboard/maestro'], {
       queryParams: { section: this.user ? 'cotizaciones' : 'buscar' }
     });
@@ -490,6 +528,18 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
     this.projectId = projectId;
     this.isNewProject = projectId === 'nuevo';
 
+    const importedId = this.route.snapshot?.queryParamMap?.get('cotizacionLocal') || '';
+    const localQuote = this.guestQuotations?.get(this.isLocalQuotation && !this.isNewProject ? projectId : importedId);
+    if ((this.isLocalQuotation && !this.isNewProject) || importedId) {
+      if (!localQuote) throw new Error('No encontramos esta cotización en tu navegador.');
+      this.importedGuestId = importedId;
+      this.projectName = localQuote.name; this.projectAddress = localQuote.address || ''; this.projectDescription = localQuote.description || '';
+      this.projectItems = localQuote.items.map(item => ({ ...item })); this.projectProximity = localQuote.proximity;
+      this.selectedSingleStoreName = localQuote.singleStoreName || ''; this.selectedSingleStoreId = localQuote.singleStoreId || '';
+      this.pricingOffers = undefined; this.verificationCode = ''; this.validUntil = ''; this.pricesCapturedAt = '';
+      this.savedFingerprint = this.quotationFingerprint();
+      return;
+    }
     if (this.isNewProject) {
       const draft = this.readDraft();
       const nearbyPreference = readNearbySearchPreference();
@@ -505,17 +555,6 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       this.projectProximity = draft?.proximity || nearbyPreference || undefined;
       this.selectedSingleStoreName = draft?.singleStoreName || '';
       this.selectedSingleStoreId = draft?.singleStoreId || '';
-      if (this.route.snapshot?.queryParamMap?.get('usarLista') === '1' && this.materialList?.items().length) {
-        this.fromMaterialList = true;
-        this.importedListFingerprint = this.materialList.fingerprint();
-        if (draft?.materialListFingerprint !== this.importedListFingerprint) {
-          this.projectItems = this.materialList.items().map(({ unitPrice, ...item }) => ({ ...item }));
-          this.projectName = 'Mi cotización'; this.projectAddress = ''; this.projectDescription = '';
-          this.projectProximity = undefined;
-          this.selectedSingleStoreName = ''; this.selectedSingleStoreId = '';
-        }
-        this.persistDraftIfNeeded();
-      }
       return;
     }
 
@@ -546,12 +585,19 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
 
 
   protected persistDraftIfNeeded(): void {
-    if (!this.isNewProject || typeof window === 'undefined') {
+    if (typeof window === 'undefined') return;
+    if (this.importedGuestId && this.isNewProject && this.guestQuotations?.get(this.importedGuestId)) {
+      this.guestQuotations.update(this.importedGuestId, { name: this.projectName, address: this.projectAddress, description: this.projectDescription, items: this.projectItems, proximity: this.projectProximity, singleStoreName: this.selectedSingleStoreName, singleStoreId: this.selectedSingleStoreId });
+    }
+    if (this.isLocalQuotation && !this.isNewProject && this.guestQuotations) {
+      this.guestQuotations.update(this.projectId, { name: this.projectName, address: this.projectAddress, description: this.projectDescription, items: this.projectItems, proximity: this.projectProximity, singleStoreName: this.selectedSingleStoreName, singleStoreId: this.selectedSingleStoreId });
+      this.savedFingerprint = this.quotationFingerprint(); return;
+    }
+    if (!this.isNewProject) {
       return;
     }
 
     const payload = {
-      materialListFingerprint: this.importedListFingerprint || undefined,
       name: this.projectName,
       address: this.projectAddress,
       description: this.projectDescription,
@@ -560,12 +606,10 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       singleStoreId: this.quotation.appliedStoreId,
       singleStoreName: this.quotation.appliedStoreName
     };
-    try { window.localStorage.setItem(this.draftStorageKey, JSON.stringify(payload)); }
-    catch { /* Keep the editor usable when browser storage is unavailable. */ }
+    try { window.localStorage.setItem(this.draftStorageKey, JSON.stringify(payload)); } catch { /* Browser storage is optional. */ }
   }
 
   private readDraft(): {
-    materialListFingerprint?: string;
     name: string;
     address: string;
     description?: string;
@@ -583,7 +627,6 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       const raw = window.localStorage.getItem(this.draftStorageKey);
       if (!raw) return null;
       return JSON.parse(raw) as {
-        materialListFingerprint?: string;
         name: string;
         address: string;
         description?: string;
@@ -601,13 +644,12 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
     if (typeof window === 'undefined') {
       return;
     }
-    try { window.localStorage.removeItem(this.draftStorageKey); }
-    catch { /* A completed save must not fail because local storage is blocked. */ }
+    try { window.localStorage.removeItem(this.draftStorageKey); } catch { /* Storage is optional. */ }
   }
 
   private async persistExistingPurchaseSelection(): Promise<boolean> {
     const currentUser = this.user;
-    if (!currentUser || this.isNewProject) return true;
+    if (!currentUser || this.isNewProject || this.isLocalQuotation) { this.persistDraftIfNeeded(); return true; }
 
     const updated = await this.apiService.updateProject(
       currentUser.id,

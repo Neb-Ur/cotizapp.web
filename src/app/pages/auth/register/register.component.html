@@ -1,12 +1,12 @@
 <main class="register-page">
   <section class="auth-card auth-card--wide">
     <a [routerLink]="backLink" class="back-link">
-      &larr; {{ isCompletingProfile ? 'Volver al inicio de sesión' : (returnUrl ? 'Volver al producto' : 'Volver al inicio') }}
+      &larr; {{ isCompletingProfile ? 'Volver al inicio de sesión' : (downloadingQuotation ? 'Volver a la cotización' : (returnUrl ? 'Volver' : 'Volver al inicio')) }}
     </a>
     <div class="auth-header">
       <div class="role-pill">{{ isCompletingProfile ? 'Perfil de maestro' : 'Cuenta de maestro' }}</div>
       <h1>{{ isCompletingProfile ? 'Completa tu cuenta' : 'Crea tu cuenta' }}</h1>
-      <p>{{ isCompletingProfile ? 'Necesitamos estos datos para recuperar tu cuenta y tus cotizaciones.' : 'Guarda tus cotizaciones y consulta tu historial de proyectos.' }}</p>
+      <p>{{ isCompletingProfile ? 'Necesitamos estos datos para recuperar tu cuenta y tus cotizaciones.' : (downloadingQuotation ? 'Tu cotización está conservada. Crea tu cuenta de maestro para guardarla y descargar el PDF.' : 'Guarda tus cotizaciones y consulta tu historial de proyectos.') }}</p>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form auth-form--grid" [attr.aria-busy]="isSubmitting">
