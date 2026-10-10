@@ -78,8 +78,16 @@
     ],
     "rewrites": [
       {
+        "source": "/@(lista|cotizaciones|login|registro)",
+        "destination": "/index.csr.html"
+      },
+      {
+        "source": "/dashboard/maestro/cotizaciones/**",
+        "destination": "/index.csr.html"
+      },
+      {
         "source": "/cotizaciones/**",
-        "destination": "/index.html"
+        "destination": "/index.csr.html"
       },
       {
         "source": "/ferreterias/**",
