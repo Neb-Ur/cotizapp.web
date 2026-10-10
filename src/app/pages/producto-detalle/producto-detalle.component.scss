@@ -1013,3 +1013,5 @@ td {
   .thumb-strip { grid-template-columns: repeat(auto-fill, 64px); }
   .thumb-strip button { height: 56px; }
 }
+
+.list-next-actions{display:flex;flex-wrap:wrap;justify-content:space-between;gap:1rem;margin:1rem 0}.list-next-actions a{color:#12658a;font-weight:650;text-decoration:none;padding:.5rem 0}.existing-quotation{border-top:1px solid #dde7ed;padding-top:1rem;margin-top:1rem}.existing-quotation summary{cursor:pointer;color:#526b80;padding:.5rem 0}.existing-quotation .quantity-field{margin-top:1rem}

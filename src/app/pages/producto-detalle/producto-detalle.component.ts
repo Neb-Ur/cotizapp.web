@@ -1,3 +1,5 @@
+import { MaterialListService } from '../../core/services/material-list.service';
+import { QuotationStepsComponent } from '../../shared/components/quotation-steps/quotation-steps.component';
 import { InfoPanelComponent } from '../../shared/components/info-panel/info-panel.component';
 import { ProductImageDirective } from '../../shared/directives/product-image.directive';
 import { productSlug } from '../../core/utils/product-url.util';
@@ -23,12 +25,13 @@ import {
 @Component({
   selector: 'app-producto-detalle',
   standalone: true,
-  imports: [InfoPanelComponent, ProductImageDirective, CommonModule, FormsModule, RouterLink, UiModalComponent],
+  imports: [QuotationStepsComponent, InfoPanelComponent, ProductImageDirective, CommonModule, FormsModule, RouterLink, UiModalComponent],
   templateUrl: './producto-detalle.component.html',
   styleUrl: './producto-detalle.component.scss'
 })
 export class ProductoDetalleComponent implements OnInit, OnDestroy {
   protected catalogPath(kind:string,name:string):string {return `/${kind}/${productSlug(name)}`;}
+  protected readonly materialList = inject(MaterialListService);
   private readonly quotationSelection = inject(QuotationSelectionService);
   protected isAddingToQuotation = false;
   private readonly platformId = inject(PLATFORM_ID);
@@ -402,6 +405,14 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
       this.quoteFeedback = updated ? `Agregado a “${updated.name}”: ${this.selectedQuantity} ${this.quantityLabel.toLowerCase()}.` : 'No se pudo agregar el producto a la cotización.';
     } catch (error) { this.quoteFeedback = error instanceof Error ? error.message : 'No se pudo agregar el producto. Intenta nuevamente.'; }
     finally { this.isAddingToQuotation = false; this.changeDetector.markForCheck(); }
+  }
+
+  protected addToMaterialList(): void {
+    if (!this.detail || !this.selectedStore || this.exceedsSelectedStock || !this.canUseQuotations) return;
+    this.materialList.add({ productName: this.detail.productName, productoMaestroId: this.detail.productoMaestroId,
+      storeId: this.selectedStore.storeId, storeName: this.selectedStore.storeName,
+      productoFerreteriaId: this.selectedStore.offerId, quantity: this.selectedQuantity, unitPrice: this.selectedStore.price });
+    this.quoteFeedback = `Agregaste ${this.selectedQuantity} ${this.quantityLabel.toLowerCase()} a tu lista.`;
   }
 
   protected backToSearch(): void {

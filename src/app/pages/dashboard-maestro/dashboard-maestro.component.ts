@@ -1,3 +1,4 @@
+import { QuotationStepsComponent } from '../../shared/components/quotation-steps/quotation-steps.component';
 import { StoreDirectoryService } from '../../core/services/store-directory.service';
 import { ProductImageDirective } from '../../shared/directives/product-image.directive';
 import type { CatalogLandingView } from '../catalog-landing/catalog-landing.component';
@@ -42,7 +43,7 @@ interface MaestroProfileDraft {
 @Component({
   selector: 'app-dashboard-maestro',
   standalone: true,
-  imports: [ProductImageDirective, CommonModule, RouterLink, FormsModule, FontAwesomeModule, PaginatorModule, UiLoaderComponent],
+  imports: [QuotationStepsComponent,ProductImageDirective, CommonModule, RouterLink, FormsModule, FontAwesomeModule, PaginatorModule, UiLoaderComponent],
   templateUrl: './dashboard-maestro.component.html',
   styleUrls: ['./dashboard-maestro.component.scss', './dashboard-maestro-quotations.scss']
 })

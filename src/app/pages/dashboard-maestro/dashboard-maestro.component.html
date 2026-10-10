@@ -50,9 +50,10 @@
     </article>
 
     <article class="panel" *ngIf="currentSection === 'buscar' && (!user || (!isInitialLoading && !isSectionLoading))">
+      <app-quotation-steps *ngIf="!isPickingProductForProject" [step]="1" />
       <section class="search-primary" aria-labelledby="product-search-label">
         <div class="public-search-main"><h1 id="product-search-label">{{ tableProductSearch ? 'Resultados para “' + tableProductSearch + '”' : (landing?.name || 'Productos y materiales') }}</h1></div>
-        <p>{{ landing?.description || 'Explora el catálogo y compara las ofertas disponibles. Usa los filtros para acotar tu búsqueda.' }}</p>
+        <p>{{ landing?.description || 'Abre un producto, elige una ferretería y agrégalo a tu lista. Puedes empezar sin crear una cuenta.' }}</p>
         <nav *ngIf="landing" aria-label="Secciones relacionadas" class="catalog-related-links"><a routerLink="/buscar">Todos los productos</a><a *ngFor="let link of landing.related" [routerLink]="link.path">{{ link.name }}</a></nav>
       </section>
 

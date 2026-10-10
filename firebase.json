@@ -47,7 +47,7 @@
         ]
       },
       {
-        "source": "/@(login|registro|recuperar-clave|auth|producto)",
+        "source": "/@(lista|login|registro|recuperar-clave|auth|producto)",
         "headers": [
           {
             "key": "X-Robots-Tag",
@@ -120,7 +120,7 @@
         }
       },
       {
-        "source": "/@(buscar|producto|maestros|ferreterias|contacto|terminos-condiciones|privacidad|propiedad-intelectual|desuscribir|reportar-precio|preguntas-frecuentes|login|registro|recuperar-clave|auth)",
+        "source": "/@(lista|buscar|producto|maestros|ferreterias|contacto|terminos-condiciones|privacidad|propiedad-intelectual|desuscribir|reportar-precio|preguntas-frecuentes|login|registro|recuperar-clave|auth)",
         "destination": "/index.html"
       },
       {

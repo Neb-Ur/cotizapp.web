@@ -18,6 +18,7 @@
 
   } @else {
   <article class="detail-card" *ngIf="detail as product; else noData">
+    <app-quotation-steps [step]="2" *ngIf="canUseQuotations" />
     <nav class="breadcrumb" aria-label="Ruta de navegación">
       <ol>
         <li><a routerLink="/">Inicio</a></li>
@@ -71,16 +72,7 @@
             {{ displayStores.length }} ferretería(s) dentro de {{ nearbyRadiusKm }} km.
           </p>
 
-          <section class="quotation-destination" *ngIf="canUseQuotations">
-            <div class="quotation-destination-heading"><h3>Tu cotización</h3><button type="button" class="new-quotation-button" (click)="openCreateQuotationModal()"><i class="pi pi-plus" aria-hidden="true"></i> Crear cotización</button></div>
-            <p class="quotation-validity">Tu cotización tiene una vigencia de 10 días desde su creación. Preséntala en la ferretería dentro de ese plazo para mantener los precios cotizados.</p>
-            <ng-container *ngIf="user; else guestQuotation">
-              <label class="quantity-field">Cotización seleccionada<select [ngModel]="selectedProjectId" (ngModelChange)="onProjectChange($event)"><option value="">Selecciona una cotización</option><option *ngFor="let project of projects" [value]="project.id">{{ project.name }}</option></select></label>
-              <p *ngIf="!hasProjects" class="quick-stores-hint">Crea una cotización para empezar a agregar tus materiales.</p>
-              <p *ngIf="selectedQuotationName" class="selected-quotation-label"><i class="pi pi-file" aria-hidden="true"></i> Los productos se agregarán a <strong>{{ selectedQuotationName }}</strong>.</p>
-            </ng-container>
-            <ng-template #guestQuotation><p>Guarda tus materiales en una cotización. Crea tu cuenta y volverás a este producto para elegir el proyecto.</p><button type="button" class="existing-account-link" (click)="goToLoginFromQuotationModal(true)">Ya tengo una cuenta</button></ng-template>
-          </section>
+          <p class="quick-stores-hint" *ngIf="canUseQuotations">Elige la cantidad y una ferretería. Luego agrega el material a tu lista, sin registrarte.</p>
 
           <label class="quantity-field">
             Cantidad ({{ quantityLabel.toLowerCase() }})
@@ -177,11 +169,21 @@
             La cantidad supera el stock informado por {{ selectedStore.storeName }} ({{ selectedStore.stock }}).
           </p>
 
+          <ng-container *ngIf="canUseQuotations">
+            <button type="button" class="add-quote-button" [disabled]="!selectedStore || exceedsSelectedStock || offersLoading" (click)="addToMaterialList()">Agregar a mi lista <i class="pi pi-plus" aria-hidden="true"></i></button>
+            <p class="quick-stores-hint" *ngIf="!selectedStore">Selecciona una ferretería para continuar.</p>
+            <p class="quote-feedback" *ngIf="quoteFeedback" role="status">{{ quoteFeedback }}</p>
+            <div class="list-next-actions" *ngIf="materialList.items().length"><a routerLink="/buscar">Seguir buscando</a><a routerLink="/lista">Revisar mi lista ({{ materialList.items().length }}) <i class="pi pi-arrow-right" aria-hidden="true"></i></a></div>
+            <p class="stock-warning" *ngIf="materialList.storageWarning()" role="status">{{ materialList.storageWarning() }}</p>
+          </ng-container>
+          <details class="existing-quotation" *ngIf="user"><summary>Agregar a una cotización guardada</summary>
+            <label class="quantity-field">Cotización<select [ngModel]="selectedProjectId" (ngModelChange)="onProjectChange($event)"><option value="">Selecciona una cotización</option><option *ngFor="let project of projects" [value]="project.id">{{ project.name }}</option></select></label>
+            <button type="button" class="new-quotation-button" (click)="openCreateQuotationModal()">Crear otra cotización</button>
           <button type="button" class="add-quote-button" *ngIf="user && selectedProjectId" [disabled]="!canShowAddToQuotation || isAddingToQuotation" (click)="addToQuotation()">
             <i *ngIf="isAddingToQuotation" class="pi pi-spin pi-spinner" aria-hidden="true"></i>{{ isAddingToQuotation ? 'Agregando…' : 'Agregar a cotización seleccionada' }}
           </button>
           <p class="quick-stores-hint" *ngIf="user && selectedProjectId && !selectedStore">Selecciona la oferta de una ferretería para agregar este producto.</p>
-          <p class="quote-feedback" *ngIf="quoteFeedback">{{ quoteFeedback }}</p>
+          </details>
         </section>
       </aside>
     </section>

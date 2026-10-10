@@ -1,3 +1,5 @@
+import { QuotationStepsComponent } from '../../shared/components/quotation-steps/quotation-steps.component';
+import { MaterialListService } from '../../core/services/material-list.service';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 import { InfoPanelComponent } from '../../shared/components/info-panel/info-panel.component';
 import { PilotService } from '../../core/services/pilot.service';
@@ -30,7 +32,7 @@ import { shareQuotationPdf, downloadQuotationPdf } from '../../core/utils/quotat
 @Component({
   selector: 'app-proyecto-detalle',
   standalone: true,
-  imports: [UiLoaderComponent, InfoPanelComponent, CommonModule, FormsModule],
+  imports: [QuotationStepsComponent, UiLoaderComponent, InfoPanelComponent, CommonModule, FormsModule],
   templateUrl: './proyecto-detalle.component.html',
   styleUrl: './proyecto-detalle.component.scss'
 })
@@ -38,6 +40,8 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
   protected isLoading = true;
   protected loadError = '';
   private loadGeneration = 0;
+  private importedListFingerprint = '';
+  protected fromMaterialList = false;
   private routeSubscription?: Subscription;
   private get draftStorageKey(): string { return `cotizapp-project-draft:${this.dataMode.mode()}:${this.user?.id || 'guest'}`; }
   protected projectId = '';
@@ -76,7 +80,8 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
 ,
     private readonly writeFeedback: WriteFeedbackService = new WriteFeedbackService(),
     private readonly pilot: PilotService | null = null,
-    private readonly changeDetector: ChangeDetectorRef | null = null
+    private readonly changeDetector: ChangeDetectorRef | null = null,
+    private readonly materialList: MaterialListService | null = null
   ) {}
 
   ngOnInit(): void {
@@ -254,6 +259,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
             this.projectDescription
           );
           this.saveNotice = 'Cotizacion creada correctamente.';
+          if (this.importedListFingerprint) this.materialList?.clearIfUnchanged(this.importedListFingerprint);
           this.clearDraft();
           this.router.navigate(['/dashboard/maestro/cotizaciones', created.id]);
         } catch (error) {
@@ -499,6 +505,17 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       this.projectProximity = draft?.proximity || nearbyPreference || undefined;
       this.selectedSingleStoreName = draft?.singleStoreName || '';
       this.selectedSingleStoreId = draft?.singleStoreId || '';
+      if (this.route.snapshot?.queryParamMap?.get('usarLista') === '1' && this.materialList?.items().length) {
+        this.fromMaterialList = true;
+        this.importedListFingerprint = this.materialList.fingerprint();
+        if (draft?.materialListFingerprint !== this.importedListFingerprint) {
+          this.projectItems = this.materialList.items().map(({ unitPrice, ...item }) => ({ ...item }));
+          this.projectName = 'Mi cotización'; this.projectAddress = ''; this.projectDescription = '';
+          this.projectProximity = undefined;
+          this.selectedSingleStoreName = ''; this.selectedSingleStoreId = '';
+        }
+        this.persistDraftIfNeeded();
+      }
       return;
     }
 
@@ -528,12 +545,13 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
 
 
 
-  private persistDraftIfNeeded(): void {
+  protected persistDraftIfNeeded(): void {
     if (!this.isNewProject || typeof window === 'undefined') {
       return;
     }
 
     const payload = {
+      materialListFingerprint: this.importedListFingerprint || undefined,
       name: this.projectName,
       address: this.projectAddress,
       description: this.projectDescription,
@@ -542,10 +560,12 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       singleStoreId: this.quotation.appliedStoreId,
       singleStoreName: this.quotation.appliedStoreName
     };
-    window.localStorage.setItem(this.draftStorageKey, JSON.stringify(payload));
+    try { window.localStorage.setItem(this.draftStorageKey, JSON.stringify(payload)); }
+    catch { /* Keep the editor usable when browser storage is unavailable. */ }
   }
 
   private readDraft(): {
+    materialListFingerprint?: string;
     name: string;
     address: string;
     description?: string;
@@ -558,14 +578,12 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       return null;
     }
 
-    window.localStorage.removeItem('construcomparador-project-draft');
-    const raw = window.localStorage.getItem(this.draftStorageKey);
-    if (!raw) {
-      return null;
-    }
-
     try {
+      window.localStorage.removeItem('construcomparador-project-draft');
+      const raw = window.localStorage.getItem(this.draftStorageKey);
+      if (!raw) return null;
       return JSON.parse(raw) as {
+        materialListFingerprint?: string;
         name: string;
         address: string;
         description?: string;
@@ -583,7 +601,8 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
     if (typeof window === 'undefined') {
       return;
     }
-    window.localStorage.removeItem(this.draftStorageKey);
+    try { window.localStorage.removeItem(this.draftStorageKey); }
+    catch { /* A completed save must not fail because local storage is blocked. */ }
   }
 
   private async persistExistingPurchaseSelection(): Promise<boolean> {

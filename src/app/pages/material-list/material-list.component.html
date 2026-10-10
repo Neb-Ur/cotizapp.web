@@ -1,0 +1,32 @@
+<main class="list-page">
+  <app-quotation-steps [step]="2" />
+  <header><div><h1>Mi lista de materiales</h1><p>Revisa las cantidades. Puedes seguir agregando materiales antes de guardar.</p></div><a routerLink="/buscar" class="secondary">Agregar más materiales</a></header>
+  @if (!list.ready()) {
+    <app-ui-loader label="Recuperando tu lista de materiales…" />
+  } @else if (list.items().length) {
+    <div class="list-layout">
+      <section class="materials" aria-label="Materiales seleccionados">
+        @for (item of list.items(); track $index; let i = $index) {
+          <article class="material">
+            <div class="material-name"><h2>{{ item.productName }}</h2><p>{{ item.storeName }}</p><small>{{ currency(item.unitPrice) }} por unidad</small></div>
+            <label>Cantidad<input type="number" min="1" [ngModel]="item.quantity" (ngModelChange)="list.quantity(i, $event)" [attr.aria-label]="'Cantidad de ' + item.productName" /></label>
+            <strong class="line-total">{{ currency(item.unitPrice * item.quantity) }}</strong>
+            <button type="button" class="remove" (click)="list.remove(i)" [attr.aria-label]="'Quitar ' + item.productName"><i class="pi pi-trash" aria-hidden="true"></i></button>
+          </article>
+        }
+      </section>
+      <aside class="summary">
+        <span>{{ list.items().length }} materiales en tu lista</span><h2>Total estimado</h2><strong class="total">{{ currency(total) }}</strong>
+        <p>Sin despacho. Revisaremos los precios y el stock al preparar la cotización.</p>
+        <button type="button" class="primary" (click)="continue()" [disabled]="!canSave">{{ loggedIn ? 'Preparar mi cotización' : 'Crear cuenta y guardar mi lista' }} <i class="pi pi-arrow-right" aria-hidden="true"></i></button>
+        <button *ngIf="!loggedIn" type="button" class="login" (click)="continue(true)">Ya tengo cuenta: iniciar sesión</button>
+        <p *ngIf="!loggedIn">Tu lista se conserva en este navegador. La cuenta de maestro te permite guardar y enviar la cotización.</p>
+        <p *ngIf="!canSave" role="status">Para guardar una cotización necesitas una cuenta de maestro.</p>
+        <p class="validity">La cotización tendrá una vigencia de 10 días desde su creación.</p>
+      </aside>
+    </div>
+  } @else {
+    <section class="empty"><i class="pi pi-list" aria-hidden="true"></i><h2>Empieza por tu primer material</h2><p>Busca un producto, elige una ferretería y agrégalo a tu lista. Puedes hacerlo sin crear una cuenta.</p><a routerLink="/buscar" class="primary">Buscar materiales <i class="pi pi-arrow-right" aria-hidden="true"></i></a></section>
+  }
+  <p *ngIf="list.storageWarning()" role="status">{{ list.storageWarning() }}</p>
+</main>

@@ -2,10 +2,10 @@
   <header class="page-header">
     <button type="button" (click)="backToProjects()">{{ user ? 'Volver a mis cotizaciones' : 'Volver al buscador' }}</button>
     <div class="page-title">
-      <h1>{{ isLoading ? 'Cargando cotización…' : (isNewProject ? 'Nueva cotización' : 'Detalle de cotización') }}</h1>
+      <h1>{{ isLoading ? 'Cargando cotización…' : (isNewProject ? (fromMaterialList ? 'Guarda tu cotización' : 'Nueva cotización') : 'Detalle de cotización') }}</h1>
       <p *ngIf="!isLoading && !loadError">
         {{ isNewProject
-          ? 'Agrega productos y guarda tu cotización.'
+          ? (fromMaterialList ? 'Tu lista está lista. Revisa los precios, dale un nombre y guarda para poder enviarla.' : 'Agrega productos y guarda tu cotización.')
           : 'Revisa tus productos y el total.' }}
       </p>
     </div>
@@ -16,6 +16,7 @@
   } @else if (loadError) {
     <section class="detail-card" role="alert"><p>{{ loadError }}</p><button type="button" (click)="retryLoad()">Reintentar</button></section>
   } @else {
+  <app-quotation-steps *ngIf="fromMaterialList" [step]="3" />
   <article class="detail-card">
     <article class="summary">
         <div class="summary-heading">
@@ -71,14 +72,15 @@
           <tbody>
             <tr *ngFor="let item of projectItems; let i = index">
               <td class="product-cell">
-                <select [attr.aria-label]="'Producto de la fila ' + (i + 1)" [(ngModel)]="item.productName">
+                <strong *ngIf="fromMaterialList">{{ item.productName }}</strong>
+                <select *ngIf="!fromMaterialList" [attr.aria-label]="'Producto de la fila ' + (i + 1)" [(ngModel)]="item.productName">
                   <option value="">Selecciona producto</option>
                   <option *ngFor="let option of productOptions" [value]="option">{{ option }}</option>
                 </select>
                 <p class="line-meta">Mejor tienda: {{ getRowBestStore(item) }}</p>
               </td>
               <td class="quantity-cell" data-label="Cantidad">
-                <input [attr.aria-label]="'Cantidad de ' + (item.productName || 'producto')" [(ngModel)]="item.quantity" type="number" min="1" placeholder="Cantidad" />
+                <input [attr.aria-label]="'Cantidad de ' + (item.productName || 'producto')" [(ngModel)]="item.quantity" (ngModelChange)="persistDraftIfNeeded()" type="number" min="1" placeholder="Cantidad" />
               </td>
               <td class="unit-price-cell" data-label="Precio unitario">{{ formatCurrency(getRowUnitPrice(item)) }}</td>
               <td class="total-cell" data-label="Total">{{ formatCurrency(getRowTotal(item)) }}</td>
@@ -156,16 +158,16 @@
         <div class="project-fields">
         <label>
           Nombre
-          <input [(ngModel)]="projectName" type="text" placeholder="Ej.: Remodelación de cocina" />
+          <input [(ngModel)]="projectName" (ngModelChange)="persistDraftIfNeeded()" type="text" placeholder="Ej.: Remodelación de cocina" />
         </label>
         <label>
           Dirección (opcional)
-          <input [(ngModel)]="projectAddress" type="text" placeholder="Dirección del proyecto" />
+          <input [(ngModel)]="projectAddress" (ngModelChange)="persistDraftIfNeeded()" type="text" placeholder="Dirección del proyecto" />
         </label>
 
         <label class="description-field">
           Descripción (opcional)
-          <textarea [(ngModel)]="projectDescription" maxlength="2000" rows="2" placeholder="Notas para tu cliente"></textarea>
+          <textarea [(ngModel)]="projectDescription" (ngModelChange)="persistDraftIfNeeded()" maxlength="2000" rows="2" placeholder="Notas para tu cliente"></textarea>
         </label>
 
         </div>
@@ -178,7 +180,7 @@
           <button type="button" (click)="saveProject()" [disabled]="isSaving">
             <i *ngIf="isSaving" class="pi pi-spin pi-spinner" aria-hidden="true"></i>{{ isSaving ? 'Guardando…' : (!user ? 'Crear cuenta para guardar' : (isNewProject ? 'Guardar cotización' : 'Actualizar cotización')) }}
           </button>
-          <button type="button" class="export" [disabled]="!hasQuotation || isNewProject || hasUnsavedChanges" (click)="exportQuotation()">
+          <button *ngIf="!isNewProject" type="button" class="export" [disabled]="!hasQuotation || isNewProject || hasUnsavedChanges" (click)="exportQuotation()">
             Exportar cotización PDF
           </button>
           <button *ngIf="!isNewProject" type="button" [disabled]="!hasQuotation || hasUnsavedChanges" (click)="shareQuotation()">
@@ -199,7 +201,8 @@
         </details>
         <p class="saved" *ngIf="saveNotice">{{ saveNotice }}</p>
       </article>
-    <section class="same-store-card" *ngIf="hasItemsInTable">
+    <details class="purchase-alternatives" *ngIf="hasItemsInTable" [open]="!fromMaterialList"><summary>Comparar compra en una sola ferretería</summary>
+    <section class="same-store-card">
       <div class="same-store-header">
         <div>
           <h2>Si compras todo en una misma ferretería</h2>
@@ -265,6 +268,7 @@
 
       <p class="saved" *ngIf="singleStoreNotice">{{ singleStoreNotice }}</p>
     </section>
+    </details>
   </article>
   }
 </main>

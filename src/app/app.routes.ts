@@ -63,6 +63,7 @@ export const routes: Routes = [
       { path: 'marcas/:slug', loadComponent: () => import('./pages/catalog-landing/catalog-landing.component').then(m=>m.CatalogLandingComponent), data: { publicCatalog:true, catalogKind:'marcas' } },
       { path: 'producto', loadComponent: () => import('./pages/producto-detalle/producto-detalle.component').then((module) => module.ProductoDetalleComponent) },
       { path: 'productos/:slug', loadComponent: () => import('./pages/producto-detalle/producto-detalle.component').then((module) => module.ProductoDetalleComponent) },
+      { path: 'lista', loadComponent: () => import('./pages/material-list/material-list.component').then(module => module.MaterialListComponent) },
       { path: 'maestros', loadComponent: () => import('./pages/public/maestros/maestros.component').then((module) => module.MaestrosComponent) },
       { path: 'ferreterias/:storeId', loadComponent: () => import('./pages/public/ferreterias/ferreterias.component').then((module) => module.FerreteriasComponent) },
       { path: 'ferreterias', loadComponent: () => import('./pages/public/ferreterias/ferreterias.component').then((module) => module.FerreteriasComponent) },

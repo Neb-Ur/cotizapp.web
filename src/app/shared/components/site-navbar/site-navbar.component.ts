@@ -1,3 +1,4 @@
+import { MaterialListService } from '../../../core/services/material-list.service';
 import { CATEGORY_ICONS, categoryIcon } from '../../../core/utils/category-icon.util';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -51,7 +52,8 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
     private readonly dataService: FirebaseDataService,
     private readonly router: Router,
     private readonly changeDetector: ChangeDetectorRef,
-    protected readonly searchIndex: CatalogSearchIndexService
+    protected readonly searchIndex: CatalogSearchIndexService,
+    protected readonly materialList: MaterialListService | null = null
   ) {
     afterNextRender(()=>{if (!this.isStoreDashboard) {void this.searchIndex.ensureReady();this.preloadTaxonomy();}});
     effect(()=>{const version=this.searchIndex.version();this.dataService.acceptCatalogSearchVersion(version);this.searchIndex.ready();this.updateSuggestions();});
