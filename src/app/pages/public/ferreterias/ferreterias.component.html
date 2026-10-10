@@ -1,50 +1,80 @@
-<div class="public-page">
-  <!-- Hero -->
-  <section class="pub-hero">
-    <div class="pub-hero-inner">
-      <div class="pub-tag">Para Ferreterías y Tiendas de Materiales</div>
-      <h1>Digitaliza tu catálogo y llega a más clientes</h1>
-      <p>
-        Publica tus productos, administra precios y stock en tiempo real,
-        y recibe más consultas de maestros que buscan comprar cerca.
-      </p>
-      <a class="btn btn-secondary btn-lg" [href]="storeAccessWhatsappUrl" target="_blank" rel="noopener noreferrer" aria-label="Solicitar acceso para mi ferretería por WhatsApp">Solicitar acceso por WhatsApp</a>
-    </div>
-  </section>
+<main class="store-directory">
+  <header class="directory-heading">
+    @if (storeId) {
+      <a routerLink="/ferreterias"><i class="pi pi-arrow-left" aria-hidden="true"></i> Todas las ferreterías</a>
+      <h1>Ferretería y reseñas</h1>
+    } @else {
+      <p class="eyebrow">Encuentra dónde comprar</p>
+      <h1>Ferreterías en Trovio</h1>
+      <p>Conoce los locales, revisa la opinión de otros maestros y explora sus productos.</p>
+    }
+  </header>
 
-  <!-- Features -->
-  <section class="pub-features">
-    <div class="pub-features-inner">
-      <article class="feat-card">
-        <div class="feat-num">01</div>
-        <h2>Subida de catálogo</h2>
-        <p>Carga productos de forma manual o masiva con archivo CSV desde cualquier sistema.</p>
-      </article>
-      <article class="feat-card">
-        <div class="feat-num">02</div>
-        <h2>Dashboard de gestión</h2>
-        <p>Edita precio, stock e imagen de cada producto desde un solo panel intuitivo.</p>
-      </article>
-      <article class="feat-card">
-        <div class="feat-num">03</div>
-        <h2>Métricas de consulta</h2>
-        <p>Revisa cuántas veces se muestran tus ofertas y cuántas veces seleccionan tu ferretería desde una ficha de producto.</p>
-      </article>
+  @if (!storeId) {
+    <form class="directory-filters" (ngSubmit)="filterChanged()">
+      <label>Nombre de la ferretería<input name="query" [(ngModel)]="query" placeholder="Buscar ferretería" maxlength="120" /></label>
+      <label>Región<select name="region" [(ngModel)]="region" (ngModelChange)="filterChanged(true)"><option value="">Todas las regiones</option>@for (option of directory?.regions || []; track option) {<option [value]="option">{{ option }}</option>}</select></label>
+      <label>Comuna<select name="commune" [(ngModel)]="commune" (ngModelChange)="filterChanged()"><option value="">Todas las comunas</option>@for (option of directory?.communes || []; track option) {<option [value]="option">{{ option }}</option>}</select></label>
+      <button class="btn btn-primary" type="submit">Buscar</button>
+    </form>
+  }
+  @if (loading) {
+    <section class="loading-card" aria-live="polite"><app-ui-loader [label]="storeId ? 'Cargando ferretería y reseñas…' : 'Cargando ferreterías…'" /></section>
+  } @else if (error) {
+    <section class="empty-card" role="alert"><p>{{ error }}</p><button class="btn btn-outline" (click)="load()">Reintentar</button></section>
+  } @else if (!storeId && directory) {
+    <p class="results-count">{{ directory.total }} ferretería{{ directory.total === 1 ? '' : 's' }}</p>
+    <div class="stores-grid">
+      @for (store of directory.items; track store.id) {
+        <article class="store-card">
+          <div class="store-icon"><i class="pi pi-shop" aria-hidden="true"></i></div>
+          <h2><a [routerLink]="['/ferreterias', store.id]">{{ store.name }}</a></h2>
+          @if (store.pilot) {<span class="pilot-label">Ferretería de prueba</span>}
+          <p class="store-location"><i class="pi pi-map-marker" aria-hidden="true"></i> {{ storeLocation(store) || 'Ubicación no informada' }}</p>
+          @if (store.address) {<p>{{ store.address }}</p>}
+          <p class="store-rating"><i class="pi pi-star-fill" aria-hidden="true"></i> @if (store.rating !== null) {<strong>{{ store.rating | number:'1.1-1' }} / 5</strong><span>({{ store.reviewCount }} reseñas)</span>} @else {<span>Sin reseñas todavía</span>}</p>
+          <div class="store-actions"><a class="btn btn-primary" routerLink="/buscar" [queryParams]="{ferreteriaId: store.id, ferreteria: store.name}">Ver productos</a><a class="btn btn-outline" [routerLink]="['/ferreterias', store.id]">Ver reseñas</a></div>
+        </article>
+      } @empty {<p class="empty-card">No hay ferreterías que coincidan con los filtros.</p>}
     </div>
-  </section>
-
-  <!-- MVP -->
-  <section class="pub-pricing">
-    <div class="pub-pricing-inner">
-      <div class="pricing-card">
-        <h2>Acceso piloto para ferreterías</h2>
-        <p>Durante el MVP no hay suscripciones ni pagos automáticos dentro de Trovio.</p>
-        <ul>
-          <li>Catálogo digital editable</li>
-          <li>Precio y stock actualizables</li>
-          <li>Activación manual de la cuenta por administración</li>
-        </ul>
-        <a class="btn btn-secondary" [href]="storeAccessWhatsappUrl" target="_blank" rel="noopener noreferrer" aria-label="Solicitar acceso para mi ferretería por WhatsApp">Solicitar acceso por WhatsApp</a>
-      </div>
-    </div>
-  </section></div>
+    @if (directory.totalPages > 1) {
+      <nav class="directory-pagination" aria-label="Páginas de ferreterías"><button class="btn btn-outline" [disabled]="page === 1" (click)="changePage(page - 1)">Anterior</button><span aria-live="polite">Página {{ page }} de {{ directory.totalPages }}</span><button class="btn btn-outline" [disabled]="page === directory.totalPages" (click)="changePage(page + 1)">Siguiente</button></nav>
+    }
+  } @else if (detail) {
+    <article class="store-profile">
+      <h2>{{ detail.store.name }}</h2>
+      @if (detail.store.pilot) {<p class="pilot-label">Ferretería de prueba: no disponible para compras.</p>}
+      <p>{{ storeLocation(detail.store) }}</p>
+      @if (detail.store.address) {<p>{{ detail.store.address }}</p>}
+      <div class="store-contact">@if (detail.store.email) {<a [href]="'mailto:' + detail.store.email">{{ detail.store.email }}</a>} @if (detail.store.phone) {<a [href]="'tel:' + detail.store.phone">{{ detail.store.phone }}</a>}</div>
+      <p class="store-rating"><i class="pi pi-star-fill" aria-hidden="true"></i> @if (detail.store.rating !== null) {<strong>{{ detail.store.rating | number:'1.1-1' }} / 5</strong><span>· {{ detail.store.reviewCount }} reseñas</span>} @else {<span>Sin reseñas todavía</span>}</p>
+      <a class="btn btn-primary" routerLink="/buscar" [queryParams]="{ferreteriaId: detail.store.id, ferreteria: detail.store.name}">Ver productos de esta ferretería</a>
+    </article>
+    <section class="reviews-layout">
+      <section class="reviews-list" aria-labelledby="reviews-title">
+        <h2 id="reviews-title">Opiniones de maestros</h2>
+        @for (review of detail.reviews; track review.id) {
+          <article class="review-card"><header><strong>{{ review.authorName }}</strong><span class="store-rating" [attr.aria-label]="review.rating + ' de 5 estrellas'">@for (star of stars; track star) {<i [class]="star <= review.rating ? 'pi pi-star-fill' : 'pi pi-star'" aria-hidden="true"></i>}</span></header><p class="review-text">{{ review.comment }}</p><time [attr.datetime]="review.updatedAt">{{ review.updatedAt | date:'dd/MM/yyyy' }}</time></article>
+        } @empty {<p class="empty-card">Sé el primero en compartir tu experiencia con esta ferretería.</p>}
+        @if (detail.totalPages > 1) {<nav class="directory-pagination" aria-label="Páginas de reseñas"><button class="btn btn-outline" [disabled]="reviewPage === 1" (click)="changeReviewPage(reviewPage - 1)">Anterior</button><span>Página {{ reviewPage }} de {{ detail.totalPages }}</span><button class="btn btn-outline" [disabled]="reviewPage === detail.totalPages" (click)="changeReviewPage(reviewPage + 1)">Siguiente</button></nav>}
+      </section>
+      <section class="review-form-card" aria-labelledby="my-review-title">
+        <h2 id="my-review-title">{{ ownReview ? 'Tu reseña' : 'Comparte tu experiencia' }}</h2>
+        @if (canReview) {
+          @if (ownReviewLoading) {<app-ui-loader label="Cargando tu reseña…" />} @else if (ownReviewLoaded) {
+            <form (ngSubmit)="saveReview()">
+              <fieldset class="rating-picker" [disabled]="savingReview"><legend>Tu puntuación</legend>@for (star of stars; track star) {<label [class.selected]="star <= rating"><input type="radio" name="rating" [value]="star" [(ngModel)]="rating" [attr.aria-label]="star + ' de 5 estrellas'" required /><i class="pi pi-star-fill" aria-hidden="true"></i></label>}</fieldset>
+              <label>Tu reseña<textarea name="comment" [(ngModel)]="comment" minlength="5" maxlength="1500" rows="5" [disabled]="savingReview" required placeholder="Cuéntanos cómo fue la atención y tu experiencia en este local."></textarea></label>
+              <small>Tu nombre y reseña serán públicos. Puedes editar o eliminar tu reseña.</small>
+              <button class="btn btn-primary" type="submit" [disabled]="savingReview || !rating || comment.trim().length < 5">{{ savingReview ? 'Guardando…' : (ownReview ? 'Guardar cambios' : 'Publicar reseña') }}</button>
+              @if (ownReview) {<button class="delete-review" type="button" [disabled]="savingReview" (click)="deleteReview()">Eliminar mi reseña</button>}
+            </form>
+          } @else {<button class="btn btn-outline" (click)="loadOwnReview()">Reintentar carga de mi reseña</button>}
+        } @else if (!user) {<p>Inicia sesión como maestro para puntuar y dejar una reseña.</p><a class="btn btn-primary" routerLink="/login" [queryParams]="{returnUrl}">Iniciar sesión</a><a class="register-link" routerLink="/registro" [queryParams]="{returnUrl}">Crear cuenta de maestro</a>} @else {<p>Las reseñas las publican los maestros desde sus cuentas.</p>}
+        @if (reviewError) {<p class="review-error" role="alert">{{ reviewError }}</p>}
+        @if (reviewNotice) {<p class="review-notice" role="status">{{ reviewNotice }}</p>}
+      </section>
+    </section>
+  }
+  @if (!storeId) {<aside class="join-stores"><div><h2>¿Tienes una ferretería?</h2><p>Publica tu catálogo y llega a más maestros.</p></div><a class="btn btn-outline" [href]="storeAccessWhatsappUrl" target="_blank" rel="noopener noreferrer">Solicitar acceso</a></aside>}
+</main>

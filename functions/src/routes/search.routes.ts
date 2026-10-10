@@ -34,6 +34,7 @@ searchRouter.get('/busqueda', async (req, res) => {
       familyId: normalizeText(req.query['familiaId']),
       brand: normalizeText(req.query['marca']),
       brandId: normalizeText(req.query['marcaId']),
+      storeId: normalizeText(req.query['ferreteriaId']),
       proximity: proximity || undefined,
       sort: sort as ProductSearchOptions['sort'], page, size
     });
@@ -45,6 +46,7 @@ searchRouter.get('/busqueda', async (req, res) => {
   const subcategoryId = normalizeText(req.query['subcategoriaId']);
   const familyId = normalizeText(req.query['familiaId']);
   const data = (await getPublicCatalogSnapshot()).searchRows
+    .filter((item) => !req.query['ferreteriaId'] || item.storeId === req.query['ferreteriaId'])
     .filter((item) => !q || item.productName.toLowerCase().includes(q) || item.sku.toLowerCase().includes(q))
     .filter((item) => !categoryId || item.categoryId === categoryId)
     .filter((item) => !subcategoryId || item.subcategoryId === subcategoryId)

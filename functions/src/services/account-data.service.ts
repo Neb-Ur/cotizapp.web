@@ -18,6 +18,7 @@ interface AccountDataSnapshot {
   privacyRequests: Record<string, unknown>[];
   intellectualPropertyReports: Record<string, unknown>[];
   priceReports: Record<string, unknown>[];
+  storeReviews: Record<string, unknown>[];
 }
 
 async function accountRows(userId: string, email: string): Promise<AccountDataSnapshot> {
@@ -33,7 +34,7 @@ async function accountRows(userId: string, email: string): Promise<AccountDataSn
     ? authUser.email.toLowerCase() : null;
   const belongsToAccount = (item: any, recordEmail: unknown) => item.usuarioId === userId
     || (!!verifiedEmail && String(recordEmail || '').toLowerCase() === verifiedEmail);
-  const [userDoc, stores, storeProducts, priceHistory, storeAgreements, projects, productRequests, contacts, consents, privacyRequests, ipReports, priceReports] = await Promise.all([
+  const [userDoc, stores, storeProducts, priceHistory, storeAgreements, projects, productRequests, contacts, consents, privacyRequests, ipReports, priceReports, storeReviews] = await Promise.all([
     db.collection(COLLECTIONS.users).doc(userId).get(),
     rows(COLLECTIONS.stores),
     rows(COLLECTIONS.storeProducts),
@@ -45,7 +46,8 @@ async function accountRows(userId: string, email: string): Promise<AccountDataSn
     rows(COLLECTIONS.consentRecords),
     rows(COLLECTIONS.privacyRequests),
     rows(COLLECTIONS.intellectualPropertyReports),
-    rows(COLLECTIONS.priceReports)
+    rows(COLLECTIONS.priceReports),
+    rows(COLLECTIONS.storeReviews)
   ]);
   const ownedStores = stores.filter((item) => item.usuarioDuenoId === userId);
   const storeIds = new Set(ownedStores.map((item) => item.id));
@@ -64,6 +66,7 @@ async function accountRows(userId: string, email: string): Promise<AccountDataSn
     consentRecords: consents.filter((item) => item.usuarioId === userId),
     privacyRequests: privacyRequests.filter((item) => item.usuarioId === userId),
     intellectualPropertyReports: ipReports.filter((item) => belongsToAccount(item, item.claimant?.email)),
+    storeReviews: storeReviews.filter(item => item.userId === userId),
     priceReports: priceReports.filter((item) => belongsToAccount(item, item.email))
   };
 }
@@ -75,6 +78,9 @@ export async function exportAccountData(userId: string, email: string): Promise<
 export async function deleteAccountData(userId: string, email: string, deleteAuthUser = true): Promise<Record<string, number>> {
   const snapshot = await accountRows(userId, email);
   const storeOffers = snapshot.storeProducts;
+  const storeIds = new Set(snapshot.stores.map(store => store['id']));
+  const reviewsToDelete = (await rows(COLLECTIONS.storeReviews)).filter(review => review.userId === userId || storeIds.has(review.storeId));
+  await deleteRowsByIds(COLLECTIONS.storeReviews, reviewsToDelete.map(review => review.id));
 
   // El contrato mercantil y su huella se conservan de forma minimizada para
   // acreditar la relación jurídica y resolver controversias. Se retiran los
@@ -139,6 +145,7 @@ export async function deleteAccountData(userId: string, email: string, deleteAut
     offers: storeOffers.length,
     priceHistoryMinimized: snapshot.priceHistory.length,
     storeAgreementsMinimized: snapshot.storeAgreements.length,
+    storeReviews: reviewsToDelete.length,
     projects: snapshot.projects.length,
     productRequests: snapshot.productRequests.length,
     contactRequests: snapshot.contactRequests.length,

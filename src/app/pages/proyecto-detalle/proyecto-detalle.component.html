@@ -2,8 +2,8 @@
   <header class="page-header">
     <button type="button" (click)="backToProjects()">{{ user ? 'Volver a mis cotizaciones' : 'Volver al buscador' }}</button>
     <div class="page-title">
-      <h1>{{ isNewProject ? 'Nueva cotización' : 'Detalle de cotización' }}</h1>
-      <p>
+      <h1>{{ isLoading ? 'Cargando cotización…' : (isNewProject ? 'Nueva cotización' : 'Detalle de cotización') }}</h1>
+      <p *ngIf="!isLoading && !loadError">
         {{ isNewProject
           ? 'Agrega productos y guarda tu cotización.'
           : 'Revisa tus productos y el total.' }}
@@ -11,6 +11,11 @@
     </div>
   </header>
 
+  @if (isLoading) {
+    <section class="detail-card quotation-loading"><app-ui-loader label="Cargando los productos y precios de tu cotización…" /></section>
+  } @else if (loadError) {
+    <section class="detail-card" role="alert"><p>{{ loadError }}</p><button type="button" (click)="retryLoad()">Reintentar</button></section>
+  } @else {
   <article class="detail-card">
     <article class="summary">
         <div class="summary-heading">
@@ -261,4 +266,5 @@
       <p class="saved" *ngIf="singleStoreNotice">{{ singleStoreNotice }}</p>
     </section>
   </article>
+  }
 </main>

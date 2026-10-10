@@ -81,3 +81,15 @@ describe('collection filter context',()=>{
   expect(component.router.navigate).toHaveBeenCalledWith(['/buscar'],expect.objectContaining({queryParams:expect.objectContaining({familia:''})}));
  });
 });
+
+it('filters products by store ID and carries the branch into product details', async () => {
+ const {component,api}=fixture();component.router.navigateByUrl=vi.fn();
+ component.selectedStoreId='branch-2';component.selectedStoreName='Ferretería Central';
+ await component.fetchProductPage();
+ expect(api.searchProductPage).toHaveBeenCalledWith(expect.objectContaining({storeId:'branch-2'}),1,20,'relevance',undefined);
+ expect(component.taxonomyFilterCount).toBe(1);
+ component.selectProductCard(new MouseEvent('click',{cancelable:true,button:0}),'Cemento');
+ const url=component.router.navigateByUrl.mock.calls[0][0];
+ expect(url).toContain('/productos/cemento?');
+ expect(new URL(url,'https://test.local').searchParams.get('ferreteriaId')).toBe('branch-2');
+});

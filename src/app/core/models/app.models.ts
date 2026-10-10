@@ -207,6 +207,7 @@ export interface SearchRow {
 }
 
 export interface SearchFilters {
+  storeId?: string;
   brandId?: string;
   brand?: string;
   query?: string;
@@ -641,4 +642,19 @@ export interface StoreDailyAnalytics {
 export interface StoreQuotationVerification {
   code:string; issuedAt:string; pricesCapturedAt:string; recommendedUntil:string; withinRecommendedPeriod:boolean; pilot:boolean; total:number; includesVat:boolean;
   lines:Array<{productId:string|null;offerId:string|null;productName:string;quantity:number;unitPrice:number;subtotal:number}>;
+}
+
+export interface DirectoryStore {
+  id: string; name: string; address: string; region: string; commune: string;
+  email: string; phone: string; pilot: boolean; rating: number | null; reviewCount: number;
+}
+export interface StoreReview {
+  id: string; authorName: string; rating: number; comment: string; createdAt: string; updatedAt: string;
+}
+export interface StoreDirectoryPage {
+  items: DirectoryStore[]; total: number; page: number; size: number; totalPages: number;
+  regions: string[]; communes: string[]; storeOptions: Array<{id: string; name: string}>;
+}
+export interface StoreReviewPage {
+  store: DirectoryStore; reviews: StoreReview[]; total: number; page: number; totalPages: number;
 }

@@ -226,7 +226,7 @@ export class FirebaseDataService {
       return await this.apiClient.get<ProductSearchPage>('/busqueda', false, {
         vista: 'productos', query: filters.query, marca: filters.brand, marcaId: filters.brandId,
         categoriaId: filters.categoryId, subcategoriaId: filters.subcategoryId, familiaId: filters.familyId,
-        page, size, sort, latitude: proximity?.latitude, longitude: proximity?.longitude, radiusKm: proximity?.radiusKm
+        ferreteriaId: filters.storeId, page, size, sort, latitude: proximity?.latitude, longitude: proximity?.longitude, radiusKm: proximity?.radiusKm
       });
     } catch (error) {
       throw this.normalizeError(error, 'No se pudieron cargar los productos. Intenta nuevamente.');

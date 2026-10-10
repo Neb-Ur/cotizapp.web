@@ -415,7 +415,8 @@ input:disabled {
   font-weight: 800;
 }
 
-.filters-grid input {
+.filters-grid input,
+.filters-grid select {
   width: 100%;
   min-height: 44px;
   background: var(--ink-50);

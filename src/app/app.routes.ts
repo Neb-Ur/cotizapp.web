@@ -64,6 +64,7 @@ export const routes: Routes = [
       { path: 'producto', loadComponent: () => import('./pages/producto-detalle/producto-detalle.component').then((module) => module.ProductoDetalleComponent) },
       { path: 'productos/:slug', loadComponent: () => import('./pages/producto-detalle/producto-detalle.component').then((module) => module.ProductoDetalleComponent) },
       { path: 'maestros', loadComponent: () => import('./pages/public/maestros/maestros.component').then((module) => module.MaestrosComponent) },
+      { path: 'ferreterias/:storeId', loadComponent: () => import('./pages/public/ferreterias/ferreterias.component').then((module) => module.FerreteriasComponent) },
       { path: 'ferreterias', loadComponent: () => import('./pages/public/ferreterias/ferreterias.component').then((module) => module.FerreteriasComponent) },
       { path: 'contacto', loadComponent: () => import('./pages/public/contacto/contacto.component').then((module) => module.ContactoComponent) },
       { path: 'terminos-condiciones', loadComponent: () => import('./pages/public/terminos/terminos.component').then((module) => module.TerminosComponent) },

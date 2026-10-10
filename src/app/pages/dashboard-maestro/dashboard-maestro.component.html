@@ -132,6 +132,14 @@
           </div>
         </div>
         <div class="filters-grid">
+          <label>Ferretería
+            <select [ngModel]="selectedStoreId" (ngModelChange)="onStoreFilterChange($event)">
+              <option value="">Todas las ferreterías</option>
+              <option *ngIf="selectedStoreId && !storeOptions.length" [value]="selectedStoreId">{{ selectedStoreName || 'Ferretería seleccionada' }}</option>
+              <option *ngFor="let store of storeOptions" [value]="store.id">{{ store.name }}</option>
+            </select>
+            <small *ngIf="storeFilterError" role="alert">{{ storeFilterError }}</small>
+          </label>
           <label>
             Categoría
             <input list="category-options" [(ngModel)]="categorySearch" (ngModelChange)="onCategoryInput($event)" placeholder="Todas" />
@@ -152,6 +160,7 @@
 
       <div class="active-filters" *ngIf="taxonomyFilterCount > 0" aria-label="Filtros activos">
         <span class="active-filters-label">Filtros activos</span>
+        <button type="button" *ngIf="selectedStoreId" (click)="onStoreFilterChange('')" [attr.aria-label]="'Quitar ferretería ' + selectedStoreName">{{ selectedStoreName || 'Ferretería seleccionada' }} <fa-icon [icon]="faRemove" aria-hidden="true" /></button>
         <button type="button" *ngIf="selectedCategoryId" (click)="clearCategoryFilter()" [attr.aria-label]="'Quitar categoria ' + selectedCategoryName">
           {{ selectedCategoryName }} <fa-icon [icon]="faRemove" aria-hidden="true" />
         </button>

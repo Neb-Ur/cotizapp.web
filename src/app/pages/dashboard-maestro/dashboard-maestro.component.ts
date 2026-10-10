@@ -1,9 +1,10 @@
+import { StoreDirectoryService } from '../../core/services/store-directory.service';
 import { ProductImageDirective } from '../../shared/directives/product-image.directive';
 import type { CatalogLandingView } from '../catalog-landing/catalog-landing.component';
 import { RouterLink } from '@angular/router';
 import { WriteFeedbackService } from '../../core/services/write-feedback.service';
 import { CommonModule } from '@angular/common';
-import { Component, Input, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, ChangeDetectorRef, Input, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -72,6 +73,10 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
   protected subcategorySearch = '';
   protected familySearch = '';
   protected tableProductSearch = '';
+  protected selectedStoreId = '';
+  protected selectedStoreName = '';
+  protected storeOptions: Array<{id:string;name:string}> = [];
+  protected storeFilterError = '';
   protected selectedBrand = '';
   protected selectedBrandId = '';
   protected selectedCategoryId = '';
@@ -121,7 +126,9 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
     private readonly route: ActivatedRoute,
     private readonly router: Router
 ,
-    private readonly writeFeedback: WriteFeedbackService = new WriteFeedbackService()
+    private readonly writeFeedback: WriteFeedbackService = new WriteFeedbackService(),
+    private readonly storeDirectory: StoreDirectoryService | null = null,
+    private readonly changeDetector: ChangeDetectorRef | null = null
   ) {}
 
   private destroyed = false;
@@ -159,17 +166,22 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
       if (this.isValidSection(requested) && (this.user || requested === 'buscar')) {
         this.currentSection = requested;
       }
+      const requestedStoreId = params.get('ferreteriaId') || '';
+      const requestedStoreName = params.get('ferreteria') || '';
       const requestedBrand = params.get('marca') || this.landing?.filters['marca'] || '';
       const requestedBrandId = params.get('marcaId') || this.landing?.filters['marcaId'] || '';
       const requestedCategory = params.get('categoria') || this.landing?.filters['categoria'] || '';
       const requestedSubcategory = params.get('subcategoria') || this.landing?.filters['subcategoria'] || '';
       const requestedFamily = params.get('familia') || this.landing?.filters['familia'] || '';
       if (
-        requestedBrand !== this.selectedBrand || requestedBrandId !== this.selectedBrandId
+        requestedStoreId !== this.selectedStoreId || requestedStoreName !== this.selectedStoreName
+        || requestedBrand !== this.selectedBrand || requestedBrandId !== this.selectedBrandId
         || requestedCategory !== this.selectedCategoryId
         || requestedSubcategory !== this.selectedSubcategoryId
         || requestedFamily !== this.selectedFamilyId
       ) {
+        this.selectedStoreId = requestedStoreId;
+        this.selectedStoreName = requestedStoreName;
         this.selectedBrand = requestedBrand;
         this.selectedBrandId = requestedBrandId;
         this.selectedCategoryId = requestedCategory;
@@ -287,7 +299,7 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
   }
 
   protected get taxonomyFilterCount(): number {
-    return [this.selectedCategoryId, this.selectedSubcategoryId, this.selectedFamilyId, this.selectedBrand]
+    return [this.selectedStoreId, this.selectedCategoryId, this.selectedSubcategoryId, this.selectedFamilyId, this.selectedBrand]
       .filter(Boolean).length;
   }
 
@@ -369,6 +381,34 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
     return `${value.toFixed(1)} km`;
   }
 
+  private async loadStoreOptions(): Promise<void> {
+    try {
+      const result = await this.storeDirectory!.list(1, '', '', '', 1);
+      if (this.destroyed) return;
+      this.storeOptions = result.storeOptions;
+      this.storeFilterError = '';
+      const selected = this.storeOptions.find(store => store.id === this.selectedStoreId);
+      if (selected) this.selectedStoreName = selected.name;
+    } catch { if (!this.destroyed) this.storeFilterError = 'No se pudo cargar el filtro de ferreterías.'; }
+    finally { if (!this.destroyed) this.changeDetector?.markForCheck(); }
+  }
+
+  protected onStoreFilterChange(id: string): void {
+    this.selectedStoreId = id;
+    this.selectedStoreName = this.storeOptions.find(store => store.id === id)?.name || '';
+    this.currentPage = 1;
+    this.syncStoreFilterUrl();
+    this.refreshProductRows();
+  }
+
+  private syncStoreFilterUrl(): void {
+    void this.router.navigate([], {relativeTo:this.route, queryParamsHandling:'merge', replaceUrl:true,
+      queryParams: {ferreteriaId:this.selectedStoreId || null, ferreteria:this.selectedStoreName || null,
+        marca:this.selectedBrand || null, marcaId:this.selectedBrandId || null,
+        categoria:this.selectedCategoryId || null, subcategoria:this.selectedSubcategoryId || null,
+        familia:this.selectedFamilyId || null, q:this.tableProductSearch || null}});
+  }
+
   protected onCategoryInput(value: string): void {
     this.categorySearch = value;
     const match = this.findByName(this.categoryOptions, value);
@@ -426,6 +466,8 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
   }
 
   protected clearCategoryFilter(): void {
+    const hadStoreFilter = !!this.selectedStoreId;
+    this.selectedStoreId = ''; this.selectedStoreName = '';
     this.selectedBrand = '';
     this.selectedBrandId = '';
     this.categorySearch = '';
@@ -435,6 +477,7 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
     this.selectedSubcategoryId = '';
     this.selectedFamilyId = '';
     this.currentPage = 1;
+    if (hadStoreFilter) this.syncStoreFilterUrl();
     this.refreshProductRows();
   }
 
@@ -475,11 +518,12 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
     if (click.ctrlKey || click.metaKey || click.shiftKey || click.altKey || (click.button !== undefined && click.button !== 0)) return;
     event.preventDefault();
     if (this.isPickingProductForProject) this.addProductToProject(productName);
-    else void this.router.navigateByUrl(seoPath || productPath(productName));
+    else void this.router.navigateByUrl(this.productUrl(productName, seoPath));
   }
 
   protected productUrl(productName: string, seoPath?:string): string {
-    return seoPath || productPath(productName);
+    const path = seoPath || productPath(productName);
+    return this.selectedStoreId ? `${path}?${new URLSearchParams({ferreteriaId:this.selectedStoreId,ferreteria:this.selectedStoreName})}` : path;
   }
 
   protected addProductToProject(productName: string): void {
@@ -626,6 +670,7 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
     try {
       if (section === 'buscar') {
         await this.apiService.refreshSearchTaxonomy(force);
+        if (this.storeDirectory) void this.loadStoreOptions();
         this.searchReady = true;
         if (!await this.fetchProductPage()) return;
       }
@@ -655,7 +700,7 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
     if (this.landing) {
       const selected:Record<string,string> = {familia:this.selectedFamilyId,categoria:this.selectedCategoryId,subcategoria:this.selectedSubcategoryId,marca:this.selectedBrand,marcaId:this.selectedBrandId};
       if (Object.entries(this.landing.filters).some(([key,value])=>value && selected[key]!==value)) {
-        void this.router.navigate(['/buscar'],{queryParams:{...selected,q:this.tableProductSearch || undefined,projectTarget:this.projectTarget || undefined}});
+        void this.router.navigate(['/buscar'],{queryParams:{...selected,q:this.tableProductSearch || undefined,ferreteriaId:this.selectedStoreId || undefined,ferreteria:this.selectedStoreName || undefined,projectTarget:this.projectTarget || undefined}});
         return;
       }
     }
@@ -678,6 +723,7 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
         subcategoryId: this.selectedSubcategoryId,
         familyId: this.selectedFamilyId,
         brand: this.selectedBrand,
+        ...(this.selectedStoreId ? {storeId:this.selectedStoreId} : {}),
         ...(this.selectedBrandId ? {brandId:this.selectedBrandId} : {})
       }, this.currentPage, this.pageSize, this.productSort, this.currentProximity);
       if (requestId !== this.searchRequestId) return false;

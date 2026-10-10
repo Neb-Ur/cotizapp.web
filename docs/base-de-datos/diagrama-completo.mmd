@@ -702,6 +702,17 @@ erDiagram
     text city_id FK "nullable"
     timestamptz matched_at "NOT NULL"
   }
+  store_reviews["Reseñas de ferreterías"] {
+    text id PK "NOT NULL"
+    text store_id FK "NOT NULL"
+    text user_id FK "NOT NULL"
+    text author_name "NOT NULL"
+    integer rating "NOT NULL, 1 a 5"
+    text comment "NOT NULL, 5 a 1500 caracteres"
+    timestamptz created_at "NOT NULL"
+    timestamptz updated_at "NOT NULL"
+    jsonb api_payload "NOT NULL"
+  }
   stores["Ferreterías"] {
     text id PK "NOT NULL"
     text owner_id FK "NOT NULL"
@@ -883,3 +894,5 @@ erDiagram
   regions o|..o{ store_locations : "region_code"
   communes o|..o{ store_locations : "commune_code"
   cities o|..o{ store_locations : "city_id"
+  stores ||..o{ store_reviews : "store_id"
+  users ||..o{ store_reviews : "user_id"

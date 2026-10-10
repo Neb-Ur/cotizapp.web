@@ -1,3 +1,4 @@
+import { storeDirectoryRouter } from './store-directory.routes.js';
 import { storeQuotationsRouter } from './store-quotations.routes.js';
 import { Router } from 'express';
 import { imagesRouter } from './images.routes.js';
@@ -33,6 +34,7 @@ mvpRouter.use(intellectualPropertyRouter);
 mvpRouter.use(taxonomyRouter);
 mvpRouter.use(masterProductsRouter);
 mvpRouter.use(searchRouter);
+mvpRouter.use(storeDirectoryRouter);
 mvpRouter.use(storeCatalogRouter);
 mvpRouter.use(projectsRouter);
 mvpRouter.use(storeQuotationsRouter);

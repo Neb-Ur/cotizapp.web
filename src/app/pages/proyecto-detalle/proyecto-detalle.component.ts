@@ -1,13 +1,14 @@
+import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 import { InfoPanelComponent } from '../../shared/components/info-panel/info-panel.component';
 import { PilotService } from '../../core/services/pilot.service';
 import { quotationWhatsappUrl } from '../../core/utils/quotation-whatsapp.util';
 import { WriteFeedbackService } from '../../core/services/write-feedback.service';
 import { DataModeService } from '../../core/services/data-mode.service';
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { combineLatest } from 'rxjs';
+import { combineLatest, Subscription } from 'rxjs';
 import {
   ProjectComparisonStrategy,
   ProjectItem,
@@ -29,11 +30,15 @@ import { shareQuotationPdf, downloadQuotationPdf } from '../../core/utils/quotat
 @Component({
   selector: 'app-proyecto-detalle',
   standalone: true,
-  imports: [InfoPanelComponent, CommonModule, FormsModule],
+  imports: [UiLoaderComponent, InfoPanelComponent, CommonModule, FormsModule],
   templateUrl: './proyecto-detalle.component.html',
   styleUrl: './proyecto-detalle.component.scss'
 })
-export class ProyectoDetalleComponent implements OnInit {
+export class ProyectoDetalleComponent implements OnInit, OnDestroy {
+  protected isLoading = true;
+  protected loadError = '';
+  private loadGeneration = 0;
+  private routeSubscription?: Subscription;
   private get draftStorageKey(): string { return `cotizapp-project-draft:${this.dataMode.mode()}:${this.user?.id || 'guest'}`; }
   protected projectId = '';
   protected isNewProject = true;
@@ -70,35 +75,47 @@ export class ProyectoDetalleComponent implements OnInit {
     private readonly apiService: FirebaseDataService
 ,
     private readonly writeFeedback: WriteFeedbackService = new WriteFeedbackService(),
-    private readonly pilot: PilotService | null = null
+    private readonly pilot: PilotService | null = null,
+    private readonly changeDetector: ChangeDetectorRef | null = null
   ) {}
 
   ngOnInit(): void {
-    combineLatest([this.route.paramMap, this.route.queryParamMap]).subscribe(async ([params, queryParams]) => {
-      try {
-        const incomingId = params.get('projectId') || 'nuevo';
-        const draftName = queryParams.get('draftName') || '';
-        const draftAddress = queryParams.get('draftAddress') || '';
-        const addProduct = queryParams.get('addProduct') || '';
-
-        const currentUser = this.user;
-        if (currentUser) {
-          await this.apiService.refreshMaestroData(currentUser.id);
-        }
-
-        await this.loadProject(incomingId, draftName, draftAddress);
-
-        if (addProduct.trim()) {
-          this.projectItems = [...this.projectItems, { productName: addProduct.trim(), quantity: 1 }];
-          this.saveNotice = `Producto agregado: ${addProduct}.`;
-          this.persistDraftIfNeeded();
-          this.clearAddProductQueryParams();
-        }
-      } catch (error) {
-        this.saveNotice = error instanceof Error ? error.message : 'No se pudo cargar la cotización.';
-      }
+    this.routeSubscription = combineLatest([this.route.paramMap, this.route.queryParamMap]).subscribe(([params, queryParams]) => {
+      void this.loadQuotation(params.get('projectId') || 'nuevo', queryParams.get('draftName') || '',
+        queryParams.get('draftAddress') || '', queryParams.get('addProduct') || '');
     });
   }
+
+  protected retryLoad(): void {
+    void this.loadQuotation(this.route.snapshot.paramMap.get('projectId') || 'nuevo',
+      this.route.snapshot.queryParamMap.get('draftName') || '', this.route.snapshot.queryParamMap.get('draftAddress') || '',
+      this.route.snapshot.queryParamMap.get('addProduct') || '');
+  }
+
+  private async loadQuotation(incomingId: string, draftName = '', draftAddress = '', addProduct = ''): Promise<void> {
+    const generation = ++this.loadGeneration;
+    this.isLoading = true; this.loadError = '';
+    this.projectId = incomingId; this.isNewProject = incomingId === 'nuevo';
+    this.changeDetector?.markForCheck();
+    try {
+      const currentUser = this.user;
+      if (currentUser) await this.apiService.refreshMaestroData(currentUser.id);
+      if (generation !== this.loadGeneration) return;
+      await this.loadProject(incomingId, draftName, draftAddress);
+      if (generation !== this.loadGeneration) return;
+      if (addProduct.trim()) {
+        this.projectItems = [...this.projectItems, { productName: addProduct.trim(), quantity: 1 }];
+        this.saveNotice = `Producto agregado: ${addProduct}.`;
+        this.persistDraftIfNeeded(); this.clearAddProductQueryParams();
+      }
+    } catch (error) {
+      if (generation === this.loadGeneration) this.loadError = error instanceof Error ? error.message : 'No se pudo cargar la cotización.';
+    } finally {
+      if (generation === this.loadGeneration) { this.isLoading = false; this.changeDetector?.markForCheck(); }
+    }
+  }
+
+  ngOnDestroy(): void { this.loadGeneration++; this.routeSubscription?.unsubscribe(); }
 
   protected get user(): SessionUser | null {
     const currentUser = this.authService.currentUser();
@@ -491,29 +508,7 @@ export class ProyectoDetalleComponent implements OnInit {
     }
 
     const project = this.apiService.getProjectById(currentUser.id, projectId);
-    if (!project) {
-      await this.apiService.refreshMaestroData(currentUser.id);
-      const refreshed = this.apiService.getProjectById(currentUser.id, projectId);
-      if (!refreshed) {
-        this.backToProjects();
-        return;
-      }
-      this.projectName = refreshed.name;
-      this.projectAddress = refreshed.address || '';
-      this.projectDescription = refreshed.description || '';
-      this.pricingOffers = refreshed.pricingOffers; this.validUntil = refreshed.validUntil || ''; this.pricesCapturedAt = refreshed.pricesCapturedAt || ''; this.verificationCode = refreshed.verificationCode || '';
-      this.projectProximity = refreshed.proximity;
-      this.selectedSingleStoreName = refreshed.singleStoreName || '';
-      this.selectedSingleStoreId = refreshed.singleStoreId || '';
-      this.syncNearbyPreference();
-      this.projectItems = refreshed.items.map((item) => ({
-        ...item,
-          productName: item.productName,
-        quantity: item.quantity
-      }));
-      this.savedFingerprint = this.quotationFingerprint();
-      return;
-    }
+    if (!project) throw new Error('No encontramos esta cotización. Vuelve a mis cotizaciones o reintenta la carga.');
 
     this.projectName = project.name;
     this.projectAddress = project.address || '';

@@ -1,7 +1,7 @@
 import {readFile} from 'node:fs/promises';
 import {randomBytes,createHash} from 'node:crypto';
 import {cloudAuth,cloudRequest,secretValue,cloudPool,projectId,instanceId,database,requireApply,waitSqlOperation} from './lib/sql-cloud.mjs';
-const migrations=['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','006-sql-connect-inspection.sql','007-complete-console-inspection.sql','008-location-reference-tables.sql','009-complete-location-inspection.sql','010-maintain-location-links.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql'];
+const migrations=['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','006-sql-connect-inspection.sql','007-complete-console-inspection.sql','008-location-reference-tables.sql','009-complete-location-inspection.sql','010-maintain-location-links.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql','013-store-reviews.sql'];
 async function ensureSecret(auth,name){
  try{return await secretValue(auth,name);}catch(error){if(![404].includes(error.response?.status))throw error;}
  const value=randomBytes(36).toString('base64url');

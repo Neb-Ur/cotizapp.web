@@ -11,6 +11,7 @@ export type ProductSearchOptions = {
   familyId?: string;
   brand?: string;
   brandId?: string;
+  storeId?: string;
   proximity?: ProjectProximity;
   sort: 'relevance' | 'price-asc' | 'price-desc' | 'stores';
   page: number;
@@ -70,6 +71,7 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
   }
 
   for (const offer of snapshot.searchRows) {
+    if (options.storeId && offer.storeId !== options.storeId) continue;
     const current = grouped.get(offer.productoMaestroId);
     if (!current) continue;
     let distance: number | undefined;
@@ -88,7 +90,7 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
     grouped.set(offer.productoMaestroId, current);
   }
 
-  const results = Array.from(grouped.values()).map(({ storeIds, sellers, ...product }) => ({
+  const results = Array.from(grouped.values()).filter(product => !options.storeId || product.storeIds.size > 0).map(({ storeIds, sellers, ...product }) => ({
     ...product, storeCount: storeIds.size, sellers: Array.from(sellers)
   }));
   results.sort((a, b) => {

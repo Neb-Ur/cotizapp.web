@@ -109,3 +109,13 @@ test('brand searches use the master catalog even when the product has no offers'
   const snapshot=catalog(1);snapshot.searchRows=[];snapshot.products[0].marca='Marca Especial';
   assert.equal(paginateProductSearch(snapshot,{...defaults,query:'MARCA ESPECIAL'}).total,1);
 });
+
+
+test('store filter removes unrelated masters and aggregates only prices from that branch',()=>{
+ const snapshot=catalog(4);
+ snapshot.searchRows=snapshot.searchRows.filter(row=>row.storeId==='south' || row.productoMaestroId==='p1');
+ const result=paginateProductSearch(snapshot,{...defaults,storeId:'north'});
+ assert.equal(result.total,1);assert.equal(result.items[0].productoMaestroId,'p1');
+ assert.equal(result.items[0].minPrice,1001);assert.equal(result.items[0].maxPrice,1001);assert.equal(result.items[0].storeCount,1);
+ assert.equal(paginateProductSearch(snapshot,{...defaults,storeId:'missing'}).total,0);
+});

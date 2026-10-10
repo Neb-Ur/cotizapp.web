@@ -34,8 +34,8 @@ const PAGE_SEO: Record<string, SeoPage> = {
     description: 'Compara materiales, optimiza costos y guarda cotizaciones para cada proyecto de construcción.'
   },
   '/ferreterias': {
-    title: 'Trovio para ferreterías | Solicita acceso',
-    description: 'Publica tu catálogo, precio y stock para participar en las comparaciones de maestros y contratistas.'
+    title: 'Ferreterías: locales, reseñas y productos | Trovio',
+    description: 'Encuentra ferreterías por región y comuna, consulta reseñas de maestros y explora los productos de cada local.'
   },
   '/contacto': {
     title: 'Contacto y solicitud de acceso | Trovio',
@@ -156,6 +156,7 @@ export class SeoService {
     const isProduct = path.startsWith('/productos/');
     const page = PAGE_SEO[path]
       || (isProduct ? PAGE_SEO['/producto'] : undefined)
+      || (path.startsWith('/ferreterias/') ? { ...PAGE_SEO['/ferreterias'], title: 'Reseñas de ferretería | Trovio' } : undefined)
       || { ...DEFAULT_PAGE, index: false };
 
     this.applyPage(page, path, 'website', undefined, isPrivate);

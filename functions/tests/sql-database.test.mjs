@@ -8,7 +8,7 @@ import {replicateDocument} from '../lib/database/replication.js';
 import {useSqlDatabase} from '../lib/database/config.js';
 async function fixture(t,ready=true){
  const pg=new PGlite();
- for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql'])await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
+ for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql','013-store-reviews.sql'])await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
  const pool={connect:async()=>({query:pg.query.bind(pg),release(){}})};
  const db=new PostgresDatabase(pool,ready);
  t.after(()=>pg.close());
@@ -157,4 +157,17 @@ test('verification records are persisted by code and cannot be overwritten',asyn
  const snapshot={code:ref.id,quotationReference:'quote',issuedAt:'2026-10-09T12:00:00Z',recommendedUntil:'2026-09-01T12:00:00Z',lines:[{storeId:'store',productName:'Cemento',unitPrice:1000,quantity:2,subtotal:2000}]};
  await ref.set(snapshot);assert.deepEqual((await ref.get()).data(),snapshot);
  await assert.rejects(ref.update({lines:[]}));assert.deepEqual((await ref.get()).data(),snapshot);
+});
+
+
+test('store reviews persist normalized links, enforce one per maestro and cascade on account deletion', async t => {
+ const {db,pg}=await fixture(t);await catalog(db);
+ const review={storeId:'store',userId:'master',authorName:'Maestro',rating:4,comment:'Buena atención',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+ await db.collection('real_resenasFerreteria').doc('r').set(review);
+ assert.equal((await db.collection('real_resenasFerreteria').where('storeId','==','store').get()).size,1);
+ assert.equal((await pg.query('SELECT rating FROM findi.store_reviews')).rows[0].rating,4);
+ await assert.rejects(db.collection('real_resenasFerreteria').doc('duplicate').set(review));
+ await assert.rejects(db.collection('real_resenasFerreteria').doc('bad').set({...review,userId:'store-owner',rating:6}));
+ await db.collection('usuarios').doc('master').delete();
+ assert.equal((await db.collection('real_resenasFerreteria').get()).size,0);
 });

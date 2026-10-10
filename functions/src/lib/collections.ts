@@ -3,6 +3,7 @@ import { collectionForMode } from './data-mode.js';
 const names = {
   users: 'usuarios',
   stores: 'ferreterias',
+  storeReviews: 'resenasFerreteria',
   categories: 'categorias',
   subcategories: 'subcategorias',
   families: 'familias',

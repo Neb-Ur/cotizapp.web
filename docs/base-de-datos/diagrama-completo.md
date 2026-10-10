@@ -1,6 +1,6 @@
 # Diagrama completo de la base de datos Findi
 
-Generado a partir de las claves y columnas reales de [001-schema.sql](../../sql/findi/001-schema.sql) [005-runtime-compatibility.sql](../../sql/findi/005-runtime-compatibility.sql) [008-location-reference-tables.sql](../../sql/findi/008-location-reference-tables.sql), [011-quotation-verification.sql](../../sql/findi/011-quotation-verification.sql) y [012-advisory-quotation-period.sql](../../sql/findi/012-advisory-quotation-period.sql). Incluye **58 tablas del esquema findi y 2 tablas temporales de findi_migration**, todas sus columnas y las 99 claves foráneas declaradas. El servidor ya admite este modelo; Firestore sigue activo mientras USE_SQL_DATABASE sea false.
+Generado a partir de las claves y columnas reales de [001-schema.sql](../../sql/findi/001-schema.sql) [005-runtime-compatibility.sql](../../sql/findi/005-runtime-compatibility.sql) [008-location-reference-tables.sql](../../sql/findi/008-location-reference-tables.sql), [011-quotation-verification.sql](../../sql/findi/011-quotation-verification.sql), [012-advisory-quotation-period.sql](../../sql/findi/012-advisory-quotation-period.sql) y [013-store-reviews.sql](../../sql/findi/013-store-reviews.sql). Incluye **59 tablas del esquema findi y 2 tablas temporales de findi_migration**, todas sus columnas y las 101 claves foráneas declaradas. El servidor ya admite este modelo; Firestore sigue activo mientras USE_SQL_DATABASE sea false.
 
 Abre la vista previa Markdown para visualizarlo. El [archivo Mermaid independiente](diagrama-completo.mmd) permite ampliar y exportar el diagrama en un visor compatible. Al final hay vistas por área para explorar el mismo modelo con menos cruces.
 
@@ -721,6 +721,17 @@ erDiagram
     text city_id FK "nullable"
     timestamptz matched_at "NOT NULL"
   }
+  store_reviews["Reseñas de ferreterías"] {
+    text id PK "NOT NULL"
+    text store_id FK "NOT NULL"
+    text user_id FK "NOT NULL"
+    text author_name "NOT NULL"
+    integer rating "NOT NULL, 1 a 5"
+    text comment "NOT NULL, 5 a 1500 caracteres"
+    timestamptz created_at "NOT NULL"
+    timestamptz updated_at "NOT NULL"
+    jsonb api_payload "NOT NULL"
+  }
   stores["Ferreterías"] {
     text id PK "NOT NULL"
     text owner_id FK "NOT NULL"
@@ -902,6 +913,8 @@ erDiagram
   regions o|..o{ store_locations : "region_code"
   communes o|..o{ store_locations : "commune_code"
   cities o|..o{ store_locations : "city_id"
+  stores ||..o{ store_reviews : "store_id"
+  users ||..o{ store_reviews : "user_id"
 ```
 
 ## Cuentas, ferreterías y preferencias
@@ -1532,6 +1545,7 @@ Los nombres en español son las etiquetas del diagrama. El esquema SQL conserva 
 | Métricas diarias de ferreterías | `findi.store_daily_analytics` | Resumen diario de actividad, productos y montos cotizados. |
 | Productos más cotizados por día | `findi.store_daily_top_products` | Ranking diario de productos de cada ferretería. |
 | Contadores de actividad de ferreterías | `findi.store_event_counters` | Totales agregados de visitas y selecciones. |
+| Reseñas de ferreterías | `findi.store_reviews` | Puntuación y comentario de cada maestro; una reseña por usuario y local. |
 | Ferreterías | `findi.stores` | Locales, propietarios, datos públicos y estado. |
 | Subcategorías | `findi.subcategories` | Segundo nivel de clasificación del catálogo. |
 | Usuarios | `findi.users` | Cuentas de maestros, ferreterías y administradores. |

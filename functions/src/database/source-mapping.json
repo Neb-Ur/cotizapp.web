@@ -686,5 +686,20 @@
     },
     "sourceCollection": "real_cotizacionesVerificables",
     "idStrategy": "Server-generated random code. Immutable price verification, no customer identity."
+  },
+  "storeReviews": {
+    "tables": [
+      "store_reviews"
+    ],
+    "fields": {
+      "storeId": "store_reviews.store_id",
+      "userId": "store_reviews.user_id",
+      "authorName": "store_reviews.author_name",
+      "rating": "store_reviews.rating",
+      "comment": "store_reviews.comment",
+      "createdAt": "store_reviews.created_at",
+      "updatedAt": "store_reviews.updated_at"
+    },
+    "sourceCollection": "real_resenasFerreteria"
   }
 }

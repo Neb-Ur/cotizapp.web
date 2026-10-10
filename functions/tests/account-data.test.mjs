@@ -51,3 +51,14 @@ test('failed authentication deletion never records successful completion', async
  await assert.rejects(deleteAccountData('owner', 'victim@example.test'), /Delete unavailable/);
  assert.equal(fixture.rows('comprobantesEliminacion').length, 0);
 });
+
+
+test('exports only authored reviews and deletes them without deleting other maestros opinions', async t=>{
+ const fixture=firestoreFixture(t,{...seed,resenasFerreteria:{own:{userId:'owner',storeId:'s',rating:5},other:{userId:'other',storeId:'s',rating:4}}});
+ t.mock.method(adminAuth,'getUser',async()=>({emailVerified:false}));
+ const exported=await exportAccountData('owner','');
+ assert.deepEqual(exported.storeReviews.map(review=>review.id),['own']);
+ const counts=await deleteAccountData('owner','',false);
+ assert.equal(counts.storeReviews,1);assert.equal(fixture.get('resenasFerreteria','own'),undefined);
+ assert.ok(fixture.get('resenasFerreteria','other'));
+});

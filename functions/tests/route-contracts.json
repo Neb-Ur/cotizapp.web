@@ -433,6 +433,36 @@
   },
   {
     "method": "get",
+    "path": "/directorio-ferreterias",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "get",
+    "path": "/directorio-ferreterias/:storeId",
+    "auth": false,
+    "middlewareCount": 1
+  },
+  {
+    "method": "get",
+    "path": "/directorio-ferreterias/:storeId/mi-resena",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "put",
+    "path": "/directorio-ferreterias/:storeId/mi-resena",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "delete",
+    "path": "/directorio-ferreterias/:storeId/mi-resena",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "get",
     "path": "/ferreterias/by-owner/:ownerId",
     "auth": true,
     "middlewareCount": 3

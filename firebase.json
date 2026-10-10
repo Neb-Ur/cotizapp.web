@@ -67,6 +67,10 @@
     ],
     "rewrites": [
       {
+        "source": "/ferreterias/**",
+        "destination": "/index.html"
+      },
+      {
         "source": "/sitemap.xml",
         "function": {
           "functionId": "api",
