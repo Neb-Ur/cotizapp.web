@@ -12,3 +12,5 @@ El visitante puede crear una cotización, seleccionar ofertas, agregar cantidade
 - Descargar, compartir PDF y enviar por WhatsApp mantienen el requisito de una sesión de maestro. Los documentos se generan a partir de la cotización guardada.
 
 La antigua ruta `/lista` redirige a `/cotizaciones` para evitar enlaces rotos.
+
+Los despliegues mantienen un manifiesto de archivos con versiones anteriores para pestañas abiertas. Los errores de carga de una ruta permiten recuperar la versión actual una sola vez, conservando los datos del navegador. La portada y los documentos HTML se revalidan para recibir la versión vigente.

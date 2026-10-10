@@ -1,3 +1,4 @@
+import { recoverChunkNavigationError } from './core/utils/chunk-recovery.util';
 import { writeFeedbackInterceptor } from './core/services/write-feedback.service';
 import { HYDRATION_ENABLED } from './core/config/rendering.config';
 import { DataModeService } from './core/services/data-mode.service';
@@ -14,7 +15,7 @@ const TrovioTheme = definePreset(Aura, {
 });
 import { ApplicationConfig, provideZoneChangeDetection, provideAppInitializer, inject } from '@angular/core';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
-import { provideRouter, withInMemoryScrolling } from '@angular/router';
+import { provideRouter, withInMemoryScrolling, withNavigationErrorHandler } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
 import { routes } from './app.routes';
@@ -25,7 +26,7 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection(),
     provideAppInitializer(() => inject(DataModeService).initialize()),
     providePrimeNG({ translation: { aria: { firstPageLabel: 'Primera página', lastPageLabel: 'Última página', nextPageLabel: 'Página siguiente', prevPageLabel: 'Página anterior', previousPageLabel: 'Página anterior', rowsPerPageLabel: 'Filas por página', pageLabel: 'Página {page}', jumpToPageDropdownLabel: 'Ir a página', jumpToPageInputLabel: 'Ir a página' } }, theme: { preset: TrovioTheme, options: { darkModeSelector: false } } }),
-    provideRouter(routes, withInMemoryScrolling({
+    provideRouter(routes, withNavigationErrorHandler(event => { recoverChunkNavigationError(event.error, event.url); }), withInMemoryScrolling({
       scrollPositionRestoration: 'enabled',
       anchorScrolling: 'enabled'
     })),

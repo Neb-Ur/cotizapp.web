@@ -198,6 +198,7 @@
           </div>
           <p role="status" *ngIf="shareNotice">{{ shareNotice }}</p>
         </details>
+        <p class="section-note" *ngIf="isLocalQuotation">La cotización se guarda en este navegador y se conserva al recargar. Al iniciar sesión para descargar el PDF, se guardará en tu cuenta.</p>
         <p class="section-note" *ngIf="!user">Puedes revisar y editar la cotización sin cuenta. Para descargar el PDF, crea una cuenta de maestro o inicia sesión.</p>
         <p class="saved" *ngIf="saveNotice">{{ saveNotice }}</p>
       </article>
