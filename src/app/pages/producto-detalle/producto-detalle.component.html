@@ -181,9 +181,9 @@
           </p>
 
           <button type="button" class="add-quote-button" *ngIf="canUseQuotations && selectedProjectId" [disabled]="!canShowAddToQuotation || isAddingToQuotation" (click)="addToQuotation()">
-            <i *ngIf="isAddingToQuotation" class="pi pi-spin pi-spinner" aria-hidden="true"></i>{{ isAddingToQuotation ? 'Agregando…' : 'Agregar a cotización seleccionada' }}
+            <i [class]="isAddingToQuotation ? 'pi pi-spin pi-spinner' : 'pi pi-plus'" aria-hidden="true"></i>{{ isAddingToQuotation ? 'Agregando…' : 'Agregar a cotización' }}
           </button>
-          <p class="quick-stores-hint" *ngIf="canUseQuotations && selectedProjectId && !selectedStore">Selecciona la oferta de una ferretería para agregar este producto.</p>
+          <p class="add-quote-hint" *ngIf="canUseQuotations && selectedProjectId && !selectedStore">Elige una ferretería para agregar el producto.</p>
           <p class="quote-feedback" *ngIf="quoteFeedback">{{ quoteFeedback }}</p>
         </section>
       </aside>

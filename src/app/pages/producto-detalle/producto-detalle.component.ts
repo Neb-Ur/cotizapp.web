@@ -339,7 +339,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
       this.selectedProjectId = created.id;
       this.quotationSelection.select(currentUser?.id || 'guest', created.id);
       this.isCreateQuotationModalOpen = false;
-      this.quoteFeedback = `Cotización “${created.name}” creada y seleccionada. Usa “Agregar a cotización seleccionada” para incluir este producto.`;
+      this.quoteFeedback = `Cotización “${created.name}” creada y seleccionada. Usa “Agregar a cotización” para incluir este producto.`;
     } catch (error) {
       this.createQuotationError = error instanceof Error
         ? error.message

@@ -641,13 +641,44 @@
 }
 
 .add-quote-button {
-  border: 0;
-  border-radius: var(--r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 0.9rem;
+  border: 1px solid #188353;
+  border-radius: 12px;
   background: #188353;
   color: #fff;
-  padding: 0.62rem 0.8rem;
-  font-weight: 800;
+  padding: 0.7rem 0.9rem;
+  font: inherit;
+  font-size: 0.9rem;
+  line-height: 1.3;
+  font-weight: 700;
   cursor: pointer;
+}
+
+.add-quote-button:disabled {
+  border-color: #d3dce5;
+  background: #eef2f6;
+  color: #526b80;
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+.add-quote-button:focus-visible {
+  outline: 2px solid #188353;
+  outline-offset: 3px;
+}
+
+.add-quote-hint {
+  margin: 0.5rem 0 0;
+  color: var(--ink-500);
+  font-size: 0.8rem;
+  line-height: 1.5;
 }
 
 .quote-feedback {
