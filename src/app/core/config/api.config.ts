@@ -29,3 +29,6 @@ function resolveApiBaseUrl(): string {
 }
 
 export const API_BASE_URL = resolveApiBaseUrl();
+
+// Bypass Hosting's CDN for consented IP statistics; the function resolves the actual connection IP.
+export const VISIT_ANALYTICS_URL = 'https://southamerica-west1-cotizapp-d71c8.cloudfunctions.net/api/analytics/visit';

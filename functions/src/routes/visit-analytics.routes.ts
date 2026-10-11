@@ -9,6 +9,7 @@ export const visitAnalyticsKey=defineSecret('FINDI_VISIT_ANALYTICS_KEY');
 export const visitAnalyticsRouter=Router();
 visitAnalyticsRouter.post('/analytics/visit',async(req,res)=>{
  res.set('Cache-Control','no-store');
+ if(req.baseUrl==='/api' || req.get('fastly-client-ip')) return fail(res,'ANALYTICS_DIRECT_ENDPOINT_REQUIRED','La analítica utiliza el endpoint directo de la función.',400);
  if(req.body?.analyticsConsent!==true || req.body?.consentVersion!==3) return fail(res,'ANALYTICS_CONSENT_REQUIRED','Debes permitir la analítica opcional.',400);
  if(!useSqlDatabase())return fail(res,'ANALYTICS_UNAVAILABLE','La analítica no está disponible.',503);
  const recorded=await recordUniqueVisit(await sqlPool(),req.ip || '',visitAnalyticsKey.value());

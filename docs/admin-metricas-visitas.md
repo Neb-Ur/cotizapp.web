@@ -7,6 +7,8 @@ El panel admin abre en **Inicio**. Carga métricas una vez al entrar; **Actualiz
 - Maestros registrados, ferreterías activas (indicando las demos), productos activos, ofertas publicadas con stock de locales habilitados, cotizaciones guardadas, cotizaciones nuevas hoy y solicitudes de productos pendientes.
 - Las cotizaciones locales sin cuenta no están en el servidor. No se inventan visitas anteriores a la implementación. Solo se contabiliza navegación que autoriza analítica opcional.
 
+El navegador llama directamente al endpoint HTTPS de la función (`https://southamerica-west1-cotizapp-d71c8.cloudfunctions.net/api/analytics/visit`), con CORS limitado a los orígenes permitidos. Esto evita contar la IP de los servidores CDN de Firebase Hosting como si fueran visitantes. No envía tokens de cuenta ni credenciales. El servidor rechaza el endpoint de visitas detrás de Hosting y las peticiones con cabecera CDN para evitar contar intermediarios.
+
 `POST /analytics/visit` exige consentimiento de analítica versión 3 y usa únicamente la IP resuelta por el proxy confiable de Express; no acepta una IP enviada por el navegador. La normaliza y genera un HMAC por día usando `FINDI_VISIT_ANALYTICS_KEY` en Secret Manager. No almacena IP completa, cuenta, páginas, dispositivo ni geolocalización. El HMAC es un seudónimo temporal, no anonimización irreversible.
 
 La clave diaria y el incremento del agregado se escriben en una sentencia atómica con clave única `(visit_date, visitor_key)`, de modo que reintentos y solicitudes concurrentes no duplican el contador. Los identificadores vencen a medianoche de Chile. La tarea de métricas de ferretería los purga cada dos horas y elimina los totales diarios anteriores a 90 días. La purga no resta visitas del agregado.

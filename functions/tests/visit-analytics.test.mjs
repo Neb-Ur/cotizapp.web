@@ -13,8 +13,9 @@ test('IP keys normalize IPv4 and IPv6 and change daily without exposing the addr
 test('unauthorized analytics does not reach storage, and admin reports require authentication',async()=>{
  const route=visitAnalyticsRouter.stack.find(l=>l.route?.path==='/analytics/visit').route;
  let status,body;const res={set(){return this;},status(s){status=s;return this;},json(b){body=b;return this;}};
- await route.stack[0].handle({body:{analyticsConsent:false,ip:'203.0.113.2'}},res);
+ await route.stack[0].handle({get:()=>undefined,body:{analyticsConsent:false,ip:'203.0.113.2'}},res);
  assert.equal(status,400);assert.equal(body.error.code,'ANALYTICS_CONSENT_REQUIRED');
+ await route.stack[0].handle({baseUrl:'/api',get:()=>undefined,body:{analyticsConsent:true,consentVersion:3}},res);assert.equal(status,400);assert.equal(body.error.code,'ANALYTICS_DIRECT_ENDPOINT_REQUIRED');
  const admin=visitAnalyticsRouter.stack.find(l=>l.route?.path==='/admin/dashboard').route;
  assert.equal(admin.stack[0].handle,requireAuth);assert.equal(admin.stack.length,3);
  let denied;await admin.stack[1].handle({authUserId:'master',authRole:'maestro'},res,()=>{denied=false;});assert.equal(status,403);

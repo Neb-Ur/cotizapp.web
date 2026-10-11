@@ -2,11 +2,13 @@ import {isPlatformBrowser} from '@angular/common';
 import {effect,inject,Injectable,PLATFORM_ID,signal} from '@angular/core';
 import {NavigationEnd,Router} from '@angular/router';
 import {CookieConsentService} from './cookie-consent.service';
-import {ApiClientService} from './api-client.service';
+import {HttpClient} from '@angular/common/http';
+import {firstValueFrom} from 'rxjs';
+import {VISIT_ANALYTICS_URL} from '../config/api.config';
 @Injectable({providedIn:'root'})
 export class VisitAnalyticsService {
   private readonly consent=inject(CookieConsentService);
-  private readonly api=inject(ApiClientService);
+  private readonly api=inject(HttpClient);
   private readonly router=inject(Router);
   private readonly browser=isPlatformBrowser(inject(PLATFORM_ID));
   private readonly path=signal(this.router.navigated ? this.router.url : '');
@@ -24,7 +26,7 @@ export class VisitAnalyticsService {
     const visit=day+'|'+this.path();
     if(this.lastVisit===visit||this.pending)return;
     this.pending=true;
-    try{await this.api.post('/analytics/visit',{analyticsConsent:true,consentVersion:3},false);this.lastVisit=visit;}
+    try{await firstValueFrom(this.api.post(VISIT_ANALYTICS_URL,{analyticsConsent:true,consentVersion:3}));this.lastVisit=visit;}
     catch{/* Optional analytics must never block navigation. */}
     finally{this.pending=false;}
   }
