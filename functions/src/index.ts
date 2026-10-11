@@ -1,3 +1,4 @@
+import {visitAnalyticsRouter,visitAnalyticsKey} from './routes/visit-analytics.routes.js';
 import { pilotStoresEnabled } from './services/pilot-stores.service.js';
 import { dataModeMiddleware } from './lib/data-mode.js';
 import { forwardAsyncErrors } from './lib/async-errors.js';
@@ -76,6 +77,8 @@ app.get(['/api/config', '/config'], (_req, res) => {
 // Supports Firebase Hosting rewrites (/api/**) and the direct function URL.
 app.use('/api', publicCatalogRouter);
 app.use('/', publicCatalogRouter);
+app.use('/api', visitAnalyticsRouter);
+app.use('/', visitAnalyticsRouter);
 app.use('/api', storeMetricsRouter);
 app.use('/', storeMetricsRouter);
 app.use('/api', mvpRouter);
@@ -125,7 +128,7 @@ export const api = onRequest(
     maxInstances: 10,
     // Discovery can run before dotenv is loaded. Bind provisioned R2 secrets
     // explicitly; the provider flag still controls whether uploads are allowed.
-    secrets: [sqlPassword, 'FINDI_R2_ACCESS_KEY_ID', 'FINDI_R2_SECRET_ACCESS_KEY']
+    secrets: [sqlPassword, visitAnalyticsKey, 'FINDI_R2_ACCESS_KEY_ID', 'FINDI_R2_SECRET_ACCESS_KEY']
   },
   app
 );

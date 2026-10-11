@@ -13,7 +13,7 @@ export class WriteFeedbackService {
   }
 }
 export const writeFeedbackInterceptor: HttpInterceptorFn = (request, next) => {
-  if (request.url.includes('/metricas/') || !['POST', 'PATCH', 'PUT', 'DELETE'].includes(request.method)) return next(request);
+  if ((request.url.includes('/metricas/') || request.url.includes('/analytics/visit')) || !['POST', 'PATCH', 'PUT', 'DELETE'].includes(request.method)) return next(request);
   const feedback = inject(WriteFeedbackService);
   feedback.pending.update(count => count + 1);
   return next(request).pipe(finalize(() => feedback.pending.update(count => count - 1)));

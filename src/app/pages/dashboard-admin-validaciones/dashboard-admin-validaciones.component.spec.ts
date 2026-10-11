@@ -43,3 +43,14 @@ it('preserves logistics values when reopening a sheet with accented labels',()=>
  const draft=component.mapProductToDraft({...product,technicalSheet:[{label:'Peso logístico (kg)',value:'2.5'},{label:'Volumen logístico (m3)',value:'0.1'},{label:'Unidades por pallet',value:'40'}]});
  expect(draft.logisticsWeightKg).toBe(2.5);expect(draft.logisticsVolumeM3).toBe(0.1);expect(draft.logisticsPalletUnits).toBe(40);
 });
+
+it('opens metrics first, caches the view and refreshes only when explicitly requested',async()=>{
+ const {component}=fixture();let finish!:(value:any)=>void;
+ component.metricsService={load:vi.fn(()=>new Promise(resolve=>finish=resolve))};
+ const initial=component.initializeDashboard();expect(component.currentSection).toBe('inicio');expect(component.isSectionLoading).toBe(true);
+ finish({today:2,days:[]});await initial;
+ expect(component.metrics.today).toBe(2);expect(component.isInitialLoading).toBe(false);
+ await component.ensureSectionData('inicio');expect(component.metricsService.load).toHaveBeenCalledTimes(1);
+ component.metricsService.load.mockResolvedValue({today:3,days:[]});await component.refreshAll();
+ expect(component.metrics.today).toBe(3);expect(component.metricsService.load).toHaveBeenCalledTimes(2);
+});

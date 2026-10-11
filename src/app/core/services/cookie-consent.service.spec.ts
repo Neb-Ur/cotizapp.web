@@ -30,7 +30,7 @@ describe('CookieConsentService', () => {
     const consent = service.consent();
 
     expect(consent?.preferences).toBe(true);
-    expect((consent as unknown as Record<string, unknown>)['analytics']).toBeUndefined();
+    expect((consent as unknown as Record<string, unknown>)['analytics']).toBe(false);
     expect(window.localStorage.getItem(legacyKey)).toBeNull();
   });
 
@@ -41,10 +41,10 @@ describe('CookieConsentService', () => {
 
     const stored = JSON.parse(window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY) || '{}') as Record<string, unknown>;
     expect(stored['preferences']).toBe(true);
-    expect(stored['analytics']).toBeUndefined();
+    expect(stored['analytics']).toBe(false);
   });
   it('keeps the initial client view equal to SSR before restoring a saved decision', () => {
-    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, JSON.stringify({version:2,necessary:true,preferences:true,updatedAt:new Date().toISOString()}));
+    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, JSON.stringify({version:3,necessary:true,preferences:true,analytics:false,updatedAt:new Date().toISOString()}));
     const service = new CookieConsentService('browser' as unknown as object, document);
     expect(service.hasDecision()).toBe(false);
     service.initializeBrowserState();
@@ -67,11 +67,23 @@ describe('CookieConsentService', () => {
   });
 
   it('does not replace an early click with a previous stored decision', () => {
-    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, JSON.stringify({version:2,necessary:true,preferences:true,updatedAt:new Date().toISOString()}));
+    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, JSON.stringify({version:3,necessary:true,preferences:true,analytics:false,updatedAt:new Date().toISOString()}));
     const service = new CookieConsentService('browser' as unknown as object, document);
     service.rejectOptional();
     service.initializeBrowserState();
     expect(service.preferencesAllowed()).toBe(false);
+  });
+
+  it('does not reuse the previous preferences consent for analytics',()=>{
+    localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY,JSON.stringify({version:2,necessary:true,preferences:true,updatedAt:new Date().toISOString()}));
+    const service=new CookieConsentService('browser' as unknown as object,document);
+    service.initializeBrowserState();
+    expect(service.analyticsAllowed()).toBe(false);
+    expect(service.hasDecision()).toBe(false);
+    service.saveSelection({preferences:false,analytics:true});
+    expect(service.analyticsAllowed()).toBe(true);
+    service.rejectOptional();
+    expect(service.analyticsAllowed()).toBe(false);
   });
 
 });

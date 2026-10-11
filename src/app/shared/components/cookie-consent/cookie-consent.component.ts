@@ -13,6 +13,7 @@ import { UiModalComponent } from '../ui-modal/ui-modal.component';
 })
 export class CookieConsentComponent {
   protected preferences = false;
+  protected analytics = false;
 
   constructor(protected readonly cookieConsent: CookieConsentService) {
     afterNextRender(() => {
@@ -22,13 +23,15 @@ export class CookieConsentComponent {
   }
 
   protected acceptPreferences(): void {
-    this.cookieConsent.acceptPreferences();
+    this.cookieConsent.acceptOptional();
     this.preferences = true;
+    this.analytics = true;
   }
 
   protected rejectOptional(): void {
     this.cookieConsent.rejectOptional();
     this.preferences = false;
+    this.analytics = false;
   }
 
   protected openSettings(): void {
@@ -42,12 +45,14 @@ export class CookieConsentComponent {
 
   protected saveSelection(): void {
     this.cookieConsent.saveSelection({
-      preferences: this.preferences
+      preferences: this.preferences,
+      analytics: this.analytics
     });
   }
 
   private syncDraft(): void {
     const consent = this.cookieConsent.consent();
     this.preferences = consent?.preferences ?? false;
+    this.analytics = consent?.analytics ?? false;
   }
 }

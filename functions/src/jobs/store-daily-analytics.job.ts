@@ -1,3 +1,5 @@
+import {sqlPool} from '../database/pool.js';
+import {pruneVisitAnalytics} from '../services/visit-analytics.service.js';
 import { STORE_ANALYTICS_CRON, STORE_ANALYTICS_TIME_ZONE, storeAnalyticsScheduledAt } from '../domain/store-analytics-schedule.js';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { logger } from 'firebase-functions';
@@ -8,6 +10,7 @@ export const refreshStoreDailyAnalytics = onSchedule({schedule: STORE_ANALYTICS_
   await activateSqlIfRequested(); const release=await acquireFirestoreWriteLease();
   try {
   const now = new Date();
+  await pruneVisitAnalytics(await sqlPool(), now);
   const stores = await refreshStoreAnalyticsOncePerInterval(now, storeAnalyticsScheduledAt(event.scheduleTime, now));
   logger.info(stores === null ? 'Store analytics already attempted for this interval' : 'Store analytics refreshed', {stores});
   } finally { await release(); }

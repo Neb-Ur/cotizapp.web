@@ -1,3 +1,5 @@
+import {AdminMetricsComponent} from '../../shared/components/admin-metrics/admin-metrics.component';
+import {AdminMetricsService,AdminMetrics} from '../../core/services/admin-metrics.service';
 import { ProductImageUploadComponent, UploadedProductImage } from '../../shared/components/product-image-upload/product-image-upload.component';
 import { WriteFeedbackService } from '../../core/services/write-feedback.service';
 import { CATEGORY_ICONS, categoryIcon } from '../../core/utils/category-icon.util';
@@ -54,7 +56,7 @@ import { getCurrentBrowserLocation, hasValidCoordinates } from '../../core/utils
 import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 
-type AdminSection = 'ferreterias' | 'productos' | 'solicitudes' | 'contacto' | 'precios' | 'propiedad' | 'privacidad' | 'gobierno' | 'usuarios';
+type AdminSection = 'inicio' | 'ferreterias' | 'productos' | 'solicitudes' | 'contacto' | 'precios' | 'propiedad' | 'privacidad' | 'gobierno' | 'usuarios';
 
 interface MasterProductDraft {
   storageImageUrl?: string;
@@ -144,6 +146,7 @@ interface AdminSectionMeta {
   selector: 'app-dashboard-admin-validaciones',
   standalone: true,
   imports: [
+    AdminMetricsComponent,
     ProductImageUploadComponent,
     PasswordFieldComponent,
     CommonModule,
@@ -185,6 +188,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   ];
 
   protected readonly sections: AdminSectionMeta[] = [
+    {id:'inicio',label:'Inicio',description:'Visitas y actividad de Trovio. Actualiza las métricas cuando lo necesites.'},
     {
       id: 'ferreterias',
       label: 'Ferreterias',
@@ -231,7 +235,8 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       description: 'Gestiona las cuentas y sus estados de acceso.'
     }
   ];
-  protected currentSection: AdminSection = 'ferreterias';
+  protected currentSection: AdminSection = 'inicio';
+  protected metrics: AdminMetrics | null = null;
   protected catalogAdminView: 'productos' | 'taxonomia' = 'productos';
   protected users: SessionUser[] = [];
   protected validationRequests: CatalogValidationRequest[] = [];
@@ -365,7 +370,8 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     private readonly router: Router,
     private readonly changeDetector: ChangeDetectorRef
 ,
-    private readonly writeFeedback: WriteFeedbackService = new WriteFeedbackService()
+    private readonly writeFeedback: WriteFeedbackService = new WriteFeedbackService(),
+    private readonly metricsService?: AdminMetricsService
   ) {}
 
   protected masterDetailLoading = false;
@@ -1904,6 +1910,10 @@ export class DashboardAdminValidacionesComponent implements OnInit {
 
     this.isSectionLoading = true;
     try {
+      if (section === 'inicio') {
+        this.metrics = await this.metricsService!.load();
+      }
+
       if (section === 'ferreterias') {
         await this.ensureUsersLoaded(force);
       }

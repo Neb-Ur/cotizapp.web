@@ -31,7 +31,7 @@ it('opens the complete catalog while keeping the destination quotation', async (
  const navigate = vi.fn();
  const component = new ProyectoDetalleComponent({mode:()=> 'real'} as unknown as DataModeService,{} as ActivatedRoute,{navigate} as unknown as Router,{currentUser:()=>({id:'user',role:'maestro'})} as unknown as AuthService,{buildProjectQuotation:()=>({})} as unknown as FirebaseDataService) as any;
  component.isNewProject=false; component.projectId='quote'; component.savedFingerprint=component.quotationFingerprint();
- localStorage.setItem('cotizapp-cookie-consent-v2',JSON.stringify({version:2,preferences:true,analytics:false,updatedAt:new Date().toISOString()}));
+ localStorage.setItem('cotizapp-cookie-consent-v2',JSON.stringify({version:3,preferences:true,analytics:false,updatedAt:new Date().toISOString()}));
  saveNearbySearchPreference({latitude:-33.4,longitude:-70.6,radiusKm:5});
  expect(readNearbySearchPreference()?.radiusKm).toBe(5);
  await component.goToSearchForProduct();

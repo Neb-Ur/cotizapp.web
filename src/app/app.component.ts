@@ -1,3 +1,4 @@
+import {VisitAnalyticsService} from './core/services/visit-analytics.service';
 import { PilotBannerComponent } from './shared/components/pilot-banner/pilot-banner.component';
 import { WriteFeedbackService } from './core/services/write-feedback.service';
 import { Component, effect, inject } from '@angular/core';
@@ -17,6 +18,7 @@ import { SiteFooterComponent } from './shared/components/site-footer/site-footer
 })
 export class AppComponent {
   protected readonly api = inject(WriteFeedbackService);
+  private readonly visitAnalytics = inject(VisitAnalyticsService);
   private readonly seoService = inject(SeoService);
 
   constructor() {

@@ -3,13 +3,14 @@ import { Inject, Injectable, PLATFORM_ID, computed, signal } from '@angular/core
 
 export const COOKIE_CONSENT_STORAGE_KEY = 'cotizapp-cookie-consent-v2';
 const LEGACY_COOKIE_CONSENT_STORAGE_KEY = 'cotizapp-cookie-consent-v1';
-const COOKIE_CONSENT_VERSION = 2;
+export const COOKIE_CONSENT_VERSION = 3;
 const COOKIE_CONSENT_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000;
 
 export interface CookieConsentPreferences {
   version: number;
   necessary: true;
   preferences: boolean;
+  analytics: boolean;
   updatedAt: string;
 }
 
@@ -24,6 +25,7 @@ export class CookieConsentService {
   readonly consent = computed(() => this.consentState());
   readonly hasDecision = computed(() => this.consentState() !== null);
   readonly preferencesAllowed = computed(() => this.consentState()?.preferences === true);
+  readonly analyticsAllowed = computed(() => this.consentState()?.analytics === true);
   readonly settingsOpen = signal(false);
 
   constructor(
@@ -47,11 +49,13 @@ export class CookieConsentService {
     this.save({ preferences: true });
   }
 
+  acceptOptional(): void { this.save({ preferences: true, analytics: true }); }
+
   rejectOptional(): void {
     this.save({ preferences: false });
   }
 
-  saveSelection(selection: Pick<CookieConsentPreferences, 'preferences'>): void {
+  saveSelection(selection: Pick<CookieConsentPreferences, 'preferences'> & {analytics?: boolean}): void {
     this.save(selection);
   }
 
@@ -63,11 +67,12 @@ export class CookieConsentService {
     this.settingsOpen.set(false);
   }
 
-  private save(selection: Pick<CookieConsentPreferences, 'preferences'>): void {
+  private save(selection: Pick<CookieConsentPreferences, 'preferences'> & {analytics?: boolean}): void {
     const consent: CookieConsentPreferences = {
       version: COOKIE_CONSENT_VERSION,
       necessary: true,
       preferences: selection.preferences,
+      analytics: selection.analytics === true,
       updatedAt: new Date().toISOString()
     };
 
@@ -97,6 +102,7 @@ export class CookieConsentService {
         value.version !== COOKIE_CONSENT_VERSION
         || value.necessary !== true
         || typeof value.preferences !== 'boolean'
+        || typeof value.analytics !== 'boolean'
         || typeof value.updatedAt !== 'string'
         || !Number.isFinite(Date.parse(value.updatedAt))
         || Date.now() - Date.parse(value.updatedAt) > COOKIE_CONSENT_MAX_AGE_MS
@@ -129,6 +135,7 @@ export class CookieConsentService {
         version: COOKIE_CONSENT_VERSION,
         necessary: true,
         preferences: legacy.preferences,
+        analytics: false,
         updatedAt
       };
       window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, JSON.stringify(migrated));

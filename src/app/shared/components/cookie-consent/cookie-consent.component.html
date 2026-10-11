@@ -9,13 +9,13 @@
     <div class="cookie-banner__copy">
       <h2 id="cookie-banner-title">Tu privacidad en Trovio</h2>
       <p id="cookie-banner-description">
-        Elige si podemos recordar tus preferencias. Puedes cambiar tu elección desde el footer.
+        Elige si podemos recordar tus preferencias y medir visitas únicas por IP al día. Puedes cambiar tu elección desde el footer.
       </p>
     </div>
     <div class="cookie-banner__actions">
       <button type="button" class="btn btn-outline" (click)="openSettings()">Configurar</button>
       <button type="button" class="btn cookie-choice" (click)="rejectOptional()">Solo necesarias</button>
-      <button type="button" class="btn cookie-choice" (click)="acceptPreferences()">Permitir preferencias</button>
+      <button type="button" class="btn cookie-choice" (click)="acceptPreferences()">Permitir opcionales</button>
     </div>
   </div>
 </aside>
@@ -56,12 +56,16 @@
       </label>
     </div>
 
-    <div class="cookie-category cookie-category--inactive">
+    <div class="cookie-category">
       <div>
-        <strong>Analítica</strong>
-        <p>No utilizamos analítica y no solicitamos una autorización anticipada. Si esto cambia, mostraremos un nuevo aviso con proveedor, datos, finalidad, conservación y transferencias.</p>
+        <strong>Analítica de visitas</strong>
+        <p>Cuenta una visita por IP al día para mejorar Trovio. Procesamos tu IP en Google Cloud y guardamos solo un identificador protegido que cambia cada día. Los identificadores del día vencen a medianoche y se purgan cada dos horas; los totales diarios se conservan 90 días. No guardamos tu recorrido ni vinculamos estas métricas a tu cuenta. Google puede procesar datos fuera de Chile.</p>
       </div>
-      <span class="inactive-badge">No utilizada</span>
+      <label class="switch">
+        <span class="visually-hidden">Permitir analítica de visitas</span>
+        <input type="checkbox" [(ngModel)]="analytics" />
+        <span class="switch__control" aria-hidden="true"></span>
+      </label>
     </div>
 
     <div class="cookie-settings__actions">

@@ -1,0 +1,34 @@
+    <section class="admin-metrics">
+      <div class="metrics-toolbar">
+        <p *ngIf="metrics">Actualizado {{ metricsUpdatedAt }} · Hora de Chile</p>
+        <button type="button" (click)="refresh.emit()" [disabled]="loading"><i class="pi" [class.pi-refresh]="!loading" [class.pi-spin]="loading" [class.pi-spinner]="loading" aria-hidden="true"></i> {{ loading ? 'Actualizando…' : 'Actualizar métricas' }}</button>
+      </div>
+      <ng-container *ngIf="metrics">
+        <div class="metrics-kpis">
+          <article class="metric-card primary"><span>Visitas únicas · hoy</span><strong>{{ metrics.today | number }}</strong><small>Una por IP, por día</small></article>
+          <article class="metric-card"><span>Visitas · últimos 7 días</span><strong>{{ metrics.week | number }}</strong><small>Suma de visitas únicas diarias</small></article>
+          <article class="metric-card"><span>Visitas · últimos 30 días</span><strong>{{ metrics.month | number }}</strong><small>Suma de visitas únicas diarias</small></article>
+          <article class="metric-card"><span>Cotizaciones creadas hoy</span><strong>{{ metrics.quotations_today | number }}</strong><small>Guardadas en una cuenta</small></article>
+        </div>
+        <article class="metrics-chart-panel">
+          <h2>Visitas por día</h2><p>Últimos 14 días · Solo navegación con analítica autorizada</p>
+          <div class="metrics-bars" role="img" aria-label="Gráfico de visitas únicas diarias de los últimos 14 días">
+            <div *ngFor="let day of metrics.days" [title]="day.date + ': ' + day.visits + ' visitas'">
+              <span class="bar-value">{{ day.visits }}</span>
+              <span class="bar-track"><span [style.height.%]="day.visits / visitChartMax * 100"></span></span>
+              <small>{{ day.date.slice(8) }}</small>
+            </div>
+          </div>
+          <details><summary>Ver datos del gráfico</summary><table><thead><tr><th>Fecha</th><th>Visitas únicas</th></tr></thead><tbody><tr *ngFor="let day of metrics.days"><td>{{ day.date }}</td><td>{{ day.visits }}</td></tr></tbody></table></details>
+          <p class="metrics-note">Una IP puede representar varias personas y volver a contar en otro día. No equivale a usuarios únicos. El conteo comienza al habilitar esta función; no incluye visitas anteriores ni visitas sin consentimiento.</p>
+        </article>
+        <div class="metrics-business-grid">
+          <article class="metric-card"><span>Maestros registrados</span><strong>{{ metrics.maestros | number }}</strong><button class="metric-link" (click)="sectionSelected.emit('usuarios')">Ver usuarios →</button></article>
+          <article class="metric-card"><span>Ferreterías activas</span><strong>{{ metrics.stores | number }}</strong><small>{{ metrics.demo_stores }} de prueba</small><button class="metric-link" (click)="sectionSelected.emit('ferreterias')">Ver ferreterías →</button></article>
+          <article class="metric-card"><span>Productos del catálogo</span><strong>{{ metrics.products | number }}</strong><button class="metric-link" (click)="sectionSelected.emit('productos')">Ver catálogo →</button></article>
+          <article class="metric-card"><span>Ofertas publicadas con stock</span><strong>{{ metrics.offers | number }}</strong><small>Incluye ofertas de prueba</small></article>
+          <article class="metric-card"><span>Cotizaciones guardadas</span><strong>{{ metrics.quotations | number }}</strong><small>Las locales sin cuenta no se envían al servidor</small></article>
+          <article class="metric-card"><span>Solicitudes de productos pendientes</span><strong>{{ metrics.pending_requests | number }}</strong><button class="metric-link" (click)="sectionSelected.emit('solicitudes')">Revisar solicitudes →</button></article>
+        </div>
+      </ng-container>
+    </section>
