@@ -1,4 +1,4 @@
-# Piloto de Findi con ferreterías ficticias
+# Piloto de Trovio con ferreterías ficticias
 
 Activado el 9 de octubre de 2026 en `cotizapp-d71c8`, con PostgreSQL como BD activa.
 
@@ -6,18 +6,37 @@ Activado el 9 de octubre de 2026 en `cotizapp-d71c8`, con PostgreSQL como BD act
 
 | Ferretería ficticia | Productos | Casos sin stock |
 | --- | ---: | ---: |
-| Findi Norte (Prueba) | 856 | 41 |
-| Findi Sur (Prueba) | 856 | 47 |
-| Findi Centro (Prueba) | 856 | 36 |
-| Findi Construcción (Prueba) | 856 | 35 |
+| Trovio Norte (Prueba) | 856 | 41 |
+| Trovio Sur (Prueba) | 856 | 47 |
+| Trovio Centro (Prueba) | 856 | 36 |
+| Trovio Construcción (Prueba) | 856 | 35 |
 
-Total: 3.424 ofertas. Cada producto tiene cuatro precios diferentes, con IVA incluido. Los valores y el stock son simulados y deterministas, sin pretensión de representar precios comerciales reales. No se añadieron direcciones, coordenadas, RUT ni teléfonos reales. Los cuatro perfiles propietarios son registros sintéticos sin cuentas de acceso en Firebase Authentication, no credenciales para entregar a personas.
+Total: 3.424 ofertas. Cada producto tiene cuatro precios diferentes, con IVA incluido. Los valores y el stock son simulados y deterministas, sin pretensión de representar precios comerciales reales. No se añadieron direcciones, coordenadas, RUT ni teléfonos reales. Los cuatro perfiles propietarios son sintéticos y ahora tienen cuentas de acceso en Firebase Authentication, vinculadas mediante los mismos IDs `pilot-owner-1` a `pilot-owner-4`. Cada cuenta administra únicamente su ferretería demo.
 
 Las tiendas y sus ofertas se identifican con `esPrueba: true` y `lotePrueba: findi-pilot-2026-10`. Los nombres visibles llevan `(Prueba)`. Sus condiciones indican que no existe venta ni retiro. El banner público advierte que son ficticias y ofrece un enlace a Contacto para recibir feedback.
 
 No se inventaron firmas ni aceptaciones de contratos para estas entidades. Su publicación requiere expresamente `PILOT_STORES_ENABLED=true`; las ferreterías reales conservan sus requisitos de cuenta y contrato vigente.
 
 La prueba de búsqueda por cercanía no aplica a estas ferreterías, pues no tienen una ubicación real. Para probar las cotizaciones utiliza «Todas las ferreterías».
+
+## Acceso de las ferreterías demo
+
+| Ferretería | Correo de acceso |
+| --- | --- |
+| Trovio Norte (Prueba) | pilot-1@example.invalid |
+| Trovio Sur (Prueba) | pilot-2@example.invalid |
+| Trovio Centro (Prueba) | pilot-3@example.invalid |
+| Trovio Construcción (Prueba) | pilot-4@example.invalid |
+
+Los correos `.invalid` son identidades de prueba sin buzón; no reciben recuperación de contraseña. La contraseña se entrega por separado y no se guarda en este repositorio. Las cuentas sintéticas se crean con correo marcado como verificado para permitir el acceso de prueba. No se registran aceptaciones de condiciones ni contratos automáticamente: el primer ingreso presenta el flujo de aceptación vigente.
+
+Para habilitar los accesos, proporciona `PILOT_AUTH_PASSWORD` en el entorno y ejecuta:
+
+```sh
+CONFIRM_PROJECT_ID=cotizapp-d71c8 node functions/scripts/enable-pilot-store-auth.mjs --apply --firebase-cli-auth
+```
+
+El script valida que las cuatro identidades pertenecen al lote sintético antes de crear cuentas. Repetirlo conserva las contraseñas existentes. Usa `--reset-password` explícitamente junto a la variable para restablecerlas. No altera las tiendas, ofertas ni cotizaciones existentes.
 
 ## Cotizaciones para maestros
 
@@ -40,13 +59,19 @@ El script valida el proyecto, hace una copia privada previa y reserva los IDs de
 
 ## Terminar el piloto antes del lanzamiento
 
-1. Desactivar únicamente los registros del lote, conservando el catálogo maestro y las cotizaciones:
+1. Deshabilitar los accesos demo y revocar sus sesiones:
+
+```sh
+CONFIRM_PROJECT_ID=cotizapp-d71c8 node functions/scripts/enable-pilot-store-auth.mjs --disable --apply --firebase-cli-auth
+```
+
+2. Desactivar únicamente los registros del lote, conservando el catálogo maestro y las cotizaciones:
 
 ```sh
 CONFIRM_PROJECT_ID=cotizapp-d71c8 node functions/scripts/seed-pilot-stores.mjs --deactivate --apply --firebase-cli-auth
 ```
 
-2. Cambiar `PILOT_STORES_ENABLED=false` en `functions/.env` y desplegar la API:
+3. Cambiar `PILOT_STORES_ENABLED=false` en `functions/.env` y desplegar la API:
 
 ```sh
 firebase deploy --only functions:api --project cotizapp-d71c8
