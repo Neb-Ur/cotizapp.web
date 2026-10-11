@@ -1,3 +1,4 @@
+import { publicQuotationGuard } from './core/guards/public-quotation.guard';
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
@@ -64,9 +65,9 @@ export const routes: Routes = [
       { path: 'producto', loadComponent: () => import('./pages/producto-detalle/producto-detalle.component').then((module) => module.ProductoDetalleComponent) },
       { path: 'productos/:slug', loadComponent: () => import('./pages/producto-detalle/producto-detalle.component').then((module) => module.ProductoDetalleComponent) },
       { path: 'lista', redirectTo: 'cotizaciones', pathMatch: 'full' },
-      { path: 'cotizaciones', loadComponent: () => import('./pages/guest-quotations/guest-quotations.component').then(module => module.GuestQuotationsComponent) },
-      { path: 'cotizaciones/nueva', loadComponent: () => import('./pages/proyecto-detalle/proyecto-detalle.component').then(module => module.ProyectoDetalleComponent), data: { localQuotation: true } },
-      { path: 'cotizaciones/local/:projectId', loadComponent: () => import('./pages/proyecto-detalle/proyecto-detalle.component').then(module => module.ProyectoDetalleComponent), data: { localQuotation: true } },
+      { path: 'cotizaciones', canActivate: [publicQuotationGuard], loadComponent: () => import('./pages/guest-quotations/guest-quotations.component').then(module => module.GuestQuotationsComponent) },
+      { path: 'cotizaciones/nueva', canActivate: [publicQuotationGuard], loadComponent: () => import('./pages/proyecto-detalle/proyecto-detalle.component').then(module => module.ProyectoDetalleComponent), data: { localQuotation: true } },
+      { path: 'cotizaciones/local/:projectId', canActivate: [publicQuotationGuard], loadComponent: () => import('./pages/proyecto-detalle/proyecto-detalle.component').then(module => module.ProyectoDetalleComponent), data: { localQuotation: true } },
       { path: 'maestros', loadComponent: () => import('./pages/public/maestros/maestros.component').then((module) => module.MaestrosComponent) },
       { path: 'ferreterias/:storeId', loadComponent: () => import('./pages/public/ferreterias/ferreterias.component').then((module) => module.FerreteriasComponent) },
       { path: 'ferreterias', loadComponent: () => import('./pages/public/ferreterias/ferreterias.component').then((module) => module.FerreteriasComponent) },

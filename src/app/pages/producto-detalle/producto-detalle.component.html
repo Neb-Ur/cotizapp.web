@@ -74,7 +74,7 @@
           </p>
 
           <section class="quotation-destination" *ngIf="canUseQuotations">
-            <div class="quotation-destination-heading"><h3>Tu cotización</h3><button type="button" class="new-quotation-button" (click)="openCreateQuotationModal()"><i class="pi pi-plus" aria-hidden="true"></i> Crear cotización</button></div>
+            <div class="quotation-destination-heading"><h3>Tu cotización</h3><button type="button" class="new-quotation-button" [disabled]="!canCreateQuotation" [title]="canCreateQuotation ? 'Crear cotización' : quotationLimitMessage" (click)="openCreateQuotationModal()"><i class="pi pi-plus" aria-hidden="true"></i> Crear cotización</button></div>
             <label class="quantity-field quotation-selector">
               <span class="sr-only">Cotización seleccionada</span>
               <select [ngModel]="selectedProjectId" (ngModelChange)="onProjectChange($event)" aria-label="Cotización seleccionada">
@@ -174,7 +174,7 @@
               <small>{{ selectedQuantity }} × {{ formatCurrency(store.price) }} por {{ quantityLabel.toLowerCase() }}</small>
               <small>{{ store.includesVat ? 'IVA incluido' : 'IVA no incluido' }}</small>
             </div>
-            <p><span>Total estimado sin despacho</span><strong>{{ formatCurrency(selectedTotal) }}</strong></p>
+            <p><span>Total estimado</span><strong>{{ formatCurrency(selectedTotal) }}</strong></p>
           </section>
           <p class="stock-warning" *ngIf="exceedsSelectedStock && selectedStore">
             La cantidad supera el stock informado por {{ selectedStore.storeName }} ({{ selectedStore.stock }}).
@@ -351,7 +351,7 @@
           <button
             type="submit"
             class="btn btn-primary"
-            [disabled]="isCreatingQuotation || !newQuotationName.trim()"
+            [disabled]="isCreatingQuotation || !canCreateQuotation || !newQuotationName.trim()"
           >{{ isCreatingQuotation ? 'Creando...' : 'Crear y seleccionar' }}</button>
         </footer>
       </form>

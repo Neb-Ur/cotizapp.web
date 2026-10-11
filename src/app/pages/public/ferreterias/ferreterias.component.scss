@@ -44,7 +44,12 @@ button:disabled { opacity: .55; cursor: default; }
 .delete-review { background: none; border: 0; color: #a32020; cursor: pointer; padding: .5rem; text-decoration: underline; }
 .review-error { color: #a32020; }.review-notice { color: #17613f; }
 .register-link { display: block; margin-top: .8rem; }
-.join-stores { display: flex; gap: 1rem; justify-content: space-between; align-items: center; margin-top: 2rem; padding: 1.25rem; background: var(--ink-50); border-radius: 14px; }
+.join-stores { display:grid; grid-template-columns:64px minmax(0,1fr) auto; gap:1.5rem; align-items:center; margin-top:2rem; padding:2rem; border-radius:20px; background:linear-gradient(115deg,#123b55,#0f2d4a); color:#fff; box-shadow:0 12px 30px rgb(15 45 74 / 12%); }
+.join-icon { display:grid; place-items:center; width:64px; height:64px; border:1px solid #416178; border-radius:16px; background:#21485f; color:#ff9b35; font-size:2rem; }
+.join-copy { min-width:0; }.join-copy h2 { font-size:clamp(1.35rem,2.5vw,1.8rem); color:#fff; margin:.5rem 0; line-height:1.25; }.join-copy p { color:#d6e4ee; font-size:.9rem; max-width:520px; margin:0; }
+.join-eyebrow { color:#ffb66b; font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; }
+.join-action { display:grid; justify-items:center; gap:.6rem; }.join-action .btn { display:inline-flex; align-items:center; justify-content:center; gap:.6rem; white-space:nowrap; min-height:48px; }.join-action small { color:#d6e4ee; }
+@media(max-width:1050px) { .join-stores { grid-template-columns:64px minmax(0,1fr); }.join-action { grid-column:2; justify-items:start; } }
 .loading-card { margin-top: 1rem; }
 @media (max-width: 900px) { .stores-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.directory-filters { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 600px) { .store-directory { width: calc(100% - 1rem); margin-top: 1rem; }.stores-grid, .directory-filters, .reviews-layout { grid-template-columns: 1fr; }.join-stores { align-items: start; flex-direction: column; }.directory-pagination { gap: .5rem; }.directory-pagination .btn { padding-inline: .7rem; } }
+@media (max-width: 600px) { .store-directory { width: calc(100% - 1rem); margin-top: 1rem; }.stores-grid, .directory-filters, .reviews-layout { grid-template-columns: 1fr; }.join-stores { grid-template-columns:1fr; padding:1.4rem; gap:1rem; }.join-icon { width:52px; height:52px; font-size:1.6rem; }.join-action { grid-column:1; justify-items:stretch; }.join-action .btn { white-space:normal; }.directory-pagination { gap: .5rem; }.directory-pagination .btn { padding-inline: .7rem; } }

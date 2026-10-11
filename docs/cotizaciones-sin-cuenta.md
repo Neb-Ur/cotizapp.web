@@ -14,3 +14,9 @@ El visitante puede crear una cotización, seleccionar ofertas, agregar cantidade
 La antigua ruta `/lista` redirige a `/cotizaciones` para evitar enlaces rotos.
 
 Los despliegues mantienen un manifiesto de archivos con versiones anteriores para pestañas abiertas. Los errores de carga de una ruta permiten recuperar la versión actual una sola vez, conservando los datos del navegador. La portada y los documentos HTML se revalidan para recibir la versión vigente.
+
+## Límite de cotizaciones
+
+Sin sesión se permite crear una cotización en este navegador. El servicio local valida el límite también al guardar, y las rutas de creación lo respetan. Las cotizaciones anteriores a este límite se conservan y bloquean nuevas creaciones hasta que se eliminen.
+
+Con sesión de maestro, las rutas de creación y listado llevan a las cotizaciones de la cuenta. El servidor limita a dos mediante una transacción por propietario. Los detalles de cotizaciones locales previas siguen accesibles para recuperarlas y descargarlas.

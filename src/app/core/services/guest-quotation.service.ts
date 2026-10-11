@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { ProjectItem, ProjectSummary } from '../models/app.models';
 
 export type GuestQuotation = ProjectSummary;
+export const GUEST_QUOTATION_LIMIT_MESSAGE = 'Sin iniciar sesión puedes crear una cotización. Edita la actual o elimínala para crear otra.';
 const STORAGE_KEY = 'trovio-guest-quotations:v1';
 @Injectable({ providedIn: 'root' })
 export class GuestQuotationService {
@@ -10,7 +11,10 @@ export class GuestQuotationService {
   storageWarning = '';
   all(): GuestQuotation[] { this.restore(); return structuredClone(this.quotes); }
   get(id: string): GuestQuotation | null { return this.all().find(quote => quote.id === id) || null; }
+  canCreate(): boolean { return this.all().length < 1; }
   create(name: string, address = '', items: ProjectItem[] = []): GuestQuotation {
+    this.restore(true);
+    if (this.quotes.length >= 1) throw new Error(GUEST_QUOTATION_LIMIT_MESSAGE);
     const quote: GuestQuotation = { id: crypto.randomUUID(), name: name.trim() || 'Mi cotización', address, items: this.normalizeItems(items), createdAt: new Date().toISOString(), totalOptimal: 0, saving: 0 };
     this.restore(); this.quotes.unshift(quote); this.persist(); return structuredClone(quote);
   }
@@ -34,11 +38,13 @@ export class GuestQuotationService {
       return { ...structuredClone(item), quantity: Number.isSafeInteger(item.quantity) && item.quantity > 0 ? item.quantity : old?.quantity || 1 };
     });
   }
-  private restore(): void {
-    if (this.restored || typeof window === 'undefined') return;
+  private restore(force = false): void {
+    if ((!force && this.restored) || typeof window === 'undefined') return;
     this.restored = true;
     try {
-      const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw === null && this.storageWarning && this.quotes.length) return;
+      const value = JSON.parse(raw || '[]');
       if (Array.isArray(value)) this.quotes = value.filter(quote => quote && typeof quote.id === 'string' && typeof quote.name === 'string' && Array.isArray(quote.items)
         && quote.items.every((item: ProjectItem) => typeof item.productName === 'string' && Number.isSafeInteger(item.quantity) && item.quantity > 0));
     } catch { /* A missing local draft must not block the catalog. */ }

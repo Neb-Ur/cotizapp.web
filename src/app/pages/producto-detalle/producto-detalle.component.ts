@@ -1,4 +1,4 @@
-import { GuestQuotationService } from '../../core/services/guest-quotation.service';
+import { GUEST_QUOTATION_LIMIT_MESSAGE, GuestQuotationService } from '../../core/services/guest-quotation.service';
 import { InfoPanelComponent } from '../../shared/components/info-panel/info-panel.component';
 import { ProductImageDirective } from '../../shared/directives/product-image.directive';
 import { productSlug } from '../../core/utils/product-url.util';
@@ -301,8 +301,12 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
     this.quoteFeedback = '';
   }
 
+  protected get canCreateQuotation(): boolean { return this.user ? this.projects.length < 2 : this.guestQuotations.canCreate(); }
+  protected get quotationLimitMessage(): string { return this.user ? 'Puedes guardar hasta 2 cotizaciones. Elimina una para crear otra.' : GUEST_QUOTATION_LIMIT_MESSAGE; }
+
   protected openCreateQuotationModal(): void {
     if (!this.canUseQuotations) return;
+    if (!this.canCreateQuotation) { this.quoteFeedback = this.quotationLimitMessage; return; }
     this.newQuotationName = '';
     this.newQuotationAddress = '';
     this.createQuotationError = '';
@@ -321,6 +325,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
     const name = this.newQuotationName.trim();
 
     if (!this.canUseQuotations) return;
+    if (!this.canCreateQuotation) { this.createQuotationError = this.quotationLimitMessage; return; }
 
     if (!name) {
       this.createQuotationError = 'Escribe un nombre para la cotizacion.';

@@ -1,6 +1,6 @@
 <main class="project-detail-page">
   <header class="page-header">
-    <button type="button" (click)="backToProjects()">Volver a mis cotizaciones</button>
+    <button type="button" class="back-to-quotations" (click)="backToProjects()"><i class="pi pi-arrow-left" aria-hidden="true"></i> Mis cotizaciones</button>
     <div class="page-title">
       <h1>{{ isLoading ? 'Cargando cotización…' : (isNewProject ? 'Nueva cotización' : 'Detalle de cotización') }}</h1>
       <p *ngIf="!isLoading && !loadError">

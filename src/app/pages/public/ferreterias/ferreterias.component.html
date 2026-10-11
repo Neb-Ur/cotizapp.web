@@ -76,5 +76,11 @@
       </section>
     </section>
   }
-  @if (!storeId) {<aside class="join-stores"><div><h2>¿Tienes una ferretería?</h2><p>Publica tu catálogo y llega a más maestros.</p></div><a class="btn btn-outline" [href]="storeAccessWhatsappUrl" target="_blank" rel="noopener noreferrer">Solicitar acceso</a></aside>}
+  @if (!storeId) {
+    <aside class="join-stores" aria-labelledby="join-stores-title">
+      <span class="join-icon"><i class="pi pi-shop" aria-hidden="true"></i></span>
+      <div class="join-copy"><span class="join-eyebrow">Suma tu ferretería a Trovio</span><h2 id="join-stores-title">Haz que más maestros encuentren tu ferretería</h2><p>Publica tus productos y precios. Conecta con maestros que buscan materiales para sus obras.</p></div>
+      <div class="join-action"><a class="btn btn-primary" [href]="storeAccessWhatsappUrl" target="_blank" rel="noopener noreferrer">Quiero sumar mi ferretería <i class="pi pi-arrow-right" aria-hidden="true"></i></a><small>Solicita acceso por WhatsApp</small></div>
+    </aside>
+  }
 </main>

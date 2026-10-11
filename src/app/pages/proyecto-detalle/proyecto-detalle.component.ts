@@ -240,6 +240,11 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       this.isSaving = true;
       try {
       const currentUser = this.user;
+      if (currentUser && this.isLocalQuotation && this.isNewProject) {
+        this.persistDraftIfNeeded();
+        await this.router.navigate(['/dashboard/maestro/cotizaciones/nuevo']);
+        return;
+      }
       if (this.isLocalQuotation || !currentUser) {
         if (!this.guestQuotations) return;
         const data = { name: this.projectName.trim() || 'Mi cotización', address: this.projectAddress,
