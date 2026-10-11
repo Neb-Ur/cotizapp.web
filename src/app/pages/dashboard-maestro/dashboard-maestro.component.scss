@@ -1248,11 +1248,18 @@ button.plan-card__action.is-disabled {
 
   .product-image-slot {
     width: 100%;
-    height: clamp(125px, 40vw, 170px);
+    height: auto;
+    aspect-ratio: 1.15 / 1;
   }
 
+  .product-image-slot img { padding: .5rem; }
+
+  .product-card { border-radius: 12px; }
+
   .product-text h4 {
-    font-size: 0.92rem;
+    overflow-wrap: anywhere;
+    min-height: 2.6em;
+    font-size: 0.82rem;
     line-height: 1.3;
   }
 
