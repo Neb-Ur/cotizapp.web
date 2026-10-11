@@ -171,3 +171,18 @@ test('store reviews persist normalized links, enforce one per maestro and cascad
  await db.collection('usuarios').doc('master').delete();
  assert.equal((await db.collection('real_resenasFerreteria').get()).size,0);
 });
+
+test('analytics claims block duplicate intervals, allow subsequent cuts and migrate the old daily lock',async t=>{
+ const {claimStoreAnalyticsPeriod}=await import('../lib/services/store-daily-analytics.service.js');
+ const {db}=await fixture(t);
+ const ref=db.collection('real_analyticsJobs').doc('store-daily-analytics');
+ await ref.set({attemptDate:'2026-10-11',startedAt:'2026-10-11T05:00:00Z',status:'complete'});
+ assert.equal(await claimStoreAnalyticsPeriod(db,new Date('2026-10-11T05:00:00Z')),true);
+ assert.equal(await claimStoreAnalyticsPeriod(db,new Date('2026-10-11T06:59:59Z')),false);
+ await ref.update({status:'failed'});
+ assert.equal(await claimStoreAnalyticsPeriod(db,new Date('2026-10-11T06:59:59Z')),false);
+ assert.equal(await claimStoreAnalyticsPeriod(db,new Date('2026-10-11T07:00:00Z')),true);
+ assert.equal((await ref.get()).data().attemptPeriod,'2026-10-11T04');
+ assert.equal(await claimStoreAnalyticsPeriod(db,new Date('2026-10-12T03:00:00Z')),true);
+ assert.equal((await ref.get()).data().attemptDate,'2026-10-12');
+});

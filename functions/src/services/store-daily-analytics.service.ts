@@ -1,3 +1,5 @@
+import type { Database } from '../database/port.js';
+import { storeAnalyticsPeriod } from '../domain/store-analytics-schedule.js';
 import { db } from '../lib/firebase.js';
 import { COLLECTIONS } from '../lib/collections.js';
 import { rows } from '../repositories/firestore.repository.js';
@@ -17,14 +19,20 @@ export async function refreshStoreDailyAnalyticsSnapshot(now = new Date()): Prom
   return entries.length;
 }
 
-export async function refreshStoreDailyAnalyticsOncePerDay(now = new Date()): Promise<number | null> {
-  const date = new Intl.DateTimeFormat('en-CA', {timeZone:'America/Santiago',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
-  const ref = db.collection(COLLECTIONS.analyticsJobs).doc('store-daily-analytics');
-  const claimed = await db.runTransaction(async tx => {
+export async function claimStoreAnalyticsPeriod(database: Database, now: Date): Promise<boolean> {
+  const period = storeAnalyticsPeriod(now);
+  const ref = database.collection(COLLECTIONS.analyticsJobs).doc('store-daily-analytics');
+  return database.runTransaction(async tx => {
     const previous = await tx.get(ref);
-    if (previous.data()?.['attemptDate'] === date) return false;
-    tx.set(ref, {attemptDate: date, startedAt: now.toISOString(), status:'running'}); return true;
+    if (previous.data()?.['attemptPeriod'] === period.key) return false;
+    tx.set(ref, {attemptDate: period.date, attemptPeriod: period.key, startedAt: now.toISOString(), status:'running'});
+    return true;
   });
+}
+
+export async function refreshStoreAnalyticsOncePerInterval(now = new Date()): Promise<number | null> {
+  const ref = db.collection(COLLECTIONS.analyticsJobs).doc('store-daily-analytics');
+  const claimed = await claimStoreAnalyticsPeriod(db, now);
   if (!claimed) return null;
   try {
     const stores = await refreshStoreDailyAnalyticsSnapshot(now);

@@ -661,7 +661,7 @@
         "failedAt": "job_runs.failed_at",
         "stores": "job_runs.stores_processed"
       },
-      "notes": "Daily unique job/date replaces transaction guard. Preserve at-most-one scheduled attempt per local day; manual retry controlled.",
+      "notes": "The latest job lock retains attemptDate and attemptPeriod in api_payload. Claim at most once per two-hour America/Santiago interval; repeated deliveries do not recalculate.",
       "sourceCollection": "real_analyticsJobs",
       "idStrategy": "Preserve document ID unless this is an operational lock/cache. New relational children retain parent ID and original order."
     },

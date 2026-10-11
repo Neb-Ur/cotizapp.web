@@ -130,7 +130,7 @@ La persistencia al recargar, 30 minutos de inactividad, “Recordarme”, coordi
 - `store_daily_analytics` guarda un corte por `(store_id, local_date)`. El reporte actual se importa solo en su fecha real; no se fabrican días pasados.
 - `store_daily_top_products` guarda ranking, producto/nombre, cotizaciones distintas, unidades, monto activo y stock al corte.
 - `job_runs(job_name, local_date)` impide dos ejecuciones programadas el mismo día local.
-- Continúa Cloud Scheduler a las **02:00 America/Santiago**, incluso en cambios de horario de verano. La región del worker actual no requiere cambiar por esta propuesta.
+- Continúa Cloud Scheduler **cada dos horas, America/Santiago**, incluso en cambios de horario de verano. La región del worker actual no requiere cambiar por esta propuesta.
 - “Activa” conserva los últimos 30 días de actividad, sin incluir estados cerrados/archivados. “Reciente” compara creación en los últimos siete días frente a los siete anteriores.
 - Atribuir cada línea a la selección/optimización real, no a todas las ferreterías que venden el producto. Demandas explícitas sin oferta disponible pueden tener unidades y monto cero.
 - Reutilizar `aggregateStoreDailyAnalytics` y el motor de cotización con un snapshot consistente. Una transacción REPEATABLE READ o un export consistente evita mezclar precios de horas distintas durante el cálculo.

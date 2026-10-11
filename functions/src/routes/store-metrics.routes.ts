@@ -1,3 +1,4 @@
+import { STORE_ANALYTICS_INTERVAL_HOURS, STORE_ANALYTICS_TIME_ZONE } from '../domain/store-analytics-schedule.js';
 import { COLLECTIONS } from '../lib/collections.js';
 import { Router } from 'express';
 import { FieldValue } from 'firebase-admin/firestore';
@@ -28,5 +29,5 @@ storeMetricsRouter.get('/ferreterias/propietario/:ownerId/dashboard', requireAut
  const stores = await db.collection(COLLECTIONS.stores).where('usuarioDuenoId','==',req.params.ownerId).get();
  const snapshots = await Promise.all(stores.docs.map(doc=>db.collection(COLLECTIONS.storeDailyAnalytics).doc(doc.id).get()));
  res.set('Cache-Control','private, no-store');
- return ok(res,{reports: snapshots.filter(doc=>doc.exists).map(doc=>({storeId:doc.id,...doc.data()})), schedule:{hour:'02:00',timeZone:'America/Santiago'}});
+ return ok(res,{reports: snapshots.filter(doc=>doc.exists).map(doc=>({storeId:doc.id,...doc.data()})), schedule:{intervalHours:STORE_ANALYTICS_INTERVAL_HOURS,timeZone:STORE_ANALYTICS_TIME_ZONE}});
 });

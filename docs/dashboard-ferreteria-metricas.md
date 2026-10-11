@@ -1,12 +1,12 @@
-# Dashboard diario de ferreterías
+# Dashboard de ferreterías
 
 La ferretería inicia sesión en `/dashboard/ferreteria`, dentro del mismo layout público de Findi. La cabecera cambia el buscador por navegación de negocio: Dashboard, Mi catálogo, Agregar productos, Carga por Excel y Mi perfil. En móvil estas opciones están en el menú. “Ir a inicio” permite recorrer la web pública, que conserva “Ir a dashboard” mientras la sesión está activa.
 
 ## Actualización y costo
 
-`refreshStoreDailyAnalytics` se ejecuta una vez al día a las **02:00, America/Santiago**, mediante Cloud Scheduler y Cloud Functions en `southamerica-east1`, una región compatible con Scheduler. La API pública conserva su región de Santiago (`southamerica-west1`). Lee las cotizaciones guardadas y el catálogo una vez por ejecución; escribe un resumen por ferretería en `real_storeDailyAnalytics`. Un control por fecha local evita repetir el cálculo si Cloud Scheduler entrega el evento más de una vez. Las escrituras se hacen por lotes y reemplazan el resumen: repetir el cálculo no acumula ni duplica estadísticas. No hay listeners, sondeo ni recálculo al abrir el dashboard.
+`refreshStoreDailyAnalytics` se ejecuta **cada dos horas, America/Santiago**, a las horas pares (`0 */2 * * *`), mediante Cloud Scheduler y Cloud Functions en `southamerica-east1`, una región compatible con Scheduler. La API pública conserva su región de Santiago (`southamerica-west1`). Lee las cotizaciones guardadas y el catálogo una vez por ejecución; escribe un resumen por ferretería en `real_storeDailyAnalytics`. Un control por intervalo de dos horas en la fecha local evita repetir el cálculo si Cloud Scheduler entrega el evento más de una vez. Las escrituras se hacen por lotes y reemplazan el resumen: repetir el cálculo no acumula ni duplica estadísticas. No hay listeners, sondeo ni recálculo al abrir el dashboard.
 
-El endpoint privado `GET /ferreterias/propietario/:ownerId/dashboard` verifica el rol y la propiedad y devuelve únicamente los resúmenes del dueño. El inicio no descarga el catálogo completo; este se obtiene al entrar en Mi catálogo. Los contadores de visualización/selección preexistentes se muestran al corte nocturno, no en vivo.
+El endpoint privado `GET /ferreterias/propietario/:ownerId/dashboard` verifica el rol y la propiedad y devuelve únicamente los resúmenes del dueño. El inicio no descarga el catálogo completo; este se obtiene al entrar en Mi catálogo. Los contadores de visualización/selección preexistentes se muestran en cada actualización, no en vivo.
 
 No se guardan nombres, correos, direcciones, IDs de cotizaciones ni IDs de clientes en los resúmenes.
 
@@ -25,13 +25,9 @@ Se muestra la fecha del último corte; una cuenta nueva o un fallo de lectura ti
 
 ## Primer cálculo y operaciones
 
-Después de compilar las funciones, puede generarse un primer corte con sesión Firebase CLI vigente:
+Después del despliegue, se puede ejecutar el job `firebase-schedule-refreshStoreDailyAnalytics-southamerica-east1` desde Cloud Scheduler para generar el primer corte sobre la base PostgreSQL activa. El script histórico `refresh-store-daily-analytics.mjs` escribe en Firestore; no debe usarse en el entorno PostgreSQL.
 
-```sh
-FIREBASE_PROJECT_ID=cotizapp-d71c8 CONFIRM_PROJECT_ID=cotizapp-d71c8 node functions/scripts/refresh-store-daily-analytics.mjs
-```
-
-La función programada tiene concurrencia e instancias limitadas a uno. No se aplican reintentos automáticos para mantener un cálculo diario; ante un fallo, se conserva la fecha del último reporte y se puede ejecutar el comando anterior de forma controlada.
+La función programada tiene concurrencia e instancias limitadas a uno. No se aplican reintentos automáticos para evitar ejecuciones adicionales dentro del mismo intervalo; ante un fallo, se conserva la fecha del último reporte y se vuelve a intentar en el siguiente intervalo de dos horas. La clave del bloqueo se obtiene de la hora programada del evento, para que una entrega demorada o duplicada conserve su intervalo original.
 
 ## Cotización desde producto
 

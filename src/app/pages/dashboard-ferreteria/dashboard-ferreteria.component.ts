@@ -733,7 +733,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
           const result = await this.apiService.loadStoreDailyDashboard(currentUser.id);
           this.dailyReport = result.reports.find(report => report.storeId === currentUser.ferreteriaId) || result.reports[0] || null;
           this.totalProducts = this.dailyReport?.catalog.published || 0; this.outOfStock = this.dailyReport?.catalog.outOfStock || 0;
-        } catch { this.dashboardError = 'No pudimos cargar el resumen diario. Puedes seguir gestionando tu catálogo.'; }
+        } catch { this.dashboardError = 'No pudimos cargar el resumen. Puedes seguir gestionando tu catálogo.'; }
       }
       if (section === 'catalogo') {
         await this.apiService.refreshFerreteriaCatalogSection(currentUser.id, force);

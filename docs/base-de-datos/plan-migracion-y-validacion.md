@@ -19,7 +19,7 @@ Este documento conserva el plan y los criterios de aceptación. La implementaci�
 | Catálogo comercial | carga individual por local, admin o dueño; carga Excel y solicitudes | `store-catalog.routes.ts`, `product-requests.routes.ts`, editor/importador frontend |
 | Cotizaciones | crear/seleccionar/agregar, dos por cuenta, líneas repetidas, cantidades y PDF | `projects.routes.ts`, motor, selección y PDF |
 | Optimización | selección explícita, tienda única, proximidad, stock agrupado, ahorro, precios vivos | `domain/quotation.ts` |
-| Métricas | solo último snapshot, ranking/top20, montos referenciales, cron diario 02:00 Chile | analytics domain/service/job |
+| Métricas | solo último snapshot, ranking/top20, montos referenciales, cron cada 2 horas, hora de Chile | analytics domain/service/job |
 | Contacto | mensajes existentes, aceptación de formulario, estados y WhatsApp para acceso | `contact.routes.ts`, configuración legal/contacto |
 | Privacidad | exportar/bloquear/eliminar, correo verificado para datos anónimos vinculados | privacy/account-data services |
 | Reclamos | corregir precios con evidencia, seguimiento de denuncia por token y retiro/reposición | price/IP routes |
@@ -70,7 +70,7 @@ Conciliaciones: documentos por colección, hijos por padre, conteos de ítems/op
 5. Ofertas y solicitudes; historial/reclamos/denuncias y referencias entre ellos.
 6. Cotizaciones e ítems; seleccionadas opcionales solo después de cargar el dueño.
 7. Privacidad/contacto/supresiones/auditoría/incidentes/evidencia.
-8. Contadores y el corte diario real más reciente; lock del job convertido a su fecha local.
+8. Contadores y el corte real más reciente; lock del job convertido a su fecha local.
 9. Reconstruir cachés e índice desde las tablas reconciliadas; no importar chunks obsoletos como verdad.
 
 Para dependencias circulares de moderación/historial/solicitudes: insertar primero entidades con FK opcionales nulas; enlazarlas en una segunda pasada tras validar IDs. No desactivar todas las FK y asumir que no hay huérfanos.

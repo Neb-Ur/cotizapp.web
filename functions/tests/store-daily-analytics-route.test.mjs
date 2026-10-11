@@ -11,7 +11,7 @@ test('a store cannot read another owners daily snapshot',async()=>{
  await route.stack.at(-1).handle({authUserId:'owner',authRole:'ferreteria',params:{ownerId:'other'}},res);
  assert.equal(status,403);assert.equal(body.error.code,'AUTH_FORBIDDEN');
 });
-test('daily analytics run at night in Chile with bounded concurrency and no automatic retries',()=>{
+test('analytics update every two hours in Chile with bounded concurrency and no automatic retries',()=>{
  const endpoint=refreshStoreDailyAnalytics.__endpoint;
- assert.equal(endpoint.scheduleTrigger.schedule,'0 2 * * *');assert.equal(endpoint.scheduleTrigger.timeZone,'America/Santiago');assert.equal(endpoint.concurrency,1);
+ assert.equal(endpoint.scheduleTrigger.schedule,'0 */2 * * *');assert.equal(endpoint.scheduleTrigger.timeZone,'America/Santiago');assert.equal(endpoint.concurrency,1);
 });
