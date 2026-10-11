@@ -13,3 +13,9 @@ export function storeAnalyticsPeriod(now: Date): { date: string; key: string } {
   const hour = Math.floor(Number(value('hour')) / STORE_ANALYTICS_INTERVAL_HOURS) * STORE_ANALYTICS_INTERVAL_HOURS;
   return { date, key: `${date}T${String(hour).padStart(2, '0')}` };
 }
+
+/** Scheduler manual runs may carry the next scheduled time; never date a report in the future. */
+export function storeAnalyticsScheduledAt(scheduleTime: string, now: Date): Date {
+  const scheduled = new Date(scheduleTime);
+  return Number.isFinite(scheduled.getTime()) && scheduled <= now ? scheduled : now;
+}

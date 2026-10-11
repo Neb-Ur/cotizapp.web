@@ -19,8 +19,8 @@ export async function refreshStoreDailyAnalyticsSnapshot(now = new Date()): Prom
   return entries.length;
 }
 
-export async function claimStoreAnalyticsPeriod(database: Database, now: Date): Promise<boolean> {
-  const period = storeAnalyticsPeriod(now);
+export async function claimStoreAnalyticsPeriod(database: Database, now: Date, scheduledAt = now): Promise<boolean> {
+  const period = storeAnalyticsPeriod(scheduledAt);
   const ref = database.collection(COLLECTIONS.analyticsJobs).doc('store-daily-analytics');
   return database.runTransaction(async tx => {
     const previous = await tx.get(ref);
@@ -30,9 +30,9 @@ export async function claimStoreAnalyticsPeriod(database: Database, now: Date): 
   });
 }
 
-export async function refreshStoreAnalyticsOncePerInterval(now = new Date()): Promise<number | null> {
+export async function refreshStoreAnalyticsOncePerInterval(now = new Date(), scheduledAt = now): Promise<number | null> {
   const ref = db.collection(COLLECTIONS.analyticsJobs).doc('store-daily-analytics');
-  const claimed = await claimStoreAnalyticsPeriod(db, now);
+  const claimed = await claimStoreAnalyticsPeriod(db, now, scheduledAt);
   if (!claimed) return null;
   try {
     const stores = await refreshStoreDailyAnalyticsSnapshot(now);
