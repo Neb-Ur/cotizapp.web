@@ -5,7 +5,7 @@
       <h1>{{ isLoading ? 'Cargando cotización…' : (isNewProject ? 'Nueva cotización' : 'Detalle de cotización') }}</h1>
       <p *ngIf="!isLoading && !loadError">
         {{ isNewProject
-          ? 'Agrega productos y revisa los precios. Puedes crear la cotización sin cuenta.'
+          ? 'Agrega productos y revisa el total.'
           : 'Revisa tus productos y el total.' }}
       </p>
     </div>
@@ -16,7 +16,7 @@
   } @else if (loadError) {
     <section class="detail-card" role="alert"><p>{{ loadError }}</p><button type="button" (click)="retryLoad()">Reintentar</button></section>
   } @else {
-  <article class="detail-card">
+  <article class="detail-card quotation-content">
     <article class="summary">
         <div class="summary-heading">
           <h2>Resumen</h2>
@@ -57,15 +57,18 @@
         </div>
         <button type="button" class="secondary add-products" [disabled]="isSaving" (click)="goToSearchForProduct()"><i class="pi pi-plus" aria-hidden="true"></i> Agregar productos</button>
       </div>
-      <div class="table-wrap" *ngIf="hasItemsInTable; else emptyQuotation">
+      <p class="table-scroll-hint" *ngIf="hasItemsInTable"><i class="pi pi-arrows-h" aria-hidden="true"></i> Desliza la tabla para ver todas las columnas.</p>
+      <div class="table-wrap" *ngIf="hasItemsInTable; else emptyQuotation" tabindex="0" role="region" aria-label="Productos de la cotización. Tabla desplazable horizontalmente.">
         <table>
+          <caption class="visually-hidden">Productos, cantidades, precios unitarios y totales de la cotización</caption>
+          <colgroup><col class="col-product" /><col class="col-quantity" /><col class="col-price" /><col class="col-total" /><col class="col-action" /></colgroup>
           <thead>
             <tr>
-              <th>Nombre de producto</th>
-              <th>Cantidad</th>
-              <th>Precio unitario</th>
-              <th>Total</th>
-              <th>Accion</th>
+              <th scope="col">Producto / ferretería</th>
+              <th scope="col">Cantidad</th>
+              <th scope="col" class="price-heading">Precio unit.</th>
+              <th scope="col" class="price-heading">Total</th>
+              <th scope="col" class="action-heading"><span class="visually-hidden">Quitar producto</span></th>
             </tr>
           </thead>
           <tbody>
@@ -76,7 +79,7 @@
                   <option value="">Selecciona producto</option>
                   <option *ngFor="let option of productOptions" [value]="option">{{ option }}</option>
                 </select>
-                <p class="line-meta">Mejor tienda: {{ getRowBestStore(item) }}</p>
+                <p class="line-meta">{{ getRowBestStore(item) }}</p>
               </td>
               <td class="quantity-cell" data-label="Cantidad">
                 <input [attr.aria-label]="'Cantidad de ' + (item.productName || 'producto')" [(ngModel)]="item.quantity" (ngModelChange)="persistDraftIfNeeded()" type="number" min="1" placeholder="Cantidad" />
@@ -90,7 +93,7 @@
           </tbody>
           <tfoot>
             <tr class="totals-row total-final">
-              <th colspan="3">Total final (IVA incluido)</th>
+              <th colspan="3" scope="row">Total con IVA</th>
               <td>{{ formatCurrency(totalWithIva) }}</td>
               <td></td>
             </tr>
@@ -198,16 +201,15 @@
           </div>
           <p role="status" *ngIf="shareNotice">{{ shareNotice }}</p>
         </details>
-        <p class="section-note" *ngIf="isLocalQuotation">La cotización se guarda en este navegador y se conserva al recargar. Al iniciar sesión para descargar el PDF, se guardará en tu cuenta.</p>
-        <p class="section-note" *ngIf="!user">Puedes revisar y editar la cotización sin cuenta. Para descargar el PDF, crea una cuenta de maestro o inicia sesión.</p>
+        <p class="section-note" *ngIf="isLocalQuotation">Guardada en este navegador. Para descargar el PDF, inicia sesión o crea tu cuenta de maestro.</p>
         <p class="saved" *ngIf="saveNotice">{{ saveNotice }}</p>
       </article>
     <section class="same-store-card" *ngIf="hasItemsInTable">
       <div class="same-store-header">
         <div>
-          <h2>Si compras todo en una misma ferretería</h2>
+          <h2>Comprar en una sola ferretería</h2>
           <p class="section-note">
-            Solo mostramos ferreterías que ya participan en tu cotización combinada y que tienen todos los productos con stock suficiente.
+            Ferreterías de tu cotización con todos los productos y stock suficiente.
           </p>
         </div>
         <button

@@ -51,14 +51,6 @@
     .price-range { font-size: 1.65rem; letter-spacing: -0.035em; }
   }
 
-  app-proyecto-detalle {
-    .project-detail-page { margin-block: 1.5rem 2.5rem; gap: 1.15rem; }
-    .page-header { padding: 1.4rem; border: 1px solid var(--border); border-radius: var(--r-lg); background: #fff; box-shadow: var(--shadow-sm); }
-    .detail-card { padding: 1.4rem; box-shadow: var(--shadow-sm); border-radius: var(--r-lg); }
-    :is(.editor-panel, .quotation-table-card, .store-totals-card) { background: var(--ink-50); border-color: var(--border); }
-    .page-title h1 { letter-spacing: -0.035em; }
-  }
-
   app-home {
     .category-card, .highlight-card { box-shadow: var(--shadow-xs); }
     .category-icon { border-radius: 14px; }
@@ -85,11 +77,7 @@
       .detail-card, .purchase-panel { padding: 1rem; }
       .hero-grid { gap: 1rem; }
     }
-    app-proyecto-detalle {
-      .project-detail-page { margin-block: 0.75rem 1.5rem; }
-      .page-header { flex-wrap: wrap; }
-      .page-header, .detail-card { padding: 1rem; }
-    }
+
     app-ui-modal .dialog { border-radius: var(--r-lg) var(--r-lg) 0 0; }
   }
 }
@@ -126,10 +114,6 @@
   .quotation-form .field-label { display: inline-flex; align-items: baseline; gap: .4rem; }
   .quotation-form .field-label small { font-weight: 400; font-size: .85em; }
   .quotation-disclaimer { font-size: .8rem; color: var(--text-muted); line-height: 1.6; padding: .5rem 0; }
-  .project-detail-page .detail-card { background: transparent; border: 0; padding: 0; box-shadow: none; gap: 1.25rem; }
-  .project-detail-page .editor-panel, .project-detail-page .summary, .project-detail-page .quotation-table-card { padding: 1.5rem; background: white; border: 1px solid var(--border-soft); border-radius: 18px; }
-  .project-detail-page h2 { font-size: 1.1rem; margin-bottom: .8rem; }
-  .project-detail-page label { font-size: .85rem; margin-top: 1rem; }
   .store-product-editor { border: 1px solid var(--border-soft); border-radius: 16px; padding: 1.25rem; background: white; margin: 1rem 0; display: grid; gap: .85rem; }
   .store-product-editor label { display: grid; gap: .4rem; font-size: .85rem; }
   .store-product-editor input, .store-product-editor select { padding: .7rem; border: 1px solid var(--border-med); border-radius: 10px; min-width: 0; }
@@ -139,7 +123,6 @@
   @media(max-width: 540px) {
     .product-workspace .modal-form-grid { grid-template-columns: 1fr; }
     .product-workspace .inline-editor-head { flex-wrap: wrap; }
-    .project-detail-page .editor-panel, .project-detail-page .summary, .project-detail-page .quotation-table-card { padding: 1rem; }
   }
 }
 :root {
