@@ -390,4 +390,15 @@ El primer punto implementado es el **2: condición de la oferta**; su resultado 
 - Validación: 146 pruebas existentes de backend y cuatro nuevas de condición/migración aprobadas; se repitieron 13 pruebas relacionadas tras ajustar la comparación. Las 212 pruebas de frontend y la compilación de producción pasaron. Persisten advertencias previas de presupuestos CSS y del entorno de pruebas.
 - Hosting y API publicados y comprobados: búsqueda pública, condiciones del detalle y entrada del panel. El cambio no habilita vehículos ni varias publicaciones del mismo maestro/local.
 
-El siguiente punto es el **3: tipos de negocio**, conservando cuentas, roles, contratos y reseñas. Las demás etapas permanecen pendientes; el plan completo todavía no está implementado.
+### Punto 3 — completado y publicado
+
+- Clasificación del local: `ferreteria`, `repuestos` y `desarmaduria`, con etiquetas Ferretería, Tienda de repuestos y Desarmaduría. El rol interno del vendedor continúa siendo `ferreteria`; el tipo de negocio no concede permisos ni cambia la aprobación de la cuenta.
+- Selector en creación de locales desde admin, edición administrativa y perfil del dueño. El API de registro conserva el tipo indicado para un local; las solicitudes antiguas que omiten el campo siguen funcionando. El registro público de maestros conserva su flujo actual.
+- Directorio con tipo visible y filtro opcional combinado con nombre, región, comuna y paginación. Se conservan la ruta `/ferreterias`, los enlaces de productos por local y las reseñas existentes; evaluar sigue requiriendo maestro autenticado.
+- Migración `016-store-business-type.sql` aplicada. Los cinco locales anteriores quedaron clasificados como ferreterías. Se verificó que dueños, nombres, estados, contratos y roles de usuarios permanecieron iguales.
+- Respaldo local privado previo a la migración, fuera del repositorio; restauración de 63 tablas/12.506 filas con contenido coincidente y prueba de la migración en la base aislada.
+- Validación: 150 pruebas existentes de backend aprobadas y cinco pruebas nuevas de clasificación, creación, permisos, filtro y persistencia SQL aprobadas. Las 213 pruebas de frontend y la compilación de producción pasaron. En Chrome con datos de prueba, directorio y selector comprobados a 1440, 768, 375 y 320 píxeles, sin desbordamiento horizontal.
+- Hosting y API publicados. Comprobaciones públicas: cuatro locales anteriores siguen visibles, el filtro de ferretería conserva sus resultados, el tipo desarmaduría devuelve cero mientras no haya locales de ese tipo, los tipos inválidos se rechazan y las reseñas propias exigen autenticación. La búsqueda y la condición del punto 2 siguen funcionando.
+- Commit de implementación: `ecf51af`. Esta etapa agrega clasificación; aún no habilita marca/modelo/año de vehículos ni publicaciones múltiples. No modifica documentos legales ni declara resuelta la revisión de textos por rubro prevista para las etapas posteriores.
+
+El siguiente punto es el **4: marcas compartidas con usos, modelos de vehículos y capacidad por familia**. Las demás etapas permanecen pendientes; el plan completo todavía no está implementado.
