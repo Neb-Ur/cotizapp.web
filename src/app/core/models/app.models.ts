@@ -259,6 +259,7 @@ export interface FamilyTemplate {
 }
 
 export interface FamilyProductRow {
+  homeGroupLabel?: string;
   fullImageUrl?: string;
   seoPath?:string;
   productoMaestroId?: string;

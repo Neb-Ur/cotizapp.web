@@ -30,7 +30,7 @@ export type PublicCatalogSnapshot = {
 
 const META_ID = 'meta';
 const CHUNK_SIZE = 150;
-const CACHE_POLICY = `data-modes-v1:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}`;
+const CACHE_POLICY = `data-modes-v2:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}`;
 function fresh(meta:any):boolean {return catalogCacheIsFresh(meta,`${CACHE_POLICY}:pilot=${pilotStoresEnabled()}`);}
 const rebuildPromises = new Map<string, Promise<PublicCatalogSnapshot>>();
 const memorySnapshots = new Map<string, PublicCatalogSnapshot>();
@@ -111,6 +111,8 @@ async function materializeSnapshot(): Promise<PublicCatalogSnapshot> {
       imagenMiniaturaUrl: item.imagenMiniaturaUrl || '',
       imagenExternaUrl: item.imagenExternaUrl || '',
       galeriaJson: Array.isArray(item.galeriaJson) ? item.galeriaJson : [],
+      origenImagen: item.origenImagen || '',
+      imagenReferencial: item.imagenReferencial === true,
       catalogoNivel: item.catalogoNivel || 'producto_comercial',
       estado: item.estado || 'activo'
     }))

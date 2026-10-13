@@ -1601,7 +1601,7 @@ export class FirebaseDataService {
           ? master.galeriaJson
           : (master.imagenPrincipalUrl ? [master.imagenPrincipalUrl] : []),
         imageDisclosure: master.origenImagen === 'ai_generated'
-          ? 'Imagen referencial generada con inteligencia artificial. Verifica presentación y características con la ferretería.'
+          ? 'Imagen referencial generada con inteligencia artificial. Verifica presentación y características antes de comprar.'
           : master.imagenReferencial === true
             ? 'Imagen referencial del tipo de producto. La marca, presentación y medidas son las indicadas en la ficha.'
             : '',

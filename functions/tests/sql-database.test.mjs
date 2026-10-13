@@ -262,3 +262,18 @@ test('offer vehicle associations remain relational, atomic and independent of ol
  await db.collection('real_productosFerreteria').doc('offer').update({asociacionesVehiculos:[{...declaration,anioDesde:null,anioHasta:null}]});
  await db.collection('real_productosFerreteria').doc('offer').delete();assert.equal((await pg.query('SELECT count(*)::int n FROM findi.offer_vehicle_applications')).rows[0].n,0);
 });
+
+test('generic auto-part seeds extend the shared catalog with reference images and no fabricated offers',async t=>{
+ const {db,pg}=await fixture(t);await catalog(db);
+ const {buildBaseAutoPartDocuments}=await import('../scripts/lib/base-auto-parts.mjs');
+ const plan=JSON.parse(await readFile(new URL('../../docs/catalogo/catalogo-repuestos-base.json',import.meta.url),'utf8'));
+ const records=buildBaseAutoPartDocuments(plan,'2026-10-13T12:00:00Z');
+ const original=(await db.collection('productosMaestro').doc('product').get()).data();
+ const batch=db.batch();for(const d of records)batch.set(db.collection(d.collection).doc(d.id),d.data);await batch.commit();
+ assert.deepEqual((await db.collection('productosMaestro').doc('product').get()).data(),original);
+ assert.equal((await pg.query('SELECT count(*)::int n FROM findi.products')).rows[0].n,5);
+ assert.equal((await pg.query('SELECT count(*)::int n FROM findi.offers')).rows[0].n,0);
+ assert.equal((await pg.query("SELECT count(*)::int n FROM findi.families WHERE supports_vehicle_applications")).rows[0].n,4);
+ for(const p of plan.products){const data=(await db.collection('productosMaestro').doc(p.id).get()).data();assert.equal(data.catalogoNivel,'tipo_base');assert.equal(data.imagenReferencial,true);assert.equal(data.origenImagen,'ai_generated');assert.equal(data.marcaId,null);assert.equal(data.precio,undefined);assert.equal(data.stock,undefined);}
+ assert.equal((await pg.query('SELECT count(*)::int n FROM findi.product_media WHERE product_id=ANY($1::text[])',[plan.products.map(p=>p.id)])).rows[0].n,8);
+});

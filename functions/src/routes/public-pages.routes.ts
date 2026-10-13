@@ -13,7 +13,7 @@ function page(title: string, description: string, path: string, body: string, sc
   let template = readFileSync(new URL('../../assets/index.html', import.meta.url), 'utf8');
   template = template.replace(/<title>[\s\S]*?<\/title>/g, '').replace(/<meta[^>]*(?:name="description"|property="og:[^"]*"|name="twitter:[^"]*")[^>]*>/g, '').replace(/<link[^>]*rel="canonical"[^>]*>/g, '').replace(/<script[^>]*type="application\/ld\+json"[^>]*>[\s\S]*?<\/script>/g, '');
   const url = `${SITE_URL}${path}`;
-  const imageUrl = image && /^https?:\/\//.test(image) ? image : image?.startsWith('/') ? `${SITE_URL}${image}` : `${SITE_URL}/assets/home-hero-construction.webp`;
+  const imageUrl = image && /^https?:\/\//.test(image) ? image : image?.startsWith('/') ? `${SITE_URL}${image}` : `${SITE_URL}/assets/home-hero-mixto-v1.webp`;
   const metadata = `<title>${escape(title)}</title><meta name="description" content="${escape(description)}"><link rel="canonical" href="${escape(url)}"><meta property="og:title" content="${escape(title)}"><meta property="og:description" content="${escape(description)}"><meta property="og:url" content="${escape(url)}"><meta property="og:type" content="${type}"><meta property="og:image" content="${escape(imageUrl)}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="${escape(imageUrl)}">${schema ? `<script type="application/ld+json">${JSON.stringify(schema).replace(/</g,'\\u003c')}</script>` : '<meta name="robots" content="noindex">'}`;
   return template.replace('</head>', `${metadata}</head>`).replace(/<app-root[^>]*>[\s\S]*?<\/app-root>/, `<app-root ngSkipHydration>${body}</app-root>`);
 }

@@ -26,3 +26,11 @@ describe('Home catalog loading',()=>{
   finish();await fixture.whenStable();
  });
 });
+
+it('keeps the mixed home selection after the complete catalog and enhancements finish',async()=>{
+ const general={productName:'Abrazadera',imageUrl:'',brand:'Marca',productType:'Material',storeCount:1,minPrice:100,maxPrice:100,sellers:['Local']};
+ const auto={productName:'Alternador automotriz',productoMaestroId:'auto',seoPath:'/productos/alternador-automotriz',imageUrl:'/auto.webp',brand:'Por especificar',productType:'Alternador',homeGroupLabel:'Repuestos',storeCount:0,minPrice:0,maxPrice:0,sellers:[]};
+ TestBed.configureTestingModule({imports:[HomeComponent],providers:[provideRouter([]),{provide:FirebaseDataService,useValue:{refreshPublicCatalogSection:async()=>{},refreshPublicCatalogEnhancements:async()=>{},getHomeCatalogPreview:async()=>({products:[general,auto],categories:[{id:'auto-category',name:'Repuestos automotrices',icon:'car'}]}),getPopularProductRows:()=>[general],getCategoryOptions:()=>[],formatCurrency:()=>''}}]});
+ const fixture=TestBed.createComponent(HomeComponent);fixture.autoDetectChanges();await fixture.whenStable();fixture.detectChanges();
+ expect(fixture.nativeElement.textContent).toContain('Alternador automotriz');expect(fixture.nativeElement.textContent).toContain('Repuestos automotrices');expect(fixture.nativeElement.querySelector('[href="/productos/alternador-automotriz"]')).not.toBeNull();expect(fixture.nativeElement.textContent).toContain('Sin ofertas disponibles');
+});

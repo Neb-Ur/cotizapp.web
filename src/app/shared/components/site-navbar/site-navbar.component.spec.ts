@@ -119,5 +119,5 @@ it('replaces public search with store navigation in the dashboard and restores H
  expect(fixture.nativeElement.querySelectorAll('.store-header-links a')).toHaveLength(6);
  expect(fixture.nativeElement.textContent).toContain('Ir a inicio');
  url.mockReturnValue('/');fixture.detectChanges();
- expect(fixture.nativeElement.querySelector('.navbar-search')).not.toBeNull();expect(fixture.nativeElement.textContent).toContain('Ir a dashboard');
+ expect(fixture.nativeElement.querySelector('.navbar-search')).not.toBeNull();expect(fixture.nativeElement.textContent).toContain('Mi panel');
 });

@@ -1,4 +1,4 @@
-import { paginateProductSearch } from '../domain/product-search.js';
+import {homeCatalog} from '../domain/home-catalog.js';
 import { Router } from 'express';
 import { catalogLandings, seoSlug, seoProductSlug, productSeoSlugIndex } from '../domain/catalog-seo.js';
 import { createHash } from 'node:crypto';
@@ -69,9 +69,9 @@ publicCatalogRouter.get('/catalogo-publico/version', async (_req, res) => {
 // The home page needs four cards, not the entire browser catalog download.
 publicCatalogRouter.get('/catalogo-inicio', async (_req,res)=>{
   const snapshot=await getPublicCatalogSnapshot();
-  const {items}=paginateProductSearch(snapshot,{sort:'stores',page:1,size:4});
+  const preview=homeCatalog(snapshot);
   res.set('Cache-Control','no-store');
-  return res.json({ok:true,data:{products:items,categories:snapshot.taxonomy.categories.slice(0,8).map(item=>({id:item.id,name:item.nombre,icon:item.icono}))}});
+  return res.json({ok:true,data:preview});
 });
 
 publicCatalogRouter.get('/catalogo-publico', async (req, res) => {

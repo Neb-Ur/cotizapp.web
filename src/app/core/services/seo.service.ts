@@ -172,7 +172,7 @@ export class SeoService {
     image?: string,
     forcePrivate = false
   ): void {
-    image = image || `${SITE_URL}/assets/home-hero-construction.webp`;
+    image = image || `${SITE_URL}/assets/home-hero-mixto-v1.webp`;
     const canonicalUrl = `${SITE_URL}${canonicalPath === '/' ? '' : canonicalPath}`;
     const shouldIndex = page.index !== false && !forcePrivate;
 

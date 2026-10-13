@@ -27,6 +27,7 @@ export class HomeComponent implements OnInit {
   protected featuredCategories: HomeCategory[] = [];
   protected readonly catalogLoading = signal(true);
   protected catalogError = '';
+  private preview: {products:FamilyProductRow[];categories:TaxonomyOption[]} | null = null;
 
 
 
@@ -69,14 +70,11 @@ export class HomeComponent implements OnInit {
     try {
       const initialLoad = this.dataService.refreshPublicCatalogSection();
       this.syncCatalogView();
-      if(this.featuredProducts().length===0) {
-        void this.dataService.getHomeCatalogPreview().then(preview=>{
-          if(this.featuredProducts().length!==0 || !this.catalogLoading())return;
-          this.featuredCategories=preview.categories.map(category=>({...category,icon:categoryIcon(category)}));
-          this.featuredProducts.set(preview.products);
-          if(preview.products.length)this.catalogLoading.set(false);
-        }).catch(()=>undefined);
-      }
+      void this.dataService.getHomeCatalogPreview().then(preview=>{
+        this.preview=preview;
+        this.syncCatalogView();
+        if(this.featuredProducts().length)this.catalogLoading.set(false);
+      }).catch(()=>undefined);
       await initialLoad;
       this.syncCatalogView();
 
@@ -91,12 +89,11 @@ export class HomeComponent implements OnInit {
   }
 
   private syncCatalogView(): void {
-    this.featuredProducts.set(this.dataService.getPopularProductRows('', 12, undefined, false));
-    this.featuredCategories = this.dataService.getCategoryOptions(false)
-      .slice(0, 8)
-      .map((category) => ({
-        ...category,
-        icon: categoryIcon(category)
-      }));
+    const rows=this.dataService.getPopularProductRows('', Number.MAX_SAFE_INTEGER, undefined, false);
+    if(this.preview?.products.length){
+      this.featuredProducts.set(this.preview.products);
+    }else this.featuredProducts.set(rows.slice(0,4));
+    const categories=this.preview?.categories.length?this.preview.categories:this.dataService.getCategoryOptions(false).slice(0,8);
+    this.featuredCategories=categories.map(category=>({...category,icon:categoryIcon(category)}));
   }
 }

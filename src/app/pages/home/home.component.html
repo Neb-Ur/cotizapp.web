@@ -2,10 +2,10 @@
   <section class="discovery-section" aria-labelledby="home-title">
     <img
       class="discovery-background"
-      src="assets/home-hero-construction.webp"
+      src="assets/home-hero-mixto-v1.webp"
       alt=""
       width="1600"
-      height="703"
+      height="711"
       fetchpriority="high"
       decoding="async"
     />
@@ -43,7 +43,7 @@
         <span class="home-product-image">
           <img [findiProductImage]="product.imageUrl" [fullImageUrl]="product.fullImageUrl" [externalImageUrl]="product.imageFallbackUrl" [alt]="product.productName" width="360" height="240" loading="lazy" decoding="async" />
         </span>
-        <span class="home-product-meta">{{ product.brand === 'Por especificar' ? 'Producto base' : product.brand }} · {{ product.productType }}</span>
+        <span class="home-product-meta">{{ product.homeGroupLabel || product.productType }} · {{ product.brand === 'Por especificar' ? 'Producto base' : product.brand }}</span>
         <span class="home-product-name">{{ product.productName }}</span>
         <span class="home-product-pricing" [class.with-offers]="product.storeCount > 0">
           <span *ngIf="product.storeCount > 0; else noHomeOffers"><small>Desde</small><strong>{{ formatCurrency(product.minPrice) }}</strong></span>
