@@ -61,6 +61,31 @@ erDiagram
     text label "nullable"
     integer position "NOT NULL"
   }
+  brand_uses["Usos de marca"] {
+    text brand_id PK,FK "NOT NULL"
+    text use_kind PK "NOT NULL"
+  }
+  vehicle_models["Modelos de vehículos"] {
+    text id PK "NOT NULL"
+    text brand_id FK "NOT NULL"
+    text brand_use FK "NOT NULL"
+    text name "NOT NULL"
+    text normalized_name "NOT NULL"
+    boolean active "NOT NULL"
+    timestamptz created_at "NOT NULL"
+    timestamptz updated_at "NOT NULL"
+    jsonb api_payload "nullable"
+    bigint api_version "NOT NULL"
+  }
+  visit_daily_keys["Claves de visitas por día"] {
+    date visit_date PK "NOT NULL"
+    text visitor_key PK "NOT NULL"
+    timestamptz expires_at "NOT NULL"
+  }
+  visit_daily_totals["Totales de visitas por día"] {
+    date visit_date PK "NOT NULL"
+    bigint unique_visits "NOT NULL"
+  }
   brands["Marcas"] {
     text id PK "NOT NULL"
     text name "NOT NULL"
@@ -181,6 +206,7 @@ erDiagram
     text id PK "NOT NULL"
     text subcategory_id FK "NOT NULL"
     text name "NOT NULL"
+    boolean supports_vehicle_applications "NOT NULL"
     jsonb api_payload "nullable"
     bigint api_version "NOT NULL"
   }
@@ -346,6 +372,7 @@ erDiagram
     nonnegative_amount price "NOT NULL"
     text currency "NOT NULL"
     bigint stock "NOT NULL"
+    text condition "NOT NULL"
     boolean includes_vat "NOT NULL"
     text measurement_unit "nullable"
     positive_quantity measurement_quantity "nullable"
@@ -717,6 +744,7 @@ erDiagram
     text id PK "NOT NULL"
     text owner_id FK "NOT NULL"
     text business_name "NOT NULL"
+    text business_type "NOT NULL"
     text legal_name "nullable"
     text tax_id "nullable"
     text branch_name "nullable"
@@ -896,3 +924,6 @@ erDiagram
   cities o|..o{ store_locations : "city_id"
   stores ||..o{ store_reviews : "store_id"
   users ||..o{ store_reviews : "user_id"
+  brands ||--o{ brand_uses : "brand_id"
+  brands ||..o{ vehicle_models : "brand_id"
+  brand_uses ||..o{ vehicle_models : "brand_id, brand_use"

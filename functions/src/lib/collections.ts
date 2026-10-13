@@ -8,6 +8,7 @@ const names = {
   subcategories: 'subcategorias',
   families: 'familias',
   brands: 'marcas',
+  vehicleModels: 'modelosVehiculo',
   familyDefinitions: 'definicionesAtributoFamilia',
   masterProducts: 'productosMaestro',
   masterAttributes: 'atributosProductoMaestro',

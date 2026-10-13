@@ -384,6 +384,10 @@
               <button pButton type="button" [icon]="familyEditingId ? 'pi pi-check' : 'pi pi-plus'" [label]="familyEditingId ? 'Guardar' : 'Crear'" (click)="saveFamily()" [disabled]="!selectedTaxSubcategoryId"></button>
               <button pButton type="button" icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" *ngIf="familyEditingId" (click)="resetTaxonomyDrafts()" aria-label="Cancelar"></button>
             </div>
+            <label class="taxonomy-check-card">
+              <p-checkbox [(ngModel)]="familySupportsVehicles" [binary]="true" inputId="family-vehicle-capability" [disabled]="!selectedTaxSubcategoryId" />
+              <span><strong>Permite asociar vehículos</strong><small>Solo las familias habilitadas admitirán marca, modelo y año de vehículo.</small></span>
+            </label>
             <div class="taxonomy-list">
               <article class="taxonomy-item" *ngFor="let family of selectedTaxFamilies" [class.active]="selectedTaxFamilyId === family.id">
                 <button type="button" class="taxonomy-item-main" (click)="selectTaxFamily(family.id)">
@@ -521,6 +525,7 @@
           </p-card>
         </div>
       </div>
+      <app-vehicle-catalog-admin />
     </article>
 
     <article class="panel master-catalog-panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'productos' && catalogAdminView === 'productos'">

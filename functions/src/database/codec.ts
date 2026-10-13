@@ -5,6 +5,7 @@ import type { PoolClient } from 'pg';
 import type { Data } from './port.js';
 import { isOfferCondition } from '../domain/offer-condition.js';
 import { isBusinessType } from '../domain/business-type.js';
+import { brandUses, validBrandUses } from '../domain/brand-use.js';
 import {CURRENT_STORE_AGREEMENT_VERSION,STORE_AGREEMENT_PROVIDER,STORE_AGREEMENT_CLAUSES} from '../lib/legal.js';
 export type SqlClient = Pick<PoolClient,'query'>;
 export const mappingByCollection = new Map(Object.entries(mappings).map(([key,value])=>[value.sourceCollection,{key,...value}]));
@@ -33,6 +34,14 @@ const get=(data:Data,path:string)=>path.split('.').reduce((v,k)=>v?.[k],data);
 async function resolved(client:SqlClient,table:string,id:any):Promise<string|null>{if(!id)return null;const rows=await client.query(`SELECT id FROM findi.${quote(table)} WHERE id=$1`,[id]);return rows.rows.length?String(id):null;}
 export async function writeDocument(client:SqlClient,collection:string,id:string,input:Data) {
  const mapping=mappingFor(collection),key=mapping.key;
+ if(key==='brands'){
+  if(input.usos!==undefined&&!validBrandUses(input.usos))throw new Error('BRAND_USES_INVALID');
+  input={...input,usos:brandUses(input.usos)};
+ }
+ if(key==='families'){
+  if(input.permiteVehiculos!==undefined&&typeof input.permiteVehiculos!=='boolean')throw new Error('FAMILY_VEHICLE_CAPABILITY_INVALID');
+  input={...input,permiteVehiculos:input.permiteVehiculos??false};
+ }
  if(key==='stores'){
   if(input.tipoNegocio!==undefined&&!isBusinessType(input.tipoNegocio))throw new Error('BUSINESS_TYPE_INVALID');
   input={...input,tipoNegocio:input.tipoNegocio??'ferreteria'};
@@ -100,6 +109,11 @@ export async function writeDocument(client:SqlClient,collection:string,id:string
  await materializeChildren(client,key,id,data);
 }
 async function materializeChildren(client:SqlClient,key:string,id:string,data:Data) {
+ if(key==='brands'){
+  const uses=brandUses(data.usos);
+  for(const use of uses)await upsert(client,'brand_uses',{brand_id:id,use_kind:use},['brand_id','use_kind']);
+  await client.query('DELETE FROM findi.brand_uses WHERE brand_id=$1 AND NOT(use_kind=ANY($2::text[]))',[id,uses]);
+ }
  if(key==='familyDefinitions'){
   const options=Array.isArray(data.opcionesJson)?data.opcionesJson:[];
   if(options.length)await client.query(`INSERT INTO findi.attribute_options(definition_id,value,label,position)

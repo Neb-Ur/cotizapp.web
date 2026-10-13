@@ -1,3 +1,4 @@
+import { VehicleCatalogAdminComponent } from '../../shared/components/vehicle-catalog-admin/vehicle-catalog-admin.component';
 import { BUSINESS_TYPES, businessTypeLabel, normalizeBusinessType, type BusinessType } from '../../core/utils/business-type.util';
 import {AdminMetricsComponent} from '../../shared/components/admin-metrics/admin-metrics.component';
 import {AdminMetricsService,AdminMetrics} from '../../core/services/admin-metrics.service';
@@ -148,6 +149,7 @@ interface AdminSectionMeta {
   selector: 'app-dashboard-admin-validaciones',
   standalone: true,
   imports: [
+    VehicleCatalogAdminComponent,
     AdminMetricsComponent,
     ProductImageUploadComponent,
     PasswordFieldComponent,
@@ -303,6 +305,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   protected categoryEditingId: string | null = null;
   protected subcategoryDraftName = '';
   protected subcategoryEditingId: string | null = null;
+  protected familySupportsVehicles = false;
   protected familyDraftName = '';
   protected familyEditingId: string | null = null;
   protected definitionDraft: AdminDefinitionDraft = this.createEmptyDefinitionDraft();
@@ -781,6 +784,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   protected editFamily(family: TaxonomyOption): void {
     this.familyEditingId = family.id;
     this.familyDraftName = family.name;
+    this.familySupportsVehicles = family.supportsVehicleApplications === true;
     this.selectedTaxSubcategoryId = family.parentId || this.selectedTaxSubcategoryId;
     this.selectTaxSubcategory(this.selectedTaxSubcategoryId);
     this.selectTaxFamily(family.id);
@@ -810,6 +814,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     this.subcategoryDraftName = '';
     this.familyEditingId = null;
     this.familyDraftName = '';
+    this.familySupportsVehicles = false;
     this.resetDefinitionDraft();
   }
 
@@ -866,11 +871,12 @@ export class DashboardAdminValidacionesComponent implements OnInit {
 
       try {
         const family = this.familyEditingId
-          ? await this.apiService.updateFamily(this.familyEditingId, this.selectedTaxSubcategoryId, this.familyDraftName)
-          : await this.apiService.createFamily(this.selectedTaxSubcategoryId, this.familyDraftName);
+          ? await this.apiService.updateFamily(this.familyEditingId, this.selectedTaxSubcategoryId, this.familyDraftName, this.familySupportsVehicles)
+          : await this.apiService.createFamily(this.selectedTaxSubcategoryId, this.familyDraftName, this.familySupportsVehicles);
         this.selectedTaxFamilyId = family.id;
         this.notice = this.familyEditingId ? 'Familia actualizada.' : 'Familia creada.';
         this.familyDraftName = '';
+        this.familySupportsVehicles = false;
         this.familyEditingId = null;
       } catch (error) {
         this.error = error instanceof Error ? error.message : 'No fue posible guardar la familia.';

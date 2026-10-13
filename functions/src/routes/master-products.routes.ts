@@ -8,6 +8,7 @@ import { COLLECTIONS } from '../lib/collections.js';
 import { nowIso, normalizeText, numberValue } from '../lib/values.js';
 import { rows, row, createRow, patchRow, deleteRowsByIds } from '../repositories/firestore.repository.js';
 import { resolveProductBrand } from '../lib/brands.js';
+import { brandUses } from '../domain/brand-use.js';
 export const masterProductsRouter = Router();
 
 const validImageSources = ['external_url', 'ai_generated', 'manufacturer_authorized', 'store_authorized', 'licensed_stock', 'original', 'other'];
@@ -72,7 +73,7 @@ function contentRightsPayload(body: Record<string, any>, reviewerId: string | un
 }
 
 masterProductsRouter.get('/marcas', async (_req, res) => {
-  const brands = (await rows(COLLECTIONS.brands)).map(item => ({ id: item.id, nombre: item.nombre })).sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+  const brands = (await rows(COLLECTIONS.brands)).filter(item=>brandUses(item.usos).includes('fabricante')).map(item => ({ id: item.id, nombre: item.nombre })).sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
   return ok(res, brands);
 });
 

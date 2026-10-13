@@ -102,7 +102,8 @@
       "nombre": "families.name",
       "subcategoriaId": "families.subcategory_id",
       "catalogoPlanVersion": "families.api_payload.catalogoPlanVersion (compatibility metadata)",
-      "catalogoPlanFecha": "families.api_payload.catalogoPlanFecha (compatibility metadata)"
+      "catalogoPlanFecha": "families.api_payload.catalogoPlanFecha (compatibility metadata)",
+      "permiteVehiculos": "families.supports_vehicle_applications"
     },
     "notes": "",
     "sourceCollection": "familias",
@@ -110,13 +111,15 @@
   },
   "brands": {
     "tables": [
-      "brands"
+      "brands",
+      "brand_uses"
     ],
     "fields": {
       "nombre": "brands.name",
       "nombreNormalizado": "brands.normalized_name",
       "creadoEn": "brands.created_at",
-      "actualizadoEn": "brands.updated_at"
+      "actualizadoEn": "brands.updated_at",
+      "usos": "brand_uses.use_kind[]"
     },
     "notes": "",
     "sourceCollection": "marcas",
@@ -703,5 +706,21 @@
       "updatedAt": "store_reviews.updated_at"
     },
     "sourceCollection": "real_resenasFerreteria"
+  },
+  "vehicleModels": {
+    "tables": [
+      "vehicle_models"
+    ],
+    "fields": {
+      "marcaId": "vehicle_models.brand_id",
+      "nombre": "vehicle_models.name",
+      "nombreNormalizado": "vehicle_models.normalized_name",
+      "activo": "vehicle_models.active",
+      "creadoEn": "vehicle_models.created_at",
+      "actualizadoEn": "vehicle_models.updated_at"
+    },
+    "notes": "Vehicle model identity is independent of product_models and references a brand with vehicle use.",
+    "sourceCollection": "modelosVehiculo",
+    "idStrategy": "Preserve ID; normalized name unique within vehicle brand."
   }
 }

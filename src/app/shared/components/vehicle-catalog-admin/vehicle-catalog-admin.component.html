@@ -1,0 +1,22 @@
+<section class="vehicle-catalog" aria-labelledby="vehicle-catalog-title">
+  <h3 id="vehicle-catalog-title">Marcas y modelos de vehículos</h3>
+  <p>Administra las marcas y sus modelos de vehículos. Estas referencias se usarán al asociar vehículos a los repuestos.</p>
+  <p *ngIf="loading" role="status">Cargando referencias de vehículos…</p>
+  <p *ngIf="error" class="error" role="alert">{{ error }} <button type="button" (click)="load()" [disabled]="saving">Reintentar carga</button></p>
+  <p *ngIf="notice" class="notice" role="status">{{ notice }}</p>
+  <div class="reference-grid" *ngIf="!loading">
+    <div>
+      <h4>Marcas</h4>
+      <form (ngSubmit)="addBrand()"><label>Nueva marca de vehículo<input name="brandName" [(ngModel)]="brandName" maxlength="120" required [disabled]="saving" placeholder="Ej.: Chevrolet" /></label><button type="submit" [disabled]="saving || !brandName.trim()">Registrar marca</button></form>
+      <form (ngSubmit)="enableBrand()"><label>Usar una marca existente<select name="existingBrand" [(ngModel)]="existingBrandId" [disabled]="saving"><option value="">Selecciona marca</option><option *ngFor="let brand of availableBrands" [value]="brand.id">{{ brand.nombre }}</option></select></label><button type="submit" [disabled]="saving || !existingBrandId">Habilitar para vehículos</button></form>
+      <small>Una marca puede usarse como fabricante del producto y como marca de vehículo.</small>
+    </div>
+    <div>
+      <h4>Modelos por marca</h4>
+      <label>Marca de vehículo<select [(ngModel)]="selectedBrandId" (ngModelChange)="resetModel()" [disabled]="saving"><option value="">Selecciona marca</option><option *ngFor="let brand of vehicleBrands" [value]="brand.id">{{ brand.nombre }}</option></select></label>
+      <form (ngSubmit)="saveModel()"><label>{{ editingId ? 'Editar modelo' : 'Nuevo modelo' }}<input name="modelName" [(ngModel)]="modelName" required maxlength="120" [disabled]="saving || !selectedBrandId" placeholder="Ej.: Corsa" /></label><div class="actions"><button type="submit" [disabled]="saving || !selectedBrandId || !modelName.trim()">{{ editingId ? 'Guardar modelo' : 'Registrar modelo' }}</button><button *ngIf="editingId" type="button" (click)="resetModel()" [disabled]="saving">Cancelar</button></div></form>
+      <div class="table-wrap" *ngIf="models.length"><table><caption class="visually-hidden">Modelos de la marca seleccionada</caption><thead><tr><th scope="col">Modelo</th><th scope="col">Estado</th><th scope="col">Acciones</th></tr></thead><tbody><tr *ngFor="let model of models"><td>{{ model.nombre }}</td><td>{{ model.activo ? 'Activo' : 'Inactivo' }}</td><td class="actions"><button type="button" (click)="editModel(model)" [disabled]="saving">Editar</button><button type="button" (click)="toggleModel(model)" [disabled]="saving">{{ model.activo ? 'Desactivar' : 'Activar' }}</button></td></tr></tbody></table></div>
+      <p *ngIf="!models.length">{{ selectedBrandId ? 'Esta marca todavía no tiene modelos.' : 'Selecciona o registra una marca de vehículo.' }}</p>
+    </div>
+  </div>
+</section>

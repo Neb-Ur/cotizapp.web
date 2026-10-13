@@ -8,7 +8,7 @@ import {replicateDocument} from '../lib/database/replication.js';
 import {useSqlDatabase} from '../lib/database/config.js';
 async function fixture(t,ready=true,includeCondition=true){
  const pg=new PGlite();
- for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql','013-store-reviews.sql','015-offer-condition.sql','016-store-business-type.sql'].filter(file=>includeCondition||file!=='015-offer-condition.sql'))await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
+ for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql','013-store-reviews.sql','015-offer-condition.sql','016-store-business-type.sql','017-vehicle-reference-catalog.sql'].filter(file=>includeCondition||file!=='015-offer-condition.sql'))await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
  const pool={connect:async()=>({query:pg.query.bind(pg),release(){}})};
  const db=new PostgresDatabase(pool,ready);
  t.after(()=>pg.close());
@@ -212,4 +212,26 @@ test('SQL stores business classification in columns and payload without changing
  assert.equal((await db.collection('usuarios').doc('store-owner').get()).data().rol,'ferreteria');
  await assert.rejects(db.collection('real_ferreterias').doc('store').update({tipoNegocio:'admin'}),/BUSINESS_TYPE_INVALID/);
  await assert.rejects(pg.query("UPDATE findi.stores SET business_type='admin' WHERE id='store'"));
+});
+
+test('vehicle references enforce brand use and keep manufacturer, product model and family relationships intact',async t=>{
+ const {db,pg}=await fixture(t);await catalog(db);
+ await db.collection('productosMaestro').doc('product').update({modelo:'Modelo comercial'});
+ const previous=(await pg.query('SELECT model_id,brand_id,family_id FROM findi.products WHERE id=$1',['product'])).rows[0];
+ const model={marcaId:'brand',nombre:'Modelo de vehículo',nombreNormalizado:'modelo de vehiculo',activo:true};
+ await assert.rejects(db.collection('modelosVehiculo').doc('v').set(model));
+ await db.collection('marcas').doc('brand').update({usos:['fabricante','vehiculo']});
+ await db.collection('modelosVehiculo').doc('v').set(model);
+ const saved=(await pg.query('SELECT brand_id,brand_use,name FROM findi.vehicle_models WHERE id=$1',['v'])).rows[0];
+ assert.equal(saved.brand_id,'brand');assert.equal(saved.brand_use,'vehiculo');
+ assert.deepEqual((await pg.query('SELECT model_id,brand_id,family_id FROM findi.products WHERE id=$1',['product'])).rows[0],previous);
+ assert.equal((await pg.query('SELECT count(*)::int n FROM findi.product_models')).rows[0].n,1);
+ await assert.rejects(db.collection('modelosVehiculo').doc('duplicate').set(model));
+ await assert.rejects(db.collection('marcas').doc('brand').update({usos:['fabricante']}));
+ assert.deepEqual((await db.collection('marcas').doc('brand').get()).data().usos,['fabricante','vehiculo']);
+ let family=(await pg.query('SELECT supports_vehicle_applications,api_payload FROM findi.families WHERE id=$1',['family'])).rows[0];
+ assert.equal(family.supports_vehicle_applications,false);assert.equal(family.api_payload.permiteVehiculos,false);
+ await db.collection('familias').doc('family').update({permiteVehiculos:true});await db.collection('familias').doc('family').update({nombre:'Familia actualizada'});
+ family=(await pg.query('SELECT supports_vehicle_applications,api_payload FROM findi.families WHERE id=$1',['family'])).rows[0];assert.equal(family.supports_vehicle_applications,true);assert.equal(family.api_payload.permiteVehiculos,true);
+ await assert.rejects(db.collection('familias').doc('family').update({permiteVehiculos:'false'}),/FAMILY_VEHICLE_CAPABILITY_INVALID/);
 });

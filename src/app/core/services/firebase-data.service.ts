@@ -434,22 +434,24 @@ export class FirebaseDataService {
     await this.ensureTaxonomyLoaded(true);
   }
 
-  async createFamily(subcategoryId: string, name: string): Promise<TaxonomyOption> {
+  async createFamily(subcategoryId: string, name: string, supportsVehicleApplications?: boolean): Promise<TaxonomyOption> {
     const created = await this.apiClient.post<any>('/familias', {
       subcategoriaId: subcategoryId,
-      nombre: name.trim()
+      nombre: name.trim(),
+      ...(supportsVehicleApplications !== undefined ? { permiteVehiculos: supportsVehicleApplications } : {})
     }, true);
     await this.ensureTaxonomyLoaded(true);
-    return { id: created.id, parentId: created.subcategoriaId, name: created.nombre };
+    return { id: created.id, parentId: created.subcategoriaId, name: created.nombre, supportsVehicleApplications: created.permiteVehiculos === true };
   }
 
-  async updateFamily(familyId: string, subcategoryId: string, name: string): Promise<TaxonomyOption> {
+  async updateFamily(familyId: string, subcategoryId: string, name: string, supportsVehicleApplications?: boolean): Promise<TaxonomyOption> {
     const updated = await this.apiClient.patch<any>(`/familias/${familyId}`, {
       subcategoriaId: subcategoryId,
-      nombre: name.trim()
+      nombre: name.trim(),
+      ...(supportsVehicleApplications !== undefined ? { permiteVehiculos: supportsVehicleApplications } : {})
     }, true);
     await this.ensureTaxonomyLoaded(true);
-    return { id: updated.id, parentId: updated.subcategoriaId, name: updated.nombre };
+    return { id: updated.id, parentId: updated.subcategoriaId, name: updated.nombre, supportsVehicleApplications: updated.permiteVehiculos === true };
   }
 
   async deleteFamily(familyId: string): Promise<void> {
@@ -1872,6 +1874,7 @@ export class FirebaseDataService {
     this.replaceArray(this.families, families.map((item) => ({
       id: item.id,
       parentId: item.subcategoriaId,
+      supportsVehicleApplications: item.permiteVehiculos === true,
       name: item.nombre, icon: item.icono
     })));
 
@@ -1938,7 +1941,7 @@ export class FirebaseDataService {
 
         this.replaceArray(this.categories, categories.map((item) => ({ id: item.id, name: item.nombre, icon: item.icono })));
         this.replaceArray(this.subcategories, subcategories.map((item) => ({ id: item.id, parentId: item.categoriaId, name: item.nombre })));
-        this.replaceArray(this.families, families.map((item) => ({ id: item.id, parentId: item.subcategoriaId, name: item.nombre })));
+        this.replaceArray(this.families, families.map((item) => ({ id: item.id, parentId: item.subcategoriaId, name: item.nombre, supportsVehicleApplications: item.permiteVehiculos === true })));
       } catch (error) {
         throw this.recordLoadError('basic-taxonomy', error, 'No se pudieron cargar las categorías.');
       } finally {

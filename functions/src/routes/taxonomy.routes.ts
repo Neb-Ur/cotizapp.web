@@ -78,14 +78,17 @@ taxonomyRouter.get('/familias', async (req, res) => {
 });
 
 taxonomyRouter.post('/familias', requireAuth, requireRole('admin'), async (req, res) => {
+  if (req.body?.permiteVehiculos !== undefined && typeof req.body.permiteVehiculos !== 'boolean') return fail(res, 'FAMILY_VEHICLE_CAPABILITY_INVALID', 'La habilitación de vehículos debe ser sí o no.', 400);
   const nombre = normalizeText(req.body?.nombre);
   const subcategoriaId = normalizeText(req.body?.subcategoriaId);
   if (!nombre || !subcategoriaId) return fail(res, 'TAXONOMIA_INVALID_PAYLOAD', 'Subcategoria y nombre son requeridos.', 400);
-  return ok(res, await createRow(COLLECTIONS.families, { nombre, subcategoriaId }), 201);
+  return ok(res, await createRow(COLLECTIONS.families, { nombre, subcategoriaId, permiteVehiculos: req.body?.permiteVehiculos === true }), 201);
 });
 
 taxonomyRouter.patch('/familias/:id', requireAuth, requireRole('admin'), async (req, res) => {
+  if (req.body?.permiteVehiculos !== undefined && typeof req.body.permiteVehiculos !== 'boolean') return fail(res, 'FAMILY_VEHICLE_CAPABILITY_INVALID', 'La habilitación de vehículos debe ser sí o no.', 400);
   const patch: Record<string, unknown> = {};
+  if (req.body?.permiteVehiculos !== undefined) patch['permiteVehiculos'] = req.body.permiteVehiculos;
   if (req.body?.nombre !== undefined) patch['nombre'] = normalizeText(req.body.nombre);
   if (req.body?.subcategoriaId !== undefined) patch['subcategoriaId'] = normalizeText(req.body.subcategoriaId);
   const updated = await patchRow(COLLECTIONS.families, req.params.id, patch);

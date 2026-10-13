@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { catalogLandings, seoSlug, seoProductSlug, productSeoSlugIndex } from '../domain/catalog-seo.js';
 import { createHash } from 'node:crypto';
 import { brandIdentity } from '../domain/brand-identity.js';
+import { brandUses } from '../domain/brand-use.js';
 import { getStaticCatalog, staticCatalogRevision } from '../lib/product-sheet-cache.js';
 import { getPublicCatalogMetadata, getPublicCatalogSnapshot } from '../lib/public-catalog-cache.js';
 
@@ -107,7 +108,7 @@ publicCatalogRouter.get('/catalogo-busqueda', async (req, res) => {
       categoryId: item.categoriaId, subcategoryId: item.subcategoriaId, familyId: item.familiaId
     })).sort((a, b) => a.id.localeCompare(b.id)),
     categories: options(categories), subcategories: options(subcategories), families: options(families),
-    brands: options(brands)
+    brands: options(brands.filter(brand=>brandUses(brand.usos).includes('fabricante')))
   };
   const version = createHash('sha256').update(JSON.stringify(payload)).digest('hex').slice(0, 24);
   res.set('Cache-Control', 'no-store');

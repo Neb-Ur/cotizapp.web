@@ -1,6 +1,6 @@
 # Diagrama completo de la base de datos Findi
 
-Generado a partir de las claves y columnas reales de [001-schema.sql](../../sql/findi/001-schema.sql) [005-runtime-compatibility.sql](../../sql/findi/005-runtime-compatibility.sql) [008-location-reference-tables.sql](../../sql/findi/008-location-reference-tables.sql), [011-quotation-verification.sql](../../sql/findi/011-quotation-verification.sql), [012-advisory-quotation-period.sql](../../sql/findi/012-advisory-quotation-period.sql) y [013-store-reviews.sql](../../sql/findi/013-store-reviews.sql). Incluye **59 tablas del esquema findi y 2 tablas temporales de findi_migration**, todas sus columnas y las 101 claves foráneas declaradas. El servidor ya admite este modelo; Firestore sigue activo mientras USE_SQL_DATABASE sea false.
+Generado a partir de las claves y columnas reales de [001-schema.sql](../../sql/findi/001-schema.sql) [005-runtime-compatibility.sql](../../sql/findi/005-runtime-compatibility.sql) [008-location-reference-tables.sql](../../sql/findi/008-location-reference-tables.sql), [011-quotation-verification.sql](../../sql/findi/011-quotation-verification.sql), [012-advisory-quotation-period.sql](../../sql/findi/012-advisory-quotation-period.sql) [013-store-reviews.sql](../../sql/findi/013-store-reviews.sql), [014-visit-analytics.sql](../../sql/findi/014-visit-analytics.sql), [015-offer-condition.sql](../../sql/findi/015-offer-condition.sql), [016-store-business-type.sql](../../sql/findi/016-store-business-type.sql) y [017-vehicle-reference-catalog.sql](../../sql/findi/017-vehicle-reference-catalog.sql). Incluye **63 tablas del esquema findi y 2 tablas temporales de findi_migration**, todas sus columnas y las 104 claves foráneas declaradas. PostgreSQL está activo para los datos de aplicación; Firebase Authentication conserva las cuentas. Los modelos de producto y de vehículo son entidades diferentes; los años irán en las asociaciones de publicaciones del siguiente punto.
 
 Abre la vista previa Markdown para visualizarlo. El [archivo Mermaid independiente](diagrama-completo.mmd) permite ampliar y exportar el diagrama en un visor compatible. Al final hay vistas por área para explorar el mismo modelo con menos cruces.
 
@@ -79,6 +79,31 @@ erDiagram
     text value PK "NOT NULL"
     text label "nullable"
     integer position "NOT NULL"
+  }
+  brand_uses["Usos de marca"] {
+    text brand_id PK,FK "NOT NULL"
+    text use_kind PK "NOT NULL"
+  }
+  vehicle_models["Modelos de vehículos"] {
+    text id PK "NOT NULL"
+    text brand_id FK "NOT NULL"
+    text brand_use FK "NOT NULL"
+    text name "NOT NULL"
+    text normalized_name "NOT NULL"
+    boolean active "NOT NULL"
+    timestamptz created_at "NOT NULL"
+    timestamptz updated_at "NOT NULL"
+    jsonb api_payload "nullable"
+    bigint api_version "NOT NULL"
+  }
+  visit_daily_keys["Claves de visitas por día"] {
+    date visit_date PK "NOT NULL"
+    text visitor_key PK "NOT NULL"
+    timestamptz expires_at "NOT NULL"
+  }
+  visit_daily_totals["Totales de visitas por día"] {
+    date visit_date PK "NOT NULL"
+    bigint unique_visits "NOT NULL"
   }
   brands["Marcas"] {
     text id PK "NOT NULL"
@@ -200,6 +225,7 @@ erDiagram
     text id PK "NOT NULL"
     text subcategory_id FK "NOT NULL"
     text name "NOT NULL"
+    boolean supports_vehicle_applications "NOT NULL"
     jsonb api_payload "nullable"
     bigint api_version "NOT NULL"
   }
@@ -365,6 +391,7 @@ erDiagram
     nonnegative_amount price "NOT NULL"
     text currency "NOT NULL"
     bigint stock "NOT NULL"
+    text condition "NOT NULL"
     boolean includes_vat "NOT NULL"
     text measurement_unit "nullable"
     positive_quantity measurement_quantity "nullable"
@@ -736,6 +763,7 @@ erDiagram
     text id PK "NOT NULL"
     text owner_id FK "NOT NULL"
     text business_name "NOT NULL"
+    text business_type "NOT NULL"
     text legal_name "nullable"
     text tax_id "nullable"
     text branch_name "nullable"
@@ -915,6 +943,9 @@ erDiagram
   cities o|..o{ store_locations : "city_id"
   stores ||..o{ store_reviews : "store_id"
   users ||..o{ store_reviews : "user_id"
+  brands ||--o{ brand_uses : "brand_id"
+  brands ||..o{ vehicle_models : "brand_id"
+  brand_uses ||..o{ vehicle_models : "brand_id, brand_use"
 ```
 
 ## Cuentas, ferreterías y preferencias
@@ -1506,7 +1537,11 @@ Los nombres en español son las etiquetas del diagrama. El esquema SQL conserva 
 | Historial de acciones administrativas | `findi.admin_audit_logs` | Registra quién hizo cambios administrativos y su resultado. |
 | Atributos de cada familia | `findi.attribute_definitions` | Define características como color, espesor o material. |
 | Opciones de atributos | `findi.attribute_options` | Valores permitidos para atributos de selección. |
-| Marcas | `findi.brands` | Marcas reales asociadas a productos. |
+| Marcas | `findi.brands` | Registro compartido de marcas de fabricantes y vehículos. |
+| Usos de marca | `findi.brand_uses` | Una marca puede tener uso de fabricante, vehículo o ambos. |
+| Modelos de vehículos | `findi.vehicle_models` | Modelo con marca de vehículo validada; conserva identidad al renombrar. |
+| Claves de visitas por día | `findi.visit_daily_keys` | Clave seudónima por día; no almacena la IP original. |
+| Totales de visitas por día | `findi.visit_daily_totals` | Conteo diario agregado de visitas. |
 | Versiones del catálogo | `findi.catalog_revisions` | Versiones para actualizar el catálogo y las ofertas en caché. |
 | Índice de búsqueda de productos | `findi.catalog_search_documents` | Información preparada para buscar productos rápidamente. |
 | Categorías | `findi.categories` | Primer nivel de clasificación e iconos. |

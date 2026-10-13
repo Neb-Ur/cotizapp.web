@@ -228,6 +228,7 @@ export interface SearchProximity {
 }
 
 export interface TaxonomyOption {
+  supportsVehicleApplications?: boolean;
   icon?: string;
   id: string;
   name: string;

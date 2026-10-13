@@ -91,7 +91,7 @@ export class PostgresDatabase implements Database {
    await writeDocument(client,ref.collectionName,ref.id,data);
   }
   const key=mappingFor(ref.collectionName).key;
-  const staticKeys=['masterProducts','masterAttributes','familyDefinitions','categories','subcategories','families','brands'];
+  const staticKeys=['masterProducts','masterAttributes','familyDefinitions','categories','subcategories','families','brands','vehicleModels'];
   if(staticKeys.includes(key)||['stores','users','storeProducts','storeAgreements'].includes(key)){
    const scopes=staticKeys.includes(key)?['static','offers']:['offers'];
    await client.query('UPDATE findi.catalog_revisions SET revision=revision+1,changed_at=now() WHERE scope=ANY($1::text[])',[scopes]);
