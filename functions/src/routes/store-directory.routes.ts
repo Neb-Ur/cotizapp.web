@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { isBusinessType } from '../domain/business-type.js';
 import { createHash } from 'node:crypto';
 import { db } from '../lib/firebase.js';
 import { COLLECTIONS } from '../lib/collections.js';
@@ -18,10 +19,12 @@ const publicReview = (review: any) => ({ id: review.id, authorName: review.autho
 storeDirectoryRouter.get('/directorio-ferreterias', async (req, res) => {
   const paging = pagination(req.query);
   if (!paging) return fail(res, 'DIRECTORY_INVALID_PAGE', 'La página no es válida.', 400);
+  const businessType = String(req.query['tipoNegocio'] || '');
+  if (businessType && !isBusinessType(businessType)) return fail(res, 'BUSINESS_TYPE_INVALID', 'El tipo de negocio no es válido.', 400);
   const stores = await directoryStores();
   const region = locationKey(String(req.query['region'] || '')), commune = locationKey(String(req.query['comuna'] || ''));
   const query = locationKey(String(req.query['q'] || ''));
-  const filtered = stores.filter(store => (!region || locationKey(store.region) === region)
+  const filtered = stores.filter(store => (!businessType || store.businessType === businessType) && (!region || locationKey(store.region) === region)
     && (!commune || locationKey(store.commune) === commune) && (!query || locationKey(store.name).includes(query)));
   const reviews = await rows(COLLECTIONS.storeReviews);
   const byStore = new Map<string, any[]>();

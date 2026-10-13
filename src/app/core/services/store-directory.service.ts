@@ -5,8 +5,8 @@ import { StoreDirectoryPage, StoreReview, StoreReviewPage } from '../models/app.
 @Injectable({ providedIn: 'root' })
 export class StoreDirectoryService {
   constructor(private readonly api: ApiClientService) {}
-  list(page = 1, region = '', commune = '', query = '', size = 12): Promise<StoreDirectoryPage> {
-    return this.api.get('/directorio-ferreterias', false, { page, size, region, comuna: commune, q: query });
+  list(page = 1, region = '', commune = '', query = '', size = 12, businessType = ''): Promise<StoreDirectoryPage> {
+    return this.api.get('/directorio-ferreterias', false, { page, size, region, comuna: commune, q: query, ...(businessType ? { tipoNegocio: businessType } : {}) });
   }
   detail(id: string, page = 1): Promise<StoreReviewPage> {
     return this.api.get(`/directorio-ferreterias/${encodeURIComponent(id)}`, false, { page });

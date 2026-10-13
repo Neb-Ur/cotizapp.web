@@ -29,6 +29,13 @@ describe('store directory',()=>{
   component.region='Metropolitana';component.commune='Vieja';component.filterChanged(true);await harness.fixture.whenStable();
   expect(api.list).toHaveBeenLastCalledWith(1,'Metropolitana','','');
  });
+ it('keeps location filters and resets pagination when selecting a business type',async()=>{
+  const {api,harness}=await setup();const component=await harness.navigateByUrl('/ferreterias',FerreteriasComponent) as any;
+  await harness.fixture.whenStable();component.region='Metropolitana';component.commune='Maipú';component.page=2;component.businessType='desarmaduria';component.filterChanged();
+  await harness.fixture.whenStable();harness.detectChanges();
+  expect(api.list).toHaveBeenLastCalledWith(1,'Metropolitana','Maipú','',12,'desarmaduria');
+  expect(harness.routeNativeElement!.querySelector('select[name="businessType"]')).not.toBeNull();
+ });
  it('lets maestros save, edit and remove their own review and refresh the scores',async()=>{
   const {api,harness}=await setup('maestro');
   const component=await harness.navigateByUrl('/ferreterias/s',FerreteriasComponent) as any;

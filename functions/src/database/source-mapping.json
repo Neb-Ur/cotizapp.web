@@ -59,7 +59,8 @@
       "propiedadIntelectualEstado": "stores.ip_status",
       "propiedadIntelectualReporteId": "stores.ip_report_id",
       "creadoEn": "stores.created_at",
-      "actualizadoEn": "stores.updated_at"
+      "actualizadoEn": "stores.updated_at",
+      "tipoNegocio": "stores.business_type"
     },
     "notes": "Several stores per owner remain possible. Preserve current first/default store using account_preferences.primary_store_id.",
     "sourceCollection": "real_ferreterias",

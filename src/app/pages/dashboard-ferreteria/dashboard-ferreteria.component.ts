@@ -1,3 +1,4 @@
+import { BUSINESS_TYPES, businessTypeLabel, normalizeBusinessType, type BusinessType } from '../../core/utils/business-type.util';
 import { OFFER_CONDITIONS, normalizeOfferCondition, offerConditionLabel, type OfferCondition } from '../../core/utils/offer-condition.util';
 import { StoreQuotationVerifierComponent } from '../../shared/components/store-quotation-verifier/store-quotation-verifier.component';
 import { StoreDailyAnalytics } from '../../core/models/app.models';
@@ -128,7 +129,10 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   protected outOfStock = 0;
   protected lastCatalogUpdate = '';
 
+  protected readonly businessTypes = BUSINESS_TYPES;
+  protected readonly businessTypeLabel = businessTypeLabel;
   protected profileDraft = {
+    businessType: 'ferreteria' as BusinessType,
     displayName: '',
     businessName: '',
     phone: '',
@@ -813,6 +817,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
     const currentUser = this.user;
     if (!currentUser) return;
     this.profileDraft = {
+      businessType: normalizeBusinessType(this.user?.businessType),
       displayName: currentUser.displayName,
       businessName: currentUser.businessName || currentUser.displayName,
       phone: currentUser.phone || '',

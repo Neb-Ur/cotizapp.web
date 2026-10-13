@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import type { PoolClient } from 'pg';
 import type { Data } from './port.js';
 import { isOfferCondition } from '../domain/offer-condition.js';
+import { isBusinessType } from '../domain/business-type.js';
 import {CURRENT_STORE_AGREEMENT_VERSION,STORE_AGREEMENT_PROVIDER,STORE_AGREEMENT_CLAUSES} from '../lib/legal.js';
 export type SqlClient = Pick<PoolClient,'query'>;
 export const mappingByCollection = new Map(Object.entries(mappings).map(([key,value])=>[value.sourceCollection,{key,...value}]));
@@ -32,6 +33,10 @@ const get=(data:Data,path:string)=>path.split('.').reduce((v,k)=>v?.[k],data);
 async function resolved(client:SqlClient,table:string,id:any):Promise<string|null>{if(!id)return null;const rows=await client.query(`SELECT id FROM findi.${quote(table)} WHERE id=$1`,[id]);return rows.rows.length?String(id):null;}
 export async function writeDocument(client:SqlClient,collection:string,id:string,input:Data) {
  const mapping=mappingFor(collection),key=mapping.key;
+ if(key==='stores'){
+  if(input.tipoNegocio!==undefined&&!isBusinessType(input.tipoNegocio))throw new Error('BUSINESS_TYPE_INVALID');
+  input={...input,tipoNegocio:input.tipoNegocio??'ferreteria'};
+ }
  if(key==='storeProducts'){
   if(input.condicion!==undefined&&!isOfferCondition(input.condicion))throw new Error('OFFER_CONDITION_INVALID');
   input={...input,condicion:input.condicion??'sin_especificar'};

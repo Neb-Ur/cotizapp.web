@@ -1,6 +1,7 @@
 import { row, rows } from '../repositories/firestore.repository.js';
 import { COLLECTIONS } from '../lib/collections.js';
 import { coordinateValue } from '../lib/values.js';
+import { normalizeBusinessType } from '../domain/business-type.js';
 export async function authUserResponse(userId: string): Promise<any | null> {
   const user = await row(COLLECTIONS.users, userId);
   if (!user) return null;
@@ -10,6 +11,7 @@ export async function authUserResponse(userId: string): Promise<any | null> {
     ...user,
     ferreteriaId: store?.id,
     nombreComercial: store?.nombreComercial,
+    ...(store ? { tipoNegocio: normalizeBusinessType(store.tipoNegocio) } : {}),
     rut: store?.rut ?? user.rut,
     latitud: coordinateValue(store?.latitud, -90, 90),
     longitud: coordinateValue(store?.longitud, -180, 180),

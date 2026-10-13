@@ -1,18 +1,19 @@
 <main class="store-directory">
   <header class="directory-heading">
     @if (storeId) {
-      <a routerLink="/ferreterias"><i class="pi pi-arrow-left" aria-hidden="true"></i> Todas las ferreterías</a>
-      <h1>Ferretería y reseñas</h1>
+      <a routerLink="/ferreterias"><i class="pi pi-arrow-left" aria-hidden="true"></i> Todos los locales</a>
+      <h1>Local y reseñas</h1>
     } @else {
       <p class="eyebrow">Encuentra dónde comprar</p>
-      <h1>Ferreterías en Trovio</h1>
+      <h1>Ferreterías y locales en Trovio</h1>
       <p>Conoce los locales, revisa la opinión de otros maestros y explora sus productos.</p>
     }
   </header>
 
   @if (!storeId) {
     <form class="directory-filters" (ngSubmit)="filterChanged()">
-      <label>Nombre de la ferretería<input name="query" [(ngModel)]="query" placeholder="Buscar ferretería" maxlength="120" /></label>
+      <label>Nombre del local<input name="query" [(ngModel)]="query" placeholder="Buscar local" maxlength="120" /></label>
+      <label>Tipo de negocio<select name="businessType" [(ngModel)]="businessType" (ngModelChange)="filterChanged()"><option value="">Todos los tipos</option>@for (type of businessTypes; track type) {<option [value]="type">{{ businessTypeLabel(type) }}</option>}</select></label>
       <label>Región<select name="region" [(ngModel)]="region" (ngModelChange)="filterChanged(true)"><option value="">Todas las regiones</option>@for (option of directory?.regions || []; track option) {<option [value]="option">{{ option }}</option>}</select></label>
       <label>Comuna<select name="commune" [(ngModel)]="commune" (ngModelChange)="filterChanged()"><option value="">Todas las comunas</option>@for (option of directory?.communes || []; track option) {<option [value]="option">{{ option }}</option>}</select></label>
       <button class="btn btn-primary" type="submit">Buscar</button>
@@ -23,19 +24,20 @@
   } @else if (error) {
     <section class="empty-card" role="alert"><p>{{ error }}</p><button class="btn btn-outline" (click)="load()">Reintentar</button></section>
   } @else if (!storeId && directory) {
-    <p class="results-count">{{ directory.total }} ferretería{{ directory.total === 1 ? '' : 's' }}</p>
+    <p class="results-count">{{ directory.total }} local{{ directory.total === 1 ? '' : 'es' }}</p>
     <div class="stores-grid">
       @for (store of directory.items; track store.id) {
         <article class="store-card">
           <div class="store-icon"><i class="pi pi-shop" aria-hidden="true"></i></div>
           <h2><a [routerLink]="['/ferreterias', store.id]">{{ store.name }}</a></h2>
+          <small>{{ businessTypeLabel(store.businessType) }}</small>
           @if (store.pilot) {<span class="pilot-label">Ferretería de prueba</span>}
           <p class="store-location"><i class="pi pi-map-marker" aria-hidden="true"></i> {{ storeLocation(store) || 'Ubicación no informada' }}</p>
           @if (store.address) {<p>{{ store.address }}</p>}
           <p class="store-rating"><i class="pi pi-star-fill" aria-hidden="true"></i> @if (store.rating !== null) {<strong>{{ store.rating | number:'1.1-1' }} / 5</strong><span>({{ store.reviewCount }} reseñas)</span>} @else {<span>Sin reseñas todavía</span>}</p>
           <div class="store-actions"><a class="btn btn-primary" routerLink="/buscar" [queryParams]="{ferreteriaId: store.id, ferreteria: store.name}">Ver productos</a><a class="btn btn-outline" [routerLink]="['/ferreterias', store.id]">Ver reseñas</a></div>
         </article>
-      } @empty {<p class="empty-card">No hay ferreterías que coincidan con los filtros.</p>}
+      } @empty {<p class="empty-card">No hay locales que coincidan con los filtros.</p>}
     </div>
     @if (directory.totalPages > 1) {
       <nav class="directory-pagination" aria-label="Páginas de ferreterías"><button class="btn btn-outline" [disabled]="page === 1" (click)="changePage(page - 1)">Anterior</button><span aria-live="polite">Página {{ page }} de {{ directory.totalPages }}</span><button class="btn btn-outline" [disabled]="page === directory.totalPages" (click)="changePage(page + 1)">Siguiente</button></nav>
@@ -43,6 +45,7 @@
   } @else if (detail) {
     <article class="store-profile">
       <h2>{{ detail.store.name }}</h2>
+      <p>{{ businessTypeLabel(detail.store.businessType) }}</p>
       @if (detail.store.pilot) {<p class="pilot-label">Ferretería de prueba: no disponible para compras.</p>}
       <p>{{ storeLocation(detail.store) }}</p>
       @if (detail.store.address) {<p>{{ detail.store.address }}</p>}

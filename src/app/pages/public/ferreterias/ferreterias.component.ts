@@ -1,3 +1,4 @@
+import { BUSINESS_TYPES, businessTypeLabel } from '../../../core/utils/business-type.util';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, OnDestroy, OnInit, ChangeDetectorRef, inject, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -17,6 +18,9 @@ import { UiLoaderComponent } from '../../../shared/components/ui-loader/ui-loade
 export class FerreteriasComponent implements OnInit, OnDestroy {
   protected readonly storeAccessWhatsappUrl = STORE_ACCESS_WHATSAPP_URL;
   protected readonly stars = [1, 2, 3, 4, 5];
+  protected readonly businessTypes = BUSINESS_TYPES;
+  protected readonly businessTypeLabel = businessTypeLabel;
+  protected businessType = '';
   protected storeId = '';
   protected directory: StoreDirectoryPage | null = null;
   protected detail: StoreReviewPage | null = null;
@@ -66,7 +70,9 @@ export class FerreteriasComponent implements OnInit, OnDestroy {
         this.detail = result; this.reviewPage = result.page;
         if (this.canReview && !this.ownReviewLoaded) void this.loadOwnReview();
       } else {
-        const result = await this.api.list(this.page, this.region, this.commune, this.query.trim());
+        const result = this.businessType
+          ? await this.api.list(this.page, this.region, this.commune, this.query.trim(), 12, this.businessType)
+          : await this.api.list(this.page, this.region, this.commune, this.query.trim());
         if (request !== this.requestId) return;
         this.directory = result; this.page = result.page;
       }

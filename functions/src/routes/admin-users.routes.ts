@@ -1,4 +1,5 @@
 import { dataMode } from '../lib/data-mode.js';
+import { isBusinessType, normalizeBusinessType } from '../domain/business-type.js';
 import { Router } from 'express';
 import { adminAuth, db } from '../lib/firebase.js';
 import { requireAuth, requireRole } from '../lib/auth.js';
@@ -16,6 +17,7 @@ adminUsersRouter.get('/admin/usuarios', requireAuth, requireRole('admin'), async
 
 adminUsersRouter.post('/admin/usuarios', requireAuth, requireRole('admin'), async (req, res) => {
   const role = req.body?.rol;
+  if (req.body?.tipoNegocio !== undefined && (role !== 'ferreteria' || !isBusinessType(req.body.tipoNegocio))) return fail(res, 'BUSINESS_TYPE_INVALID', 'Selecciona un tipo de negocio válido para el local.', 400);
   if (!validRole(role)) return fail(res, 'ADMIN_INVALID_ROLE', 'Rol invalido.', 400);
   if (!validStrongPassword(req.body?.password)) {
     return fail(
@@ -55,6 +57,7 @@ adminUsersRouter.post('/admin/usuarios', requireAuth, requireRole('admin'), asyn
   if (role === 'ferreteria') {
     await createRow(COLLECTIONS.stores, {
       usuarioDuenoId: firebaseUser.uid,
+      tipoNegocio: normalizeBusinessType(req.body?.tipoNegocio),
       nombreComercial: normalizeText(req.body?.nombreComercial) || normalizeText(req.body?.nombre),
       rut: normalizeText(req.body?.rut),
       latitud: storeLatitude,
@@ -72,7 +75,12 @@ adminUsersRouter.patch('/admin/usuarios/:id', requireAuth, requireRole('admin'),
   const allowed = ['rol', 'nombre', 'telefono', 'ciudad', 'comuna', 'direccion', 'estadoCuenta'];
   const patch: Record<string, unknown> = {};
   allowed.forEach((key) => { if (req.body?.[key] !== undefined) patch[key] = req.body[key]; });
-  await db.collection(COLLECTIONS.users).doc(req.params.id).set(patch, { merge: true });
+  const stores = (await rows(COLLECTIONS.stores)).filter(store => store.usuarioDuenoId === req.params.id);
+  if (req.body?.tipoNegocio !== undefined && (!stores[0] || (patch['rol'] || current.rol) !== 'ferreteria' || !isBusinessType(req.body.tipoNegocio))) return fail(res, 'BUSINESS_TYPE_INVALID', 'Selecciona un tipo de negocio válido para el local.', 400);
+  const batch = db.batch();
+  batch.set(db.collection(COLLECTIONS.users).doc(req.params.id), patch, { merge: true });
+  if (req.body?.tipoNegocio !== undefined) batch.update(db.collection(COLLECTIONS.stores).doc(stores[0].id), { tipoNegocio: req.body.tipoNegocio });
+  await batch.commit();
   return ok(res, await authUserResponse(req.params.id));
 });
 

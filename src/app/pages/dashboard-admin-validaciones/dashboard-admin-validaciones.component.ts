@@ -1,3 +1,4 @@
+import { BUSINESS_TYPES, businessTypeLabel, normalizeBusinessType, type BusinessType } from '../../core/utils/business-type.util';
 import {AdminMetricsComponent} from '../../shared/components/admin-metrics/admin-metrics.component';
 import {AdminMetricsService,AdminMetrics} from '../../core/services/admin-metrics.service';
 import { ProductImageUploadComponent, UploadedProductImage } from '../../shared/components/product-image-upload/product-image-upload.component';
@@ -94,6 +95,7 @@ interface MasterProductDraft {
 }
 
 interface AdminUserModalDraft {
+  businessType: BusinessType;
   id: string;
   isNew: boolean;
   email: string;
@@ -169,6 +171,8 @@ interface AdminSectionMeta {
   styleUrl: './dashboard-admin-validaciones.component.scss'
 })
 export class DashboardAdminValidacionesComponent implements OnInit {
+  protected readonly businessTypes = BUSINESS_TYPES;
+  protected readonly businessTypeLabel = businessTypeLabel;
   private sectionLoadError = '';
   protected get dataLoadError(): string { return this.sectionLoadError || this.apiService.loadError(); }
   protected async retryDataLoad(): Promise<void> {
@@ -1379,6 +1383,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
         const updated = await this.authService.adminUpdateUser(user.id, {
           role: this.userModalDraft.role,
           accountStatus: this.userModalDraft.accountStatus,
+          businessType: this.userModalDraft.role === 'ferreteria' ? this.userModalDraft.businessType : undefined,
           displayName: this.userModalDraft.displayName.trim(),
           phone: this.userModalDraft.phone.trim(),
           city: this.userModalDraft.city.trim(),
@@ -1579,6 +1584,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
           address: draft.address.trim(),
           accountStatus: draft.accountStatus,
           businessName: draft.businessName.trim(),
+          businessType: draft.businessType,
           rut: draft.rut.trim() || undefined,
           storeLatitude: draft.storeLatitude,
           storeLongitude: draft.storeLongitude as number
@@ -2140,6 +2146,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       city: '',
       commune: '',
       address: '',
+      businessType: 'ferreteria',
       businessName: '',
       rut: '',
       storeLatitude: null,
@@ -2160,6 +2167,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       city: user.city || '',
       commune: user.commune || '',
       address: user.address || '',
+      businessType: normalizeBusinessType(user.businessType),
       businessName: user.businessName || '',
       rut: user.rut || '',
       storeLatitude: user.storeLatitude ?? null,

@@ -129,6 +129,7 @@
             <button type="button" class="ghost" (click)="closeStoreCatalog()">Cancelar</button>
           </div>
           <div class="request-detail-form store-create-form">
+            <label>Tipo de negocio<select [(ngModel)]="storeCreateDraft.businessType"><option *ngFor="let type of businessTypes" [value]="type">{{ businessTypeLabel(type) }}</option></select></label>
             <label>Nombre comercial<input type="text" [(ngModel)]="storeCreateDraft.businessName" /></label>
             <label>Nombre del contacto<input type="text" [(ngModel)]="storeCreateDraft.displayName" /></label>
             <label>RUT<input type="text" [(ngModel)]="storeCreateDraft.rut" /></label>
@@ -1485,6 +1486,7 @@
                 <option value="bloqueado">Bloqueado</option>
               </select>
             </label>
+            <label *ngIf="userModalDraft.role === 'ferreteria'">Tipo de negocio<select [(ngModel)]="userModalDraft.businessType" [disabled]="userModalReadonly && !userModalDraft.isNew"><option *ngFor="let type of businessTypes" [value]="type">{{ businessTypeLabel(type) }}</option></select></label>
             <label *ngIf="userModalDraft.role === 'ferreteria'">
               Nombre comercial
               <input type="text" [(ngModel)]="userModalDraft.businessName" [disabled]="userModalReadonly && !userModalDraft.isNew" />

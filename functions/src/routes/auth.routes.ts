@@ -1,4 +1,5 @@
 import { dataMode } from '../lib/data-mode.js';
+import { isBusinessType, normalizeBusinessType } from '../domain/business-type.js';
 import { Router } from 'express';
 import { adminAuth, db } from '../lib/firebase.js';
 import { requireAuth } from '../lib/auth.js';
@@ -13,6 +14,7 @@ export const authRouter = Router();
 
 authRouter.post('/auth/register', requireAuth, async (req, res) => {
   const role = req.body?.rol;
+  if (req.body?.tipoNegocio !== undefined && (role !== 'ferreteria' || !isBusinessType(req.body.tipoNegocio))) return fail(res, 'BUSINESS_TYPE_INVALID', 'Selecciona un tipo de negocio válido para el local.', 400);
   if (!req.authUserId || !validRole(role) || role === 'admin') {
     return fail(res, 'AUTH_INVALID_PAYLOAD', 'Datos invalidos para crear el perfil.', 400);
   }
@@ -66,6 +68,7 @@ authRouter.post('/auth/register', requireAuth, async (req, res) => {
     if (existingStores.length === 0) {
       await createRow(COLLECTIONS.stores, {
         usuarioDuenoId: req.authUserId,
+        tipoNegocio: normalizeBusinessType(req.body?.tipoNegocio),
         nombreComercial: normalizeText(req.body?.nombreComercial) || userPayload.nombre,
         rut: normalizeText(req.body?.rut),
         latitud: storeLatitude,
@@ -122,8 +125,10 @@ authRouter.patch('/auth/me', requireAuth, async (req, res) => {
   if (Object.keys(patch).length > 0) batch.update(profileRef, patch);
 
   const stores = (await rows(COLLECTIONS.stores)).filter((store) => store.usuarioDuenoId === req.authUserId);
+  if (req.body?.tipoNegocio !== undefined && (!stores[0] || !isBusinessType(req.body.tipoNegocio))) return fail(res, 'BUSINESS_TYPE_INVALID', 'Selecciona un tipo de negocio válido para el local.', 400);
   if (stores[0]) {
     const storePatch: Record<string, unknown> = {};
+    if (req.body?.tipoNegocio !== undefined) storePatch['tipoNegocio'] = req.body.tipoNegocio;
     if (req.body?.nombreComercial !== undefined) storePatch['nombreComercial'] = normalizeText(req.body.nombreComercial);
     if (req.body?.rut !== undefined) storePatch['rut'] = normalizeText(req.body.rut);
 

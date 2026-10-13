@@ -8,7 +8,7 @@ import {replicateDocument} from '../lib/database/replication.js';
 import {useSqlDatabase} from '../lib/database/config.js';
 async function fixture(t,ready=true,includeCondition=true){
  const pg=new PGlite();
- for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql','013-store-reviews.sql','015-offer-condition.sql'].filter(file=>includeCondition||file!=='015-offer-condition.sql'))await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
+ for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql','013-store-reviews.sql','015-offer-condition.sql','016-store-business-type.sql'].filter(file=>includeCondition||file!=='015-offer-condition.sql'))await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
  const pool={connect:async()=>({query:pg.query.bind(pg),release(){}})};
  const db=new PostgresDatabase(pool,ready);
  t.after(()=>pg.close());
@@ -201,3 +201,15 @@ test('analytics claims block duplicate intervals, allow subsequent cuts and migr
   await assert.rejects(db.collection('real_productosFerreteria').doc('legacy-offer').update({condicion:'activo'}),/OFFER_CONDITION_INVALID/);
   await assert.rejects(pg.query("UPDATE findi.offers SET condition='activo' WHERE id='legacy-offer'"));
  });
+
+test('SQL stores business classification in columns and payload without changing ownership or role',async t=>{
+ const {db,pg}=await fixture(t);await catalog(db);
+ let store=(await pg.query('SELECT business_type,api_payload FROM findi.stores WHERE id=$1',['store'])).rows[0];
+ assert.equal(store.business_type,'ferreteria');assert.equal(store.api_payload.tipoNegocio,'ferreteria');
+ await db.collection('real_ferreterias').doc('store').update({tipoNegocio:'desarmaduria'});
+ store=(await pg.query('SELECT owner_id,business_type,api_payload FROM findi.stores WHERE id=$1',['store'])).rows[0];
+ assert.equal(store.owner_id,'store-owner');assert.equal(store.business_type,'desarmaduria');assert.equal(store.api_payload.tipoNegocio,'desarmaduria');
+ assert.equal((await db.collection('usuarios').doc('store-owner').get()).data().rol,'ferreteria');
+ await assert.rejects(db.collection('real_ferreterias').doc('store').update({tipoNegocio:'admin'}),/BUSINESS_TYPE_INVALID/);
+ await assert.rejects(pg.query("UPDATE findi.stores SET business_type='admin' WHERE id='store'"));
+});

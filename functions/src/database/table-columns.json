@@ -4478,5 +4478,13 @@
     "udt_name": "text",
     "is_nullable": "NO",
     "column_default": "'sin_especificar'::text"
+  },
+  {
+    "table_name": "stores",
+    "column_name": "business_type",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "'ferreteria'::text"
   }
 ]

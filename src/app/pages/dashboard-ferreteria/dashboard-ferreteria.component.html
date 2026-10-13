@@ -265,6 +265,7 @@
       </div>
 
       <div class="form-grid profile-form">
+        <label>Tipo de negocio<select [(ngModel)]="profileDraft.businessType"><option *ngFor="let type of businessTypes" [value]="type">{{ businessTypeLabel(type) }}</option></select></label>
         <label>Nombre comercial<input [(ngModel)]="profileDraft.businessName" autocomplete="organization" /></label>
         <label>Nombre de contacto<input [(ngModel)]="profileDraft.displayName" autocomplete="name" /></label>
         <label>Teléfono<input [(ngModel)]="profileDraft.phone" autocomplete="tel" /></label>

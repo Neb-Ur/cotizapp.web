@@ -1,4 +1,5 @@
 import { db } from '../lib/firebase.js';
+import { normalizeBusinessType } from '../domain/business-type.js';
 import { rows, row } from '../repositories/firestore.repository.js';
 import { COLLECTIONS } from '../lib/collections.js';
 import { storeCanPublish } from './pilot-stores.service.js';
@@ -8,6 +9,7 @@ export const locationKey = (value: string) => value.normalize('NFD').replace(/[\
 export function publicStore(store: any, owner: any) {
   return {
     id: store.id, name: normalizeText(store.nombreComercial),
+    businessType: normalizeBusinessType(store.tipoNegocio),
     address: normalizeText(store.direccion || owner.direccion),
     region: normalizeText(store.region || owner.region),
     commune: normalizeText(store.comuna || owner.comuna),

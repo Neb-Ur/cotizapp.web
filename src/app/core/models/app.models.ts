@@ -1,8 +1,10 @@
+import type { BusinessType } from '../utils/business-type.util';
 import type { OfferCondition } from '../utils/offer-condition.util';
 export type UserRole = 'maestro' | 'ferreteria' | 'admin';
 export type AccountStatus = 'activo' | 'bloqueado' | 'pendiente';
 
 export interface SessionUser {
+  businessType?: BusinessType;
   id: string;
   ferreteriaId?: string;
   email: string;
@@ -34,6 +36,7 @@ export interface LoginPayload {
 }
 
 export interface RegisterPayload {
+  businessType?: BusinessType;
   role: UserRole;
   name: string;
   email: string;
@@ -650,6 +653,7 @@ export interface StoreQuotationVerification {
 }
 
 export interface DirectoryStore {
+  businessType?: BusinessType;
   id: string; name: string; address: string; region: string; commune: string;
   email: string; phone: string; pilot: boolean; rating: number | null; reviewCount: number;
 }

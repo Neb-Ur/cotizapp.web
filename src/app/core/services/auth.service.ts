@@ -1,3 +1,4 @@
+import { normalizeBusinessType, type BusinessType } from '../utils/business-type.util';
 import { DataModeService } from './data-mode.service';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable, NgZone, OnDestroy, computed, signal } from '@angular/core';
@@ -48,6 +49,7 @@ interface ApiEnvelope<T> {
 }
 
 interface ApiAuthUser {
+  tipoNegocio?: BusinessType;
   id: string;
   ferreteriaId?: string;
   rol: UserRole;
@@ -406,7 +408,7 @@ export class AuthService implements OnDestroy {
 
   async adminUpdateUser(
     userId: string,
-    partial: Partial<Pick<SessionUser, 'role' | 'accountStatus' | 'displayName' | 'phone' | 'city' | 'commune' | 'address'>>
+    partial: Partial<Pick<SessionUser, 'role' | 'accountStatus' | 'displayName' | 'phone' | 'city' | 'commune' | 'address' | 'businessType'>>
   ): Promise<SessionUser | null> {
     const token = this.requireToken();
     const payload: Record<string, unknown> = {};
@@ -417,6 +419,7 @@ export class AuthService implements OnDestroy {
     if (partial.city !== undefined) payload['ciudad'] = partial.city;
     if (partial.commune !== undefined) payload['comuna'] = partial.commune;
     if (partial.address !== undefined) payload['direccion'] = partial.address;
+    if (partial.businessType !== undefined) payload['tipoNegocio'] = partial.businessType;
 
     try {
       const response = await firstValueFrom(
@@ -442,6 +445,7 @@ export class AuthService implements OnDestroy {
     address: string;
     accountStatus?: 'activo' | 'bloqueado' | 'pendiente';
     businessName?: string;
+    businessType?: BusinessType;
     rut?: string;
     storeLatitude?: number | null;
     storeLongitude?: number | null;
@@ -459,6 +463,7 @@ export class AuthService implements OnDestroy {
         direccion: payload.address.trim(),
         estadoCuenta: payload.accountStatus,
         nombreComercial: payload.businessName?.trim() || undefined,
+        tipoNegocio: payload.role === 'ferreteria' ? normalizeBusinessType(payload.businessType) : undefined,
         rut: payload.rut?.trim() || undefined,
         latitud: payload.storeLatitude,
         longitud: payload.storeLongitude
@@ -727,6 +732,7 @@ export class AuthService implements OnDestroy {
         region: payload.region.trim(),
         direccion: payload.address.trim(),
         nombreComercial: payload.businessName?.trim() || undefined,
+        tipoNegocio: payload.role === 'ferreteria' ? normalizeBusinessType(payload.businessType) : undefined,
         rut: payload.rut?.trim() || undefined,
         latitud: payload.storeLatitude,
         longitud: payload.storeLongitude,
@@ -762,6 +768,7 @@ export class AuthService implements OnDestroy {
       region: user.region,
       address: user.direccion,
       businessName: user.nombreComercial,
+      businessType: user.rol === 'ferreteria' ? normalizeBusinessType(user.tipoNegocio) : undefined,
       rut: user.rut,
       storeLatitude: typeof user.latitud === 'number' ? user.latitud : undefined,
       storeLongitude: typeof user.longitud === 'number' ? user.longitud : undefined,
@@ -791,6 +798,7 @@ export class AuthService implements OnDestroy {
       estadoCuenta: user.accountStatus,
       creadoEn: user.createdAt,
       nombreComercial: user.businessName,
+      tipoNegocio: user.businessType,
       rut: user.rut,
       latitud: user.storeLatitude,
       longitud: user.storeLongitude,
@@ -808,6 +816,7 @@ export class AuthService implements OnDestroy {
     if (partial.commune !== undefined) payload['comuna'] = partial.commune;
     if (partial.region !== undefined) payload['region'] = partial.region;
     if (partial.address !== undefined) payload['direccion'] = partial.address;
+    if (partial.businessType !== undefined) payload['tipoNegocio'] = partial.businessType;
     if (partial.businessName !== undefined) payload['nombreComercial'] = partial.businessName;
     if (partial.rut !== undefined) payload['rut'] = partial.rut;
     if (partial.storeLatitude !== undefined) payload['latitud'] = partial.storeLatitude;

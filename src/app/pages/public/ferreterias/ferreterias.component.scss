@@ -8,7 +8,7 @@ p { margin: .45rem 0; line-height: 1.5; }
 a { color: var(--ink-800); }
 .directory-heading > a { display: inline-flex; gap: .5rem; align-items: center; margin-bottom: 1rem; }
 .eyebrow { font-size: .8rem; font-weight: 700; color: var(--orange-hover); text-transform: uppercase; letter-spacing: .05em; }
-.directory-filters { display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap: .8rem; align-items: end; padding: 1rem; border: 1px solid var(--border-soft); border-radius: 14px; background: #fff; }
+.directory-filters { display: grid; grid-template-columns: minmax(0,1.4fr) repeat(3,minmax(0,1fr)) auto; gap: .8rem; align-items: end; padding: 1rem; border: 1px solid var(--border-soft); border-radius: 14px; background: #fff; }
 label { display: grid; gap: .4rem; font-size: .85rem; font-weight: 600; }
 input, select, textarea { min-width: 0; width: 100%; box-sizing: border-box; padding: .65rem; border: 1px solid var(--border-soft); border-radius: 8px; font: inherit; color: var(--ink-800); background: #fff; }
 input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
