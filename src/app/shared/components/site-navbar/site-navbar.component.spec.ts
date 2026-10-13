@@ -23,6 +23,20 @@ async function setup() {
 describe('header navigation and search',()=>{
   afterEach(()=>{ TestBed.resetTestingModule(); vi.restoreAllMocks(); });
 
+  it('opens the admin panel with a fresh document on desktop and mobile rather than loading an old lazy route',async()=>{
+    const {fixture,router}=await setup();const auth=TestBed.inject(AuthService) as any;
+    auth.currentUser=()=>({role:'admin'});auth.isLoggedIn=()=>true;
+    auth.dashboardRouteForUser=()=>'/dashboard/admin/validaciones';fixture.detectChanges();
+    const links=Array.from(fixture.nativeElement.querySelectorAll('a[href="/dashboard/admin/validaciones"]')) as HTMLAnchorElement[];
+    expect(links).toHaveLength(2);
+    const navigate=vi.spyOn(router,'navigateByUrl');
+    for(const link of links){
+      // Dispatch without the browser's default navigation in the test environment.
+      const click=new MouseEvent('click',{bubbles:true,cancelable:true});click.preventDefault();link.dispatchEvent(click);
+    }
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
   it('keeps maestro account sections in the shared menu with the active destination marked',async()=>{
     const {fixture,router}=await setup();const auth=TestBed.inject(AuthService) as any;
     auth.currentUser=()=>({role:'maestro'});auth.isLoggedIn=()=>true;

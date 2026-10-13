@@ -116,7 +116,7 @@
 
     <ng-template #loggedActions>
       <div class="auth-group" *ngIf="!isMaestro">
-        <a [routerLink]="dashboardUrl" class="nav-login" (click)="closeMenu()">{{ isFerreteria ? 'Ir a dashboard' : 'Mi panel' }}</a>
+        <a [href]="dashboardUrl" class="nav-login" (click)="closeMenu()">{{ isFerreteria ? 'Ir a dashboard' : 'Mi panel' }}</a>
         <button type="button" class="btn btn-outline btn-sm" (click)="logout()">Salir</button>
       </div>
     </ng-template>
@@ -148,7 +148,7 @@
       <span>Iniciar sesión</span>
       <fa-icon class="drawer-chevron" [icon]="faChevronRight" aria-hidden="true" />
     </a>
-    <a *ngIf="isLogged && !isMaestro" class="drawer-login" [routerLink]="dashboardUrl" (click)="closeMenu()">
+    <a *ngIf="isLogged && !isMaestro" class="drawer-login" [href]="dashboardUrl" (click)="closeMenu()">
       <fa-icon class="drawer-item-icon" [icon]="faLogin" aria-hidden="true" />
       <span>{{ isFerreteria ? 'Ir a dashboard' : 'Mi panel' }}</span>
       <fa-icon class="drawer-chevron" [icon]="faChevronRight" aria-hidden="true" />

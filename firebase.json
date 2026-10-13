@@ -43,6 +43,10 @@
         "source": "/dashboard/**",
         "headers": [
           {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          },
+          {
             "key": "X-Robots-Tag",
             "value": "noindex, nofollow"
           }
@@ -175,7 +179,7 @@
       },
       {
         "source": "/dashboard/**",
-        "destination": "/index.html"
+        "destination": "/index.csr.html"
       },
       {
         "source": "/cuenta/**",
