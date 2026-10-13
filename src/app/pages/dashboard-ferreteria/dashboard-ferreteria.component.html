@@ -352,6 +352,9 @@
         <span><strong>El precio incluye IVA</strong><small>Ingresa el precio final que cobra la ferretería, con IVA incluido. Trovio no agrega impuestos.</small></span>
       </label>
 
+      <label><span>Condición del producto</span>
+        <select [(ngModel)]="catalogEditDraft.condition" [disabled]="catalogEditSaving"><option *ngFor="let condition of conditionOptions" [value]="condition">{{ conditionLabel(condition) }}</option></select>
+      </label>
       <label>
         Vigencia y condiciones de la oferta
         <textarea rows="3" maxlength="500" [(ngModel)]="catalogEditDraft.offerConditions" [disabled]="catalogEditSaving" placeholder="Ej.: válido para retiro en tienda y mientras exista stock."></textarea>

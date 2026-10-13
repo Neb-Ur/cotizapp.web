@@ -160,7 +160,8 @@ searchRouter.get('/productos/detalle', async (req, res) => {
     source: 'Informado por la ferretería',
     stock: item.stock,
     sku: item.sku,
-    productoFerreteriaId: item.productoFerreteriaId
+    productoFerreteriaId: item.productoFerreteriaId,
+    condition: item.condition
   })).sort((a, b) => Number(b.comparisonEligible) - Number(a.comparisonEligible) || a.price - b.price);
   if (offersOnly) return ok(res, {
     stores, minPrice: stores.length ? Math.min(...stores.map(item => item.price)) : 0,

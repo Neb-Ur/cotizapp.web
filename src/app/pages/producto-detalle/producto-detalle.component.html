@@ -139,7 +139,7 @@
                   <p class="store-name">
                     {{ store.storeName }}
                   </p>
-                  <p class="store-stock">Stock: {{ store.stock }}</p>
+                  <p class="store-stock"><span *ngIf="store.condition && store.condition !== 'sin_especificar'">{{ conditionLabel(store.condition) }} · </span>Stock: {{ store.stock }}</p>
 
                 </div>
               </div>

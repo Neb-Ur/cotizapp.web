@@ -1,3 +1,4 @@
+import { OFFER_CONDITIONS, normalizeOfferCondition, offerConditionLabel, type OfferCondition } from '../../core/utils/offer-condition.util';
 import { StoreQuotationVerifierComponent } from '../../shared/components/store-quotation-verifier/store-quotation-verifier.component';
 import { StoreDailyAnalytics } from '../../core/models/app.models';
 import { Subscription } from 'rxjs';
@@ -75,7 +76,10 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
 
   protected catalogEditCandidate: CatalogProduct | null = null;
   protected catalogEditModalOpen = false;
+  protected readonly conditionOptions = OFFER_CONDITIONS;
+  protected readonly conditionLabel = offerConditionLabel;
   protected catalogEditDraft = {
+    condition: 'sin_especificar' as OfferCondition,
     price: 0,
     stock: 0,
     isPublished: true,
@@ -307,6 +311,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   protected openCatalogEdit(product: CatalogProduct): void {
     this.catalogEditCandidate = product;
     this.catalogEditDraft = {
+      condition: normalizeOfferCondition(product.condition),
       price: product.price,
       stock: product.stock,
       isPublished: product.isPublished,
@@ -354,7 +359,8 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
       const priceChanged = product.price !== price;
       const stockChanged = product.stock !== stock;
       const publishedChanged = product.isPublished !== this.catalogEditDraft.isPublished;
-      const metadataChanged = product.includesVat !== this.catalogEditDraft.includesVat
+      const metadataChanged = normalizeOfferCondition(product.condition) !== this.catalogEditDraft.condition
+        || product.includesVat !== this.catalogEditDraft.includesVat
         || (product.validUntil || '') !== this.catalogEditDraft.validUntil
         || (product.offerConditions || '') !== this.catalogEditDraft.offerConditions.trim()
         || (product.measurementUnit || '') !== this.catalogEditDraft.measurementUnit
@@ -379,6 +385,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
       try {
         this.catalog = await this.apiService.upsertCatalog(this.user.id, {
           ...product,
+          condition: this.catalogEditDraft.condition,
           price,
           stock,
           isPublished: this.catalogEditDraft.isPublished,

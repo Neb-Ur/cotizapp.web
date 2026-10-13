@@ -1,3 +1,4 @@
+import type { OfferCondition } from '../utils/offer-condition.util';
 export type UserRole = 'maestro' | 'ferreteria' | 'admin';
 export type AccountStatus = 'activo' | 'bloqueado' | 'pendiente';
 
@@ -190,6 +191,7 @@ export interface GovernanceSummary {
 }
 
 export interface SearchRow {
+  condition?: OfferCondition;
   productName: string;
   storeName: string;
   storeId?: string;
@@ -278,6 +280,7 @@ export interface ProductSearchPage {
 }
 
 export interface ProductStoreOfferRow {
+  condition?: OfferCondition;
   offerId?: string;
   storeName: string;
   price: number;
@@ -395,6 +398,7 @@ export interface ProjectStoreTotal {
 }
 
 export interface ProjectQuotationLine {
+  condition?: OfferCondition;
   productName: string;
   quantity: number;
   storeId?: string;
@@ -431,6 +435,7 @@ export interface ProjectComparisonStrategy {
 }
 
 export interface CatalogProduct {
+  condition?: OfferCondition;
   brandId?: string | null;
   catalogLevel?: 'tipo_base' | 'producto_comercial';
   id: string;
@@ -641,7 +646,7 @@ export interface StoreDailyAnalytics {
 
 export interface StoreQuotationVerification {
   code:string; issuedAt:string; pricesCapturedAt:string; recommendedUntil:string; withinRecommendedPeriod:boolean; pilot:boolean; total:number; includesVat:boolean;
-  lines:Array<{productId:string|null;offerId:string|null;productName:string;quantity:number;unitPrice:number;subtotal:number}>;
+  lines:Array<{condition?:OfferCondition;productId:string|null;offerId:string|null;productName:string;quantity:number;unitPrice:number;subtotal:number}>;
 }
 
 export interface DirectoryStore {

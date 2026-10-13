@@ -79,7 +79,7 @@
                   <option value="">Selecciona producto</option>
                   <option *ngFor="let option of productOptions" [value]="option">{{ option }}</option>
                 </select>
-                <p class="line-meta">{{ getRowBestStore(item) }}</p>
+                <p class="line-meta">{{ getRowBestStore(item) }} · {{ getRowCondition(item) }}</p>
               </td>
               <td class="quantity-cell" data-label="Cantidad">
                 <input [attr.aria-label]="'Cantidad de ' + (item.productName || 'producto')" [(ngModel)]="item.quantity" (ngModelChange)="persistDraftIfNeeded()" type="number" min="1" placeholder="Cantidad" />

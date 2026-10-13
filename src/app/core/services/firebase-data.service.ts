@@ -1,3 +1,4 @@
+import { normalizeOfferCondition } from '../utils/offer-condition.util';
 import { StoreDailyAnalytics } from '../models/app.models';
 import { DataModeService } from './data-mode.service';
 import { findExactMasterMatch } from '../utils/catalog-match.util';
@@ -734,6 +735,7 @@ export class FirebaseDataService {
         codigoBarras: payload.barcode || null,
         precio: payload.price,
         stock: payload.stock,
+      condicion: normalizeOfferCondition(payload.condition),
         incluyeIva: true,
         unidadMedidaPrecio: payload.measurementUnit || null,
         cantidadMedida: payload.measurementQuantity || null,
@@ -758,6 +760,7 @@ export class FirebaseDataService {
       codigoBarras: payload.barcode || null,
       precio: payload.price,
       stock: payload.stock,
+      condicion: normalizeOfferCondition(payload.condition),
       incluyeIva: true,
       unidadMedidaPrecio: payload.measurementUnit || null,
       cantidadMedida: payload.measurementQuantity || null,
@@ -1558,6 +1561,7 @@ export class FirebaseDataService {
   private mapProductDetail(raw: any): ProductDetailView {
       const master = raw.productoMaestro;
       const stores: ProductStoreOfferRow[] = (raw.stores || []).map((store: any) => ({
+        condition: normalizeOfferCondition(store.condition),
         offerId: store.productoFerreteriaId || '',
         storeName: store.storeName,
         storeId: store.storeId,
@@ -1893,6 +1897,7 @@ export class FirebaseDataService {
       productoMaestroId: item.productoMaestroId,
       productoFerreteriaId: item.productoFerreteriaId,
       sku: item.sku,
+      condition: normalizeOfferCondition(item.condition),
       stock: Number(item.stock) || 0
     }));
     this.replaceArray(this.searchRows, mappedSearchRows);
@@ -2008,7 +2013,8 @@ export class FirebaseDataService {
           productoMaestroId: item.productoMaestroId,
           productoFerreteriaId: item.productoFerreteriaId,
           sku: item.sku,
-          stock: Number(item.stock) || 0
+          condition: normalizeOfferCondition(item.condition),
+      stock: Number(item.stock) || 0
         })));
       } catch (error) {
         throw this.recordLoadError('search', error, 'No se pudieron cargar las ofertas. Intenta nuevamente.');
@@ -2206,6 +2212,7 @@ export class FirebaseDataService {
       unitLabel: master.unidadVenta || 'Unidad',
       packagingLabel: master.presentacion || 'Unidad',
       price: Number(row.precio) || 0,
+      condition: normalizeOfferCondition(row.condicion),
       stock: Number(row.stock) || 0,
       sku: row.skuFerreteria || '',
       imageUrl: master.imagenStorageUrl || master.imagenPrincipalUrl || master.imagenExternaUrl || '',

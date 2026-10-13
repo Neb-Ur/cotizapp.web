@@ -1,4 +1,5 @@
 import { rows } from '../repositories/firestore.repository.js';
+import { normalizeOfferCondition } from '../domain/offer-condition.js';
 import { COLLECTIONS } from '../lib/collections.js';
 import { coordinateValue, inferMeasurementFromLabel, normalizeText, numberValue, pricePerMeasurement } from '../lib/values.js';
 import type { SearchRow } from '../models/domain.models.js';
@@ -26,7 +27,7 @@ export async function buildSearchRows(source?: any[][], asOf?:number): Promise<S
     .filter((offer) => offer.activo !== false && offer.publicado !== false)
     .filter((offer) => !offer.vigenteDesde || new Date(offer.vigenteDesde).getTime() <= referenceTime)
     .filter((offer) => !offer.vigenteHasta || new Date(offer.vigenteHasta).getTime() > referenceTime)
-    .map((offer) => {
+    .map((offer): SearchRow | null => {
       const product = productById.get(offer.productoMaestroId);
       const store = storeById.get(offer.ferreteriaId);
       const owner = store ? userById.get(store.usuarioDuenoId) : null;
@@ -55,6 +56,7 @@ export async function buildSearchRows(source?: any[][], asOf?:number): Promise<S
       return {
         productoMaestroId: product.id,
         productoFerreteriaId: offer.id,
+        condition: normalizeOfferCondition(offer.condicion),
         productName: product.nombre,
         storeName: store.nombreComercial,
         storeId: store.id,

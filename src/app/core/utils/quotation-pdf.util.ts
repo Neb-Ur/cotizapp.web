@@ -1,3 +1,4 @@
+import { offerConditionLabel } from './offer-condition.util';
 import { ProjectQuotationView, SearchProximity } from '../models/app.models';
 
 export interface QuotationPdfInput {
@@ -86,6 +87,7 @@ function buildQuotationPdfLines(input: QuotationPdfInput, exportedAt: Date): str
 
   input.quotation.lines.forEach((line, index) => {
     lines.push(`${index + 1}. ${line.productName}`);
+    lines.push(`Condicion: ${offerConditionLabel(line.condition)}`);
     lines.push(`Cantidad: ${line.quantity}`);
     lines.push(`Mejor tienda: ${line.bestStoreName}`);
     lines.push(`Precio unitario: ${formatCurrency(line.unitPrice)}`);

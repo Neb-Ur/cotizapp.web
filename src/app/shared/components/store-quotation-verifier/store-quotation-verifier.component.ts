@@ -1,3 +1,4 @@
+import { offerConditionLabel } from '../../../core/utils/offer-condition.util';
 import { Component, Input, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,6 +8,7 @@ const money=new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maxim
 @Component({selector:'app-store-quotation-verifier',standalone:true,imports:[CommonModule,FormsModule],
  templateUrl:'./store-quotation-verifier.component.html',styleUrl:'./store-quotation-verifier.component.scss'})
 export class StoreQuotationVerifierComponent {
+  protected readonly conditionLabel = offerConditionLabel;
  @Input() storeId='';
  protected formatCurrency(value:number):string{return money.format(value);}
  protected quotationCode='';

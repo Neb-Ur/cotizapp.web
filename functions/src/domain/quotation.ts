@@ -1,6 +1,7 @@
 /** Store prices are final, including VAT. This pure function is shared by API and UI. */
+import { normalizeOfferCondition, type OfferCondition } from './offer-condition.js';
 export interface Item { productName: string; quantity: number; storeId?: string; storeName?: string; productoFerreteriaId?: string; productoMaestroId?: string; }
-export interface Offer { productName: string; storeName: string; storeId?: string; productoFerreteriaId?: string; productoMaestroId?: string; price: number; stock: number; comparisonEligible?: boolean; }
+export interface Offer { condition?: OfferCondition; productName: string; storeName: string; storeId?: string; productoFerreteriaId?: string; productoMaestroId?: string; price: number; stock: number; comparisonEligible?: boolean; }
 const productKey = (name: string) => name.trim().toLocaleLowerCase('es-CL');
 const offerKey = (offer: Offer) => offer.productoFerreteriaId || `${offer.storeId || offer.storeName}:${productKey(offer.productName)}`;
 const itemKey = (item: Item) => `${item.productoMaestroId || productKey(item.productName)}:${item.productoFerreteriaId || item.storeId || item.storeName || ''}`;
@@ -18,7 +19,9 @@ export function buildQuotationOptimization(items: Item[], offers: Offer[], selec
     for (const [key, group] of [...groups].sort((a, b) => Number(hasSelection(b[1][0])) - Number(hasSelection(a[1][0])))) {
       const item = group[0];
       const quantity = group.reduce((sum, row) => sum + row.quantity, 0);
+      const selectedOffer = item.productoFerreteriaId ? valid.find(candidate => candidate.productoFerreteriaId === item.productoFerreteriaId) : undefined;
       const offer = valid.filter(candidate => (item.productoMaestroId ? candidate.productoMaestroId === item.productoMaestroId : productKey(candidate.productName) === productKey(item.productName))
+        && (!selectedOffer || normalizeOfferCondition(candidate.condition) === normalizeOfferCondition(selectedOffer.condition))
         && (!store || storeKey(candidate) === store)
         && (store || ((!item.storeId || candidate.storeId === item.storeId) && (!item.storeName || item.storeId || item.productoFerreteriaId || candidate.storeName === item.storeName) && (!item.productoFerreteriaId || candidate.productoFerreteriaId === item.productoFerreteriaId)))
         && (remaining.get(offerKey(candidate)) || 0) >= quantity).sort((a, b) => a.price - b.price)[0];
@@ -28,7 +31,7 @@ export function buildQuotationOptimization(items: Item[], offers: Offer[], selec
     return normalized.map(item => {
       const offer = chosen.get(itemKey(item));
       const unitPrice = offer?.price || 0;
-      return { ...item, bestStoreName: offer?.storeName || 'Sin datos', bestStoreId: offer?.storeId, unitPrice, subtotal: unitPrice * item.quantity, ...(offer?.productoFerreteriaId ? { productoFerreteriaId: offer.productoFerreteriaId } : {}) };
+      return { ...item, condition: normalizeOfferCondition(offer?.condition), bestStoreName: offer?.storeName || 'Sin datos', bestStoreId: offer?.storeId, unitPrice, subtotal: unitPrice * item.quantity, ...(offer?.productoFerreteriaId ? { productoFerreteriaId: offer.productoFerreteriaId } : {}) };
     });
   }
   const mixedLines = linesFor();

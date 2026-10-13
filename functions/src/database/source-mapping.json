@@ -234,6 +234,7 @@
       "codigoBarras": "offers.barcode",
       "precio": "offers.price",
       "stock": "offers.stock",
+      "condicion": "offers.condition",
       "incluyeIva": "offers.includes_vat",
       "unidadMedidaPrecio": "offers.measurement_unit",
       "cantidadMedida": "offers.measurement_quantity",

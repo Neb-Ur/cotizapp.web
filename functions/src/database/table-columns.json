@@ -4470,5 +4470,13 @@
     "udt_name": "jsonb",
     "is_nullable": "NO",
     "column_default": null
+  },
+  {
+    "table_name": "offers",
+    "column_name": "condition",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": "'sin_especificar'::text"
   }
 ]

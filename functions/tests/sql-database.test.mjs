@@ -6,9 +6,9 @@ import {FieldValue} from 'firebase-admin/firestore';
 import {PostgresDatabase} from '../lib/database/postgres.js';
 import {replicateDocument} from '../lib/database/replication.js';
 import {useSqlDatabase} from '../lib/database/config.js';
-async function fixture(t,ready=true){
+async function fixture(t,ready=true,includeCondition=true){
  const pg=new PGlite();
- for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql','013-store-reviews.sql'])await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
+ for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql','013-store-reviews.sql','015-offer-condition.sql'].filter(file=>includeCondition||file!=='015-offer-condition.sql'))await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
  const pool={connect:async()=>({query:pg.query.bind(pg),release(){}})};
  const db=new PostgresDatabase(pool,ready);
  t.after(()=>pg.close());
@@ -186,3 +186,18 @@ test('analytics claims block duplicate intervals, allow subsequent cuts and migr
  assert.equal(await claimStoreAnalyticsPeriod(db,new Date('2026-10-12T03:00:00Z')),true);
  assert.equal((await ref.get()).data().attemptDate,'2026-10-12');
 });
+
+ test('condition migration preserves old offers and typed/payload values stay consistent on edits',async t=>{
+  const {db,pg}=await fixture(t,true,false);await catalog(db);
+  const old={ferreteriaId:'store',productoMaestroId:'product',precio:1500,stock:3,activo:true,publicado:true};
+  await pg.query('INSERT INTO findi.offers(id,store_id,product_id,price,stock,api_payload) VALUES($1,$2,$3,$4,$5,$6)', ['legacy-offer','store','product',1500,3,old]);
+  await pg.exec(await readFile(new URL('../../sql/findi/015-offer-condition.sql',import.meta.url),'utf8'));
+  let row=(await pg.query('SELECT * FROM findi.offers WHERE id=$1',['legacy-offer'])).rows[0];
+  assert.equal(row.condition,'sin_especificar');assert.deepEqual(row.api_payload,{...old,condicion:'sin_especificar'});
+  assert.equal(Number(row.price),1500);assert.equal(Number(row.stock),3);
+  await db.collection('real_productosFerreteria').doc('legacy-offer').update({condicion:'usado'});
+  row=(await pg.query('SELECT condition,api_payload FROM findi.offers WHERE id=$1',['legacy-offer'])).rows[0];
+  assert.equal(row.condition,'usado');assert.equal(row.api_payload.condicion,'usado');
+  await assert.rejects(db.collection('real_productosFerreteria').doc('legacy-offer').update({condicion:'activo'}),/OFFER_CONDITION_INVALID/);
+  await assert.rejects(pg.query("UPDATE findi.offers SET condition='activo' WHERE id='legacy-offer'"));
+ });

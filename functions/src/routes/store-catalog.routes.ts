@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { isOfferCondition, normalizeOfferCondition } from '../domain/offer-condition.js';
 import { db } from '../lib/firebase.js';
 import { requireAuth, requireRole } from '../lib/auth.js';
 import { fail, ok } from '../lib/http.js';
@@ -21,6 +22,7 @@ function optionalOfferDate(value: unknown): string | null {
 function offerEvidence(value: Record<string, any> | null | undefined): Record<string, unknown> | null {
   if (!value) return null;
   return {
+    condicion: normalizeOfferCondition(value['condicion']),
     precio: numberValue(value['precio']),
     stock: Math.max(0, Math.floor(numberValue(value['stock']))),
     incluyeIva: value['incluyeIva'] !== false,
@@ -56,10 +58,12 @@ storeCatalogRouter.get('/ferreterias/:storeId/catalogo', requireAuth, requireRol
 storeCatalogRouter.post('/ferreterias/:storeId/catalogo', requireAuth, requireRole('ferreteria', 'admin'), async (req, res) => {
   if (!(await requireStoreWriteAccess(req, res, req.params.storeId))) return;
   if (!(await requireCurrentStoreAgreement(req, res, req.params.storeId))) return;
+  if (req.body?.condicion !== undefined && !isOfferCondition(req.body.condicion)) return fail(res, 'OFFER_CONDITION_INVALID', 'Selecciona una condición válida.', 400);
   const masterId = normalizeText(req.body?.productoMaestroId);
   const product = await row(COLLECTIONS.masterProducts, masterId);
   if (!product || product.estado === 'inactivo') return fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro indicado.', 404);
   const offerPayload = {
+    condicion: normalizeOfferCondition(req.body?.condicion),
     ferreteriaId: req.params.storeId,
     productoMaestroId: masterId,
     skuFerreteria: normalizeText(req.body?.skuFerreteria),
@@ -115,6 +119,10 @@ storeCatalogRouter.patch('/ferreterias/:storeId/catalogo/:offerId', requireAuth,
   const existing = await row(COLLECTIONS.storeProducts, req.params.offerId);
   if (!existing || existing.ferreteriaId !== req.params.storeId) return fail(res, 'CATALOGO_NOT_FOUND', 'Producto de ferreteria no encontrado.', 404);
   const patch: Record<string, unknown> = { actualizadoEn: nowIso() };
+  if (req.body?.condicion !== undefined) {
+    if (!isOfferCondition(req.body.condicion)) return fail(res, 'OFFER_CONDITION_INVALID', 'Selecciona una condición válida.', 400);
+    patch['condicion'] = req.body.condicion;
+  }
   ['skuFerreteria', 'codigoBarras', 'activo', 'publicado'].forEach((key) => {
     if (req.body?.[key] !== undefined) patch[key] = req.body[key];
   });

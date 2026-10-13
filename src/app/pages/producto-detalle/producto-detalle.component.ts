@@ -1,3 +1,4 @@
+import { offerConditionLabel } from '../../core/utils/offer-condition.util';
 import { GUEST_QUOTATION_LIMIT_MESSAGE, GuestQuotationService } from '../../core/services/guest-quotation.service';
 import { InfoPanelComponent } from '../../shared/components/info-panel/info-panel.component';
 import { ProductImageDirective } from '../../shared/directives/product-image.directive';
@@ -29,6 +30,7 @@ import {
   styleUrl: './producto-detalle.component.scss'
 })
 export class ProductoDetalleComponent implements OnInit, OnDestroy {
+  protected readonly conditionLabel = offerConditionLabel;
   protected catalogPath(kind:string,name:string):string {return `/${kind}/${productSlug(name)}`;}
   protected readonly guestQuotations = inject(GuestQuotationService);
   private readonly quotationSelection = inject(QuotationSelectionService);

@@ -18,7 +18,7 @@ export function verificationSnapshot(project: any, code=newVerificationCode(), n
     lines:quotation.lines.filter(line=>line.unitPrice>0&&line.bestStoreId).map(line=>({
       storeId:line.bestStoreId, storeName:line.bestStoreName,
       productId:line.productoMaestroId || offers.find((o:any)=>o.productoFerreteriaId===line.productoFerreteriaId)?.productoMaestroId || null,
-      offerId:line.productoFerreteriaId || null, productName:line.productName,quantity:line.quantity,unitPrice:line.unitPrice,subtotal:line.subtotal
+      offerId:line.productoFerreteriaId || null, condition:line.condition, productName:line.productName,quantity:line.quantity,unitPrice:line.unitPrice,subtotal:line.subtotal
     }))
   };
 }

@@ -16,6 +16,7 @@ export type ProjectProximity = {
 };
 
 export type SearchRow = {
+  condition?: import('../domain/offer-condition.js').OfferCondition;
   productoMaestroId: string;
   productoFerreteriaId: string;
   productName: string;

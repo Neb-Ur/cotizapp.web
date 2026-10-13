@@ -1,3 +1,4 @@
+import { offerConditionLabel } from '../../core/utils/offer-condition.util';
 import { GuestQuotationService } from '../../core/services/guest-quotation.service';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 import { InfoPanelComponent } from '../../shared/components/info-panel/info-panel.component';
@@ -36,6 +37,7 @@ import { QuotationPdfService } from '../../core/services/quotation-pdf.service';
   styleUrl: './proyecto-detalle.component.scss'
 })
 export class ProyectoDetalleComponent implements OnInit, OnDestroy {
+  protected readonly conditionLabel = offerConditionLabel;
   protected isLoading = true;
   protected loadError = '';
   private loadGeneration = 0;
@@ -223,6 +225,10 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
 
   protected getRowUnitPrice(item: ProjectItem): number {
     return this.quotation.lines[this.projectItems.indexOf(item)]?.unitPrice || 0;
+  }
+
+  protected getRowCondition(item: ProjectItem): string {
+    return this.conditionLabel(this.quotation.lines[this.projectItems.indexOf(item)]?.condition);
   }
 
   protected getRowBestStore(item: ProjectItem): string {
