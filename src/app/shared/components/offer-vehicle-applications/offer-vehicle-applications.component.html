@@ -1,5 +1,5 @@
 <section class="vehicle-applications" *ngIf="canEdit || applications.length || error">
-  <h3>Vehículos declarados para esta publicación</h3>
+  <h3>Vehículos declarados por el vendedor</h3>
   <p>Registra únicamente los vehículos que conoces para esta pieza. Cada fila es una declaración independiente.</p>
   <p *ngIf="error" class="error" role="alert">{{ error }} <button type="button" (click)="load()" [disabled]="saving || disabled">Volver a cargar</button></p>
   <p *ngIf="notice" role="status">{{ notice }}</p>

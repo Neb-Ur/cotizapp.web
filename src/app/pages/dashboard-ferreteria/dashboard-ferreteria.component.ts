@@ -62,10 +62,10 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   }
 
   protected readonly sections: FerreteriaSectionMeta[] = [
-    { id: 'inicio', label: 'Inicio', description: 'Resumen de la actividad de tu ferretería.' },
+    { id: 'inicio', label: 'Inicio', description: 'Resumen de la actividad de tu local.' },
     { id: 'catalogo', label: 'Mantener catálogo', description: 'Mantiene precio, stock y agrega productos cuando lo necesites.' },
-    { id: 'cotizaciones', label: 'Verificar cotizaciones', description: 'Consulta el código del maestro y verifica los productos cotizados con tu ferretería.' },
-    { id: 'perfil', label: 'Editar perfil', description: 'Actualiza los datos visibles y la ubicación de tu ferretería.' }
+    { id: 'cotizaciones', label: 'Verificar cotizaciones', description: 'Consulta el código del maestro y verifica los productos cotizados con tu local.' },
+    { id: 'perfil', label: 'Editar perfil', description: 'Actualiza los datos visibles y la ubicación de tu local.' }
   ];
 
   protected currentSection: FerreteriaSection = 'inicio';

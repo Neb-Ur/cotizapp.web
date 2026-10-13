@@ -12,8 +12,8 @@
     <div class="discovery-grid">
       <div class="discovery-copy">
         <span class="section-kicker"><i class="pi pi-sparkles" aria-hidden="true"></i> Compara antes de comprar</span>
-        <h1 id="home-title">Encuentra materiales.<br><em>Compara mejor.</em></h1>
-        <p>Crea tu cotización, agrega materiales y compara precios sin registrarte. Inicia sesión cuando quieras descargar el PDF.</p>
+        <h1 id="home-title">Encuentra lo que necesitas.<br><em>Compara mejor.</em></h1>
+        <p>Crea tu cotización, agrega productos y compara precios sin registrarte. Inicia sesión cuando quieras descargar el PDF.</p>
         <a class="start-quotation-button" routerLink="/cotizaciones/nueva">Crear cotización <i class="pi pi-arrow-right" aria-hidden="true"></i></a><p class="quotation-intro-hint">Sin cuenta para empezar.</p>
       </div>
 
@@ -31,8 +31,8 @@
     <div class="section-heading">
       <div>
         <span>Catálogo de Trovio</span>
-        <h2 id="featured-products-title">Productos y materiales</h2>
-        <p>Explora el catálogo base y compara precios cuando existan ofertas de ferreterías.</p>
+        <h2 id="featured-products-title">Explora el catálogo</h2>
+        <p>Encuentra productos y compara precios entre los locales con ofertas disponibles.</p>
       </div>
       <a routerLink="/buscar">Ver más productos <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
     </div>
@@ -50,7 +50,7 @@
           <ng-template #noHomeOffers><span class="home-no-offers">Sin ofertas disponibles</span></ng-template>
           <span class="compare-link" aria-hidden="true"><i class="pi pi-arrow-right"></i></span>
         </span>
-        <span class="home-product-stores" *ngIf="product.storeCount > 0"><i class="pi pi-shop" aria-hidden="true"></i> {{ product.storeCount }} {{ product.storeCount === 1 ? 'ferretería' : 'ferreterías' }}</span>
+        <span class="home-product-stores" *ngIf="product.storeCount > 0"><i class="pi pi-shop" aria-hidden="true"></i> {{ product.storeCount }} {{ product.storeCount === 1 ? 'local' : 'locales' }}</span>
       </a>
     </div>
     } @else if (catalogLoading()) {
@@ -87,15 +87,15 @@
   <section class="benefit-strip" aria-label="Beneficios de Trovio">
     <article>
       <i class="pi pi-search" aria-hidden="true"></i>
-      <div><strong>Busca en un solo lugar</strong><span>Encuentra materiales sin recorrer múltiples sitios.</span></div>
+      <div><strong>Busca en un solo lugar</strong><span>Encuentra productos sin recorrer múltiples sitios.</span></div>
     </article>
     <article>
       <i class="pi pi-chart-bar" aria-hidden="true"></i>
-      <div><strong>Compara con contexto</strong><span>Revisa precio y disponibilidad entre ferreterías.</span></div>
+      <div><strong>Compara con contexto</strong><span>Revisa precio y disponibilidad entre locales.</span></div>
     </article>
     <article>
       <i class="pi pi-file-edit" aria-hidden="true"></i>
-      <div><strong>Cotiza tu proyecto</strong><span>Agrupa los materiales que necesita cada obra.</span></div>
+      <div><strong>Cotiza tu proyecto</strong><span>Agrupa los productos que necesitas para tu proyecto.</span></div>
     </article>
   </section>
 
@@ -105,7 +105,7 @@
       <h2 id="how-title">De la búsqueda a tu cotización</h2>
     </div>
     <ol>
-      <li><span>1</span><div><strong>Busca</strong><small>Encuentra el material.</small></div></li>
+      <li><span>1</span><div><strong>Busca</strong><small>Encuentra el producto.</small></div></li>
       <li><span>2</span><div><strong>Compara</strong><small>Revisa precios disponibles.</small></div></li>
       <li><span>3</span><div><strong>Cotiza</strong><small>Guárdalo en tu proyecto.</small></div></li>
     </ol>
@@ -114,8 +114,8 @@
   <section class="store-invitation">
     <div>
       <i class="pi pi-shop" aria-hidden="true"></i>
-      <div><strong>¿Tienes una ferretería?</strong><span>Publica tu catálogo y conecta con técnicos y maestros.</span></div>
+      <div><strong>¿Tienes un local?</strong><span>Publica tu catálogo y conecta con técnicos y maestros.</span></div>
     </div>
-    <a class="btn btn-secondary" [href]="storeAccessWhatsappUrl" target="_blank" rel="noopener noreferrer" aria-label="Solicitar acceso para mi ferretería por WhatsApp">Solicitar acceso por WhatsApp</a>
+    <a class="btn btn-secondary" [href]="storeAccessWhatsappUrl" target="_blank" rel="noopener noreferrer" aria-label="Solicitar acceso para mi local por WhatsApp">Solicitar acceso por WhatsApp</a>
   </section>
 </main>

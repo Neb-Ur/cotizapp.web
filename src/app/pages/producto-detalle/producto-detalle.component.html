@@ -54,23 +54,23 @@
         <div class="price-summary" *ngIf="displayStores.length > 0">
           <p class="price-range">{{ formatCurrency(visibleMinPrice) }} - {{ formatCurrency(visibleMaxPrice) }}</p>
           <app-info-panel title="Fuente de los precios" label="Información sobre la fuente de los precios">
-            <p><strong>Fuente:</strong> precios informados por cada ferretería. Trovio no vende ni reserva productos. La compra se realiza directamente con la ferretería.</p>
+            <p><strong>Fuente:</strong> precios informados por cada local. Trovio no vende ni reserva productos. La compra se realiza directamente con el local.</p>
           </app-info-panel>
         </div>
 
         <p class="product-unavailable-alert" *ngIf="displayStores.length === 0 && !loadError && !offersLoading && !offersError" role="alert">
           <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
           <span>{{ nearbyEnabled && product.stores.length > 0
-            ? 'No hay ferreterías con este producto dentro de ' + nearbyRadiusKm + ' km.'
-            : 'No hay ferreterías con este producto.' }}</span>
+            ? 'No hay locales con este producto dentro de ' + nearbyRadiusKm + ' km.'
+            : 'No hay locales con este producto.' }}</span>
         </p>
         <section class="quick-stores">
-          <h3>Precios por ferretería</h3>
-          <p *ngIf="offersLoading" role="status" aria-live="polite">Cargando precios de las ferreterías…</p>
+          <h3>Precios por local</h3>
+          <p *ngIf="offersLoading" role="status" aria-live="polite">Cargando precios de los locales…</p>
           <p *ngIf="offersError" role="alert">{{ offersError }} <button type="button" (click)="retryOffers()">Reintentar</button></p>
-          <p class="quick-stores-hint" *ngIf="!nearbyEnabled && !offersLoading && !offersError">{{ displayStores.length }} ferretería(s) con oferta activa.</p>
+          <p class="quick-stores-hint" *ngIf="!nearbyEnabled && !offersLoading && !offersError">{{ displayStores.length }} local(es) con oferta activa.</p>
           <p class="quick-stores-hint" *ngIf="nearbyEnabled && !offersLoading && !offersError">
-            {{ displayStores.length }} ferretería(s) dentro de {{ nearbyRadiusKm }} km.
+            {{ displayStores.length }} local(es) dentro de {{ nearbyRadiusKm }} km.
           </p>
 
           <section class="quotation-destination" *ngIf="canUseQuotations">
@@ -90,7 +90,7 @@
             <input type="number" min="1" [ngModel]="selectedQuantity" (ngModelChange)="onQuantityChange($event)" />
           </label>
 
-          <section class="distance-control" aria-label="Distancias a las ferreterías">
+          <section class="distance-control" aria-label="Distancias a los locales">
             <button
               *ngIf="!nearbyLocation"
               type="button"
@@ -108,7 +108,7 @@
           </section>
 
           <div class="store-sort-control">
-            <label for="store-sort">Ordenar ferreterías por</label>
+            <label for="store-sort">Ordenar locales por</label>
             <select
               id="store-sort"
               [ngModel]="storeSort"
@@ -120,7 +120,7 @@
             <small *ngIf="!nearbyLocation">Autoriza tu ubicación para ordenar por distancia.</small>
           </div>
 
-          <ul [attr.aria-label]="storeSort === 'distance' ? 'Ferreterías ordenadas por distancia' : 'Ferreterías ordenadas por precio'">
+          <ul [attr.aria-label]="storeSort === 'distance' ? 'Locales ordenados por distancia' : 'Locales ordenados por precio'">
             <li
               *ngFor="let store of displayStores"
               [class.selected]="storeSelectionId(store) === selectedStoreId"
@@ -169,7 +169,7 @@
 
           <section class="selected-total" *ngIf="selectedStore as store" aria-live="polite">
             <div>
-              <span>Ferretería seleccionada</span>
+              <span>Local seleccionado</span>
               <strong>{{ store.storeName }}</strong>
               <small>{{ selectedQuantity }} × {{ formatCurrency(store.price) }} por {{ quantityLabel.toLowerCase() }}</small>
               <small>{{ store.includesVat ? 'IVA incluido' : 'IVA no incluido' }}</small>
@@ -183,7 +183,7 @@
           <button type="button" class="add-quote-button" *ngIf="canUseQuotations && selectedProjectId" [disabled]="!canShowAddToQuotation || isAddingToQuotation" (click)="addToQuotation()">
             <i [class]="isAddingToQuotation ? 'pi pi-spin pi-spinner' : 'pi pi-plus'" aria-hidden="true"></i>{{ isAddingToQuotation ? 'Agregando…' : 'Agregar a cotización' }}
           </button>
-          <p class="add-quote-hint" *ngIf="canUseQuotations && selectedProjectId && !selectedStore">Elige una ferretería para agregar el producto.</p>
+          <p class="add-quote-hint" *ngIf="canUseQuotations && selectedProjectId && !selectedStore">Elige un local para agregar el producto.</p>
           <p class="quote-feedback" *ngIf="quoteFeedback">{{ quoteFeedback }}</p>
         </section>
       </aside>

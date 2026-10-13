@@ -64,7 +64,7 @@
           <colgroup><col class="col-product" /><col class="col-quantity" /><col class="col-price" /><col class="col-total" /><col class="col-action" /></colgroup>
           <thead>
             <tr>
-              <th scope="col">Producto / ferretería</th>
+              <th scope="col">Producto / local</th>
               <th scope="col">Cantidad</th>
               <th scope="col" class="price-heading">Precio unit.</th>
               <th scope="col" class="price-heading">Total</th>
@@ -112,12 +112,12 @@
         <h2>Datos de la cotización</h2>
         <div class="validity-note">
           <span>{{ isLocalQuotation ? 'Al guardarla en tu cuenta para descargar, tendrá una vigencia de 10 días.' : 'La cotización es válida durante 10 días a partir de su creación.' }}</span>
-          <app-info-panel title="Información de la cotización" label="Ver vigencia, código y ferreterías de la cotización">
+          <app-info-panel title="Información de la cotización" label="Ver vigencia, código y locales de la cotización">
         <section class="quotation-validity">
           <strong>Vigencia de la cotización</strong>
-          <p>La cotización es válida durante 10 días a partir de su creación. La ferretería puede consultar el código para verificar los productos y precios registrados. Confirma el stock y las condiciones con el local antes de comprar.</p>
+          <p>La cotización es válida durante 10 días a partir de su creación. El local puede consultar el código para verificar los productos y precios registrados. Confirma el stock y las condiciones con el local antes de comprar.</p>
           <p *ngIf="validUntil">Generada el {{ pricesCapturedAt | date:'dd/MM/yyyy HH:mm' }} · Válida hasta: {{ validUntil | date:'dd/MM/yyyy HH:mm' }}.</p>
-          <p *ngIf="quotationExpired">La vigencia ha terminado. Consulta los precios y el stock actuales con la ferretería.</p>
+          <p *ngIf="quotationExpired">La vigencia ha terminado. Consulta los precios y el stock actuales con el local.</p>
           <p *ngIf="!validUntil">Al guardarla en tu cuenta para descargar, obtendrás el código de verificación.</p>
           <div class="verification-code" *ngIf="verificationCode"><span>Código de cotización</span><strong>{{ verificationCode }}</strong><button type="button" class="secondary" (click)="copyVerificationCode()">Copiar código</button></div>
           <button *ngIf="!isNewProject" type="button" class="secondary" (click)="saveProject(true)" [disabled]="isSaving">{{ isSaving ? 'Guardando…' : 'Actualizar precios actuales' }}</button>
@@ -125,13 +125,13 @@
         </section>
         <section class="quotation-nearby-card">
           <div class="quotation-nearby-copy">
-            <span class="quotation-nearby-label">Ferreterías consideradas</span>
+            <span class="quotation-nearby-label">Locales considerados</span>
             <strong>{{ proximityLabel }}</strong>
             <small *ngIf="proximityEnabled">
-              Los precios, la mejor tienda y la optimización usan solo ferreterías dentro de este radio.
+              Los precios, la mejor tienda y la optimización usan solo locales dentro de este radio.
             </small>
             <small *ngIf="!proximityEnabled">
-              La cotización compara todas las ferreterías activas.
+              La cotización compara todos los locales activos.
             </small>
           </div>
 
@@ -145,7 +145,7 @@
             <button type="button" class="secondary" (click)="toggleProjectProximity()" [disabled]="isLocating">
               {{ isLocating
                 ? 'Obteniendo ubicación...'
-                : (proximityEnabled ? 'Usar todas las ferreterías' : 'Buscar cerca de mí') }}
+                : (proximityEnabled ? 'Usar todos los locales' : 'Buscar cerca de mí') }}
             </button>
           </div>
 
@@ -154,7 +154,7 @@
         </section>
 
 
-            <p>Cotización referencial: no constituye una compra, un pedido ni una reserva. Los precios y el stock son informados por cada ferretería.</p>
+            <p>Cotización referencial: no constituye una compra, un pedido ni una reserva. Los precios y el stock son informados por cada local.</p>
           </app-info-panel>
         </div>
         <div class="project-fields">
@@ -174,8 +174,8 @@
 
         </div>
         <p class="nearby-warning" *ngIf="unavailableItemCount > 0">
-          {{ unavailableItemCount }} producto(s) no tienen una oferta vigente con stock suficiente. Revisa cantidades y la ferretería seleccionada antes de exportar.
-          Puedes aumentar el radio o usar todas las ferreterías.
+          {{ unavailableItemCount }} producto(s) no tienen una oferta vigente con stock suficiente. Revisa cantidades y el local seleccionado antes de exportar.
+          Puedes aumentar el radio o usar todos los locales.
         </p>
 
         <div class="actions">
@@ -207,9 +207,9 @@
     <section class="same-store-card" *ngIf="hasItemsInTable">
       <div class="same-store-header">
         <div>
-          <h2>Comprar en una sola ferretería</h2>
+          <h2>Comprar en un solo local</h2>
           <p class="section-note">
-            Ferreterías de tu cotización con todos los productos y stock suficiente.
+            Locales de tu cotización con todos los productos y stock suficiente.
           </p>
         </div>
         <button
@@ -223,13 +223,13 @@
       </div>
 
       <p class="nearby-warning" *ngIf="singleStoreSelectionInvalid">
-        La ferretería que habías aplicado ya no tiene todos los productos disponibles. Revisa la selección o vuelve a la compra combinada; los productos faltantes siguen marcados como incompletos.
+        El local que habías aplicado ya no tiene todos los productos disponibles. Revisa la selección o vuelve a la compra combinada; los productos faltantes siguen marcados como incompletos.
       </p>
 
       <div class="same-store-applied" *ngIf="quotation.appliedStoreName">
         <span>Aplicada a la cotización</span>
         <strong>{{ quotation.appliedStoreName }}</strong>
-        <p>Todos los precios y totales de arriba corresponden ahora a esta ferretería.</p>
+        <p>Todos los precios y totales de arriba corresponden ahora a este local.</p>
       </div>
 
       <div class="same-store-grid" *ngIf="singleStoreOptions.length > 0; else noSingleStore">
@@ -263,7 +263,7 @@
 
       <ng-template #noSingleStore>
         <div class="empty-state compact">
-          <p class="empty-title">Ninguna de las ferreterías seleccionadas tiene toda la cotización disponible.</p>
+          <p class="empty-title">Ninguno de los locales seleccionados tiene toda la cotización disponible.</p>
           <p>Puedes mantener la compra combinada o cambiar productos, cantidades o radio de búsqueda.</p>
         </div>
       </ng-template>

@@ -16,7 +16,7 @@ test('legacy product routes preserve quotation parameters and product metadata u
  assert.equal(res.location,'/productos/cemento-gris-25-kg?ferreteriaId=south&cantidad=3&crearCotizacion=1');
  const empty=response();await handler('/producto')({path:'/producto',originalUrl:'/producto'},empty,error=>{throw error;});assert.equal(empty.location,'/buscar');
  const page=response();await handler('/productos/:slug')({path:'/productos/cemento-gris-25-kg',params:{slug:'cemento-gris-25-kg'}},page,error=>{throw error;});
- assert.match(page.body,/<p role="status">Cargando precios de las ferreterías…<\/p>/);
+ assert.match(page.body,/<p role="status">Cargando precios de los locales…<\/p>/);
  assert.doesNotMatch(page.body,/AggregateOffer/);
  assert.match(page.body,/<meta property="og:image" content="https:\/\/example.test\/cemento.webp">/);
  assert.match(page.body,/<link rel="canonical" href="https:\/\/cotizapp-d71c8.web.app\/productos\/cemento-gris-25-kg">/);

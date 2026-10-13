@@ -184,7 +184,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
   protected get proximityLabel(): string {
     return this.projectProximity
       ? `Cerca de mi · hasta ${this.projectProximity.radiusKm} km`
-      : 'Todas las ferreterias';
+      : 'Todos los locales';
   }
 
 
@@ -349,7 +349,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
   protected async applySingleStore(storeName: string, storeId?: string): Promise<void> {
     const option = this.singleStoreOptions.find((item) => storeId ? item.storeId === storeId : item.storeName === storeName);
     if (!option) {
-      this.singleStoreNotice = 'Esta ferreteria ya no tiene todos los productos disponibles.';
+      this.singleStoreNotice = 'Este local ya no tiene todos los productos disponibles.';
       return;
     }
 
@@ -365,7 +365,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       if (!saved) {
         this.selectedSingleStoreName = previous;
         this.selectedSingleStoreId = previousId;
-        this.singleStoreNotice = 'No se pudo guardar la ferreteria seleccionada.';
+        this.singleStoreNotice = 'No se pudo guardar el local seleccionado.';
       }
     }
   }
@@ -401,7 +401,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
     if (this.projectProximity) {
       this.projectProximity = undefined;
       clearNearbySearchPreference();
-      this.locationNotice = 'La cotizacion ahora considera todas las ferreterias.';
+      this.locationNotice = 'La cotizacion ahora considera todos los locales.';
       this.persistDraftIfNeeded();
       return;
     }
@@ -420,7 +420,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
         radiusKm
       };
       this.syncNearbyPreference();
-      this.locationNotice = `La cotizacion ahora considera ferreterias a hasta ${radiusKm} km.`;
+      this.locationNotice = `La cotizacion ahora considera locales hasta ${radiusKm} km.`;
       this.persistDraftIfNeeded();
     } catch (error) {
       this.locationError = error instanceof Error ? error.message : 'No se pudo obtener tu ubicacion.';

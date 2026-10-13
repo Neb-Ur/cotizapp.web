@@ -24,7 +24,7 @@
         </article>
         <div class="metrics-business-grid">
           <article class="metric-card"><span>Maestros registrados</span><strong>{{ metrics.maestros | number }}</strong><button class="metric-link" (click)="sectionSelected.emit('usuarios')">Ver usuarios →</button></article>
-          <article class="metric-card"><span>Ferreterías activas</span><strong>{{ metrics.stores | number }}</strong><small>{{ metrics.demo_stores }} de prueba</small><button class="metric-link" (click)="sectionSelected.emit('ferreterias')">Ver ferreterías →</button></article>
+          <article class="metric-card"><span>Locales activos</span><strong>{{ metrics.stores | number }}</strong><small>{{ metrics.demo_stores }} de prueba</small><button class="metric-link" (click)="sectionSelected.emit('ferreterias')">Ver locales →</button></article>
           <article class="metric-card"><span>Productos del catálogo</span><strong>{{ metrics.products | number }}</strong><button class="metric-link" (click)="sectionSelected.emit('productos')">Ver catálogo →</button></article>
           <article class="metric-card"><span>Ofertas publicadas con stock</span><strong>{{ metrics.offers | number }}</strong><small>Incluye ofertas de prueba</small></article>
           <article class="metric-card"><span>Cotizaciones guardadas</span><strong>{{ metrics.quotations | number }}</strong><small>Las locales sin cuenta no se envían al servidor</small></article>

@@ -201,7 +201,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     {id:'inicio',label:'Inicio',description:'Visitas y actividad de Trovio. Actualiza las métricas cuando lo necesites.'},
     {
       id: 'ferreterias',
-      label: 'Ferreterias',
+      label: 'Locales',
       description: 'Activa cuentas, revisa catalogos y realiza la carga inicial de productos.'
     },
     {
@@ -212,12 +212,12 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     {
       id: 'solicitudes',
       label: 'Solicitudes',
-      description: 'Resuelve productos que las ferreterias no encuentran en el catalogo maestro.'
+      description: 'Resuelve productos que los locales no encuentran en el catalogo maestro.'
     },
     {
       id: 'contacto',
       label: 'Mensajes de contacto',
-      description: 'Consulta y responde los mensajes enviados desde Contacto. El acceso de ferreterías se solicita por WhatsApp.'
+      description: 'Consulta y responde los mensajes enviados desde Contacto. El acceso de locales se solicita por WhatsApp.'
     },
     {
       id: 'precios',
@@ -1359,7 +1359,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       try {
         if (this.userModalDraft.isNew) {
           if (this.userModalDraft.role === 'ferreteria') {
-            this.error = 'Crea las ferreterías desde su sección para registrar también la ubicación del local.';
+            this.error = 'Crea los locales desde su sección para registrar también la ubicación del local.';
             return;
           }
           if (!STRONG_PASSWORD_PATTERN.test(this.userModalDraft.password)) {

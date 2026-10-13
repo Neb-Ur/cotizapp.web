@@ -12,8 +12,8 @@
     </div>
 
     <div class="store-identity">
-      <span class="store-kicker">Panel de ferretería</span>
-      <h1>{{ user?.businessName || user?.displayName || 'Mi ferretería' }}</h1>
+      <span class="store-kicker">Panel del local</span>
+      <h1>{{ user?.businessName || user?.displayName || 'Mi local' }}</h1>
       <div class="store-meta">
         <span>{{ user?.email }}</span>
         <span *ngIf="user?.commune || user?.city">{{ user?.commune || user?.city }}</span>
@@ -38,7 +38,7 @@
     <article class="panel" *ngIf="onboardingReady && currentSection === 'cotizaciones'"><app-store-quotation-verifier [storeId]="user?.ferreteriaId || ''" /></article>
 
     <article class="panel panel--loading" *ngIf="isInitialLoading || isSectionLoading">
-      <app-ui-loader [label]="isInitialLoading ? 'Cargando ferretería...' : 'Cargando sección...'" />
+      <app-ui-loader [label]="isInitialLoading ? 'Cargando local...' : 'Cargando sección...'" />
     </article>
 
     <article class="store-overview" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'inicio'">
@@ -64,8 +64,8 @@
             <button type="button" class="secondary" (click)="setSection('catalogo')">Revisar precios y stock</button>
           </section>
         </div>
-        <div class="engagement-summary"><section><i class="pi pi-eye" aria-hidden="true"></i><strong>{{ report.views | number }}</strong><span>Visualizaciones de ofertas</span></section><section><i class="pi pi-check-circle" aria-hidden="true"></i><strong>{{ report.selections | number }}</strong><span>Selecciones de ferretería</span></section><p>Conteos acumulados al último corte; no equivalen a visitantes únicos ni ventas.</p></div>
-        <p class="metrics-methodology">Cotizaciones activas: con productos y actividad en los últimos {{ report.activeWindowDays }} días. Los montos usan los precios guardados en las cotizaciones vigentes o, para registros anteriores, las ofertas disponibles al corte. Incluyen IVA. No representan compras ni ingresos. Cada producto se atribuye a la ferretería seleccionada o a la oferta que usa la cotización; no a todas las tiendas que lo venden.</p>
+        <div class="engagement-summary"><section><i class="pi pi-eye" aria-hidden="true"></i><strong>{{ report.views | number }}</strong><span>Visualizaciones de ofertas</span></section><section><i class="pi pi-check-circle" aria-hidden="true"></i><strong>{{ report.selections | number }}</strong><span>Selecciones de local</span></section><p>Conteos acumulados al último corte; no equivalen a visitantes únicos ni ventas.</p></div>
+        <p class="metrics-methodology">Cotizaciones activas: con productos y actividad en los últimos {{ report.activeWindowDays }} días. Los montos usan los precios guardados en las cotizaciones vigentes o, para registros anteriores, las ofertas disponibles al corte. Incluyen IVA. No representan compras ni ingresos. Cada producto se atribuye al local seleccionado o a la oferta que usa la cotización; no a todas las tiendas que lo venden.</p>
       </ng-container>
       <ng-template #awaitingDailyReport><div class="insight-card insight-empty" *ngIf="!dashboardError"><i class="pi pi-chart-bar" aria-hidden="true"></i><h3>Estamos preparando tu primer resumen</h3><p>Se calculará en la próxima actualización, dentro de dos horas. Mientras tanto, prepara tus precios y stock para aparecer en las cotizaciones.</p><button type="button" (click)="setSection('catalogo')">Preparar mi catálogo</button></div></ng-template>
       <div class="overview-actions"><button type="button" class="secondary" (click)="goToExcelImport()"><i class="pi pi-upload" aria-hidden="true"></i> Actualizar por Excel</button><button type="button" class="secondary" (click)="setSection('perfil')"><i class="pi pi-user" aria-hidden="true"></i> Completar mi perfil</button></div>
@@ -258,7 +258,7 @@
       <div class="profile-heading">
         <div>
           <span>Perfil de la tienda</span>
-          <h3>Información de la ferretería</h3>
+          <h3>Información del local</h3>
           <p>Estos datos identifican tu negocio frente a los clientes.</p>
         </div>
         <span class="profile-email">{{ user?.email }}</span>
@@ -350,10 +350,10 @@
 
       <label class="catalog-edit-published">
 
-        <span><strong>El precio incluye IVA</strong><small>Ingresa el precio final que cobra la ferretería, con IVA incluido. Trovio no agrega impuestos.</small></span>
+        <span><strong>El precio incluye IVA</strong><small>Ingresa el precio final que cobra el local, con IVA incluido. Trovio no agrega impuestos.</small></span>
       </label>
 
-      <label><span>Condición del producto</span>
+      <label><span>Condición de esta publicación</span>
         <select [(ngModel)]="catalogEditDraft.condition" [disabled]="catalogEditSaving"><option *ngFor="let condition of conditionOptions" [value]="condition">{{ conditionLabel(condition) }}</option></select>
       </label>
       <label>
@@ -365,7 +365,7 @@
         <input type="checkbox" [(ngModel)]="catalogEditDraft.isPublished" [disabled]="catalogEditSaving" />
         <span>
           <strong>Publicado en Trovio</strong>
-          <small *ngIf="catalogEditDraft.isPublished">El producto puede aparecer en el comparador si la ferretería está activa y tiene stock suficiente.</small>
+          <small *ngIf="catalogEditDraft.isPublished">El producto puede aparecer en el comparador si el local está activo y tiene stock suficiente.</small>
           <small *ngIf="!catalogEditDraft.isPublished">El producto queda en tu catálogo, pero no aparece en el comparador.</small>
         </span>
       </label>

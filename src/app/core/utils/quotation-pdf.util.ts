@@ -28,7 +28,7 @@ export async function shareQuotationPdf(input: QuotationPdfInput): Promise<'shar
   const file = buildQuotationPdfFile(input);
   const shareData: ShareData = {
     title: `Cotizacion - ${input.projectName || 'Trovio'}`,
-    text: `Cotizacion de materiales ${input.projectName ? `- ${input.projectName}` : ''}`,
+    text: `Cotizacion de productos ${input.projectName ? `- ${input.projectName}` : ''}`,
     files: [file]
   };
 
@@ -57,10 +57,10 @@ function buildQuotationPdfLines(input: QuotationPdfInput, exportedAt: Date): str
   const lines: string[] = [];
   const totalWithIva = input.quotation.optimalTotal;
 
-  lines.push('COTIZACION DE MATERIALES');
+  lines.push('COTIZACION DE PRODUCTOS');
   if(input.verificationCode) lines.push(`Codigo de verificacion: ${input.verificationCode}`);
   if (input.pilot || input.quotation.lines.some(line => line.bestStoreName.includes('(Prueba)'))) {
-    lines.push('SOLO PRUEBA: ferreterias ficticias; precios y stock simulados.');
+    lines.push('SOLO PRUEBA: locales ficticios; precios y stock simulados.');
     lines.push('No es una oferta comercial. No existen locales para visitar.');
   }
   lines.push(`Proyecto: ${input.projectName || 'Sin titulo'}`);
@@ -75,7 +75,7 @@ function buildQuotationPdfLines(input: QuotationPdfInput, exportedAt: Date): str
   lines.push(
     input.proximity
       ? `Busqueda por cercania: hasta ${input.proximity.radiusKm} km desde la ubicacion del maestro`
-      : 'Busqueda por cercania: todas las ferreterias'
+      : 'Busqueda por cercania: todos los locales'
   );
   lines.push(
     input.quotation.appliedStoreName
@@ -101,16 +101,16 @@ function buildQuotationPdfLines(input: QuotationPdfInput, exportedAt: Date): str
   lines.push(`Mejor tienda global: ${input.quotation.bestStore.storeName}`);
   lines.push(`Total tienda global: ${formatCurrency(input.quotation.bestStore.total)}`);
   lines.push('');
-  lines.push('TOTALES POR FERRETERIA');
+  lines.push('TOTALES POR LOCAL');
 
   input.quotation.totalsByStore.forEach((storeRow) => {
     lines.push(`${storeRow.storeName}: ${formatCurrency(storeRow.total)}`);
   });
 
   lines.push('');
-  lines.push('Precios finales con IVA incluido, informados por las ferreterias.');
+  lines.push('Precios finales con IVA incluido, informados por los locales.');
   lines.push('Compra dentro de los 10 dias de generar la cotizacion para mantener los precios cotizados.');
-  lines.push('La ferreteria puede verificar el codigo y los productos cotizados con ella.');
+  lines.push('El local puede verificar el codigo y los productos cotizados con el.');
   lines.push('Esta cotizacion no constituye una compra, un pedido ni una reserva de productos.');
   lines.push('Trovio permite crear cotizaciones; no procesa compras.');
   lines.push('Documento generado por Trovio.');
@@ -181,7 +181,7 @@ function buildPdfPageContent(lines: string[], pageNumber: number, pageCount: num
 
   lines.forEach((line, index) => {
     const y = 727 - index * 14;
-    const heading = ['COTIZACION DE MATERIALES', 'DETALLE DE ARTICULOS', 'RESUMEN DE COTIZACION', 'TOTALES POR FERRETERIA'].includes(line);
+    const heading = ['COTIZACION DE PRODUCTOS', 'DETALLE DE ARTICULOS', 'RESUMEN DE COTIZACION', 'TOTALES POR LOCAL'].includes(line);
     const total = line.startsWith('Total final (IVA incluido):');
     if (total) commands.push('q 1 0.950 0.890 rg', roundedPdfRect(39, y - 3, 517, 14, 4), 'f Q');
     commands.push(`BT /${heading || total ? 'F2' : 'F1'} ${heading ? 11 : 10} Tf ${heading || total ? navy : gray} rg 44 ${y} Td (${escapePdfText(line)}) Tj ET`);
@@ -189,7 +189,7 @@ function buildPdfPageContent(lines: string[], pageNumber: number, pageCount: num
 
   commands.push(
     'q 0.86 0.89 0.92 RG 0.5 w 40 60 m 555 60 l S Q',
-    `BT /F1 8 Tf ${gray} rg 44 42 Td (${pilot ? 'Trovio - SOLO PRUEBA. Precios simulados; no disponible para compra.' : 'Trovio - Cotizacion referencial. Compra directamente en la ferreteria.'}) Tj ET`,
+    `BT /F1 8 Tf ${gray} rg 44 42 Td (${pilot ? 'Trovio - SOLO PRUEBA. Precios simulados; no disponible para compra.' : 'Trovio - Cotizacion referencial. Compra directamente en el local.'}) Tj ET`,
     `BT /F1 8 Tf ${gray} rg 485 42 Td (Pagina ${pageNumber} / ${pageCount}) Tj ET`
   );
   return commands.join('\n');

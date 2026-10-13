@@ -75,7 +75,7 @@ export async function buildSearchRows(source?: any[][], asOf?:number): Promise<S
         validFrom: normalizeText(offer.vigenteDesde || offer.actualizadoEn || offer.creadoEn),
         validUntil: normalizeText(offer.vigenteHasta) || null,
         offerConditions: normalizeText(offer.condicionesOferta)
-          || 'Precio sujeto a stock y confirmación directa con la ferretería.',
+          || 'Precio sujeto a stock y confirmación directa con el local.',
         sponsored: offer.patrocinado === true,
         measurementUnit,
         measurementQuantity,

@@ -5,7 +5,7 @@
       <h1>Local y reseñas</h1>
     } @else {
       <p class="eyebrow">Encuentra dónde comprar</p>
-      <h1>Ferreterías y locales en Trovio</h1>
+      <h1>Locales en Trovio</h1>
       <p>Conoce los locales, revisa la opinión de otros maestros y explora sus productos.</p>
     }
   </header>
@@ -20,7 +20,7 @@
     </form>
   }
   @if (loading) {
-    <section class="loading-card" aria-live="polite"><app-ui-loader [label]="storeId ? 'Cargando ferretería y reseñas…' : 'Cargando ferreterías…'" /></section>
+    <section class="loading-card" aria-live="polite"><app-ui-loader [label]="storeId ? 'Cargando local y reseñas…' : 'Cargando locales…'" /></section>
   } @else if (error) {
     <section class="empty-card" role="alert"><p>{{ error }}</p><button class="btn btn-outline" (click)="load()">Reintentar</button></section>
   } @else if (!storeId && directory) {
@@ -31,7 +31,7 @@
           <div class="store-icon"><i class="pi pi-shop" aria-hidden="true"></i></div>
           <h2><a [routerLink]="['/ferreterias', store.id]">{{ store.name }}</a></h2>
           <small>{{ businessTypeLabel(store.businessType) }}</small>
-          @if (store.pilot) {<span class="pilot-label">Ferretería de prueba</span>}
+          @if (store.pilot) {<span class="pilot-label">Local de prueba</span>}
           <p class="store-location"><i class="pi pi-map-marker" aria-hidden="true"></i> {{ storeLocation(store) || 'Ubicación no informada' }}</p>
           @if (store.address) {<p>{{ store.address }}</p>}
           <p class="store-rating"><i class="pi pi-star-fill" aria-hidden="true"></i> @if (store.rating !== null) {<strong>{{ store.rating | number:'1.1-1' }} / 5</strong><span>({{ store.reviewCount }} reseñas)</span>} @else {<span>Sin reseñas todavía</span>}</p>
@@ -40,25 +40,25 @@
       } @empty {<p class="empty-card">No hay locales que coincidan con los filtros.</p>}
     </div>
     @if (directory.totalPages > 1) {
-      <nav class="directory-pagination" aria-label="Páginas de ferreterías"><button class="btn btn-outline" [disabled]="page === 1" (click)="changePage(page - 1)">Anterior</button><span aria-live="polite">Página {{ page }} de {{ directory.totalPages }}</span><button class="btn btn-outline" [disabled]="page === directory.totalPages" (click)="changePage(page + 1)">Siguiente</button></nav>
+      <nav class="directory-pagination" aria-label="Páginas de locales"><button class="btn btn-outline" [disabled]="page === 1" (click)="changePage(page - 1)">Anterior</button><span aria-live="polite">Página {{ page }} de {{ directory.totalPages }}</span><button class="btn btn-outline" [disabled]="page === directory.totalPages" (click)="changePage(page + 1)">Siguiente</button></nav>
     }
   } @else if (detail) {
     <article class="store-profile">
       <h2>{{ detail.store.name }}</h2>
       <p>{{ businessTypeLabel(detail.store.businessType) }}</p>
-      @if (detail.store.pilot) {<p class="pilot-label">Ferretería de prueba: no disponible para compras.</p>}
+      @if (detail.store.pilot) {<p class="pilot-label">Local de prueba: no disponible para compras.</p>}
       <p>{{ storeLocation(detail.store) }}</p>
       @if (detail.store.address) {<p>{{ detail.store.address }}</p>}
       <div class="store-contact">@if (detail.store.email) {<a [href]="'mailto:' + detail.store.email">{{ detail.store.email }}</a>} @if (detail.store.phone) {<a [href]="'tel:' + detail.store.phone">{{ detail.store.phone }}</a>}</div>
       <p class="store-rating"><i class="pi pi-star-fill" aria-hidden="true"></i> @if (detail.store.rating !== null) {<strong>{{ detail.store.rating | number:'1.1-1' }} / 5</strong><span>· {{ detail.store.reviewCount }} reseñas</span>} @else {<span>Sin reseñas todavía</span>}</p>
-      <a class="btn btn-primary" routerLink="/buscar" [queryParams]="{ferreteriaId: detail.store.id, ferreteria: detail.store.name}">Ver productos de esta ferretería</a>
+      <a class="btn btn-primary" routerLink="/buscar" [queryParams]="{ferreteriaId: detail.store.id, ferreteria: detail.store.name}">Ver productos de este local</a>
     </article>
     <section class="reviews-layout">
       <section class="reviews-list" aria-labelledby="reviews-title">
         <h2 id="reviews-title">Opiniones de maestros</h2>
         @for (review of detail.reviews; track review.id) {
           <article class="review-card"><header><strong>{{ review.authorName }}</strong><span class="store-rating" [attr.aria-label]="review.rating + ' de 5 estrellas'">@for (star of stars; track star) {<i [class]="star <= review.rating ? 'pi pi-star-fill' : 'pi pi-star'" aria-hidden="true"></i>}</span></header><p class="review-text">{{ review.comment }}</p><time [attr.datetime]="review.updatedAt">{{ review.updatedAt | date:'dd/MM/yyyy' }}</time></article>
-        } @empty {<p class="empty-card">Sé el primero en compartir tu experiencia con esta ferretería.</p>}
+        } @empty {<p class="empty-card">Sé el primero en compartir tu experiencia con este local.</p>}
         @if (detail.totalPages > 1) {<nav class="directory-pagination" aria-label="Páginas de reseñas"><button class="btn btn-outline" [disabled]="reviewPage === 1" (click)="changeReviewPage(reviewPage - 1)">Anterior</button><span>Página {{ reviewPage }} de {{ detail.totalPages }}</span><button class="btn btn-outline" [disabled]="reviewPage === detail.totalPages" (click)="changeReviewPage(reviewPage + 1)">Siguiente</button></nav>}
       </section>
       <section class="review-form-card" aria-labelledby="my-review-title">
@@ -82,8 +82,8 @@
   @if (!storeId) {
     <aside class="join-stores" aria-labelledby="join-stores-title">
       <span class="join-icon"><i class="pi pi-shop" aria-hidden="true"></i></span>
-      <div class="join-copy"><span class="join-eyebrow">Suma tu ferretería a Trovio</span><h2 id="join-stores-title">Haz que más maestros encuentren tu ferretería</h2><p>Publica tus productos y precios. Conecta con maestros que buscan materiales para sus obras.</p></div>
-      <div class="join-action"><a class="btn btn-primary" [href]="storeAccessWhatsappUrl" target="_blank" rel="noopener noreferrer">Quiero sumar mi ferretería <i class="pi pi-arrow-right" aria-hidden="true"></i></a><small>Solicita acceso por WhatsApp</small></div>
+      <div class="join-copy"><span class="join-eyebrow">Suma tu local a Trovio</span><h2 id="join-stores-title">Haz que más maestros encuentren tu local</h2><p>Publica tus productos y precios. Conecta con maestros que buscan productos para sus proyectos.</p></div>
+      <div class="join-action"><a class="btn btn-primary" [href]="storeAccessWhatsappUrl" target="_blank" rel="noopener noreferrer">Quiero sumar mi local <i class="pi pi-arrow-right" aria-hidden="true"></i></a><small>Solicita acceso por WhatsApp</small></div>
     </aside>
   }
 </main>

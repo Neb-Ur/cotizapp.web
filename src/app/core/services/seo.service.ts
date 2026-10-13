@@ -15,40 +15,40 @@ interface SeoPage {
 const SITE_URL = 'https://cotizapp-d71c8.web.app';
 const STRUCTURED_DATA_ID = 'cotizapp-page-structured-data';
 const DEFAULT_PAGE: SeoPage = {
-  title: 'Trovio | Compara precios de materiales de construcción',
-  description: 'Compara precios y stock de materiales entre ferreterías y arma tu cotización de obra en minutos.'
+  title: 'Trovio | Encuentra productos y compara precios',
+  description: 'Encuentra productos, compara precios y disponibilidad entre locales y crea tu cotización.'
 };
 
 const PAGE_SEO: Record<string, SeoPage> = {
   '/': DEFAULT_PAGE,
   '/buscar': {
-    title: 'Buscar materiales y comparar precios | Trovio',
-    description: 'Busca materiales de construcción y compara precios y disponibilidad entre ferreterías activas sin crear una cuenta.'
+    title: 'Buscar productos y comparar precios | Trovio',
+    description: 'Busca productos y compara precios y disponibilidad entre locales activos sin crear una cuenta.'
   },
   '/cotizaciones': { title: 'Mis cotizaciones | Trovio', description: 'Crea y revisa cotizaciones antes de iniciar sesión.', index: false },
   '/producto': {
     title: 'Comparar precios de productos | Trovio',
-    description: 'Revisa precios, stock y alternativas disponibles para tus materiales de construcción.'
+    description: 'Revisa precios, stock y alternativas disponibles para los productos que necesitas.'
   },
   '/maestros': {
     title: 'Cotizaciones para maestros y contratistas | Trovio',
     description: 'Compara materiales, optimiza costos y guarda cotizaciones para cada proyecto de construcción.'
   },
   '/ferreterias': {
-    title: 'Ferreterías: locales, reseñas y productos | Trovio',
-    description: 'Encuentra ferreterías por región y comuna, consulta reseñas de maestros y explora los productos de cada local.'
+    title: 'Locales, reseñas y productos | Trovio',
+    description: 'Encuentra locales por región y comuna, consulta reseñas de maestros y explora los productos de cada local.'
   },
   '/contacto': {
     title: 'Contacto y solicitud de acceso | Trovio',
-    description: 'Contacta a Trovio para soporte o para solicitar acceso como ferretería.'
+    description: 'Contacta a Trovio para soporte o para solicitar acceso para tu local.'
   },
   '/preguntas-frecuentes': {
     title: 'Preguntas frecuentes | Trovio',
-    description: 'Resuelve dudas sobre búsqueda de productos, cotizaciones, cuentas de maestro y acceso para ferreterías.'
+    description: 'Resuelve dudas sobre búsqueda de productos, cotizaciones, cuentas de maestro y acceso para locales.'
   },
   '/terminos-condiciones': {
     title: 'Términos y condiciones | Trovio',
-    description: 'Condiciones de uso de Trovio para visitantes, maestros y ferreterías.'
+    description: 'Condiciones de uso de Trovio para visitantes, maestros y locales.'
   },
   '/privacidad': {
     title: 'Política de privacidad | Trovio',
@@ -101,7 +101,7 @@ export class SeoService {
     const description = this.productDescription(product);
     const image = this.validImage(product.imageUrl) ? product.imageUrl : undefined;
     const page: SeoPage = {
-      title: `${product.productName}: precios en ferreterías | Trovio`,
+      title: `${product.productName}: precios en locales | Trovio`,
       index: true,
       description
     };
@@ -157,7 +157,7 @@ export class SeoService {
     const isProduct = path.startsWith('/productos/');
     const page = PAGE_SEO[path]
       || (isProduct ? PAGE_SEO['/producto'] : undefined)
-      || (path.startsWith('/ferreterias/') ? { ...PAGE_SEO['/ferreterias'], title: 'Reseñas de ferretería | Trovio' } : undefined)
+      || (path.startsWith('/ferreterias/') ? { ...PAGE_SEO['/ferreterias'], title: 'Reseñas de local | Trovio' } : undefined)
       || { ...DEFAULT_PAGE, index: false };
 
     this.applyPage(page, path, 'website', undefined, isPrivate);
@@ -210,7 +210,7 @@ export class SeoService {
 
   private productDescription(product: ProductDetailView): string {
     const source = product.shortDescription || product.description || product.productType;
-    const comparison = product.stores.length ? `Compara precios de ${product.productName} en ${product.stores.length} ferretería${product.stores.length === 1 ? '' : 's'} de Chile.` : `Consulta las características de ${product.productName} y las ofertas de ferreterías de Chile cuando estén disponibles.`;
+    const comparison = product.stores.length ? `Compara precios de ${product.productName} en ${product.stores.length} local${product.stores.length === 1 ? '' : 'es'} de Chile.` : `Consulta las características de ${product.productName} y las ofertas de locales de Chile cuando estén disponibles.`;
     const text = source?.trim() ? `${source.trim()} ${comparison}` : comparison;
     return text.length > 160 ? `${text.slice(0, 157).trimEnd()}...` : text;
   }
