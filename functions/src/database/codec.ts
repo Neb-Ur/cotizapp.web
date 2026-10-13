@@ -1,3 +1,4 @@
+import { normalizeVehicleApplications } from '../domain/vehicle-application.js';
 import mappings from './source-mapping.json' with {type:'json'};
 import columns from './table-columns.json' with {type:'json'};
 import { createHash } from 'node:crypto';
@@ -47,6 +48,14 @@ export async function writeDocument(client:SqlClient,collection:string,id:string
   input={...input,tipoNegocio:input.tipoNegocio??'ferreteria'};
  }
  if(key==='storeProducts'){
+  if(input.asociacionesVehiculos!==undefined){
+   input={...input,asociacionesVehiculos:normalizeVehicleApplications(input.asociacionesVehiculos)};
+   const previous=(await client.query('SELECT api_payload FROM findi.offers WHERE id=$1',[id])).rows[0]?.api_payload;
+   if(input.asociacionesVehiculos.length && JSON.stringify(input.asociacionesVehiculos)!==JSON.stringify(normalizeVehicleApplications(previous?.asociacionesVehiculos || []))){
+    const family=await client.query('SELECT f.supports_vehicle_applications FROM findi.products p JOIN findi.families f ON f.id=p.family_id WHERE p.id=$1',[input.productoMaestroId]);
+    if(family.rows[0]?.supports_vehicle_applications!==true)throw new Error('FAMILY_VEHICLES_DISABLED');
+   }
+  }
   if(input.condicion!==undefined&&!isOfferCondition(input.condicion))throw new Error('OFFER_CONDITION_INVALID');
   input={...input,condicion:input.condicion??'sin_especificar'};
  }
@@ -109,6 +118,10 @@ export async function writeDocument(client:SqlClient,collection:string,id:string
  await materializeChildren(client,key,id,data);
 }
 async function materializeChildren(client:SqlClient,key:string,id:string,data:Data) {
+ if(key==='storeProducts'){
+  await client.query('DELETE FROM findi.offer_vehicle_applications WHERE offer_id=$1',[id]);
+  for(const [position,application] of (data.asociacionesVehiculos||[]).entries())await upsert(client,'offer_vehicle_applications',{offer_id:id,position,brand_id:application.marcaId,model_id:application.modeloId,year_from:application.anioDesde,year_to:application.anioHasta,brand_name_snapshot:application.marcaNombre??null,model_name_snapshot:application.modeloNombre??null},['offer_id','position']);
+ }
  if(key==='brands'){
   const uses=brandUses(data.usos);
   for(const use of uses)await upsert(client,'brand_uses',{brand_id:id,use_kind:use},['brand_id','use_kind']);

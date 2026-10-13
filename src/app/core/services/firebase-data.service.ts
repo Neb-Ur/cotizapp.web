@@ -2204,6 +2204,8 @@ export class FirebaseDataService {
 
     const item: CatalogProduct = {
       id: row.id,
+      vehicleApplicationsEditable: row.vehiculosEditables === true,
+      vehicleApplications: Array.isArray(row.asociacionesVehiculos) ? row.asociacionesVehiculos : [],
       masterProductId: master.id || row.productoMaestroId,
       name: master.nombre || 'Producto',
       barcode: row.codigoBarras || '',

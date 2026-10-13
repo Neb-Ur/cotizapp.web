@@ -8,7 +8,7 @@ import {replicateDocument} from '../lib/database/replication.js';
 import {useSqlDatabase} from '../lib/database/config.js';
 async function fixture(t,ready=true,includeCondition=true){
  const pg=new PGlite();
- for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql','013-store-reviews.sql','015-offer-condition.sql','016-store-business-type.sql','017-vehicle-reference-catalog.sql'].filter(file=>includeCondition||file!=='015-offer-condition.sql'))await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
+ for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql','013-store-reviews.sql','015-offer-condition.sql','016-store-business-type.sql','017-vehicle-reference-catalog.sql','018-offer-vehicle-applications.sql'].filter(file=>includeCondition||file!=='015-offer-condition.sql'))await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
  const pool={connect:async()=>({query:pg.query.bind(pg),release(){}})};
  const db=new PostgresDatabase(pool,ready);
  t.after(()=>pg.close());
@@ -234,4 +234,31 @@ test('vehicle references enforce brand use and keep manufacturer, product model 
  await db.collection('familias').doc('family').update({permiteVehiculos:true});await db.collection('familias').doc('family').update({nombre:'Familia actualizada'});
  family=(await pg.query('SELECT supports_vehicle_applications,api_payload FROM findi.families WHERE id=$1',['family'])).rows[0];assert.equal(family.supports_vehicle_applications,true);assert.equal(family.api_payload.permiteVehiculos,true);
  await assert.rejects(db.collection('familias').doc('family').update({permiteVehiculos:'false'}),/FAMILY_VEHICLE_CAPABILITY_INVALID/);
+});
+
+test('offer vehicle associations remain relational, atomic and independent of old prices and quotation lines',async t=>{
+ const {db,pg}=await fixture(t);await catalog(db);
+ await db.collection('familias').doc('family').update({permiteVehiculos:true});
+ await db.collection('marcas').doc('brand').update({usos:['fabricante','vehiculo']});
+ await db.collection('marcas').doc('other').set({nombre:'Otra marca',nombreNormalizado:'otra marca',usos:['vehiculo']});
+ await db.collection('modelosVehiculo').doc('model').set({marcaId:'brand',nombre:'Modelo',nombreNormalizado:'modelo',activo:true});
+ await db.collection('real_productosFerreteria').doc('offer').set({ferreteriaId:'store',productoMaestroId:'product',precio:1500,stock:2});
+ const quote={ownerId:'master',name:'Cotización anterior',items:[{productName:'MDF negro 18 mm',quantity:1,productoMaestroId:'product',productoFerreteriaId:'offer'}],createdAt:'2026-10-08T12:00:00Z'};
+ await db.collection('real_proyectos').doc('legacy-quote').set(quote);
+ const declaration={marcaId:'brand',modeloId:'model',anioDesde:2000,anioHasta:2005,marcaNombre:'Marca de prueba',modeloNombre:'Modelo'};
+ await db.collection('real_productosFerreteria').doc('offer').update({asociacionesVehiculos:[declaration]});
+ assert.equal((await pg.query('SELECT model_id,brand_id,year_from,year_to FROM findi.offer_vehicle_applications')).rows[0].model_id,'model');
+ await db.collection('familias').doc('family').update({permiteVehiculos:false});
+ await db.collection('real_productosFerreteria').doc('offer').update({precio:1700});
+ assert.deepEqual((await db.collection('real_productosFerreteria').doc('offer').get()).data().asociacionesVehiculos,[declaration]);
+ await assert.rejects(db.collection('real_productosFerreteria').doc('offer').update({asociacionesVehiculos:[{...declaration,anioHasta:2006}]}),/FAMILY_VEHICLES_DISABLED/);
+ await db.collection('familias').doc('family').update({permiteVehiculos:true});
+ await assert.rejects(db.collection('real_productosFerreteria').doc('offer').update({asociacionesVehiculos:[{...declaration,marcaId:'other'}]}));
+ await assert.rejects(db.collection('real_productosFerreteria').doc('offer').update({asociacionesVehiculos:[declaration,declaration]}),/VEHICLE_APPLICATION_OVERLAP/);
+ assert.equal((await pg.query('SELECT count(*)::int n FROM findi.offer_vehicle_applications')).rows[0].n,1);
+ assert.equal(Number((await pg.query('SELECT price FROM findi.offers WHERE id=$1',['offer'])).rows[0].price),1700);
+ assert.deepEqual((await db.collection('real_proyectos').doc('legacy-quote').get()).data(),quote);
+ await db.collection('real_productosFerreteria').doc('offer').update({asociacionesVehiculos:[]});assert.equal((await pg.query('SELECT count(*)::int n FROM findi.offer_vehicle_applications')).rows[0].n,0);
+ await db.collection('real_productosFerreteria').doc('offer').update({asociacionesVehiculos:[{...declaration,anioDesde:null,anioHasta:null}]});
+ await db.collection('real_productosFerreteria').doc('offer').delete();assert.equal((await pg.query('SELECT count(*)::int n FROM findi.offer_vehicle_applications')).rows[0].n,0);
 });

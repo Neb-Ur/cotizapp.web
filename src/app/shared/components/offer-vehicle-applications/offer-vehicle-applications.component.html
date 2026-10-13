@@ -1,0 +1,22 @@
+<section class="vehicle-applications" *ngIf="canEdit || applications.length || error">
+  <h3>Vehículos declarados para esta publicación</h3>
+  <p>Registra únicamente los vehículos que conoces para esta pieza. Cada fila es una declaración independiente.</p>
+  <p *ngIf="error" class="error" role="alert">{{ error }} <button type="button" (click)="load()" [disabled]="saving || disabled">Volver a cargar</button></p>
+  <p *ngIf="notice" role="status">{{ notice }}</p>
+  <div *ngFor="let a of applications; let i=index" class="application-row">
+    <ng-container *ngIf="canEdit; else declaration">
+      <label>Marca del vehículo<select [(ngModel)]="a.marcaId" (ngModelChange)="a.modeloId=''" [disabled]="saving || disabled" [attr.aria-label]="'Marca del vehículo ' + (i+1)"><option value="">Selecciona marca</option><option *ngFor="let brand of references.brands" [value]="brand.id">{{ brand.nombre }}</option></select></label>
+      <label>Modelo<select [(ngModel)]="a.modeloId" [disabled]="saving || disabled || !a.marcaId" [attr.aria-label]="'Modelo del vehículo ' + (i+1)"><option value="">Selecciona modelo</option><option *ngFor="let model of models(a)" [value]="model.id">{{ model.nombre }}{{ model.activo ? '' : ' (inactivo)' }}</option></select></label>
+      <label>Año desde<input type="number" min="1886" max="2100" step="1" [(ngModel)]="a.anioDesde" [disabled]="saving || disabled" [attr.aria-label]="'Año desde ' + (i+1)" /></label>
+      <label>Año hasta<input type="number" min="1886" max="2100" step="1" [(ngModel)]="a.anioHasta" [disabled]="saving || disabled" [attr.aria-label]="'Año hasta ' + (i+1)" placeholder="Mismo año" /></label>
+      <button type="button" (click)="applications.splice(i,1)" [disabled]="saving || disabled" [attr.aria-label]="'Quitar asociación ' + (i+1)">Quitar</button>
+    </ng-container>
+    <ng-template #declaration><span>{{ a.marcaNombre }} {{ a.modeloNombre }} · {{ a.anioDesde === null ? 'Años no especificados' : a.anioDesde === a.anioHasta ? a.anioDesde : a.anioDesde + '–' + a.anioHasta }}</span></ng-template>
+  </div>
+  <p *ngIf="!applications.length">No hay vehículos declarados. Esto no indica compatibilidad universal.</p>
+  <ng-container *ngIf="canEdit">
+    <small>Para un solo año, completa «Año desde». Deja ambos vacíos si no conoces los años. Máximo 20 asociaciones, sin rangos solapados para el mismo modelo.</small>
+    <div class="actions"><button type="button" (click)="add()" [disabled]="saving || disabled || applications.length >= 20">Agregar vehículo</button><button type="button" (click)="save()" [disabled]="saving || disabled || loading">{{ saving ? 'Guardando vehículos…' : 'Guardar vehículos' }}</button></div>
+    <small>Este botón guarda las asociaciones de vehículos de esta publicación.</small>
+  </ng-container>
+</section>

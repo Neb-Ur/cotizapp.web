@@ -305,8 +305,8 @@
     eyebrow="Catálogo"
     title="Editar producto"
     size="sm"
-    [closeDisabled]="catalogEditSaving"
-    [closeOnBackdrop]="!catalogEditSaving"
+    [closeDisabled]="catalogEditSaving || catalogVehicleSaving"
+    [closeOnBackdrop]="!catalogEditSaving && !catalogVehicleSaving"
     (closed)="closeCatalogEdit()"
   >
     <section *ngIf="catalogEditCandidate as product" class="catalog-edit-modal">
@@ -370,11 +370,13 @@
         </span>
       </label>
 
+      <app-offer-vehicle-applications *ngIf="product.vehicleApplicationsEditable || product.vehicleApplications?.length" [storeId]="user?.ferreteriaId || ''" [offerId]="product.id" [disabled]="catalogEditSaving" (busyChange)="catalogVehicleSaving=$event" />
+
       <p *ngIf="catalogEditError" class="catalog-edit-error">{{ catalogEditError }}</p>
 
       <div class="confirm-delete-actions">
-        <button type="button" class="btn btn-outline" (click)="closeCatalogEdit()" [disabled]="catalogEditSaving">Cancelar</button>
-        <button type="button" class="btn btn-primary" (click)="saveCatalogEdit()" [disabled]="catalogEditSaving">
+        <button type="button" class="btn btn-outline" (click)="closeCatalogEdit()" [disabled]="catalogEditSaving || catalogVehicleSaving">Cancelar</button>
+        <button type="button" class="btn btn-primary" (click)="saveCatalogEdit()" [disabled]="catalogEditSaving || catalogVehicleSaving">
           {{ catalogEditSaving ? 'Guardando...' : 'Guardar cambios' }}
         </button>
       </div>

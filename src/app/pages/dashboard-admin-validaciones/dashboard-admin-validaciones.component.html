@@ -230,7 +230,7 @@
             <thead><tr><th>Producto</th><th>SKU</th><th>Precio</th><th>Stock</th><th>Publicado</th></tr></thead>
             <tbody>
               <tr *ngFor="let product of paginatedSelectedStoreCatalog">
-                <td>{{ product.name }}</td>
+                <td>{{ product.name }} <button type="button" *ngIf="product.vehicleApplicationsEditable || product.vehicleApplications?.length" (click)="vehicleOffer=product">Vehículos</button></td>
                 <td>{{ product.sku || '-' }}</td>
                 <td>{{ formatCurrency(product.price) }}</td>
                 <td>{{ product.stock }}</td>
@@ -1524,3 +1524,5 @@
 </main>
 
 <datalist id="master-brand-options"><option *ngFor="let brand of brandOptions" [value]="brand.name"></option></datalist>
+
+<app-ui-modal [open]="!!vehicleOffer" title="Vehículos de la publicación" [closeDisabled]="vehicleOfferSaving" [closeOnBackdrop]="!vehicleOfferSaving" (closed)="closeVehicleOffer()"><app-offer-vehicle-applications *ngIf="vehicleOffer" [storeId]="selectedStore?.ferreteriaId || ''" [offerId]="vehicleOffer.id" (busyChange)="vehicleOfferSaving=$event" /></app-ui-modal>

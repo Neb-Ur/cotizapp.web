@@ -367,6 +367,18 @@
   },
   {
     "method": "get",
+    "path": "/ferreterias/:storeId/catalogo/:offerId/vehiculos",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "put",
+    "path": "/ferreterias/:storeId/catalogo/:offerId/vehiculos",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "get",
     "path": "/marcas",
     "auth": false,
     "middlewareCount": 1

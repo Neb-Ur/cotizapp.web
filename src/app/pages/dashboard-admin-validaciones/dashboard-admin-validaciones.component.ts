@@ -1,3 +1,5 @@
+import { UiModalComponent } from '../../shared/components/ui-modal/ui-modal.component';
+import { OfferVehicleApplicationsComponent } from '../../shared/components/offer-vehicle-applications/offer-vehicle-applications.component';
 import { VehicleCatalogAdminComponent } from '../../shared/components/vehicle-catalog-admin/vehicle-catalog-admin.component';
 import { BUSINESS_TYPES, businessTypeLabel, normalizeBusinessType, type BusinessType } from '../../core/utils/business-type.util';
 import {AdminMetricsComponent} from '../../shared/components/admin-metrics/admin-metrics.component';
@@ -150,6 +152,8 @@ interface AdminSectionMeta {
   standalone: true,
   imports: [
     VehicleCatalogAdminComponent,
+    OfferVehicleApplicationsComponent,
+    UiModalComponent,
     AdminMetricsComponent,
     ProductImageUploadComponent,
     PasswordFieldComponent,
@@ -241,6 +245,9 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       description: 'Gestiona las cuentas y sus estados de acceso.'
     }
   ];
+  protected vehicleOffer: CatalogProduct | null = null;
+  protected vehicleOfferSaving = false;
+  protected closeVehicleOffer():void { if(!this.vehicleOfferSaving)this.vehicleOffer=null; }
   protected currentSection: AdminSection = 'inicio';
   protected metrics: AdminMetrics | null = null;
   protected catalogAdminView: 'productos' | 'taxonomia' = 'productos';

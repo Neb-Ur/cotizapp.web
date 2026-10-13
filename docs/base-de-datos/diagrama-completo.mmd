@@ -65,6 +65,16 @@ erDiagram
     text brand_id PK,FK "NOT NULL"
     text use_kind PK "NOT NULL"
   }
+  offer_vehicle_applications["Vehículos declarados por publicación"] {
+    text offer_id PK,FK "NOT NULL"
+    integer position PK "NOT NULL"
+    text brand_id FK "NOT NULL"
+    text model_id FK "NOT NULL"
+    integer year_from "nullable"
+    integer year_to "nullable"
+    text brand_name_snapshot "nullable"
+    text model_name_snapshot "nullable"
+  }
   vehicle_models["Modelos de vehículos"] {
     text id PK "NOT NULL"
     text brand_id FK "NOT NULL"
@@ -924,6 +934,8 @@ erDiagram
   cities o|..o{ store_locations : "city_id"
   stores ||..o{ store_reviews : "store_id"
   users ||..o{ store_reviews : "user_id"
+  offers ||..o{ offer_vehicle_applications : "offer_id"
+  vehicle_models ||..o{ offer_vehicle_applications : "model_id, brand_id"
   brands ||--o{ brand_uses : "brand_id"
   brands ||..o{ vehicle_models : "brand_id"
   brand_uses ||..o{ vehicle_models : "brand_id, brand_use"

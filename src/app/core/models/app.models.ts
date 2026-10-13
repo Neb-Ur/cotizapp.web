@@ -439,6 +439,8 @@ export interface ProjectComparisonStrategy {
 }
 
 export interface CatalogProduct {
+  vehicleApplicationsEditable?: boolean;
+  vehicleApplications?: import('../services/vehicle-catalog.service').VehicleApplication[];
   condition?: OfferCondition;
   brandId?: string | null;
   catalogLevel?: 'tipo_base' | 'producto_comercial';

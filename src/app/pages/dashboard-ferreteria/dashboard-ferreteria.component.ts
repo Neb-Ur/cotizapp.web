@@ -1,3 +1,4 @@
+import { OfferVehicleApplicationsComponent } from '../../shared/components/offer-vehicle-applications/offer-vehicle-applications.component';
 import { BUSINESS_TYPES, businessTypeLabel, normalizeBusinessType, type BusinessType } from '../../core/utils/business-type.util';
 import { OFFER_CONDITIONS, normalizeOfferCondition, offerConditionLabel, type OfferCondition } from '../../core/utils/offer-condition.util';
 import { StoreQuotationVerifierComponent } from '../../shared/components/store-quotation-verifier/store-quotation-verifier.component';
@@ -49,7 +50,7 @@ interface MasterCatalogSelectionDraft {
 @Component({
   selector: 'app-dashboard-ferreteria',
   standalone: true,
-  imports: [StoreQuotationVerifierComponent, CommonModule, FormsModule, PaginatorModule, UiModalComponent, UiLoaderComponent, StoreOnboardingComponent],
+  imports: [OfferVehicleApplicationsComponent, StoreQuotationVerifierComponent, CommonModule, FormsModule, PaginatorModule, UiModalComponent, UiLoaderComponent, StoreOnboardingComponent],
   templateUrl: './dashboard-ferreteria.component.html',
   styleUrl: './dashboard-ferreteria.component.scss'
 })
@@ -92,6 +93,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   };
   protected catalogEditError = '';
   protected catalogEditSaving = false;
+  protected catalogVehicleSaving = false;
   protected catalogNotice = '';
   protected catalogError = '';
   protected catalogDeleteCandidate: CatalogProduct | null = null;
@@ -330,7 +332,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   }
 
   protected closeCatalogEdit(): void {
-    if (this.catalogEditSaving) return;
+    if (this.catalogEditSaving || this.catalogVehicleSaving) return;
     this.catalogEditCandidate = null;
     this.catalogEditModalOpen = false;
     this.catalogEditError = '';
@@ -339,7 +341,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   protected async saveCatalogEdit(): Promise<void> {
     await this.writeFeedback.run('dashboard-ferreteria:saveCatalogEdit', async () => {
       const product = this.catalogEditCandidate;
-      if (!this.user || !product || this.catalogEditSaving) return;
+      if (!this.user || !product || this.catalogEditSaving || this.catalogVehicleSaving) return;
 
       const rawPrice = Number(this.catalogEditDraft.price);
       const rawStock = Number(this.catalogEditDraft.stock);
