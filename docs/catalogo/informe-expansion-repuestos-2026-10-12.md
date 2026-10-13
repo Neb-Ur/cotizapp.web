@@ -31,7 +31,7 @@ Requisitos tomados de la conversación:
 - Una publicación puede tener varias asociaciones de marca, modelo y año.
 - El vendedor registra esas asociaciones manualmente; el sistema no deduce que una pieza sirve para otro vehículo.
 - Conservar búsqueda, filtros, relaciones, precios, stock y cotizaciones.
-- Implementar por etapas cuando el usuario indique continuar.
+- Implementar por etapas y publicar cada una antes de avanzar a la siguiente, conforme a la autorización posterior del usuario.
 
 Fuera del alcance inicial: inferencia automática de compatibilidad, búsqueda por VIN, catálogo automotriz externo, pagos, reservas de stock, despacho, integración con inventarios externos y conversión de Trovio en una tienda que venda directamente.
 
@@ -375,7 +375,7 @@ No se consultaron datos privados de producción ni se crearon cuentas, publicaci
 - Abrir un piloto de pocas familias y locales antes de cargar un catálogo automotriz amplio.
 - Desplegar soporte compatible primero y activar el nuevo recorrido por configuración del servidor cuando esté completo y validado.
 
-El siguiente punto implementable es el **2: condición de la oferta**, cuando el usuario lo indique. Antes de su backfill se verifica la condición real de los registros existentes; no se asignan atributos de piezas usadas a los maestros compartidos.
+El primer punto implementado es el **2: condición de la oferta**; su resultado se registra en la sección 12. Los registros existentes permanecen sin condición física confirmada y no se asignan atributos de piezas usadas a los maestros compartidos.
 
 ## 12. Seguimiento de implementación
 
