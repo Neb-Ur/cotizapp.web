@@ -14,21 +14,30 @@ import { SeoService } from '../../core/services/seo.service';
 
 const detail:any={productName:'Abrazadera metálica',brand:'Por especificar',sku:'',productType:'Abrazadera metálica',categoryName:'Fijaciones',subcategoryName:'Amarre',familyName:'Amarres',gallery:[],imageUrl:'',description:'',shortDescription:'',featureBullets:[],descriptionBlocks:[],technicalSheet:[],extraSections:[],stores:[],minPrice:0,maxPrice:0,unitLabel:'Unidad',packagingLabel:'Unidad'};
 async function setup(){
+ const vehicleParams=new BehaviorSubject(convertToParamMap({}));
  const params=new BehaviorSubject(convertToParamMap({slug:'abrazadera-metalica'}));
  const resolvers:Array<(value:any)=>void>=[];
  const offerResolvers:Array<(value:any)=>void>=[];
  const api={loadProductOffers:vi.fn(()=>new Promise(resolve=>offerResolvers.push(resolve))),loadProductSheet:vi.fn(()=>new Promise(resolve=>resolvers.push(resolve))),formatCurrency:(value:number)=>String(value),getProjects:()=>[]};
  await TestBed.configureTestingModule({imports:[ProductoDetalleComponent],providers:[
-  {provide:ActivatedRoute,useValue:{paramMap:params,queryParamMap:new BehaviorSubject(convertToParamMap({}))}},
+  {provide:ActivatedRoute,useValue:{paramMap:params,queryParamMap:vehicleParams}},
   {provide:Router,useValue:{navigate:vi.fn(),navigateByUrl:vi.fn()}},
   {provide:Location,useValue:{}},{provide:FirebaseDataService,useValue:api},
   {provide:AuthService,useValue:{currentUser:()=>null}},{provide:SeoService,useValue:{updateProduct:vi.fn(),markProductNotFound:vi.fn()}}
  ]}).compileComponents();
  const fixture=TestBed.createComponent(ProductoDetalleComponent);fixture.detectChanges();
- return {fixture,params,resolvers,offerResolvers,api,component:fixture.componentInstance as any};
+ return {fixture,params,vehicleParams,resolvers,offerResolvers,api,component:fixture.componentInstance as any};
 }
 describe('product detail loading',()=>{
  afterEach(()=>TestBed.resetTestingModule());
+ it('retains the selected vehicle when loading and retrying offers',async()=>{
+  const {fixture,resolvers,api,vehicleParams,component}=await setup();
+  vehicleParams.next(convertToParamMap({vehiculoMarcaId:'toyota',vehiculoModeloId:'corolla',vehiculoAnio:'2010'}));
+  resolvers[1](detail);await Promise.resolve();fixture.detectChanges();
+  expect(api.loadProductOffers).toHaveBeenCalledWith(detail,{vehicleBrandId:'toyota',vehicleModelId:'corolla',vehicleYear:2010});
+  expect(fixture.nativeElement.textContent).toContain('Ofertas filtradas por el vehículo seleccionado');
+  component.retryOffers();expect(api.loadProductOffers).toHaveBeenLastCalledWith(detail,{vehicleBrandId:'toyota',vehicleModelId:'corolla',vehicleYear:2010});
+ });
  it('requests only the route product and replaces the skeleton with the detail',async()=>{
   const {fixture,resolvers,api}=await setup();
   expect(api.loadProductSheet).toHaveBeenCalledWith(undefined,'abrazadera-metalica');

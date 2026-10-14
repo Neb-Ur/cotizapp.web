@@ -9,7 +9,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject, PLATFORM_ID } 
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { combineLatest, Subscription } from 'rxjs';
-import { ProductDetailView, ProductStoreOfferRow, ProjectSummary, SessionUser } from '../../core/models/app.models';
+import { SearchFilters, ProductDetailView, ProductStoreOfferRow, ProjectSummary, SessionUser } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
 import { FirebaseDataService } from '../../core/services/firebase-data.service';
 import { SeoService } from '../../core/services/seo.service';
@@ -78,8 +78,13 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
     private readonly seoService: SeoService
   ) {}
 
+  private vehicleFilters: Pick<SearchFilters, 'vehicleBrandId' | 'vehicleModelId' | 'vehicleYear'> = {};
+
+  protected get vehicleFilterApplied(): boolean { return !!this.vehicleFilters.vehicleBrandId; }
+
   ngOnInit(): void {
     this.routeSubscription = combineLatest([this.route.paramMap, this.route.queryParamMap]).subscribe(async ([routeParams, params]) => {
+      this.vehicleFilters = {vehicleBrandId:params.get('vehiculoMarcaId') || undefined, vehicleModelId:params.get('vehiculoModeloId') || undefined, vehicleYear:params.get('vehiculoAnio') ? Number(params.get('vehiculoAnio')) : undefined};
       const generation = ++this.loadGeneration;
       this.isLoading = true;
       this.loadError = '';
@@ -163,7 +168,9 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
     this.offersLoading = true;
     this.offersError = '';
     try {
-      const detail = await this.apiService.loadProductOffers(sheet);
+      const detail = this.vehicleFilters.vehicleBrandId
+        ? await this.apiService.loadProductOffers(sheet, this.vehicleFilters)
+        : await this.apiService.loadProductOffers(sheet);
       if (generation !== this.loadGeneration) return;
       this.detail = detail;
       this.displayStores = this.buildDisplayStores(detail.stores);

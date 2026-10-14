@@ -1,10 +1,11 @@
+import { matchesVehicle, hasVehicleFilter, type VehicleSearch } from './vehicle-search.js';
 import { seoProductSlug } from './catalog-seo.js';
 import { brandIdentity } from './brand-identity.js';
 import type { PublicCatalogSnapshot } from '../lib/public-catalog-cache.js';
 import type { ProjectProximity } from '../models/domain.models.js';
 import { coordinateValue, geographicDistanceKm } from '../lib/values.js';
 
-export type ProductSearchOptions = {
+export type ProductSearchOptions = VehicleSearch & {
   query?: string;
   categoryId?: string;
   subcategoryId?: string;
@@ -28,6 +29,7 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
   const subcategories = new Map(snapshot.taxonomy.subcategories.map(item => [item.id, item.nombre]));
   const families = new Map(snapshot.taxonomy.families.map(item => [item.id, item.nombre]));
   const grouped = new Map<string, {
+    categoryId: string;
     seoPath:string;
     productoMaestroId: string;
     productName: string;
@@ -54,6 +56,7 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
     if (options.subcategoryId && product.subcategoriaId !== options.subcategoryId) continue;
     if (options.familyId && product.familiaId !== options.familyId) continue;
     grouped.set(product.id, {
+      categoryId: product.categoriaId,
       seoPath:'',
       productoMaestroId: product.id,
       productName: name,
@@ -71,6 +74,7 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
   }
 
   for (const offer of snapshot.searchRows) {
+    if (!matchesVehicle(offer.vehicleApplications, options)) continue;
     if (options.storeId && offer.storeId !== options.storeId) continue;
     const current = grouped.get(offer.productoMaestroId);
     if (!current) continue;
@@ -90,7 +94,7 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
     grouped.set(offer.productoMaestroId, current);
   }
 
-  const results = Array.from(grouped.values()).filter(product => !options.storeId || product.storeIds.size > 0).map(({ storeIds, sellers, ...product }) => ({
+  const results = Array.from(grouped.values()).filter(product => (!options.storeId && !hasVehicleFilter(options)) || product.storeIds.size > 0).map(({ storeIds, sellers, ...product }) => ({
     ...product, storeCount: storeIds.size, sellers: Array.from(sellers)
   }));
   results.sort((a, b) => {

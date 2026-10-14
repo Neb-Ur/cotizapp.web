@@ -16,6 +16,7 @@ export type ProjectProximity = {
 };
 
 export type SearchRow = {
+  vehicleApplications?: import('../domain/vehicle-application.js').VehicleApplication[];
   condition?: import('../domain/offer-condition.js').OfferCondition;
   productoMaestroId: string;
   productoFerreteriaId: string;

@@ -31,8 +31,20 @@ VEHICLE_APPLICATION_PILOT_STORE_IDS=<ids-de-locales-autorizados-separados-por-co
 
 Sin la primera variable o sin el ID del local en la segunda, la API rechaza el guardado, incluso para un administrador. La interfaz del catálogo recibe `vehiculosEditables` del servidor y muestra el editor solo cuando corresponde, o muestra las declaraciones anteriores para lectura. La configuración se conserva también en despliegues de CI.
 
-**Estado al entregar el punto 5:** soporte desplegado, sin habilitar locales piloto. No activar el recorrido público automotriz hasta completar selección exacta/captura de cotizaciones, filtros y verificación según el plan. Los filtros públicos, presentación de asociaciones en cotizaciones y carga masiva pertenecen a etapas posteriores.
+**Estado al entregar el punto 5:** soporte desplegado, sin habilitar locales piloto. No activar el recorrido público automotriz hasta completar selección exacta/captura de cotizaciones, filtros y verificación según el plan. Los filtros públicos se incorporaron posteriormente; la presentación de asociaciones en cotizaciones y la carga masiva siguen pendientes.
 
 El editor está en la edición del producto del catálogo del dueño, con un botón explícito «Guardar vehículos». El administrador puede abrir «Vehículos» desde el catálogo del local autorizado. Estos controles operan sobre el ID de la oferta existente.
 
 Para desactivar nuevas escrituras, configurar `VEHICLE_APPLICATIONS_ENABLED=false` y desplegar la API. No borrar las declaraciones ni volver a una versión que descarte sus campos al editar ofertas.
+
+## Filtros públicos de vehículos — 13 de octubre de 2026
+
+El catálogo público usa la etiqueta «Local» y las opciones del directorio sin restringir el tipo de negocio. Al seleccionar Repuestos automotrices, buscar repuestos o recibir resultados de esa categoría, presenta marca, modelo y año del vehículo. La marca comercial del producto conserva su filtro independiente. Las opciones se cargan de `/api/vehiculos/catalogo`; el modelo depende de la marca y el año requiere seleccionar modelo. Cambiar marca o modelo limpia las selecciones dependientes.
+
+`GET /api/busqueda?vista=productos` acepta `vehiculoMarcaId`, `vehiculoModeloId` y `vehiculoAnio`, combinados con texto, taxonomía, local, orden y ubicación. El modelo exige marca; el año exige modelo y un entero entre 1886 y 2100. Marca, modelo y año deben coincidir en la misma fila declarada por el vendedor. Los intervalos incluyen ambos extremos; años desconocidos no coinciden con un año concreto. No se deduce compatibilidad desde nombres de producto o categorías.
+
+El filtro se aplica a las ofertas públicas antes de calcular precios, locales, totales y paginación. Una ficha base sin ofertas/asociaciones permanece en el catálogo general, pero no se presenta como coincidencia de vehículo. La caché publica únicamente las declaraciones normalizadas de ofertas visibles; no incluye campos internos adicionales y se reconstruye al cambiar su política.
+
+Los enlaces a fichas conservan estos parámetros. `/api/productos/detalle`, también con `vista=ofertas`, aplica la misma selección, y el detalle identifica que está mostrando ofertas filtradas por vehículo. Las cotizaciones conservan su comportamiento actual; esta entrega no completa el punto 6A ni habilita varias piezas del mismo maestro/local.
+
+En producción se cargaron seis marcas y trece modelos como [referencias iniciales](catalogo-vehiculos-inicial.md). Las ofertas siguen sin asociaciones de vehículos. Las cuatro fichas automotrices base no reciben compatibilidades inventadas. Las nuevas escrituras conservan su configuración de piloto; esta entrega permite consultar declaraciones existentes sin abrir escrituras globales.

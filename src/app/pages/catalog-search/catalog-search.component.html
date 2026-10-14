@@ -1,0 +1,215 @@
+<section class="catalog-page" [class.catalog-page--standalone]="!embedded" aria-label="Catálogo de productos">
+  <div *ngIf="dataLoadError" class="data-load-error" role="alert">
+    <p>{{ dataLoadError }}</p>
+    <button type="button" (click)="retryDataLoad()">Reintentar carga</button>
+  </div>
+
+  <article class="panel">
+    <section class="search-primary" aria-labelledby="product-search-label">
+      <div class="public-search-main"><h1 id="product-search-label">{{ tableProductSearch ? 'Resultados para “' + tableProductSearch + '”' : (landing?.name || 'Productos') }}</h1></div>
+      <p>{{ landing?.description || 'Explora el catálogo y compara las ofertas disponibles. Usa los filtros para acotar tu búsqueda.' }}</p>
+      <nav *ngIf="landing" aria-label="Secciones relacionadas" class="catalog-related-links"><a routerLink="/buscar">Todos los productos</a><a *ngFor="let link of landing.related" [routerLink]="link.path">{{ link.name }}</a></nav>
+    </section>
+
+    <div class="catalog-results-layout">
+      <section class="catalog-toolbar" aria-label="Controles del catalogo">
+        <button
+          type="button"
+          class="filters-disclosure"
+          (click)="toggleFiltersPanel()"
+          [attr.aria-expanded]="filtersPanelOpen"
+          aria-controls="catalog-filters-panel"
+        >
+          <fa-icon [icon]="faFilters" aria-hidden="true" />
+          Filtros
+          <span class="filter-count" *ngIf="taxonomyFilterCount">{{ taxonomyFilterCount }}</span>
+        </button>
+        <button
+          type="button"
+          class="nearby-toolbar-button"
+          [class.active]="nearbyEnabled"
+          (click)="toggleNearbyPanel()"
+          [attr.aria-expanded]="nearbyPanelOpen"
+          aria-controls="nearby-search-panel"
+        >
+          <fa-icon [icon]="faLocation" aria-hidden="true" />
+          <span>{{ nearbyEnabled ? 'Cerca · ' + nearbyRadiusKm + ' km' : 'Cerca de mí' }}</span>
+          <fa-icon class="nearby-toolbar-chevron" [icon]="faChevronDown" aria-hidden="true" />
+        </button>
+        <label class="sort-control">
+          <fa-icon [icon]="faSort" aria-hidden="true" />
+          <span>Ordenar por</span>
+          <select [ngModel]="productSort" (ngModelChange)="onProductSortChange($event)">
+            <option value="relevance">Recomendados</option>
+            <option value="price-asc">Menor precio</option>
+            <option value="price-desc">Mayor precio</option>
+            <option value="stores">Más locales</option>
+          </select>
+        </label>
+      </section>
+
+      <section id="nearby-search-panel" class="nearby-search-panel" *ngIf="nearbyPanelOpen" aria-label="Buscar productos cerca de mi ubicación">
+        <div class="nearby-panel-copy">
+          <span class="nearby-panel-icon"><fa-icon [icon]="faLocation" aria-hidden="true" /></span>
+          <div>
+            <strong>Productos cerca de ti</strong>
+            <p>Usa tu ubicación para mostrar ofertas disponibles dentro del radio elegido.</p>
+          </div>
+        </div>
+        <div class="nearby-search-actions">
+          <label>
+            Radio
+            <select [ngModel]="nearbyRadiusKm" (ngModelChange)="onNearbyRadiusChange($event)" [disabled]="isLocatingNearby">
+              <option *ngFor="let radius of nearbyRadiusOptions" [value]="radius">{{ radius }} km</option>
+            </select>
+          </label>
+          <button type="button" [class.secondary]="nearbyEnabled" (click)="toggleNearbySearch()" [disabled]="isLocatingNearby">
+            {{ isLocatingNearby ? 'Obteniendo ubicación...' : (nearbyEnabled ? 'Desactivar' : 'Usar mi ubicación') }}
+          </button>
+          <button type="button" class="nearby-panel-close" (click)="toggleNearbyPanel()" aria-label="Cerrar opciones de ubicación">
+            <fa-icon [icon]="faRemove" aria-hidden="true" />
+          </button>
+        </div>
+        <p class="nearby-message" *ngIf="nearbyMessage">{{ nearbyMessage }}</p>
+        <p class="nearby-error" *ngIf="nearbyError">{{ nearbyError }}</p>
+      </section>
+
+      <aside id="catalog-filters-panel" class="filters-section" [class.filters-section--open]="filtersPanelOpen" aria-label="Filtros del catalogo">
+        <div class="filters-heading">
+          <div>
+            <span>Acotar por</span>
+            <h2>Filtros</h2>
+            <p>{{ totalProducts }} productos encontrados</p>
+          </div>
+          <div class="filters-heading-actions">
+            <button type="button" class="clear-filters-button" (click)="clearCategoryFilter()" [disabled]="taxonomyFilterCount === 0">Limpiar</button>
+            <button type="button" class="close-filters-button" (click)="toggleFiltersPanel()">Cerrar</button>
+          </div>
+        </div>
+        <div class="filters-grid">
+          <label>Local
+            <select [ngModel]="selectedStoreId" (ngModelChange)="onStoreFilterChange($event)">
+              <option value="">Todos los locales</option>
+              <option *ngIf="selectedStoreId && !storeOptions.length" [value]="selectedStoreId">{{ selectedStoreName || 'Local seleccionado' }}</option>
+              <option *ngFor="let store of storeOptions" [value]="store.id">{{ store.name }}</option>
+            </select>
+            <small *ngIf="storeFilterError" role="alert">{{ storeFilterError }}</small>
+          </label>
+          <label>
+            Categoría
+            <input list="category-options" [(ngModel)]="categorySearch" (ngModelChange)="onCategoryInput($event)" placeholder="Todas" />
+            <datalist id="category-options"><option *ngFor="let option of categoryOptions" [value]="option.name"></option></datalist>
+          </label>
+          <label>
+            Subcategoria
+            <input list="subcategory-options" [(ngModel)]="subcategorySearch" (ngModelChange)="onSubcategoryInput($event)" [disabled]="!selectedCategoryId" placeholder="Todas" />
+            <datalist id="subcategory-options"><option *ngFor="let option of subcategoryOptions" [value]="option.name"></option></datalist>
+          </label>
+          <label>
+            Familia
+            <input list="family-options" [(ngModel)]="familySearch" (ngModelChange)="onFamilyInput($event)" [disabled]="!selectedSubcategoryId" placeholder="Todas" />
+            <datalist id="family-options"><option *ngFor="let option of familyOptions" [value]="option.name"></option></datalist>
+          </label>
+          <ng-container *ngIf="showVehicleFilters">
+            <label>Marca del vehículo
+              <select [ngModel]="selectedVehicleBrandId" (ngModelChange)="onVehicleBrandChange($event)">
+                <option value="">Todas las marcas</option>
+                <option *ngFor="let brand of vehicleCatalog.brands" [value]="brand.id">{{ brand.nombre }}</option>
+              </select>
+            </label>
+            <label>Modelo del vehículo
+              <select [ngModel]="selectedVehicleModelId" (ngModelChange)="onVehicleModelChange($event)" [disabled]="!selectedVehicleBrandId">
+                <option value="">Todos los modelos</option>
+                <option *ngFor="let model of vehicleModelOptions" [value]="model.id">{{ model.nombre }}</option>
+              </select>
+            </label>
+            <label>Año del vehículo
+              <input type="number" min="1886" max="2100" step="1" placeholder="Todos los años" [ngModel]="selectedVehicleYear" (ngModelChange)="onVehicleYearChange($event)" [disabled]="!selectedVehicleModelId" />
+              <small *ngIf="vehicleYearError" role="alert">{{ vehicleYearError }}</small>
+            </label>
+            <p>Filtra por vehículos declarados por el vendedor. Confirma la compatibilidad antes de comprar.</p>
+            <p *ngIf="!vehicleCatalog.brands.length && !vehicleCatalogError">Todavía no hay marcas y modelos de vehículos registrados.</p>
+            <p *ngIf="selectedVehicleBrandId && !vehicleModelOptions.length">Esta marca todavía no tiene modelos registrados.</p>
+            <p *ngIf="vehicleCatalogError" role="alert">{{ vehicleCatalogError }} <button type="button" (click)="loadVehicleCatalog()">Reintentar</button></p>
+          </ng-container>
+        </div>
+      </aside>
+
+      <div class="active-filters" *ngIf="taxonomyFilterCount > 0" aria-label="Filtros activos">
+        <span class="active-filters-label">Filtros activos</span>
+        <button type="button" *ngIf="selectedStoreId" (click)="onStoreFilterChange('')" [attr.aria-label]="'Quitar local ' + selectedStoreName">{{ selectedStoreName || 'Local seleccionado' }} <fa-icon [icon]="faRemove" aria-hidden="true" /></button>
+        <button type="button" *ngIf="selectedCategoryId" (click)="clearCategoryFilter()" [attr.aria-label]="'Quitar categoria ' + selectedCategoryName">
+          {{ selectedCategoryName }} <fa-icon [icon]="faRemove" aria-hidden="true" />
+        </button>
+        <button type="button" *ngIf="selectedSubcategoryId" (click)="clearSubcategoryFilter()" [attr.aria-label]="'Quitar subcategoria ' + selectedSubcategoryName">
+          {{ selectedSubcategoryName }} <fa-icon [icon]="faRemove" aria-hidden="true" />
+        </button>
+        <button type="button" *ngIf="selectedFamilyId" (click)="clearFamilyFilter()" [attr.aria-label]="'Quitar familia ' + selectedFamilyName">
+          {{ selectedFamilyName }} <fa-icon [icon]="faRemove" aria-hidden="true" />
+        </button>
+        <button type="button" *ngIf="selectedBrand" (click)="clearBrandFilter()" [attr.aria-label]="'Quitar marca ' + selectedBrand">{{ selectedBrand }} <fa-icon [icon]="faRemove" aria-hidden="true" /></button>
+        <button type="button" *ngIf="selectedVehicleBrandId || selectedVehicleModelId || selectedVehicleYear" (click)="clearVehicleFilters()" aria-label="Quitar filtros de vehículo">Vehículo{{ selectedVehicleYear ? ' · ' + selectedVehicleYear : '' }} <fa-icon [icon]="faRemove" aria-hidden="true" /></button>
+        <button type="button" class="clear-active-filters" (click)="clearCategoryFilter()">Limpiar todo</button>
+      </div>
+
+      <p class="project-pick-context" *ngIf="isPickingProductForProject">
+        Selecciona un producto para agregarlo a tu cotización.
+      </p>
+
+      <div class="results-heading">
+        <div>
+          <span>Resultados</span>
+          <h2>{{ totalProducts }} productos encontrados</h2>
+        </div>
+        <p *ngIf="productRows.length > 0">Ordenados por disponibilidad y precio.</p>
+      </div>
+
+      <p class="cards-empty" role="status" *ngIf="isPublicCatalogRefreshing">Actualizando productos disponibles...</p>
+      <div [attr.aria-busy]="isPublicCatalogRefreshing" class="product-cards" *ngIf="productRows.length > 0; else emptyProducts">
+        <a
+          class="product-card"
+          *ngFor="let row of paginatedProductRows"
+          [href]="productUrl(row.productName, row.seoPath)"
+          (click)="selectProductCard($event, row.productName, row.seoPath)"
+          [attr.aria-label]="(isPickingProductForProject ? 'Agregar ' : 'Ver precios de ') + row.productName"
+        >
+          <div class="product-main">
+            <div class="product-image-slot">
+              <img [findiProductImage]="row.imageUrl" [fullImageUrl]="row.fullImageUrl" [externalImageUrl]="row.imageFallbackUrl" [alt]="row.productName" width="280" height="180" loading="lazy" decoding="async" />
+            </div>
+            <div class="product-text">
+              <h4>{{ row.productName }}</h4>
+            </div>
+          </div>
+          <div class="product-meta">
+            <ng-container *ngIf="row.storeCount > 0; else noProductOffers">
+              <span class="price-label">Desde</span>
+              <p class="price-range">{{ formatCurrency(row.minPrice) }}</p>
+            </ng-container>
+            <ng-template #noProductOffers>
+              <span class="price-label">Sin ofertas disponibles</span>
+            </ng-template>
+          </div>
+        </a>
+      </div>
+
+      <ng-template #emptyProducts>
+        <ng-container *ngIf="!isPublicCatalogRefreshing && !dataLoadError">
+          <p class="cards-empty">{{ selectedVehicleBrandId ? 'No hay ofertas con vehículos declarados que coincidan con los filtros seleccionados.' : 'No encontramos productos en nuestro catálogo para esta búsqueda.' }}</p>
+        </ng-container>
+      </ng-template>
+
+      <p-paginator
+        *ngIf="productRows.length > 0"
+        styleClass="cotizapp-paginator"
+        [first]="(currentPage - 1) * pageSize"
+        [rows]="pageSize"
+        [totalRecords]="totalProducts"
+        [rowsPerPageOptions]="pageSizeOptions"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="{first}–{last} de {totalRecords}"
+        (onPageChange)="onProductsPageChange($event)"
+      />
+    </div>
+  </article>
+</section>

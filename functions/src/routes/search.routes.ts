@@ -1,3 +1,4 @@
+import { parseVehicleSearch, matchesVehicle, type VehicleSearch } from '../domain/vehicle-search.js';
 import { seoProductSlug } from '../domain/catalog-seo.js';
 import { Router } from 'express';
 import { getProductSheet } from '../lib/product-sheet-cache.js';
@@ -12,6 +13,9 @@ import { buildSearchRows } from '../services/catalog-search.service.js';
 export const searchRouter = Router();
 
 searchRouter.get('/busqueda', async (req, res) => {
+  let vehicle: VehicleSearch;
+  try { vehicle = parseVehicleSearch(req.query); }
+  catch { return fail(res, 'SEARCH_INVALID_VEHICLE', 'Selecciona marca, modelo y un año válido del vehículo.'); }
   // Opt-in product pages preserve the legacy array response used by quotation
   // and catalog consumers, while the search screen downloads only one page.
   if (req.query['vista'] === 'productos') {
@@ -28,6 +32,7 @@ searchRouter.get('/busqueda', async (req, res) => {
       return fail(res, 'SEARCH_INVALID_PROXIMITY', 'La ubicación o el radio de búsqueda no son válidos.');
     }
     const result = paginateProductSearch(await getPublicCatalogSnapshot(), {
+      ...vehicle,
       query: normalizeText(req.query['query']),
       categoryId: normalizeText(req.query['categoriaId']),
       subcategoryId: normalizeText(req.query['subcategoriaId']),
@@ -46,6 +51,7 @@ searchRouter.get('/busqueda', async (req, res) => {
   const subcategoryId = normalizeText(req.query['subcategoriaId']);
   const familyId = normalizeText(req.query['familiaId']);
   const data = (await getPublicCatalogSnapshot()).searchRows
+    .filter(item => matchesVehicle(item.vehicleApplications, vehicle))
     .filter((item) => !req.query['ferreteriaId'] || item.storeId === req.query['ferreteriaId'])
     .filter((item) => !q || item.productName.toLowerCase().includes(q) || item.sku.toLowerCase().includes(q))
     .filter((item) => !categoryId || item.categoryId === categoryId)
@@ -110,6 +116,9 @@ searchRouter.get('/productos/populares', async (req, res) => {
 });
 
 searchRouter.get('/productos/detalle', async (req, res) => {
+  let vehicle: VehicleSearch;
+  try { vehicle = parseVehicleSearch(req.query); }
+  catch { return fail(res, 'SEARCH_INVALID_VEHICLE', 'Selecciona marca, modelo y un año válido del vehículo.'); }
   const name = normalizeText(req.query['producto']).toLowerCase();
   const requestedSlug = normalizeText(req.query['slug']);
   if (req.query['vista'] === 'ficha') {
@@ -123,7 +132,7 @@ searchRouter.get('/productos/detalle', async (req, res) => {
     ? seoProductSlug(item,snapshot.products) === requestedSlug
     : normalizeText(item.nombre).toLowerCase() === name);
   if (!product) return fail(res, 'PRODUCTO_NOT_FOUND', 'No se encontro el producto solicitado.', 404);
-  const searchRows = snapshot.searchRows.filter(item => item.productoMaestroId === product.id);
+  const searchRows = snapshot.searchRows.filter(item => item.productoMaestroId === product.id && matchesVehicle(item.vehicleApplications, vehicle));
   const offersOnly = req.query['vista'] === 'ofertas';
   const [attributeSnapshot, definitionSnapshot] = offersOnly ? [{ docs: [] }, { docs: [] }] : await Promise.all([
     db.collection(COLLECTIONS.masterAttributes).where('productoMaestroId', '==', product.id).get(),

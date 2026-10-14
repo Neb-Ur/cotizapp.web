@@ -1,3 +1,4 @@
+import { normalizeVehicleApplications } from '../domain/vehicle-application.js';
 import { rows } from '../repositories/firestore.repository.js';
 import { normalizeOfferCondition } from '../domain/offer-condition.js';
 import { COLLECTIONS } from '../lib/collections.js';
@@ -57,6 +58,7 @@ export async function buildSearchRows(source?: any[][], asOf?:number): Promise<S
         productoMaestroId: product.id,
         productoFerreteriaId: offer.id,
         condition: normalizeOfferCondition(offer.condicion),
+        vehicleApplications: publicVehicleApplications(offer.asociacionesVehiculos),
         productName: product.nombre,
         storeName: store.nombreComercial,
         storeId: store.id,
@@ -94,4 +96,9 @@ export async function buildSearchRows(source?: any[][], asOf?:number): Promise<S
       } satisfies SearchRow;
     })
     .filter((item): item is SearchRow => item !== null);
+}
+
+function publicVehicleApplications(value: unknown) {
+  try { return normalizeVehicleApplications(value || []); }
+  catch { return []; }
 }

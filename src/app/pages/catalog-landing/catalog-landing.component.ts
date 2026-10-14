@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ApiClientService } from '../../core/services/api-client.service';
 import { SeoService } from '../../core/services/seo.service';
-import { DashboardMaestroComponent } from '../dashboard-maestro/dashboard-maestro.component';
+import { CatalogSearchComponent } from '../catalog-search/catalog-search.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 export interface CatalogLandingView {
   path: string; name: string; title: string; description: string; count: number;
@@ -12,11 +12,11 @@ export interface CatalogLandingView {
 }
 @Component({
   selector:'app-catalog-landing', standalone:true,
-  imports:[CommonModule,RouterLink,DashboardMaestroComponent,UiLoaderComponent],
+  imports:[CommonModule,RouterLink,CatalogSearchComponent,UiLoaderComponent],
   template:`
     <main class="dashboard dashboard--public" *ngIf="loading"><article class="panel"><app-ui-loader label="Cargando catálogo..." /></article></main>
     <main class="dashboard dashboard--public" *ngIf="error"><article class="panel"><h1>{{ missing ? 'Sección no encontrada' : 'No pudimos cargar esta sección' }}</h1><p>{{ error }}</p><button *ngIf="!missing" type="button" (click)="load()">Reintentar</button> <a routerLink="/buscar">Ver todos los productos</a></article></main>
-    <app-dashboard-maestro *ngIf="!loading && landing" [landing]="landing" />
+    <app-catalog-search *ngIf="!loading && landing" [landing]="landing" />
   `
 })
 export class CatalogLandingComponent implements OnInit,OnDestroy {

@@ -12,8 +12,7 @@ export const routes: Routes = [
       { path: '', loadComponent: () => import('./pages/home/home.component').then((module) => module.HomeComponent) },
       {
         path: 'buscar',
-        loadComponent: () => import('./pages/dashboard-maestro/dashboard-maestro.component').then((module) => module.DashboardMaestroComponent),
-        data: { publicCatalog: true }
+        loadComponent: () => import('./pages/catalog-search/catalog-search.component').then((module) => module.CatalogSearchComponent)
       },
   {
     path: 'dashboard/maestro',
@@ -59,9 +58,9 @@ export const routes: Routes = [
     canActivate: [authGuard, legalAcceptanceGuard, roleGuard],
     data: { role: 'ferreteria' }
   },
-      { path: 'categorias/:slug', loadComponent: () => import('./pages/catalog-landing/catalog-landing.component').then(m=>m.CatalogLandingComponent), data: { publicCatalog:true, catalogKind:'categorias' } },
-      { path: 'familias/:slug', loadComponent: () => import('./pages/catalog-landing/catalog-landing.component').then(m=>m.CatalogLandingComponent), data: { publicCatalog:true, catalogKind:'familias' } },
-      { path: 'marcas/:slug', loadComponent: () => import('./pages/catalog-landing/catalog-landing.component').then(m=>m.CatalogLandingComponent), data: { publicCatalog:true, catalogKind:'marcas' } },
+      { path: 'categorias/:slug', loadComponent: () => import('./pages/catalog-landing/catalog-landing.component').then(m=>m.CatalogLandingComponent), data: { catalogKind:'categorias' } },
+      { path: 'familias/:slug', loadComponent: () => import('./pages/catalog-landing/catalog-landing.component').then(m=>m.CatalogLandingComponent), data: { catalogKind:'familias' } },
+      { path: 'marcas/:slug', loadComponent: () => import('./pages/catalog-landing/catalog-landing.component').then(m=>m.CatalogLandingComponent), data: { catalogKind:'marcas' } },
       { path: 'producto', loadComponent: () => import('./pages/producto-detalle/producto-detalle.component').then((module) => module.ProductoDetalleComponent) },
       { path: 'productos/:slug', loadComponent: () => import('./pages/producto-detalle/producto-detalle.component').then((module) => module.ProductoDetalleComponent) },
       { path: 'lista', redirectTo: 'cotizaciones', pathMatch: 'full' },

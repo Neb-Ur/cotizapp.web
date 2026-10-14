@@ -225,6 +225,7 @@ export class FirebaseDataService {
   async searchProductPage(filters: SearchFilters, page: number, size: number, sort: string, proximity?: SearchProximity): Promise<ProductSearchPage> {
     try {
       return await this.apiClient.get<ProductSearchPage>('/busqueda', false, {
+        vehiculoMarcaId: filters.vehicleBrandId, vehiculoModeloId: filters.vehicleModelId, vehiculoAnio: filters.vehicleYear,
         vista: 'productos', query: filters.query, marca: filters.brand, marcaId: filters.brandId,
         categoriaId: filters.categoryId, subcategoriaId: filters.subcategoryId, familiaId: filters.familyId,
         ferreteriaId: filters.storeId, page, size, sort, latitude: proximity?.latitude, longitude: proximity?.longitude, radiusKm: proximity?.radiusKm
@@ -1674,9 +1675,10 @@ export class FirebaseDataService {
     }
   }
 
-  async loadProductOffers(sheet: ProductDetailView): Promise<ProductDetailView> {
+  async loadProductOffers(sheet: ProductDetailView, vehicle?: Pick<SearchFilters, 'vehicleBrandId' | 'vehicleModelId' | 'vehicleYear'>): Promise<ProductDetailView> {
     const raw = await this.apiClient.get<any>('/productos/detalle', false, {
-      slug: sheet.seoPath?.split('/').pop() || productSlug(sheet.productName), vista: 'ofertas'
+      slug: sheet.seoPath?.split('/').pop() || productSlug(sheet.productName), vista: 'ofertas',
+      vehiculoMarcaId: vehicle?.vehicleBrandId, vehiculoModeloId: vehicle?.vehicleModelId, vehiculoAnio: vehicle?.vehicleYear
     });
     const offers = this.mapProductDetail({ ...raw, productoMaestro: { id: sheet.productoMaestroId, nombre: sheet.productName } });
     return { ...sheet, stores: offers.stores, minPrice: offers.minPrice, maxPrice: offers.maxPrice,

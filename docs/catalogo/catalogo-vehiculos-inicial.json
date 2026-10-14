@@ -1,0 +1,10 @@
+{
+  "brands": [
+    {"name":"Toyota","models":["Corolla","Hilux","Yaris"],"sources":["https://toyota.cl/documents/94/REF_MANUAL_GARANTIA_Y_SERV_V05_1.pdf"]},
+    {"name":"Nissan","models":["Sentra","Versa"],"sources":["https://www.nissan.cl/vehiculos/nuevos-vehiculos.html"]},
+    {"name":"Hyundai","models":["Accent","Tucson"],"sources":["https://www.hyundai.cl/quiero-un-hyundai/"]},
+    {"name":"Kia","models":["Rio","Sportage"],"sources":["https://www.kia.cl/bases-legales.html","https://www.kia.cl/modelos/familiares-suv/kia-sportage.html"]},
+    {"name":"Suzuki","models":["Swift","Vitara"],"sources":["https://www.suzuki.cl/vehiculo/swift-hybrid/","https://www.suzuki.com.pe/media/sd5byvpf/ficha-te-cnica_new-vitara.pdf"]},
+    {"name":"Chevrolet","models":["Sail","Onix"],"sources":["https://www.chevrolet.cl/catalogo-accesorios-fichas-tecnicas"]}
+  ]
+}

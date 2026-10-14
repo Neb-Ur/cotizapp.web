@@ -66,6 +66,7 @@
         </p>
         <section class="quick-stores">
           <h3>Precios por local</h3>
+          <p *ngIf="vehicleFilterApplied">Ofertas filtradas por el vehículo seleccionado. Confirma la compatibilidad con el vendedor.</p>
           <p *ngIf="offersLoading" role="status" aria-live="polite">Cargando precios de los locales…</p>
           <p *ngIf="offersError" role="alert">{{ offersError }} <button type="button" (click)="retryOffers()">Reintentar</button></p>
           <p class="quick-stores-hint" *ngIf="!nearbyEnabled && !offersLoading && !offersError">{{ displayStores.length }} local(es) con oferta activa.</p>

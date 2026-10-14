@@ -212,6 +212,9 @@ export interface SearchRow {
 }
 
 export interface SearchFilters {
+  vehicleBrandId?: string;
+  vehicleModelId?: string;
+  vehicleYear?: number;
   storeId?: string;
   brandId?: string;
   brand?: string;
@@ -259,6 +262,7 @@ export interface FamilyTemplate {
 }
 
 export interface FamilyProductRow {
+  categoryId?: string;
   homeGroupLabel?: string;
   fullImageUrl?: string;
   seoPath?:string;
