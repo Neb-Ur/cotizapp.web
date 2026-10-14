@@ -1147,12 +1147,17 @@
           <p class="error" *ngIf="error" role="alert">{{ error }}</p><p class="saved" *ngIf="notice" role="status">{{ notice }}</p>
           <h3 class="form-section-title"><i class="pi pi-box" aria-hidden="true"></i> Identidad y clasificación</h3>
           <div class="toolbar modal-form-grid">
+            <ng-container *ngIf="masterDetailDraft.categoryId === 'cat-repuestos-automotrices'">
+              <label>Pieza<input [(ngModel)]="masterDetailDraft.partName" (ngModelChange)="updateMasterVehicleName()" [disabled]="masterDetailReadonly" placeholder="Radiador, alternador..." /></label>
+              <label>Especificación de la variante<input [(ngModel)]="masterDetailDraft.variantLabel" (ngModelChange)="updateMasterVehicleName()" [disabled]="masterDetailReadonly" placeholder="Motor, transmisión, posición o código" /></label>
+              <app-product-vehicle-fields [applications]="masterDetailDraft.vehicleCompatibility" (applicationsChange)="updateMasterVehicleName($event)" [disabled]="masterDetailReadonly" />
+            </ng-container>
             <label class="product-name-field">
-              Nombre
-              <input type="text" [(ngModel)]="masterDetailDraft.name" [disabled]="masterDetailReadonly" />
+              {{masterDetailDraft.vehicleCompatibility.length ? 'Nombre automático' : 'Nombre'}}
+              <input type="text" [(ngModel)]="masterDetailDraft.name" [disabled]="masterDetailReadonly || masterDetailDraft.vehicleCompatibility.length > 0" />
             </label>
             <label>
-              Marca
+              Fabricante del repuesto
               <input type="text" [(ngModel)]="masterDetailDraft.brand" list="master-brand-options" maxlength="120" [disabled]="masterDetailReadonly" />
             </label>
             <label>

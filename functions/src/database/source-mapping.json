@@ -156,7 +156,8 @@
       "content_rights",
       "media_assets",
       "product_media",
-      "seo_routes"
+      "seo_routes",
+      "product_vehicle_applications"
     ],
     "fields": {
       "nombre": "products.name",
@@ -201,7 +202,10 @@
       "codigoFabricante": "products.manufacturer_code",
       "evidenciaCatalogo": "products.catalog_evidence",
       "catalogoPlanFecha": "products.api_payload.catalogoPlanFecha (compatibility metadata)",
-      "catalogoPlanVersion": "products.api_payload.catalogoPlanVersion (compatibility metadata)"
+      "catalogoPlanVersion": "products.api_payload.catalogoPlanVersion (compatibility metadata)",
+      "nombrePieza": "products.part_name",
+      "detalleVariante": "products.variant_label",
+      "compatibilidadVehiculos": "product_vehicle_applications by product_id; ordered model/brand/year ranges"
     },
     "notes": "Image and description rights are distinct records. Preserve current generic bases as products; model parent optional. Existing paths must be imported into seo_routes, including hashed duplicate-name URLs.",
     "sourceCollection": "productosMaestro",

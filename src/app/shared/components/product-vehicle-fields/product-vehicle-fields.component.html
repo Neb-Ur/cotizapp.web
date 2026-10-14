@@ -1,0 +1,14 @@
+<section aria-label="Compatibilidad del producto maestro">
+ <h3>Vehículos compatibles del producto maestro</h3>
+ <p>Cada variante conserva su imagen y especificaciones. Añade otro rango solo si corresponde a la misma pieza.</p>
+ <p *ngIf="error" role="alert">{{error}} <button type="button" (click)="load()">Reintentar</button></p>
+ <div *ngFor="let a of applications;let i=index" style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px">
+  <label>Marca del vehículo<select [ngModel]="a.marcaId" (ngModelChange)="update(i,'marcaId',$event)" [disabled]="disabled"><option value="">Selecciona marca</option><option *ngFor="let b of brands()" [value]="b.id">{{b.nombre}}</option></select></label>
+  <label>Modelo<select [ngModel]="a.modeloId" (ngModelChange)="update(i,'modeloId',$event)" [disabled]="disabled || !a.marcaId"><option value="">Selecciona modelo</option><option *ngFor="let m of models(a)" [value]="m.id">{{m.nombre}}</option></select></label>
+  <label>Año desde<input type="number" min="1886" max="2100" [ngModel]="a.anioDesde" (ngModelChange)="update(i,'anioDesde',$event)" [disabled]="disabled" /></label>
+  <label>Año hasta<input type="number" min="1886" max="2100" [ngModel]="a.anioHasta" (ngModelChange)="update(i,'anioHasta',$event)" [disabled]="disabled" /></label>
+  <button type="button" (click)="remove(i)" [disabled]="disabled">Quitar rango</button>
+ </div>
+ <button type="button" (click)="add()" [disabled]="disabled || applications.length>=20">Agregar vehículo/rango</button>
+ <p>El nombre se genera con pieza, marca, modelo, años y la especificación que distingue la variante. Se guarda junto con la ficha.</p>
+</section>

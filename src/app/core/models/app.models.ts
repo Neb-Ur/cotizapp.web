@@ -335,6 +335,8 @@ export interface ProductExtraSection {
 }
 
 export interface ProductDetailView {
+  vehicleCompatibility?: import('../services/vehicle-catalog.service').VehicleApplication[];
+  compatibilityReference?: boolean;
   seoPath?:string;
   productoMaestroId?: string;
   productName: string;
@@ -444,6 +446,9 @@ export interface ProjectComparisonStrategy {
 }
 
 export interface CatalogProduct {
+  partName?: string;
+  variantLabel?: string;
+  vehicleCompatibility?: import('../services/vehicle-catalog.service').VehicleApplication[];
   vehicleApplicationsEditable?: boolean;
   vehicleApplications?: import('../services/vehicle-catalog.service').VehicleApplication[];
   condition?: OfferCondition;

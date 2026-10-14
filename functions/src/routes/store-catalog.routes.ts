@@ -52,7 +52,7 @@ storeCatalogRouter.get('/ferreterias/:storeId/catalogo', requireAuth, requireRol
   const productById = new Map(products.map((item) => [item.id, item]));
   const data = (await rows(COLLECTIONS.storeProducts))
     .filter((item) => item.ferreteriaId === req.params.storeId)
-    .map((item) => ({ ...item, vehiculosEditables: vehicleApplicationsEnabled(req.params.storeId) && vehicleFamilies.has(productById.get(item.productoMaestroId)?.familiaId), productoMaestro: productById.get(item.productoMaestroId) }))
+    .map((item) => ({ ...item, vehiculosEditables: !productById.get(item.productoMaestroId)?.compatibilidadVehiculos?.length && vehicleApplicationsEnabled(req.params.storeId) && vehicleFamilies.has(productById.get(item.productoMaestroId)?.familiaId), productoMaestro: productById.get(item.productoMaestroId) }))
     .filter((item) => !!item.productoMaestro);
   return ok(res, data);
 });

@@ -58,7 +58,7 @@ export async function buildSearchRows(source?: any[][], asOf?:number): Promise<S
         productoMaestroId: product.id,
         productoFerreteriaId: offer.id,
         condition: normalizeOfferCondition(offer.condicion),
-        vehicleApplications: publicVehicleApplications(offer.asociacionesVehiculos),
+        vehicleApplications: publicVehicleApplications(offer.asociacionesVehiculos?.length ? offer.asociacionesVehiculos : product.compatibilidadVehiculos),
         productName: product.nombre,
         storeName: store.nombreComercial,
         storeId: store.id,

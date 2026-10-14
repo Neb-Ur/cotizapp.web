@@ -17,10 +17,13 @@ offerVehiclesRouter.get(path, requireAuth, requireRole('ferreteria','admin'), as
   if (!offer || offer.ferreteriaId !== req.params.storeId) return fail(res,'CATALOGO_NOT_FOUND','Publicación no encontrada.',404);
   const product = await row(COLLECTIONS.masterProducts,offer.productoMaestroId);
   const family = product ? await row(COLLECTIONS.families,product.familiaId) : null;
-  return ok(res,{applications: offer.asociacionesVehiculos || [], canEdit: family?.permiteVehiculos === true && vehicleApplicationsEnabled(req.params.storeId)});
+  return ok(res,{applications: product?.compatibilidadVehiculos?.length ? product.compatibilidadVehiculos : offer.asociacionesVehiculos || [], canEdit: !product?.compatibilidadVehiculos?.length && family?.permiteVehiculos === true && vehicleApplicationsEnabled(req.params.storeId)});
 });
 offerVehiclesRouter.put(path, requireAuth, requireRole('ferreteria','admin'), async (req,res) => {
   if (!(await requireStoreWriteAccess(req,res,req.params.storeId))) return;
+  const targetOffer=await row(COLLECTIONS.storeProducts,req.params.offerId);
+  const targetProduct=targetOffer ? await row(COLLECTIONS.masterProducts,targetOffer.productoMaestroId) : null;
+  if(targetProduct?.compatibilidadVehiculos?.length)return fail(res,'PRODUCT_COMPATIBILITY_OWNED','La compatibilidad de esta variante se administra en el producto maestro.',403);
   if (!vehicleApplicationsEnabled(req.params.storeId)) return fail(res,'VEHICLE_APPLICATIONS_DISABLED','Las asociaciones de vehículos todavía no están habilitadas para este local.',403);
   if (!(await requireCurrentStoreAgreement(req,res,req.params.storeId))) return;
   let applications;

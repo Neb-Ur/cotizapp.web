@@ -1,3 +1,4 @@
+import {normalizeProductApplications,automotiveProductName,automotiveIdentity} from '../domain/product-vehicle.js';
 import { invalidateStaticCatalog } from '../lib/product-sheet-cache.js';
 import { markPublicCatalogDirty } from '../lib/public-catalog-cache.js';
 import { Router, type Request, type Response } from 'express';
@@ -13,6 +14,26 @@ export const masterProductsRouter = Router();
 
 const validImageSources = ['external_url', 'ai_generated', 'manufacturer_authorized', 'store_authorized', 'licensed_stock', 'original', 'other'];
 const validContentSources = ['manufacturer_authorized', 'store_authorized', 'licensed', 'original', 'ai_assisted_original', 'public_domain', 'other'];
+
+async function vehicleFields(body: Record<string, any>, current: any = {}) {
+  if(body.compatibilidadVehiculos===undefined && !current.compatibilidadVehiculos?.length && body.nombrePieza===undefined)return {};
+  const applications=normalizeProductApplications(body.compatibilidadVehiculos ?? current.compatibilidadVehiculos ?? []);
+  if(!applications.length)throw new Error('PRODUCT_COMPATIBILITY_REQUIRED');
+  const family=await row(COLLECTIONS.families,body.familiaId ?? current.familiaId);
+  if(family?.permiteVehiculos!==true)throw new Error('FAMILY_VEHICLES_DISABLED');
+  const resolved=[];
+  for(const a of applications){
+    const model=await row(COLLECTIONS.vehicleModels,a.modeloId),brand=await row(COLLECTIONS.brands,a.marcaId);
+    if(!model || model.marcaId!==a.marcaId || !brand || !brandUses(brand.usos).includes('vehiculo'))throw new Error('PRODUCT_VEHICLE_MODEL_INVALID');
+    const prior=(current.compatibilidadVehiculos||[]).some((p:any)=>p.marcaId===a.marcaId&&p.modeloId===a.modeloId&&p.anioDesde===a.anioDesde&&p.anioHasta===a.anioHasta);
+    if(model.activo===false && !prior)throw new Error('PRODUCT_VEHICLE_MODEL_INACTIVE');
+    resolved.push({...a,marcaNombre:brand.nombre,modeloNombre:model.nombre});
+  }
+  const tuples=(value:any[])=>JSON.stringify(value.map(a=>[a.marcaId,a.modeloId,a.anioDesde,a.anioHasta]).sort());
+  if(current.compatibilidadVehiculos?.length && tuples(current.compatibilidadVehiculos)!==tuples(resolved) && (await rows(COLLECTIONS.storeProducts)).some(o=>o.productoMaestroId===current.id&&o.activo!==false&&o.publicado!==false))throw new Error('PRODUCT_VARIANT_HAS_OFFERS_CREATE_NEW');
+  const nombrePieza=normalizeText(body.nombrePieza ?? current.nombrePieza),detalleVariante=normalizeText(body.detalleVariante ?? current.detalleVariante);
+  return {catalogoNivel:'producto_comercial',nombrePieza,detalleVariante,compatibilidadVehiculos:resolved,nombre:automotiveProductName(nombrePieza,resolved,detalleVariante)};
+}
 
 function additionalFields(body: Record<string, unknown>): Record<string, unknown> {
   const fields: Record<string, unknown> = {};
@@ -128,12 +149,17 @@ masterProductsRouter.get('/admin/productos-maestro/:id', requireAuth, requireRol
 masterProductsRouter.get('/productos-maestro/:id', masterDetail);
 
 masterProductsRouter.post('/productos-maestro', requireAuth, requireRole('admin'), async (req, res) => {
-  const nombre = normalizeText(req.body?.nombre);
+  let automotive: Record<string, unknown>;
+  try { automotive=await vehicleFields(req.body || {}); } catch(error) {return fail(res,(error as Error).message,'Indica pieza, marca/modelo y rangos de años válidos del producto maestro.',400);}
+  if(req.body?.categoriaId==='cat-repuestos-automotrices' && !automotive.compatibilidadVehiculos)return fail(res,'PRODUCT_COMPATIBILITY_REQUIRED','Los repuestos requieren pieza y compatibilidad en el maestro.',400);
+  const nombre = normalizeText(automotive.nombre || req.body?.nombre);
   if (!nombre) return fail(res, 'PRODUCTO_MAESTRO_INVALID_PAYLOAD', 'Nombre requerido.', 400);
   const imageRights = imageRightsPayload(req.body || {}, req.authUserId);
   if (imageRights === null) return fail(res, 'PRODUCT_IMAGE_RIGHTS_REQUIRED', 'Registra el origen, proveedor y respaldo de derechos de la imagen. Las marcas de terceros requieren autorización específica.', 400);
   const contentRights = contentRightsPayload(req.body || {}, req.authUserId);
   if (contentRights === null) return fail(res, 'PRODUCT_CONTENT_RIGHTS_REQUIRED', 'Registra la fuente o autorización de las descripciones y fichas del producto.', 400);
+  const manufacturer=await resolveProductBrand(req.body?.marca);
+  if(automotive.compatibilidadVehiculos){const candidate={...req.body,...automotive,...manufacturer};const duplicate=(await rows(COLLECTIONS.masterProducts)).find(p=>p.estado!=='inactivo'&&p.compatibilidadVehiculos?.length&&automotiveIdentity(p)===automotiveIdentity(candidate));if(duplicate)return fail(res,'PRODUCT_VARIANT_DUPLICATE','Ya existe esta variante. Usa su ficha o indica la especificación que distingue otra pieza.',409);}
   const created = await createRow(COLLECTIONS.masterProducts, {
     categoriaId: normalizeText(req.body?.categoriaId),
     subcategoriaId: normalizeText(req.body?.subcategoriaId),
@@ -142,7 +168,7 @@ masterProductsRouter.post('/productos-maestro', requireAuth, requireRole('admin'
     tipoProducto: normalizeText(req.body?.tipoProducto),
     unidadVenta: normalizeText(req.body?.unidadVenta),
     presentacion: normalizeText(req.body?.presentacion),
-    ...await resolveProductBrand(req.body?.marca),
+    ...manufacturer,
     codigoBarras: normalizeText(req.body?.codigoBarras),
     descripcionCorta: normalizeText(req.body?.descripcionCorta),
     descripcionLarga: normalizeText(req.body?.descripcionLarga),
@@ -151,6 +177,7 @@ masterProductsRouter.post('/productos-maestro', requireAuth, requireRole('admin'
     ...imageRights,
     ...contentRights,
     ...additionalFields(req.body || {}),
+    ...automotive,
     estado: req.body?.estado === 'inactivo' ? 'inactivo' : 'activo',
     creadoEn: nowIso()
   });
@@ -161,6 +188,8 @@ masterProductsRouter.post('/productos-maestro', requireAuth, requireRole('admin'
 masterProductsRouter.patch('/productos-maestro/:id', requireAuth, requireRole('admin'), async (req, res) => {
   const current = await row(COLLECTIONS.masterProducts, req.params.id);
   if (!current) return fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro.', 404);
+  let automotive: Record<string, unknown>;
+  try { automotive=await vehicleFields(req.body || {},current); } catch(error) {const code=(error as Error).message;return fail(res,code,code==='PRODUCT_VARIANT_HAS_OFFERS_CREATE_NEW'?'Esta variante tiene ofertas publicadas. Crea una nueva ficha para otro vehículo o rango de años.':'Revisa pieza, marca/modelo y rangos de años del maestro.',code==='PRODUCT_VARIANT_HAS_OFFERS_CREATE_NEW'?409:400);}
   const nextImageUrl = req.body?.imagenPrincipalUrl !== undefined ? req.body.imagenPrincipalUrl : current.imagenPrincipalUrl;
   const rightsInput = { ...current, ...(req.body || {}), imagenPrincipalUrl: nextImageUrl };
   // The existing editor changes one URL; keep its replacement/removal semantics.
@@ -180,6 +209,8 @@ masterProductsRouter.patch('/productos-maestro/:id', requireAuth, requireRole('a
   const patch: Record<string, unknown> = { ...imageRights, ...contentRights, ...additionalFields(rightsInput), actualizadoEn: nowIso() };
   allowed.forEach((key) => { if (req.body?.[key] !== undefined) patch[key] = req.body[key]; });
   Object.assign(patch, await resolveProductBrand(req.body?.marca !== undefined ? req.body.marca : current.marca));
+  Object.assign(patch,automotive);
+  if(automotive.compatibilidadVehiculos){const candidate={...current,...patch};const duplicate=(await rows(COLLECTIONS.masterProducts)).find(p=>p.id!==current.id&&p.estado!=='inactivo'&&p.compatibilidadVehiculos?.length&&automotiveIdentity(p)===automotiveIdentity(candidate));if(duplicate)return fail(res,'PRODUCT_VARIANT_DUPLICATE','Ya existe otra ficha para esta variante.',409);}
   const updated = await patchRow(COLLECTIONS.masterProducts, req.params.id, patch);
   if (updated) await Promise.all([invalidateStaticCatalog(), markPublicCatalogDirty()]);
   return updated ? ok(res, updated) : fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro.', 404);

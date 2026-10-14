@@ -47,8 +47,9 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
 
   for (const product of snapshot.products) {
     if (product.estado === 'inactivo') continue;
+    if (hasVehicleFilter(options) && !matchesVehicle(product.compatibilidadVehiculos, options)) continue;
     const name = String(product.nombre || '');
-    const text = normalize([name, product.marca, product.tipoProducto, categories.get(product.categoriaId), subcategories.get(product.subcategoriaId), families.get(product.familiaId)].filter(Boolean).join(' '));
+    const text = normalize([name, product.marca, product.tipoProducto, ...(product.compatibilidadVehiculos||[]).map((a:any)=>[a.marcaNombre,a.modeloNombre,a.anioDesde,a.anioHasta].join(' ')), categories.get(product.categoriaId), subcategories.get(product.subcategoriaId), families.get(product.familiaId)].filter(Boolean).join(' '));
     if (tokens.some(token => !text.includes(token))) continue;
     if (options.brandId && (product.marcaId || brandIdentity(product.marca)?.id) !== options.brandId) continue;
     if (!options.brandId && options.brand && normalize(String(product.marca || '')) !== normalize(options.brand)) continue;
@@ -74,7 +75,7 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
   }
 
   for (const offer of snapshot.searchRows) {
-    if (!matchesVehicle(offer.vehicleApplications, options)) continue;
+    if (hasVehicleFilter(options) && offer.vehicleApplications?.length && !matchesVehicle(offer.vehicleApplications, options)) continue;
     if (options.storeId && offer.storeId !== options.storeId) continue;
     const current = grouped.get(offer.productoMaestroId);
     if (!current) continue;
@@ -94,7 +95,7 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
     grouped.set(offer.productoMaestroId, current);
   }
 
-  const results = Array.from(grouped.values()).filter(product => (!options.storeId && !hasVehicleFilter(options)) || product.storeIds.size > 0).map(({ storeIds, sellers, ...product }) => ({
+  const results = Array.from(grouped.values()).filter(product => !options.storeId || product.storeIds.size > 0).map(({ storeIds, sellers, ...product }) => ({
     ...product, storeCount: storeIds.size, sellers: Array.from(sellers)
   }));
   results.sort((a, b) => {

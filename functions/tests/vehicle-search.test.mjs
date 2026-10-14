@@ -21,7 +21,7 @@ test('vehicle matching keeps brand/model/year in one declaration and includes in
 
 function catalog() {
   return {version:'vehicle-filter-fixture',updatedAt:new Date().toISOString(),taxonomy:{categories:[],subcategories:[],families:[]},
-    products:[{id:'part',nombre:'Alternador',categoriaId:'cat-repuestos-automotrices'},{id:'base',nombre:'Referencia sin ofertas'}],
+    products:[{id:'part',nombre:'Alternador',compatibilidadVehiculos:applications,categoriaId:'cat-repuestos-automotrices'},{id:'base',nombre:'Referencia sin ofertas'}],
     searchRows:[
       {productoMaestroId:'part',productoFerreteriaId:'matching',storeId:'one',storeName:'Desarmaduría',price:5000,vehicleApplications:applications,storeLatitude:0,storeLongitude:0},
       {productoMaestroId:'part',productoFerreteriaId:'wrong',storeId:'two',storeName:'Ferretería',price:100,vehicleApplications:[application('toyota','yaris',2010,2010)],storeLatitude:0,storeLongitude:0}
@@ -34,7 +34,7 @@ test('vehicle filtering precedes aggregation and pagination and combines with st
   assert.deepEqual(found.items[0].sellers,['Desarmaduría']);
   assert.equal(paginateProductSearch(snapshot,{...options,storeId:'two'}).total,0);
   assert.equal(paginateProductSearch(snapshot,{...options,categoryId:'unrelated'}).total,0);
-  assert.equal(paginateProductSearch(snapshot,{...options,proximity:{latitude:10,longitude:10,radiusKm:5}}).total,0);
+  const distant=paginateProductSearch(snapshot,{...options,proximity:{latitude:10,longitude:10,radiusKm:5}});assert.equal(distant.total,1);assert.equal(distant.items[0].storeCount,0);
   assert.equal(paginateProductSearch(snapshot,{page:1,size:20,sort:'stores'}).total,2);
 });
 
@@ -53,7 +53,7 @@ test('API rejects malformed vehicle filters before accessing data', async () => 
 test('public search and offer detail retain the same selected vehicle', async t => {
   const snapshot=catalog();
   firestoreFixture(t,{cachePublico:{meta:{dirty:false,version:snapshot.version,updatedAt:snapshot.updatedAt,
-    policy:`data-modes-v3:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']},
+    policy:`data-modes-v4:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']},
     taxonomy:snapshot.taxonomy,products:{items:snapshot.products},offers:{items:snapshot.searchRows}}});
   const query={vehiculoMarcaId:'toyota',vehiculoModeloId:'corolla',vehiculoAnio:'2010'};
   const response=()=>({statusCode:200,set(){return this;},status(code){this.statusCode=code;return this;},json(body){this.body=body;return this;}});

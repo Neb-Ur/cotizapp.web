@@ -55,6 +55,10 @@ interface SearchRowExtended extends SearchRow {
 }
 
 interface ProductoMaestroApi {
+  nombrePieza?: string;
+  detalleVariante?: string;
+  compatibilidadVehiculos?: import('./vehicle-catalog.service').VehicleApplication[];
+  compatibilidadReferencial?: boolean;
   id: string;
   categoriaId: string;
   subcategoriaId: string;
@@ -627,6 +631,9 @@ export class FirebaseDataService {
       estado: payload.isPublished === false ? 'inactivo' : 'activo',
       marca: payload.brand,
       codigoBarras: payload.barcode,
+      nombrePieza: payload.partName,
+      detalleVariante: payload.variantLabel,
+      compatibilidadVehiculos: payload.vehicleCompatibility,
       categoriaId: payload.categoryId,
       subcategoriaId: payload.subcategoryId,
       familiaId: payload.familyId,
@@ -671,6 +678,9 @@ export class FirebaseDataService {
       estado: patch.isPublished === undefined ? undefined : patch.isPublished ? 'activo' : 'inactivo',
       marca: patch.brand,
       codigoBarras: patch.barcode,
+      nombrePieza: patch.partName,
+      detalleVariante: patch.variantLabel,
+      compatibilidadVehiculos: patch.vehicleCompatibility,
       categoriaId: patch.categoryId,
       subcategoriaId: patch.subcategoryId,
       familiaId: patch.familyId,
@@ -1593,6 +1603,8 @@ export class FirebaseDataService {
       }));
 
       return {
+        vehicleCompatibility: master.compatibilidadVehiculos || [],
+        compatibilityReference: master.compatibilidadReferencial === true,
         seoPath:master.seoPath,
         productoMaestroId: master.id,
         productName: master.nombre,
@@ -2148,6 +2160,9 @@ export class FirebaseDataService {
     return {
       id: product.id,
       masterProductId: product.id,
+      partName: product.nombrePieza,
+      variantLabel: product.detalleVariante,
+      vehicleCompatibility: product.compatibilidadVehiculos,
       catalogLevel: product.catalogoNivel,
       name: product.nombre,
       barcode: product.codigoBarras || '',

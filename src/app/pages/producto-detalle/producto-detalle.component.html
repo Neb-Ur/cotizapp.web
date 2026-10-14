@@ -65,6 +65,11 @@
             : 'No hay locales con este producto.' }}</span>
         </p>
         <section class="quick-stores">
+          <section *ngIf="detail?.vehicleCompatibility?.length" aria-label="Compatibilidad del producto">
+            <h3>Compatibilidad del producto maestro</h3>
+            <p *ngFor="let a of detail?.vehicleCompatibility">{{a.marcaNombre}} {{a.modeloNombre}} · {{a.anioDesde}}–{{a.anioHasta}}</p>
+            <p *ngIf="detail?.compatibilityReference">Compatibilidad simulada para pruebas; no acredita ajuste real de la pieza.</p>
+          </section>
           <h3>Precios por local</h3>
           <p *ngIf="vehicleFilterApplied">Ofertas filtradas por el vehículo seleccionado. Confirma la compatibilidad con el vendedor.</p>
           <p *ngIf="offersLoading" role="status" aria-live="polite">Cargando precios de los locales…</p>

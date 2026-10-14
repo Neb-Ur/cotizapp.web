@@ -127,7 +127,7 @@
               <input type="number" min="1886" max="2100" step="1" placeholder="Todos los años" [ngModel]="selectedVehicleYear" (ngModelChange)="onVehicleYearChange($event)" [disabled]="!selectedVehicleModelId" />
               <small *ngIf="vehicleYearError" role="alert">{{ vehicleYearError }}</small>
             </label>
-            <p>Filtra por vehículos declarados por el vendedor. Confirma la compatibilidad antes de comprar.</p>
+            <p>Filtra por la compatibilidad registrada en el producto maestro. Confirma la compatibilidad antes de comprar.</p>
             <p *ngIf="!vehicleCatalog.brands.length && !vehicleCatalogError">Todavía no hay marcas y modelos de vehículos registrados.</p>
             <p *ngIf="selectedVehicleBrandId && !vehicleModelOptions.length">Esta marca todavía no tiene modelos registrados.</p>
             <p *ngIf="vehicleCatalogError" role="alert">{{ vehicleCatalogError }} <button type="button" (click)="loadVehicleCatalog()">Reintentar</button></p>
@@ -195,7 +195,7 @@
 
       <ng-template #emptyProducts>
         <ng-container *ngIf="!isPublicCatalogRefreshing && !dataLoadError">
-          <p class="cards-empty">{{ selectedVehicleBrandId ? 'No hay ofertas con vehículos declarados que coincidan con los filtros seleccionados.' : 'No encontramos productos en nuestro catálogo para esta búsqueda.' }}</p>
+          <p class="cards-empty">{{ selectedVehicleBrandId ? 'No hay productos con compatibilidad registrada que coincidan con los filtros seleccionados.' : 'No encontramos productos en nuestro catálogo para esta búsqueda.' }}</p>
         </ng-container>
       </ng-template>
 

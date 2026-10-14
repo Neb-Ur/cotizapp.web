@@ -1,6 +1,6 @@
 # Diagrama completo de la base de datos Findi
 
-Generado a partir de las claves y columnas reales de [001-schema.sql](../../sql/findi/001-schema.sql) [005-runtime-compatibility.sql](../../sql/findi/005-runtime-compatibility.sql) [008-location-reference-tables.sql](../../sql/findi/008-location-reference-tables.sql), [011-quotation-verification.sql](../../sql/findi/011-quotation-verification.sql), [012-advisory-quotation-period.sql](../../sql/findi/012-advisory-quotation-period.sql) [013-store-reviews.sql](../../sql/findi/013-store-reviews.sql), [014-visit-analytics.sql](../../sql/findi/014-visit-analytics.sql), [015-offer-condition.sql](../../sql/findi/015-offer-condition.sql), [016-store-business-type.sql](../../sql/findi/016-store-business-type.sql), [017-vehicle-reference-catalog.sql](../../sql/findi/017-vehicle-reference-catalog.sql) y [018-offer-vehicle-applications.sql](../../sql/findi/018-offer-vehicle-applications.sql). Incluye **64 tablas del esquema findi y 2 tablas temporales de findi_migration**, todas sus columnas y las 106 claves foráneas declaradas. PostgreSQL está activo para los datos de aplicación; Firebase Authentication conserva las cuentas. Los modelos de producto y de vehículo son entidades diferentes; los años se declaran en las asociaciones de cada publicación.
+Generado a partir de las claves y columnas reales de [001-schema.sql](../../sql/findi/001-schema.sql) [005-runtime-compatibility.sql](../../sql/findi/005-runtime-compatibility.sql) [008-location-reference-tables.sql](../../sql/findi/008-location-reference-tables.sql), [011-quotation-verification.sql](../../sql/findi/011-quotation-verification.sql), [012-advisory-quotation-period.sql](../../sql/findi/012-advisory-quotation-period.sql) [013-store-reviews.sql](../../sql/findi/013-store-reviews.sql), [014-visit-analytics.sql](../../sql/findi/014-visit-analytics.sql), [015-offer-condition.sql](../../sql/findi/015-offer-condition.sql), [016-store-business-type.sql](../../sql/findi/016-store-business-type.sql), [017-vehicle-reference-catalog.sql](../../sql/findi/017-vehicle-reference-catalog.sql) y [018-offer-vehicle-applications.sql](../../sql/findi/018-offer-vehicle-applications.sql) y [019-product-vehicle-applications.sql](../../sql/findi/019-product-vehicle-applications.sql). Incluye **65 tablas del esquema findi y 2 tablas temporales de findi_migration**, todas sus columnas y las 108 claves foráneas declaradas. PostgreSQL está activo para los datos de aplicación; Firebase Authentication conserva las cuentas. Los modelos de producto y de vehículo son entidades diferentes; la compatibilidad del repuesto y sus años se registran en el producto maestro. Las declaraciones de oferta anteriores se conservan para transición e historial.
 
 Abre la vista previa Markdown para visualizarlo. El [archivo Mermaid independiente](diagrama-completo.mmd) permite ampliar y exportar el diagrama en un visor compatible. Al final hay vistas por área para explorar el mismo modelo con menos cruces.
 
@@ -83,6 +83,16 @@ erDiagram
   brand_uses["Usos de marca"] {
     text brand_id PK,FK "NOT NULL"
     text use_kind PK "NOT NULL"
+  }
+  product_vehicle_applications["Compatibilidad del producto maestro"] {
+    text product_id PK,FK "NOT NULL"
+    integer position PK "NOT NULL"
+    text brand_id FK "NOT NULL"
+    text model_id FK "NOT NULL"
+    integer year_from "NOT NULL"
+    integer year_to "NOT NULL"
+    text brand_name_snapshot "NOT NULL"
+    text model_name_snapshot "NOT NULL"
   }
   offer_vehicle_applications["Vehículos declarados por publicación"] {
     text offer_id PK,FK "NOT NULL"
@@ -540,6 +550,9 @@ erDiagram
     bigint api_version "NOT NULL"
   }
   products["Productos del catálogo maestro"] {
+    text part_name "nullable"
+    text variant_label "nullable"
+    text automotive_identity "nullable; índice único parcial"
     text id PK "NOT NULL"
     text family_id FK "NOT NULL"
     text model_id FK "nullable"
@@ -953,6 +966,8 @@ erDiagram
   cities o|..o{ store_locations : "city_id"
   stores ||..o{ store_reviews : "store_id"
   users ||..o{ store_reviews : "user_id"
+  products ||--o{ product_vehicle_applications : "product_id"
+  vehicle_models ||..o{ product_vehicle_applications : "model_id, brand_id"
   offers ||..o{ offer_vehicle_applications : "offer_id"
   vehicle_models ||..o{ offer_vehicle_applications : "model_id, brand_id"
   brands ||--o{ brand_uses : "brand_id"
@@ -1551,6 +1566,7 @@ Los nombres en español son las etiquetas del diagrama. El esquema SQL conserva 
 | Opciones de atributos | `findi.attribute_options` | Valores permitidos para atributos de selección. |
 | Marcas | `findi.brands` | Registro compartido de marcas de fabricantes y vehículos. |
 | Usos de marca | `findi.brand_uses` | Una marca puede tener uso de fabricante, vehículo o ambos. |
+| Compatibilidad del producto maestro | `findi.product_vehicle_applications` | Marca/modelo y rangos de años de la variante del repuesto. |
 | Vehículos declarados por publicación | `findi.offer_vehicle_applications` | Asociación manual por oferta, modelo y años; sin inferencia automática. |
 | Modelos de vehículos | `findi.vehicle_models` | Modelo con marca de vehículo validada; conserva identidad al renombrar. |
 | Claves de visitas por día | `findi.visit_daily_keys` | Clave seudónima por día; no almacena la IP original. |

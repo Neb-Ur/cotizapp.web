@@ -8,7 +8,7 @@ import {replicateDocument} from '../lib/database/replication.js';
 import {useSqlDatabase} from '../lib/database/config.js';
 async function fixture(t,ready=true,includeCondition=true){
  const pg=new PGlite();
- for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql','013-store-reviews.sql','015-offer-condition.sql','016-store-business-type.sql','017-vehicle-reference-catalog.sql','018-offer-vehicle-applications.sql'].filter(file=>includeCondition||file!=='015-offer-condition.sql'))await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
+ for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql','013-store-reviews.sql','015-offer-condition.sql','016-store-business-type.sql','017-vehicle-reference-catalog.sql','018-offer-vehicle-applications.sql','019-product-vehicle-applications.sql'].filter(file=>includeCondition||file!=='015-offer-condition.sql'))await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
  const pool={connect:async()=>({query:pg.query.bind(pg),release(){}})};
  const db=new PostgresDatabase(pool,ready);
  t.after(()=>pg.close());
@@ -49,7 +49,7 @@ test('automotive seed persists normalized year ranges and filters the same produ
  const previous=process.env.PILOT_STORES_ENABLED;process.env.PILOT_STORES_ENABLED='true';
  let searchRows;try{searchRows=await buildSearchRows(source);}finally{if(previous===undefined)delete process.env.PILOT_STORES_ENABLED;else process.env.PILOT_STORES_ENABLED=previous;}
  const model=(await read('modelosVehiculo')).find(m=>m.nombre==='Corolla');
- const snapshot={version:'seed',updatedAt:now,products:source[1],searchRows,taxonomy:{categories:source[4],subcategories:source[5],families:source[6]}};
+ const snapshot={version:'seed',updatedAt:now,products:source[1].map(p=>({...p,compatibilidadVehiculos:searchRows.filter(o=>o.productoMaestroId===p.id&&o.storeId==='seed-auto-store-repuestos').flatMap(o=>o.vehicleApplications).filter(a=>a.modeloId===model.id)})),searchRows,taxonomy:{categories:source[4],subcategories:source[5],families:source[6]}};
  const options={vehicleBrandId:model.marcaId,vehicleModelId:model.id,vehicleYear:2010,page:1,size:20,sort:'price-asc'};
  const early=paginateProductSearch(snapshot,options);assert.equal(early.total,3);
  const alternator=early.items.find(p=>p.productoMaestroId==='base-repuesto-alternador-automotriz');assert.equal(alternator.storeCount,2);assert.equal(alternator.minPrice,55000);assert.equal(alternator.maxPrice,125000);
@@ -309,4 +309,32 @@ test('generic auto-part seeds extend the shared catalog with reference images an
  assert.equal((await pg.query("SELECT count(*)::int n FROM findi.families WHERE supports_vehicle_applications")).rows[0].n,4);
  for(const p of plan.products){const data=(await db.collection('productosMaestro').doc(p.id).get()).data();assert.equal(data.catalogoNivel,'tipo_base');assert.equal(data.imagenReferencial,true);assert.equal(data.origenImagen,'ai_generated');assert.equal(data.marcaId,null);assert.equal(data.precio,undefined);assert.equal(data.stock,undefined);}
  assert.equal((await pg.query('SELECT count(*)::int n FROM findi.product_media WHERE product_id=ANY($1::text[])',[plan.products.map(p=>p.id)])).rows[0].n,8);
+});
+
+test('SQL master variants persist compatibility and unique identity, inherit prices and preserve photos independently',async t=>{
+ const {db,pg}=await fixture(t);await catalog(db);
+ await db.collection('familias').doc('radiators').set({nombre:'Radiadores',subcategoriaId:'sub',permiteVehiculos:true});
+ await db.collection('marcas').doc('mahindra').set({nombre:'Mahindra',nombreNormalizado:'mahindra',usos:['vehiculo']});
+ await db.collection('modelosVehiculo').doc('kuv').set({nombre:'KUV100',nombreNormalizado:'kuv100',marcaId:'mahindra',activo:true});
+ const application={marcaId:'mahindra',modeloId:'kuv',marcaNombre:'untrusted',modeloNombre:'untrusted',anioDesde:2016,anioHasta:2019};
+ const parent={nombre:'Wrong supplied title',nombrePieza:'Radiador',detalleVariante:'',familiaId:'radiators',categoriaId:'cat',subcategoriaId:'sub',marca:'Fabricante opcional',compatibilidadVehiculos:[application],estado:'activo',imagenPrincipalUrl:'/variant-a.webp'};
+ await db.collection('productosMaestro').doc('early').set(parent);
+ await db.collection('productosMaestro').doc('late').set({...parent,compatibilidadVehiculos:[{...application,anioDesde:2020,anioHasta:2023}],imagenPrincipalUrl:'/variant-b.webp'});
+ const early=(await db.collection('productosMaestro').doc('early').get()).data();assert.equal(early.nombre,'Radiador Mahindra KUV100 2016–2019');assert.equal(early.compatibilidadVehiculos[0].marcaNombre,'Mahindra');
+ assert.equal((await pg.query('SELECT count(*)::int n FROM findi.product_vehicle_applications')).rows[0].n,2);
+ await assert.rejects(db.collection('productosMaestro').doc('duplicate').set(parent),/unique|duplicate/i);assert.equal((await db.collection('productosMaestro').doc('duplicate').get()).exists,false);
+ await db.collection('real_ferreterias').doc('store').update({esPrueba:true});
+ await db.collection('real_productosFerreteria').doc('early-offer').set({ferreteriaId:'store',productoMaestroId:'early',precio:10000,stock:2,activo:true,publicado:true});
+ await assert.rejects(db.collection('real_productosFerreteria').doc('outside').set({ferreteriaId:'store',productoMaestroId:'late',precio:10000,stock:2,asociacionesVehiculos:[application]}),/OFFER_VEHICLES_OUTSIDE_PRODUCT/);
+ await db.collection('productosMaestro').doc('early').update({imagenPrincipalUrl:'/new-specific-photo.webp'});
+ assert.equal((await db.collection('productosMaestro').doc('late').get()).data().imagenPrincipalUrl,'/variant-b.webp');
+ const {buildSearchRows}=await import('../lib/services/catalog-search.service.js');const {paginateProductSearch}=await import('../lib/domain/product-search.js');
+ const read=async c=>(await db.collection(c).get()).docs.map(d=>({id:d.id,...d.data()}));
+ const source=await Promise.all(['real_productosFerreteria','productosMaestro','real_ferreterias','usuarios','categorias','subcategorias','familias'].map(read));
+ const before=process.env.PILOT_STORES_ENABLED;process.env.PILOT_STORES_ENABLED='true';let searchRows;
+ try{searchRows=await buildSearchRows(source);}finally{if(before===undefined)delete process.env.PILOT_STORES_ENABLED;else process.env.PILOT_STORES_ENABLED=before;}
+ const snapshot={version:'master-test',updatedAt:'',products:source[1],searchRows,taxonomy:{categories:source[4],subcategories:source[5],families:source[6]}};
+ const options={vehicleBrandId:'mahindra',vehicleModelId:'kuv',vehicleYear:2018,page:1,size:20,sort:'stores'};
+ assert.equal(paginateProductSearch(snapshot,options).items[0].minPrice,10000);
+ const late=paginateProductSearch(snapshot,{...options,vehicleYear:2021});assert.equal(late.total,1);assert.equal(late.items[0].storeCount,0);
 });

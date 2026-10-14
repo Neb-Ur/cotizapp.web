@@ -30,7 +30,7 @@ export type PublicCatalogSnapshot = {
 
 const META_ID = 'meta';
 const CHUNK_SIZE = 150;
-const CACHE_POLICY = `data-modes-v3:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}`;
+const CACHE_POLICY = `data-modes-v4:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}`;
 function fresh(meta:any):boolean {return catalogCacheIsFresh(meta,`${CACHE_POLICY}:pilot=${pilotStoresEnabled()}`);}
 const rebuildPromises = new Map<string, Promise<PublicCatalogSnapshot>>();
 const memorySnapshots = new Map<string, PublicCatalogSnapshot>();
@@ -99,6 +99,10 @@ async function materializeSnapshot(): Promise<PublicCatalogSnapshot> {
       subcategoriaId: item.subcategoriaId,
       familiaId: item.familiaId,
       nombre: item.nombre,
+      nombrePieza: item.nombrePieza || '',
+      detalleVariante: item.detalleVariante || '',
+      compatibilidadVehiculos: item.compatibilidadVehiculos || [],
+      compatibilidadReferencial: item.compatibilidadReferencial === true,
       tipoProducto: item.tipoProducto || '',
       unidadVenta: item.unidadVenta || '',
       presentacion: item.presentacion || '',

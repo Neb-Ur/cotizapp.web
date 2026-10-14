@@ -1,5 +1,7 @@
 # Informe de ampliación del catálogo: condición de productos y repuestos
 
+**Decisión vigente al 14 de octubre:** la compatibilidad automotriz se administra en el producto maestro por variante, junto con su nombre e imagen propios. Las asociaciones de oferta de etapas anteriores quedan para transición/historial. [Contrato y conversión](productos-maestro-automotrices.md).
+
 Fecha: 12 de octubre de 2026. Código analizado: `3ef5bfb`.
 
 Revisión del plan: incorpora las recomendaciones de compatibilidad posteriores al análisis inicial. La línea base de pruebas de la sección 10 corresponde al commit indicado, no a una nueva ejecución ni al código de futuras etapas.
@@ -459,5 +461,13 @@ Entrega del 13 de octubre de 2026. [Contrato de datos, permisos y configuración
 - Registros identificados con `esPrueba`, lote y nombres «(Prueba)». Las condiciones advierten que asociaciones, precios y stock son simulados y no acreditan compatibilidad real ni disponibilidad comercial. No se crean cuentas de Firebase Authentication, contratos firmados o vehículos vinculados a compradores reales.
 - Carga transaccional en el mismo catálogo SQL, sin cambios de esquema ni sobrescribir datos anteriores. Recibo privado previo, validación de relaciones/IDs/familias y repetición sin cambios. Se conserva la configuración de escrituras del piloto y el límite de una oferta por maestro/local.
 - Validación: 25 pruebas de semilla/PostgreSQL aprobadas, más comprobaciones públicas de intervalos, huecos, precio, local, detalle y catálogo. Se conservan 860 maestros y las 3.424 ofertas anteriores; se agregan ocho ofertas de prueba, total 3.432 activas. El punto 6A sigue pendiente.
+
+### Maestros automotrices por variante — 14 de octubre de 2026
+
+- Pieza, marca/modelo del vehículo, rango de años y especificación en el maestro; nombre generado, fabricante separado y galería independiente. Formulario administrativo para compatibilidad y creación de variantes; el vendedor conserva precio/stock/condición por oferta. [Contrato actualizado](productos-maestro-automotrices.md).
+- Migración `019-product-vehicle-applications.sql` aplicada, codec/mappings/metadatos y diagramas actualizados. Relaciones producto/modelo/marca y rangos completos, RLS, identidad única para variantes activas y validaciones de oferta. Respaldo privado de tablas afectadas; se comprobó conservación de los datos anteriores al ampliar el esquema.
+- Filtros sobre compatibilidad del maestro, con descubrimiento de fichas sin ofertas. La API/caché pública y detalle conservan los campos; las ofertas no amplían los vehículos del maestro. Cambiar compatibilidad con ofertas publicadas requiere otra variante.
+- Conversión transaccional del lote de prueba: 26 maestros específicos (incluidos dos radiadores KUV100 sin ofertas), 24 ofertas, siete marcas/catorce modelos; cuatro maestros genéricos y ocho ofertas anteriores archivados con IDs conservados. Se mantienen precios/condiciones y las 71 unidades simuladas del lote. Segunda preparación sin nuevas escrituras pendientes. Las fotos genéricas no se reutilizan como fotos de variantes específicas.
+- Validación: 190 pruebas de backend y 236 de frontend aprobadas, más compilación de producción. Tras ajustar clasificación y formulario se comprobaron también 27 pruebas de API/SQL y siete del formulario. Comprobaciones públicas de rangos, precios, fichas sin ofertas, SEO/HTML y semilla; SQL confirma 26 aplicaciones normalizadas. Catálogo activo: 882 maestros/3.448 ofertas. La revisión visual manual sigue pendiente por falta de navegador conectado. El punto 6A conserva su alcance pendiente.
 
 El siguiente punto es el **6A: selección exacta de publicación y captura de datos/precios en cotizaciones**. Los puntos 6A–12 permanecen pendientes. El punto 5 prepara asociaciones sobre ofertas existentes; todavía no habilita publicaciones múltiples ni snapshots automotrices en cotizaciones/PDF. Los filtros públicos de vehículos ya están implementados sobre declaraciones guardadas.

@@ -1,5 +1,7 @@
 # Semilla automotriz de prueba — 13 de octubre de 2026
 
+Esta semilla original fue [convertida a maestros específicos el 14 de octubre](productos-maestro-automotrices.md). Sus registros genéricos están archivados y se conservan como historial. El contenido siguiente describe su carga original.
+
 Se utilizan las seis marcas y los trece modelos del [catálogo inicial de vehículos](catalogo-vehiculos-inicial.md), junto con los cuatro maestros de repuestos existentes. Se crean dos usuarios SQL de prueba, dos locales ficticios, ocho ofertas y veinticuatro asociaciones de marca/modelo/años. No se crean cuentas de Firebase Authentication ni se inventan contratos firmados.
 
 - Trovio Repuestos (Prueba): tipo `repuestos`, cuatro ofertas.

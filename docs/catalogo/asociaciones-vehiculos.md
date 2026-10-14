@@ -2,6 +2,10 @@
 
 Soporte del punto 5 del [plan de ampliación](informe-expansion-repuestos-2026-10-12.md). Cada oferta actual puede guardar hasta 20 declaraciones manuales. Esto no habilita varias ofertas del mismo producto en un local ni modifica las cotizaciones.
 
+## Arquitectura vigente
+
+Desde el 14 de octubre la compatibilidad se administra en el [producto maestro por variante](productos-maestro-automotrices.md). Las reglas y endpoints de publicación descritos debajo corresponden a la etapa anterior y se conservan para transición. El editor de oferta no permite ampliar vehículos de un maestro con compatibilidad. La búsqueda consulta primero el maestro y permite descubrir fichas sin ofertas.
+
 ## Datos y validación
 
 `asociacionesVehiculos` contiene filas completas: `marcaId`, `modeloId`, `anioDesde`, `anioHasta`, más los nombres resueltos por el servidor. La tabla `findi.offer_vehicle_applications` conserva el orden y referencia la oferta y la combinación modelo/marca de `vehicle_models`.
