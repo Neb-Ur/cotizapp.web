@@ -52,4 +52,10 @@ CONFIRM_PROJECT_ID=cotizapp-d71c8 node functions/scripts/convert-seed-master-var
 
 Validación: 190 pruebas de backend y 236 de frontend aprobadas; comprobación adicional de 27 pruebas de API/SQL y siete de formulario tras los últimos ajustes. Se comprobaron nombres, independencia de fotos, unicidad, rangos, permisos de edición de compatibilidad, ofertas fuera de rango y productos sin ofertas, junto con regresiones de catálogo y cotizaciones. En producción: 26 relaciones normalizadas de maestros, 26 variantes, 24 ofertas del lote, búsqueda y HTML de las fichas, e invariantes de stock. Catálogo activo: 882 maestros y 3.448 ofertas. La revisión visual en navegador queda pendiente por ausencia de navegador conectado.
 
+## Ampliación posterior de KUV100
+
+El [lote ampliado del 14 de octubre](semilla-kuv100-ampliada.md) agrega 44 maestros KUV100 con 53 imágenes externas de referencia y 110 ofertas en tres desarmadurías ficticias. Incluye focos, neblineros y piezas mecánicas, de carrocería e interior, con distintas referencias e intervalos de años. Las 26 variantes de la conversión anterior conservan su estado e imágenes; no se sustituyen por las nuevas fichas ni se reutilizan sus fotos genéricas.
+
+Las compatibilidades del nuevo lote permanecen referenciales y su descripción distingue los años declarados de los intervalos editoriales para pruebas. Las fotos ilustran una referencia de catálogo, no una unidad física disponible. La carga crea solo IDs ausentes, conserva las ediciones existentes y no requiere otra migración de esquema.
+
 El punto 6A (selección exacta y snapshots de publicaciones en cotizaciones) continúa pendiente; esta entrega no lo sustituye.

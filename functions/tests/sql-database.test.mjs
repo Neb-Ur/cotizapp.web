@@ -25,6 +25,47 @@ async function catalog(db){
  await db.collection('productosMaestro').doc('product').set({nombre:'MDF negro 18 mm',familiaId:'family',categoriaId:'cat',subcategoriaId:'sub',marcaId:'brand',marca:'Marca de prueba',estado:'activo',galeriaJson:[],caracteristicasDestacadas:['18 mm']});
  await db.collection('real_ferreterias').doc('store').set({usuarioDuenoId:'store-owner',nombreComercial:'Local de prueba',estado:'activo'});
 }
+test('expanded KUV catalog persists galleries and master years, compares junkyards and leaves prior data intact', async t => {
+ const {db,pg}=await fixture(t);await catalog(db);
+ const before=(await db.collection('productosMaestro').doc('product').get()).data();
+ const {buildKuv100CatalogSeed,missingKuv100SeedDocuments}=await import('../scripts/lib/kuv100-catalog-seed.mjs');
+ const {planInitialVehicleCatalog}=await import('../scripts/lib/initial-vehicle-catalog.mjs');
+ const {buildSearchRows}=await import('../lib/services/catalog-search.service.js');
+ const {paginateProductSearch}=await import('../lib/domain/product-search.js');
+ const seed=JSON.parse(await readFile(new URL('../../docs/catalogo/semilla-kuv100-ampliada.json',import.meta.url),'utf8'));
+ const now=new Date().toISOString();
+ const refs=planInitialVehicleCatalog({brands:[{name:'Mahindra',models:['KUV100']}]},[],[],now);
+ for(const d of refs.creates)await db.collection(d.collection).doc(d.id).set(d.data);
+ await db.collection('categorias').doc('cat-repuestos-automotrices').set({nombre:'Repuestos automotrices',icono:'car'});
+ for(const id of ['sub-repuestos-motor-y-electricidad','sub-repuestos-frenos-y-suspension'])await db.collection('subcategorias').doc(id).set({nombre:id,categoriaId:'cat-repuestos-automotrices'});
+ const read=async c=>(await db.collection(c).get()).docs.map(d=>({id:d.id,...d.data()}));
+ const docs=buildKuv100CatalogSeed(seed,await read('marcas'),await read('modelosVehiculo'),now);
+ await db.runTransaction(async tx=>{for(const d of docs)tx.create(db.collection(d.collection).doc(d.id),d.data);});
+ const existing=new Map();for(const d of docs)existing.set(d.collection+'/'+d.id,(await db.collection(d.collection).doc(d.id).get()).data());
+ assert.deepEqual(missingKuv100SeedDocuments(docs,existing),[]);
+ assert.deepEqual((await db.collection('productosMaestro').doc('product').get()).data(),before);
+ assert.equal((await pg.query('SELECT count(*)::int n FROM findi.product_vehicle_applications')).rows[0].n,44);
+ assert.equal((await pg.query('SELECT count(*)::int n FROM findi.offer_vehicle_applications')).rows[0].n,0);
+ const masters=(await read('productosMaestro')).filter(p=>p.lotePrueba===seed.batch);
+ const sensor=masters.find(p=>p.referenciaProveedor==='M200298');assert.equal(sensor.galeriaJson.length,6);
+ const publications=await read('real_productosFerreteria');
+ const source=[publications,await read('productosMaestro'),await read('real_ferreterias'),await read('usuarios'),await read('categorias'),await read('subcategorias'),await read('familias')];
+ const previous=process.env.PILOT_STORES_ENABLED;process.env.PILOT_STORES_ENABLED='true';
+ let rows;try{rows=await buildSearchRows(source);}finally{if(previous===undefined)delete process.env.PILOT_STORES_ENABLED;else process.env.PILOT_STORES_ENABLED=previous;}
+ assert.equal(rows.length,110);
+ const snapshot={version:'kuv',updatedAt:now,products:masters,searchRows:rows,taxonomy:{categories:source[4],subcategories:source[5],families:source[6]}};
+ const app=sensor.compatibilidadVehiculos[0];
+ const options={vehicleBrandId:app.marcaId,vehicleModelId:app.modeloId,vehicleYear:2021,page:1,size:100,sort:'price-asc'};
+ const late=paginateProductSearch(snapshot,options);
+ const result=late.items.find(p=>p.productoMaestroId===sensor.id);
+ assert.ok(result.storeCount>=2);assert.ok(result.maxPrice>result.minPrice);
+ assert.equal(paginateProductSearch(snapshot,{...options,vehicleYear:2024}).total,0);
+ const early=paginateProductSearch(snapshot,{...options,vehicleYear:2016});
+ const earlyLamp=masters.find(p=>p.codigoFabricante==='1701AAA07781N');
+ assert.ok(early.items.some(p=>p.productoMaestroId===earlyLamp.id));
+ assert.ok(!late.items.some(p=>p.productoMaestroId===earlyLamp.id));
+ assert.ok(paginateProductSearch(snapshot,{...options,storeId:seed.stores[2].id}).total<late.total);
+});
 test('automotive seed persists normalized year ranges and filters the same product by model/year/local',async t=>{
  const {db,pg}=await fixture(t);await catalog(db);
  const before=(await db.collection('productosMaestro').doc('product').get()).data();
