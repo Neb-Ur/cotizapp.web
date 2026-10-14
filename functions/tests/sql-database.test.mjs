@@ -25,6 +25,39 @@ async function catalog(db){
  await db.collection('productosMaestro').doc('product').set({nombre:'MDF negro 18 mm',familiaId:'family',categoriaId:'cat',subcategoriaId:'sub',marcaId:'brand',marca:'Marca de prueba',estado:'activo',galeriaJson:[],caracteristicasDestacadas:['18 mm']});
  await db.collection('real_ferreterias').doc('store').set({usuarioDuenoId:'store-owner',nombreComercial:'Local de prueba',estado:'activo'});
 }
+test('automotive seed persists normalized year ranges and filters the same product by model/year/local',async t=>{
+ const {db,pg}=await fixture(t);await catalog(db);
+ const before=(await db.collection('productosMaestro').doc('product').get()).data();
+ const {buildBaseAutoPartDocuments}=await import('../scripts/lib/base-auto-parts.mjs');
+ const {planInitialVehicleCatalog}=await import('../scripts/lib/initial-vehicle-catalog.mjs');
+ const {buildAutoPartsSeed,missingAutoPartsSeedDocuments}=await import('../scripts/lib/auto-parts-seed.mjs');
+ const {buildSearchRows}=await import('../lib/services/catalog-search.service.js');
+ const {paginateProductSearch}=await import('../lib/domain/product-search.js');
+ const read=async collection=>(await db.collection(collection).get()).docs.map(d=>({id:d.id,...d.data()}));
+ const load=async name=>JSON.parse(await readFile(new URL('../../docs/catalogo/'+name,import.meta.url),'utf8'));
+ const now=new Date().toISOString();
+ const refs=planInitialVehicleCatalog(await load('catalogo-vehiculos-inicial.json'),await read('marcas'),[],now);
+ for(const d of [...refs.creates,...buildBaseAutoPartDocuments(await load('catalogo-repuestos-base.json'),now)])await db.collection(d.collection).doc(d.id).set(d.data);
+ const documents=buildAutoPartsSeed(await load('semilla-repuestos-vehiculos.json'),await read('marcas'),await read('modelosVehiculo'),now);
+ await db.runTransaction(async tx=>{for(const d of documents)tx.create(db.collection(d.collection).doc(d.id),d.data);});
+ const existing=new Map();for(const d of documents)existing.set(d.collection+'/'+d.id,(await db.collection(d.collection).doc(d.id).get()).data());
+ assert.deepEqual(missingAutoPartsSeedDocuments(documents,existing),[]);
+ assert.deepEqual((await db.collection('productosMaestro').doc('product').get()).data(),before);
+ assert.equal((await pg.query('SELECT count(*)::int n FROM findi.offer_vehicle_applications')).rows[0].n,24);
+ assert.equal((await pg.query('SELECT count(*)::int n FROM findi.offers')).rows[0].n,8);
+ const source=await Promise.all(['real_productosFerreteria','productosMaestro','real_ferreterias','usuarios','categorias','subcategorias','familias'].map(read));
+ const previous=process.env.PILOT_STORES_ENABLED;process.env.PILOT_STORES_ENABLED='true';
+ let searchRows;try{searchRows=await buildSearchRows(source);}finally{if(previous===undefined)delete process.env.PILOT_STORES_ENABLED;else process.env.PILOT_STORES_ENABLED=previous;}
+ const model=(await read('modelosVehiculo')).find(m=>m.nombre==='Corolla');
+ const snapshot={version:'seed',updatedAt:now,products:source[1],searchRows,taxonomy:{categories:source[4],subcategories:source[5],families:source[6]}};
+ const options={vehicleBrandId:model.marcaId,vehicleModelId:model.id,vehicleYear:2010,page:1,size:20,sort:'price-asc'};
+ const early=paginateProductSearch(snapshot,options);assert.equal(early.total,3);
+ const alternator=early.items.find(p=>p.productoMaestroId==='base-repuesto-alternador-automotriz');assert.equal(alternator.storeCount,2);assert.equal(alternator.minPrice,55000);assert.equal(alternator.maxPrice,125000);
+ const late=paginateProductSearch(snapshot,{...options,vehicleYear:2018}).items.find(p=>p.productoMaestroId===alternator.productoMaestroId);
+ assert.equal(late.storeCount,1);assert.equal(late.minPrice,125000);
+ assert.equal(paginateProductSearch(snapshot,{...options,vehicleYear:2013}).total,0);
+ assert.equal(paginateProductSearch(snapshot,{...options,vehicleYear:2018,storeId:'seed-auto-store-desarmaduria'}).total,0);
+});
 test('SQL flag is false by default and rejects ambiguous values',()=>{
  const before=process.env.USE_SQL_DATABASE;try{delete process.env.USE_SQL_DATABASE;assert.equal(useSqlDatabase(),false);process.env.USE_SQL_DATABASE='true';assert.equal(useSqlDatabase(),true);process.env.USE_SQL_DATABASE='1';assert.throws(useSqlDatabase);}finally{if(before===undefined)delete process.env.USE_SQL_DATABASE;else process.env.USE_SQL_DATABASE=before;}
 });

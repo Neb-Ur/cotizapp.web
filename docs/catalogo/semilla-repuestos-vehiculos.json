@@ -1,0 +1,17 @@
+{
+  "batch":"trovio-auto-seed-2026-10-13",
+  "stores":[
+    {"id":"seed-auto-store-repuestos","ownerId":"seed-auto-owner-repuestos","name":"Trovio Repuestos (Prueba)","businessType":"repuestos"},
+    {"id":"seed-auto-store-desarmaduria","ownerId":"seed-auto-owner-desarmaduria","name":"Trovio Desarmaduría (Prueba)","businessType":"desarmaduria"}
+  ],
+  "offers":[
+    {"id":"seed-auto-repuestos-alternador","storeId":"seed-auto-store-repuestos","productId":"base-repuesto-alternador-automotriz","price":125000,"stock":6,"condition":"nuevo","vehicles":[["Toyota","Corolla",2008,2012],["Toyota","Corolla",2015,2019],["Nissan","Sentra",2013,2019]]},
+    {"id":"seed-auto-desarmaduria-alternador","storeId":"seed-auto-store-desarmaduria","productId":"base-repuesto-alternador-automotriz","price":55000,"stock":3,"condition":"usado","vehicles":[["Toyota","Corolla",2010,2012],["Toyota","Corolla",2015,2016],["Toyota","Yaris",2014,2020]]},
+    {"id":"seed-auto-repuestos-amortiguador","storeId":"seed-auto-store-repuestos","productId":"base-repuesto-amortiguador-automotriz","price":65000,"stock":8,"condition":"nuevo","vehicles":[["Toyota","Hilux",2010,2016],["Hyundai","Tucson",2010,2015]]},
+    {"id":"seed-auto-desarmaduria-amortiguador","storeId":"seed-auto-store-desarmaduria","productId":"base-repuesto-amortiguador-automotriz","price":28000,"stock":4,"condition":"usado","vehicles":[["Toyota","Hilux",2012,2014],["Kia","Sportage",2010,2016]]},
+    {"id":"seed-auto-repuestos-filtro","storeId":"seed-auto-store-repuestos","productId":"base-repuesto-filtro-de-aceite-automotriz","price":8500,"stock":25,"condition":"nuevo","vehicles":[["Toyota","Corolla",2008,2012],["Toyota","Corolla",2015,2019],["Chevrolet","Onix",2013,2019],["Chevrolet","Sail",2011,2018],["Suzuki","Swift",2011,2017]]},
+    {"id":"seed-auto-desarmaduria-filtro","storeId":"seed-auto-store-desarmaduria","productId":"base-repuesto-filtro-de-aceite-automotriz","price":6500,"stock":10,"condition":"nuevo","vehicles":[["Nissan","Versa",2012,2020],["Hyundai","Accent",2012,2018],["Kia","Rio",2011,2017]]},
+    {"id":"seed-auto-repuestos-pastillas","storeId":"seed-auto-store-repuestos","productId":"base-repuesto-pastillas-de-freno","price":32000,"stock":10,"condition":"nuevo","vehicles":[["Toyota","Corolla",2008,2012],["Toyota","Corolla",2015,2019],["Suzuki","Vitara",2015,2020]]},
+    {"id":"seed-auto-desarmaduria-pastillas","storeId":"seed-auto-store-desarmaduria","productId":"base-repuesto-pastillas-de-freno","price":18000,"stock":5,"condition":"nuevo","vehicles":[["Nissan","Sentra",2013,2019],["Kia","Rio",2011,2017],["Suzuki","Swift",2011,2017]]}
+  ]
+}

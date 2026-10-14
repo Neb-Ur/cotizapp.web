@@ -1,0 +1,31 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {buildAutoPartsSeed,missingAutoPartsSeedDocuments} from '../scripts/lib/auto-parts-seed.mjs';
+import {planInitialVehicleCatalog} from '../scripts/lib/initial-vehicle-catalog.mjs';
+const seed=JSON.parse(await readFile(new URL('../../docs/catalogo/semilla-repuestos-vehiculos.json',import.meta.url),'utf8'));
+const references=JSON.parse(await readFile(new URL('../../docs/catalogo/catalogo-vehiculos-inicial.json',import.meta.url),'utf8'));
+const plan=planInitialVehicleCatalog(references,[],[],'now');
+const brands=plan.creates.filter(d=>d.collection==='marcas').map(d=>({id:d.id,...d.data}));
+const models=plan.creates.filter(d=>d.collection==='modelosVehiculo').map(d=>({id:d.id,...d.data}));
+test('automotive seed is explicit test data with disjoint years for the same model and product',()=>{
+ const documents=buildAutoPartsSeed(seed,brands,models,'now');
+ assert.equal(documents.length,12);assert.ok(documents.every(d=>d.data.esPrueba===true&&d.data.lotePrueba===seed.batch));
+ const offers=documents.filter(d=>d.collection==='real_productosFerreteria');assert.equal(offers.length,8);
+ assert.equal(offers.reduce((n,d)=>n+d.data.asociacionesVehiculos.length,0),24);
+ assert.ok(offers.every(d=>d.data.condicionesOferta.includes('No acredita compatibilidad real')));
+ const alternator=offers.find(d=>d.id==='seed-auto-repuestos-alternador');
+ const corolla=alternator.data.asociacionesVehiculos.filter(a=>a.modeloNombre==='Corolla');
+ assert.deepEqual(corolla.map(a=>[a.anioDesde,a.anioHasta]),[[2008,2012],[2015,2019]]);
+ const existing=new Map(documents.map(d=>[d.collection+'/'+d.id,d.data]));
+ assert.deepEqual(missingAutoPartsSeedDocuments(documents,existing),[]);
+ existing.set(documents[0].collection+'/'+documents[0].id,{...documents[0].data,lotePrueba:'unrelated'});
+ assert.throws(()=>missingAutoPartsSeedDocuments(documents,existing),/SEED_IDENTITY_CONFLICT/);
+});
+test('seed rejects unknown models, overlapping ranges and duplicate offers before writing',()=>{
+ assert.throws(()=>buildAutoPartsSeed(seed,brands,[],'now'),/SEED_MODEL/);
+ const invalid=structuredClone(seed);invalid.offers[0].vehicles[1]=['Toyota','Corolla',2010,2014];
+ assert.throws(()=>buildAutoPartsSeed(invalid,brands,models,'now'),/VEHICLE_APPLICATION_OVERLAP/);
+ const duplicate=structuredClone(seed);duplicate.offers.push({...duplicate.offers[0],id:'another-id'});
+ assert.throws(()=>buildAutoPartsSeed(duplicate,brands,models,'now'),/SEED_DUPLICATE_STORE_PRODUCT/);
+});
