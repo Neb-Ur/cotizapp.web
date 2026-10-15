@@ -24,3 +24,21 @@ Diferencias intencionales respecto de la imagen ilustrativa: se muestran product
 [Mediciones y aserciones del navegador](docs/diseno/portada-busqueda/verificacion-navegador.json): cero errores de JavaScript. QA local servido con el bundle de producción, snapshot público real y el motor nuevo de filtrado; las demás lecturas públicas se consultaron mediante un proxy de prueba de solo lectura.
 
 Validación: 261 pruebas de frontend y 204 de backend aprobadas, compilación de producción correcta. Las pruebas de backend verifican rubros disjuntos antes de paginar, intersección por vehículo y años inclusivos, ausencia de ofertas y rechazo de rubros inválidos. No se verificaron todos los teléfonos, teclados o lectores de pantalla.
+
+## Superficies de fidelidad revisadas
+
+- **Tipografía:** se reutiliza Manrope y la jerarquía del sitio. Texto de entrada y valores vehiculares de 16 px; título móvil de 29 px y desktop de 36 px. Se acepta la línea única del título cuando cabe para mantener el inicio compacto. Nombres largos de productos usan dos líneas con el texto completo disponible en el enlace; no hay palabras o controles cortados en los filtros.
+- **Espaciado y composición:** cuadrícula móvil 2 × 2 y escritorio de cuatro columnas; selectores en tres columnas. Tras los ajustes, las tarjetas comienzan a 612,25 px, frente a aproximadamente 608 px en la referencia normalizada. Radios y sombras reutilizan los tokens del sitio. Sin desbordamiento de ancho.
+- **Color:** azul marino y naranja existentes; estado activo explícito y contraste reforzado mediante texto oscuro sobre naranja. Foco visible en campos, botones y enlaces. Cabecera opaca al desplazar el formulario.
+- **Imágenes e iconos:** fotografías existentes de referencias reales del catálogo, con proporción conservada mediante `object-fit: contain`. No se sustituyen por las piezas ilustrativas del mockup ni se generan imágenes ficticias de marcas/modelos. Se reutilizan el logotipo existente y PrimeIcons; no se dibujan sustitutos nuevos.
+- **Contenido:** se conservan las cuatro opciones, “Tu vehículo”, búsqueda principal y cotización secundaria. La condición de cada oferta sigue en su ficha, en lugar de asignar “Usado” a todas las tarjetas. El texto de compatibilidad exige confirmación con el local.
+
+No hizo falta otra comparación recortada: la comparación normalizada de dos columnas permite leer todos los rótulos y examinar los controles; la captura independiente del campo enfocado muestra además foco, texto y límites del panel a tamaño completo. Los cambios de contenido dinámico y de contraste descritos arriba se consideran diferencias intencionales, no defectos pendientes.
+
+Checklist final: composición comparada; ajustes P2 recapturados; imágenes e iconos reales; contraste/foco/etiquetas revisados; interacciones verificadas; pruebas de frontend/backend aprobadas. La comprobación física con teclados iOS/Android y lectores de pantalla queda fuera de esta sesión.
+
+## Verificación posterior al despliegue
+
+Hosting y API publicados. Se comprobó que la portada entrega el bundle compilado y probado. La API devuelve rubros disjuntos: 782 materiales, 174 herramientas y 170 repuestos, sumando los 1.126 maestros activos. Se conservan 4.038 ofertas. Radiador KUV100 para 2018 selecciona 2016–2019 y para 2021 selecciona 2020–2023; un rubro desconocido devuelve 400.
+
+El recorrido se repitió contra producción en navegador aislado: elegir Repuestos/Mahindra/KUV100/2018, escribir «radiador», comprobar la sugerencia y navegar a resultados manteniendo los filtros. Campo móvil visible, sin errores JavaScript. [Captura de producción](docs/diseno/portada-busqueda/mobile-produccion.png). Smoke de catálogo, HTML inicial de producto, canonical, JSON-LD, noindex privado y 404 real aprobado.
