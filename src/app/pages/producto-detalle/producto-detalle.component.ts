@@ -1,4 +1,5 @@
 import { offerConditionLabel } from '../../core/utils/offer-condition.util';
+import { StoreWhatsappComponent } from '../../shared/components/store-whatsapp/store-whatsapp.component';
 import { GUEST_QUOTATION_LIMIT_MESSAGE, GuestQuotationService } from '../../core/services/guest-quotation.service';
 import { InfoPanelComponent } from '../../shared/components/info-panel/info-panel.component';
 import { ProductImageDirective } from '../../shared/directives/product-image.directive';
@@ -25,7 +26,7 @@ import {
 @Component({
   selector: 'app-producto-detalle',
   standalone: true,
-  imports: [InfoPanelComponent, ProductImageDirective, CommonModule, FormsModule, RouterLink, UiModalComponent],
+  imports: [InfoPanelComponent, ProductImageDirective, CommonModule, FormsModule, RouterLink, UiModalComponent, StoreWhatsappComponent],
   templateUrl: './producto-detalle.component.html',
   styleUrl: './producto-detalle.component.scss'
 })

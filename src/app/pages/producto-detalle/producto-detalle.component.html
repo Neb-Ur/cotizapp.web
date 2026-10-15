@@ -168,7 +168,7 @@
               <div class="store-price-block">
                 <span>Precio unitario</span>
                 <strong>{{ formatCurrency(store.price) }}</strong>
-
+                <app-store-whatsapp [phone]="store.whatsappPhone" [storeName]="store.storeName" [productName]="product.productName" [productPath]="product.seoPath" [pilot]="store.pilot === true" />
               </div>
             </li>
           </ul>

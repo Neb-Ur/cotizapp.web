@@ -1,4 +1,5 @@
 import { BUSINESS_TYPES, businessTypeLabel } from '../../../core/utils/business-type.util';
+import { StoreWhatsappComponent } from '../../../shared/components/store-whatsapp/store-whatsapp.component';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, OnDestroy, OnInit, ChangeDetectorRef, inject, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -12,7 +13,7 @@ import { UiLoaderComponent } from '../../../shared/components/ui-loader/ui-loade
 
 @Component({
   selector: 'app-ferreterias', standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, UiLoaderComponent],
+  imports: [CommonModule, FormsModule, RouterLink, UiLoaderComponent, StoreWhatsappComponent],
   templateUrl: './ferreterias.component.html', styleUrl: './ferreterias.component.scss'
 })
 export class FerreteriasComponent implements OnInit, OnDestroy {

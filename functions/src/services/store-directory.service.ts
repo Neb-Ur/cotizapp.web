@@ -15,6 +15,7 @@ export function publicStore(store: any, owner: any) {
     commune: normalizeText(store.comuna || owner.comuna),
     email: normalizeText(store.correoContactoPublico || owner.correo),
     phone: normalizeText(store.telefonoContactoPublico || owner.telefono),
+    whatsappPhone: normalizeText(store.telefonoContactoPublico),
     pilot: store.esPrueba === true
   };
 }

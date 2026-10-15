@@ -289,6 +289,8 @@ export interface ProductSearchPage {
 }
 
 export interface ProductStoreOfferRow {
+  whatsappPhone?: string;
+  pilot?: boolean;
   condition?: OfferCondition;
   offerId?: string;
   storeName: string;
@@ -666,6 +668,7 @@ export interface StoreQuotationVerification {
 }
 
 export interface DirectoryStore {
+  whatsappPhone?: string;
   businessType?: BusinessType;
   id: string; name: string; address: string; region: string; commune: string;
   email: string; phone: string; pilot: boolean; rating: number | null; reviewCount: number;

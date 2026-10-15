@@ -153,6 +153,8 @@ searchRouter.get('/productos/detalle', async (req, res) => {
     rut: item.storeRut,
     email: item.storeEmail,
     phone: item.storePhone,
+    whatsappPhone: item.storeWhatsappPhone || '',
+    pilot: item.storePilot === true,
     price: item.price,
     priceUpdatedAt: item.priceUpdatedAt,
     includesVat: item.includesVat,

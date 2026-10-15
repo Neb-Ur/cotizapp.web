@@ -9,7 +9,7 @@ function response(){return {statusCode:200,status(code){this.statusCode=code;ret
 test('direct slug detail returns taxonomy and only attributes from its product and family without offers',async t=>{
  const product={id:'base',nombre:'Abrazadera metálica',categoriaId:'cat',subcategoriaId:'sub',familiaId:'fam',estado:'activo'};
  firestoreFixture(t,{
-  cachePublico:{meta:{dirty:false,version:'detail-fixture',updatedAt:new Date().toISOString(),policy:`data-modes-v4:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']},products:{items:[product]},offers:{items:[]},taxonomy:{categories:[{id:'cat',nombre:'Fijaciones'}],subcategories:[{id:'sub',nombre:'Amarre'}],families:[{id:'fam',nombre:'Amarres'}]}},
+  cachePublico:{meta:{dirty:false,version:'detail-fixture',updatedAt:new Date().toISOString(),policy:`data-modes-v5:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']},products:{items:[product]},offers:{items:[]},taxonomy:{categories:[{id:'cat',nombre:'Fijaciones'}],subcategories:[{id:'sub',nombre:'Amarre'}],families:[{id:'fam',nombre:'Amarres'}]}},
   productosMaestro:{base:{nombre:'Abrazadera metálica',categoriaId:'cat',subcategoriaId:'sub',familiaId:'fam',estado:'activo'}},
   categorias:{cat:{nombre:'Fijaciones'}},subcategorias:{sub:{nombre:'Amarre'}},familias:{fam:{nombre:'Amarres'}},
   atributosProductoMaestro:{right:{productoMaestroId:'base',definicionAtributoId:'material',valorTexto:'Acero'},wrong:{productoMaestroId:'other',definicionAtributoId:'foreign',valorTexto:'No corresponde'}},
@@ -27,4 +27,12 @@ test('direct slug detail returns taxonomy and only attributes from its product a
  assert.deepEqual(offers.body.data.stores,[]);assert.equal(offers.body.data.productoMaestro,undefined);
  assert.equal(offers.body.data.atributosProducto,undefined);
  const missing=response();await handler({query:{slug:'missing'}},missing);assert.equal(missing.statusCode,404);
+});
+
+test('product offers carry the public WhatsApp number and pilot flag through the cached API',async t=>{
+ const product={id:'base',nombre:'Foco Mahindra KUV 100 2016-2020',estado:'activo'};
+ const rows=[{productoMaestroId:'base',productoFerreteriaId:'offer',productName:product.nombre,storeId:'store',storeName:'Desarmaduría (Prueba)',storePhone:'private-legacy',storeWhatsappPhone:'+56991036780',storePilot:true,price:25000,stock:2}];
+ firestoreFixture(t,{cachePublico:{meta:{dirty:false,version:'whatsapp-detail',updatedAt:new Date().toISOString(),policy:`data-modes-v5:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']},products:{items:[product]},offers:{items:rows},taxonomy:{categories:[],subcategories:[],families:[]}},productosMaestro:{base:product}});
+ const res=response();await handler({query:{slug:'foco-mahindra-kuv-100-2016-2020',vista:'ofertas'}},res);
+ assert.equal(res.statusCode,200);assert.equal(res.body.data.stores[0].whatsappPhone,'+56991036780');assert.equal(res.body.data.stores[0].pilot,true);
 });

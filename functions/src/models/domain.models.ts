@@ -30,6 +30,8 @@ export type SearchRow = {
   storeRut: string;
   storeEmail: string;
   storePhone: string;
+  storeWhatsappPhone?: string;
+  storePilot?: boolean;
   price: number;
   priceUpdatedAt: string;
   includesVat: boolean;

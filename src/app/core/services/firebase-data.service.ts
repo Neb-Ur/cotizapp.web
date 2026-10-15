@@ -1587,6 +1587,8 @@ export class FirebaseDataService {
         rut: store.rut || '',
         email: store.email || '',
         phone: store.phone || '',
+        whatsappPhone: store.whatsappPhone || '',
+        pilot: store.pilot === true,
         priceUpdatedAt: store.priceUpdatedAt || '',
         includesVat: store.includesVat !== false,
         comparisonEligible: store.comparisonEligible !== false,

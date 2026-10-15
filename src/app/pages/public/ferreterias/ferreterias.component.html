@@ -35,7 +35,7 @@
           <p class="store-location"><i class="pi pi-map-marker" aria-hidden="true"></i> {{ storeLocation(store) || 'Ubicación no informada' }}</p>
           @if (store.address) {<p>{{ store.address }}</p>}
           <p class="store-rating"><i class="pi pi-star-fill" aria-hidden="true"></i> @if (store.rating !== null) {<strong>{{ store.rating | number:'1.1-1' }} / 5</strong><span>({{ store.reviewCount }} reseñas)</span>} @else {<span>Sin reseñas todavía</span>}</p>
-          <div class="store-actions"><a class="btn btn-primary" routerLink="/buscar" [queryParams]="{ferreteriaId: store.id, ferreteria: store.name}">Ver productos</a><a class="btn btn-outline" [routerLink]="['/ferreterias', store.id]">Ver reseñas</a></div>
+          <div class="store-actions"><a class="btn btn-primary" routerLink="/buscar" [queryParams]="{ferreteriaId: store.id, ferreteria: store.name}">Ver productos</a><a class="btn btn-outline" [routerLink]="['/ferreterias', store.id]">Ver reseñas</a><app-store-whatsapp [phone]="store.whatsappPhone" [storeName]="store.name" [pilot]="store.pilot" /></div>
         </article>
       } @empty {<p class="empty-card">No hay locales que coincidan con los filtros.</p>}
     </div>
@@ -50,6 +50,7 @@
       <p>{{ storeLocation(detail.store) }}</p>
       @if (detail.store.address) {<p>{{ detail.store.address }}</p>}
       <div class="store-contact">@if (detail.store.email) {<a [href]="'mailto:' + detail.store.email">{{ detail.store.email }}</a>} @if (detail.store.phone) {<a [href]="'tel:' + detail.store.phone">{{ detail.store.phone }}</a>}</div>
+      <app-store-whatsapp [phone]="detail.store.whatsappPhone" [storeName]="detail.store.name" [pilot]="detail.store.pilot" />
       <p class="store-rating"><i class="pi pi-star-fill" aria-hidden="true"></i> @if (detail.store.rating !== null) {<strong>{{ detail.store.rating | number:'1.1-1' }} / 5</strong><span>· {{ detail.store.reviewCount }} reseñas</span>} @else {<span>Sin reseñas todavía</span>}</p>
       <a class="btn btn-primary" routerLink="/buscar" [queryParams]="{ferreteriaId: detail.store.id, ferreteria: detail.store.name}">Ver productos de este local</a>
     </article>
