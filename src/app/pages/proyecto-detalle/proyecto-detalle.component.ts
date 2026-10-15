@@ -43,6 +43,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
   private loadGeneration = 0;
   private importedGuestId = '';
   private handledDownloadIntent = false;
+  private pendingQueryCleanupProjectId = '';
   protected isPreparingPdf = false;
   protected get isLocalQuotation(): boolean { return this.route.snapshot?.data?.['localQuotation'] === true; }
   private routeSubscription?: Subscription;
@@ -90,7 +91,14 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.routeSubscription = combineLatest([this.route.paramMap, this.route.queryParamMap]).subscribe(([params, queryParams]) => {
-      void this.loadQuotation(params.get('projectId') || 'nuevo', queryParams.get('draftName') || '',
+      const projectId = params.get('projectId') || 'nuevo';
+      if (projectId === this.pendingQueryCleanupProjectId && !queryParams.get('addProduct')
+        && !queryParams.get('draftName') && !queryParams.get('draftAddress')) {
+        this.pendingQueryCleanupProjectId = '';
+        return;
+      }
+      this.pendingQueryCleanupProjectId = '';
+      void this.loadQuotation(projectId, queryParams.get('draftName') || '',
         queryParams.get('draftAddress') || '', queryParams.get('addProduct') || '');
     });
   }
@@ -698,6 +706,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
   }
 
   private clearAddProductQueryParams(): void {
+    this.pendingQueryCleanupProjectId = this.projectId;
     this.router.navigate([], {
       relativeTo: this.route,
       replaceUrl: true,

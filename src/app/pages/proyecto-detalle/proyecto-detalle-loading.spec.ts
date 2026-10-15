@@ -10,21 +10,37 @@ import { PilotService } from '../../core/services/pilot.service';
 
 async function setup() {
  const params=new BehaviorSubject(convertToParamMap({projectId:'existing'}));
+ const queryParams=new BehaviorSubject(convertToParamMap({}));
+ const navigate=vi.fn();
  const finishes:Array<()=>void>=[];
  const api={refreshMaestroData:vi.fn(()=>new Promise<void>(resolve=>finishes.push(resolve))),
   getProjectById:vi.fn((_owner:string,id:string)=>({id,name:'Obra '+id,items:[]})),
   buildProjectQuotation:()=>({lines:[],singleStoreOptions:[],optimalTotal:0}),getProjectComparisonStrategies:()=>[],getProductOptions:()=>[],formatCurrency:String};
  await TestBed.configureTestingModule({imports:[ProyectoDetalleComponent],providers:[
-  {provide:ActivatedRoute,useValue:{paramMap:params,queryParamMap:new BehaviorSubject(convertToParamMap({}))}},
-  {provide:Router,useValue:{navigate:vi.fn()}},{provide:AuthService,useValue:{currentUser:()=>({id:'master',role:'maestro'})}},
+    {provide:ActivatedRoute,useValue:{paramMap:params,queryParamMap:queryParams}},
+    {provide:Router,useValue:{navigate}},{provide:AuthService,useValue:{currentUser:()=>({id:'master',role:'maestro'})}},
   {provide:FirebaseDataService,useValue:api},{provide:DataModeService,useValue:{mode:()=> 'real'}},{provide:PilotService,useValue:null}
  ]}).compileComponents();
  const fixture=TestBed.createComponent(ProyectoDetalleComponent);fixture.detectChanges();
- return {fixture,params,finishes,api,component:fixture.componentInstance as any};
+ return {fixture,params,queryParams,navigate,finishes,api,component:fixture.componentInstance as any};
 }
 
 describe('quotation detail loading',()=>{
  afterEach(()=>TestBed.resetTestingModule());
+ it('retains the added product when cleaning the URL without reloading saved data',async()=>{
+  const {fixture,finishes,queryParams,navigate,api,component}=await setup();
+  finishes[0]();await fixture.whenStable();
+  navigate.mockImplementation(()=>{
+   queryParams.next(convertToParamMap({}));
+   return Promise.resolve(true);
+  });
+  queryParams.next(convertToParamMap({addProduct:'Cemento'}));
+  finishes[1]();await fixture.whenStable();
+  expect(component.projectItems).toEqual([{productName:'Cemento',quantity:1}]);
+  expect(component.hasUnsavedChanges).toBe(true);
+  expect(api.refreshMaestroData).toHaveBeenCalledTimes(2);
+  expect(component.isLoading).toBe(false);
+ });
  it('shows loading instead of a new quotation until the existing quotation is ready',async()=>{
   const {fixture,finishes,component}=await setup();
   expect(fixture.nativeElement.textContent).toContain('Cargando cotización');

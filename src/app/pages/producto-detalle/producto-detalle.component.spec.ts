@@ -30,6 +30,28 @@ async function setup(){
 }
 describe('product detail loading',()=>{
  afterEach(()=>TestBed.resetTestingModule());
+ it('restores the requested branch after retrying failed offers even when names match',async()=>{
+  const {resolvers,offerResolvers,api,vehicleParams,component}=await setup();
+  api.loadProductOffers.mockRejectedValueOnce(new Error('Sin conexión'));
+  vehicleParams.next(convertToParamMap({ferreteria:'Local',ferreteriaId:'branch-2'}));
+  resolvers[1](detail);await Promise.resolve();await Promise.resolve();
+  component.retryOffers();
+  offerResolvers[0]({...detail,stores:[{storeId:'branch-1',storeName:'Local',price:100,stock:5},{storeId:'branch-2',storeName:'Local',price:200,stock:5}]});
+  await Promise.resolve();await Promise.resolve();
+  expect(component.selectedStoreId).toBe('branch-2');
+  expect(component.selectedStore.price).toBe(200);
+ });
+ it('ignores earlier offer responses for the same product after a retry starts',async()=>{
+  const {resolvers,offerResolvers,component}=await setup();
+  resolvers[0](detail);await Promise.resolve();
+  component.retryOffers();
+  offerResolvers[1]({...detail,stores:[{storeId:'new',storeName:'Actual',price:200,stock:5}]});
+  await Promise.resolve();await Promise.resolve();
+  offerResolvers[0]({...detail,stores:[{storeId:'old',storeName:'Anterior',price:100,stock:5}]});
+  await Promise.resolve();await Promise.resolve();
+  expect(component.displayStores[0].storeId).toBe('new');
+  expect(component.offersLoading).toBe(false);
+ });
  it('retains the selected vehicle when loading and retrying offers',async()=>{
   const {fixture,resolvers,api,vehicleParams,component}=await setup();
   vehicleParams.next(convertToParamMap({vehiculoMarcaId:'toyota',vehiculoModeloId:'corolla',vehiculoAnio:'2010'}));
@@ -85,6 +107,17 @@ describe('product detail loading',()=>{
 describe('product quotation workflow',()=>{
  afterEach(()=>TestBed.resetTestingModule());
  beforeEach(()=>localStorage.clear());
+ it('adds the exact offer and condition selected when a branch has several offers',async()=>{
+  const {component,api}=await setup();Object.assign(api,{recordOfferEvent:vi.fn()});
+  component.detail={...detail,productoMaestroId:'p'};
+  component.newQuotationName='Repuestos';await component.createQuotation();
+  component.displayStores=[{storeId:'s',storeName:'Local',offerId:'new',condition:'nuevo',price:1000,stock:5},{storeId:'s',storeName:'Local',offerId:'used',condition:'usado',price:500,stock:5}];
+  component.selectStore('Local','s','used');
+  expect(component.selectedStore.condition).toBe('usado');expect(component.selectedTotal).toBe(500);
+  await component.addToQuotation();
+  expect(component.guestQuotations.get(component.selectedProjectId).items[0].productoFerreteriaId).toBe('used');
+  expect((api as any).recordOfferEvent).toHaveBeenCalledWith('used','select');
+ });
  it('creates a guest quotation and adds the selected offer without opening authentication',async()=>{
   const {component,api}=await setup();const router=TestBed.inject(Router) as any;
   component.openCreateQuotationModal();expect(component.isCreateQuotationModalOpen).toBe(true);

@@ -393,6 +393,7 @@ export class AuthService implements OnDestroy {
   dashboardRouteForRole(role: UserRole): string {
     if (role === 'admin') return '/dashboard/admin/validaciones';
     if (role === 'ferreteria') return '/dashboard/ferreteria';
+    if (role === 'maestro') return '/dashboard/maestro';
     return '/';
   }
 

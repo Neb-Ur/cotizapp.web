@@ -14,7 +14,6 @@
     "deploy": "npm run build && npm run functions:build && firebase deploy",
     "deploy:hosting": "npm run build && firebase deploy --only hosting",
     "deploy:functions": "npm --prefix functions run build && firebase deploy --only functions,firestore:rules",
-    "scrape:construmart": "node scripts/scrape-construmart.mjs",
     "serve:ssr:cotizacion-web": "node dist/cotizacion-web/server/server.mjs",
     "data:reset": "node functions/scripts/reset-database.mjs",
     "catalog:import": "node functions/scripts/import-catalog-plan.mjs"

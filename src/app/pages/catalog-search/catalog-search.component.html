@@ -82,7 +82,7 @@
             <p>{{ totalProducts }} productos encontrados</p>
           </div>
           <div class="filters-heading-actions">
-            <button type="button" class="clear-filters-button" (click)="clearCategoryFilter()" [disabled]="taxonomyFilterCount === 0">Limpiar</button>
+            <button type="button" class="clear-filters-button" (click)="clearAllFilters()" [disabled]="taxonomyFilterCount === 0">Limpiar</button>
             <button type="button" class="close-filters-button" (click)="toggleFiltersPanel()">Cerrar</button>
           </div>
         </div>
@@ -149,7 +149,7 @@
         </button>
         <button type="button" *ngIf="selectedBrand" (click)="clearBrandFilter()" [attr.aria-label]="'Quitar marca ' + selectedBrand">{{ selectedBrand }} <fa-icon [icon]="faRemove" aria-hidden="true" /></button>
         <button type="button" *ngIf="selectedVehicleBrandId || selectedVehicleModelId || selectedVehicleYear" (click)="clearVehicleFilters()" aria-label="Quitar filtros de vehículo">Vehículo{{ selectedVehicleYear ? ' · ' + selectedVehicleYear : '' }} <fa-icon [icon]="faRemove" aria-hidden="true" /></button>
-        <button type="button" class="clear-active-filters" (click)="clearCategoryFilter()">Limpiar todo</button>
+        <button type="button" class="clear-active-filters" (click)="clearAllFilters()">Limpiar todo</button>
       </div>
 
       <p class="project-pick-context" *ngIf="isPickingProductForProject">

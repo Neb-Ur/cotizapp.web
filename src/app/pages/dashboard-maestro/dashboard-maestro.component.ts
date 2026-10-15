@@ -1,29 +1,15 @@
-import { StoreDirectoryService } from '../../core/services/store-directory.service';
-import { ProductImageDirective } from '../../shared/directives/product-image.directive';
-import type { CatalogLandingView } from '../catalog-landing/catalog-landing.component';
-import { RouterLink } from '@angular/router';
-import { WriteFeedbackService } from '../../core/services/write-feedback.service';
 import { CommonModule } from '@angular/common';
-import { Component, ChangeDetectorRef, Input, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faArrowDownWideShort, faChevronDown, faLocationDot, faSliders, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { Subscription } from 'rxjs';
-import { PaginatorModule, PaginatorState } from 'primeng/paginator';
-import { FamilyProductRow, ProjectSummary, SearchProximity, SessionUser, TaxonomyOption } from '../../core/models/app.models';
+import { ProjectSummary, SessionUser } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
 import { FirebaseDataService } from '../../core/services/firebase-data.service';
-import {
-  GeoCoordinates,
-  clearNearbySearchPreference,
-  getCurrentBrowserLocation,
-  readNearbySearchPreference,
-  saveNearbySearchPreference
-} from '../../core/utils/location.util';
+import { WriteFeedbackService } from '../../core/services/write-feedback.service';
 import { shareQuotationPdf } from '../../core/utils/quotation-pdf.util';
-import { productPath } from '../../core/utils/product-url.util';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
+import { CatalogSearchComponent } from '../catalog-search/catalog-search.component';
 
 type MaestroSection = 'inicio' | 'buscar' | 'cotizaciones' | 'historial' | 'perfil';
 
@@ -42,23 +28,17 @@ interface MaestroProfileDraft {
 @Component({
   selector: 'app-dashboard-maestro',
   standalone: true,
-  imports: [ProductImageDirective, CommonModule, RouterLink, FormsModule, FontAwesomeModule, PaginatorModule, UiLoaderComponent],
+  imports: [CommonModule, FormsModule, UiLoaderComponent, CatalogSearchComponent],
   templateUrl: './dashboard-maestro.component.html',
   styleUrls: ['./dashboard-maestro.component.scss', './dashboard-maestro-quotations.scss']
 })
 export class DashboardMaestroComponent implements OnInit, OnDestroy {
-  @Input() landing?: CatalogLandingView;
   private sectionLoadError = '';
   protected get dataLoadError(): string { return this.sectionLoadError || this.apiService.loadError(); }
   protected async retryDataLoad(): Promise<void> {
     await this.ensureSectionData(this.currentSection, true).catch(() => undefined);
   }
 
-  protected readonly faFilters = faSliders;
-  protected readonly faSort = faArrowDownWideShort;
-  protected readonly faLocation = faLocationDot;
-  protected readonly faChevronDown = faChevronDown;
-  protected readonly faRemove = faXmark;
   protected readonly maxSavedQuotations = 2;
   protected readonly sections: MaestroSectionMeta[] = [
     { id: 'inicio', label: 'Inicio', description: 'Revisa tus cotizaciones recientes y el ahorro estimado.' },
@@ -69,38 +49,6 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
   ];
 
   protected currentSection: MaestroSection = 'inicio';
-  protected categorySearch = '';
-  protected subcategorySearch = '';
-  protected familySearch = '';
-  protected tableProductSearch = '';
-  protected selectedStoreId = '';
-  protected selectedStoreName = '';
-  protected storeOptions: Array<{id:string;name:string}> = [];
-  protected storeFilterError = '';
-  protected selectedBrand = '';
-  protected selectedBrandId = '';
-  protected selectedCategoryId = '';
-  protected selectedSubcategoryId = '';
-  protected selectedFamilyId = '';
-  protected productRows: FamilyProductRow[] = [];
-  protected totalProducts = 0;
-  protected pageSize = 20;
-  protected currentPage = 1;
-  protected readonly pageSizeOptions = [10, 20, 50];
-  protected readonly nearbyRadiusOptions = [5, 10, 20, 50];
-  protected nearbyEnabled = false;
-  protected nearbyRadiusKm = 10;
-  protected maestroLocation: GeoCoordinates | null = null;
-  protected nearbyMessage = '';
-  protected nearbyError = '';
-  protected isLocatingNearby = false;
-  protected filtersPanelOpen = false;
-  protected nearbyPanelOpen = false;
-  protected productSort = 'relevance';
-
-  protected projectTarget = '';
-  protected draftProjectName = '';
-  protected draftProjectAddress = '';
   protected projects: ProjectSummary[] = [];
 
   protected profileDraft: MaestroProfileDraft = { displayName: '', phone: '', commune: '' };
@@ -110,92 +58,27 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
 
   protected isInitialLoading = true;
   protected isSectionLoading = false;
-  protected isPublicCatalogRefreshing = false;
-  protected isMobileViewport = false;
-  protected isMobileMenuVisible = false;
   private readonly loadedSections = new Set<MaestroSection>();
-  private lastQuerySearch = '';
-  private searchReady = false;
-  private searchRequestId = 0;
   private querySubscription?: Subscription;
-  private productSearchTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private readonly authService: AuthService,
     private readonly apiService: FirebaseDataService,
     private readonly route: ActivatedRoute,
-    private readonly router: Router
-,
-    private readonly writeFeedback: WriteFeedbackService = new WriteFeedbackService(),
-    private readonly storeDirectory: StoreDirectoryService | null = null,
-    private readonly changeDetector: ChangeDetectorRef | null = null
+    private readonly router: Router,
+    private readonly writeFeedback: WriteFeedbackService = new WriteFeedbackService()
   ) {}
 
-  private destroyed = false;
   ngOnInit(): void {
-    // Embedded collection views are created during a render; start signal writes after it.
-    if (this.landing) { queueMicrotask(() => { if (!this.destroyed) this.startDashboard(); }); return; }
     this.startDashboard();
   }
 
   private startDashboard(): void {
-    this.syncViewportState();
-    if (!this.user || this.route.snapshot.data['publicCatalog']) {
-      this.currentSection = 'buscar';
-    }
-    const savedNearby = readNearbySearchPreference();
-    if (savedNearby) {
-      this.nearbyEnabled = true;
-      this.maestroLocation = {
-        latitude: savedNearby.latitude,
-        longitude: savedNearby.longitude
-      };
-      this.nearbyRadiusKm = savedNearby.radiusKm;
-      this.nearbyMessage = `Mostrando ferreterias a hasta ${this.nearbyRadiusKm} km de tu ubicacion.`;
-    }
-
     this.querySubscription = this.route.queryParamMap.subscribe((params) => {
-      const requestedQuery = params.get('q') || '';
-      if (requestedQuery !== this.lastQuerySearch) {
-        this.lastQuerySearch = requestedQuery;
-        this.tableProductSearch = requestedQuery;
-        this.currentPage = 1;
-        this.refreshProductRows();
-      }
       const requested = params.get('section');
-      if (this.isValidSection(requested) && (this.user || requested === 'buscar')) {
+      if (this.isValidSection(requested) && this.user) {
         this.currentSection = requested;
       }
-      const requestedStoreId = params.get('ferreteriaId') || '';
-      const requestedStoreName = params.get('ferreteria') || '';
-      const requestedBrand = params.get('marca') || this.landing?.filters['marca'] || '';
-      const requestedBrandId = params.get('marcaId') || this.landing?.filters['marcaId'] || '';
-      const requestedCategory = params.get('categoria') || this.landing?.filters['categoria'] || '';
-      const requestedSubcategory = params.get('subcategoria') || this.landing?.filters['subcategoria'] || '';
-      const requestedFamily = params.get('familia') || this.landing?.filters['familia'] || '';
-      if (
-        requestedStoreId !== this.selectedStoreId || requestedStoreName !== this.selectedStoreName
-        || requestedBrand !== this.selectedBrand || requestedBrandId !== this.selectedBrandId
-        || requestedCategory !== this.selectedCategoryId
-        || requestedSubcategory !== this.selectedSubcategoryId
-        || requestedFamily !== this.selectedFamilyId
-      ) {
-        this.selectedStoreId = requestedStoreId;
-        this.selectedStoreName = requestedStoreName;
-        this.selectedBrand = requestedBrand;
-        this.selectedBrandId = requestedBrandId;
-        this.selectedCategoryId = requestedCategory;
-        this.selectedSubcategoryId = requestedSubcategory;
-        this.selectedFamilyId = requestedFamily;
-        this.syncTaxonomySearchLabels();
-        this.currentPage = 1;
-        this.refreshProductRows();
-      }
-
-      this.projectTarget = params.get('projectTarget') || '';
-      this.draftProjectName = params.get('draftName') || '';
-      this.draftProjectAddress = params.get('draftAddress') || '';
-
       if (!this.isInitialLoading) {
         void this.ensureSectionData(this.currentSection);
       }
@@ -218,61 +101,6 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
     return this.sections.find((section) => section.id === this.currentSection)?.description || '';
   }
 
-  protected get categoryOptions(): TaxonomyOption[] {
-    return this.apiService.getCategoryOptions(false);
-  }
-
-  protected get subcategoryOptions(): TaxonomyOption[] {
-    return this.selectedCategoryId
-      ? this.apiService.getSubcategoryOptions(this.selectedCategoryId, false)
-      : [];
-  }
-
-  protected get familyOptions(): TaxonomyOption[] {
-    return this.selectedSubcategoryId
-      ? this.apiService.getFamilyOptions(this.selectedSubcategoryId, false)
-      : [];
-  }
-
-  protected get selectedCategoryName(): string {
-    return this.categoryOptions.find((item) => item.id === this.selectedCategoryId)?.name || '';
-  }
-
-  protected get selectedSubcategoryName(): string {
-    return this.subcategoryOptions.find((item) => item.id === this.selectedSubcategoryId)?.name || '';
-  }
-
-  protected get selectedFamilyName(): string {
-    return this.familyOptions.find((item) => item.id === this.selectedFamilyId)?.name || '';
-  }
-
-  protected get isPickingProductForProject(): boolean {
-    return !!this.projectTarget;
-  }
-
-  protected get totalPages(): number {
-    return Math.max(1, Math.ceil(this.totalProducts / this.pageSize));
-  }
-
-  protected get paginatedProductRows(): FamilyProductRow[] {
-    return this.productRows;
-  }
-
-  protected get pageStart(): number {
-    return this.totalProducts === 0 ? 0 : ((this.currentPage - 1) * this.pageSize) + 1;
-  }
-
-  protected get pageEnd(): number {
-    return Math.min(this.currentPage * this.pageSize, this.totalProducts);
-  }
-
-  protected get pageNumbers(): number[] {
-    return Array.from({ length: this.totalPages }, (_, index) => index + 1).slice(
-      Math.max(0, this.currentPage - 4),
-      Math.max(0, this.currentPage - 4) + 7
-    );
-  }
-
   protected get recentProjects(): ProjectSummary[] {
     return this.projects.slice(0, 5);
   }
@@ -289,265 +117,8 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
     return `${this.projects.length}/${this.maxSavedQuotations} cotizaciones guardadas`;
   }
 
-  protected get currentProximity(): SearchProximity | undefined {
-    if (!this.nearbyEnabled || !this.maestroLocation) return undefined;
-    return {
-      latitude: this.maestroLocation.latitude,
-      longitude: this.maestroLocation.longitude,
-      radiusKm: this.nearbyRadiusKm
-    };
-  }
-
-  protected get taxonomyFilterCount(): number {
-    return [this.selectedStoreId, this.selectedCategoryId, this.selectedSubcategoryId, this.selectedFamilyId, this.selectedBrand]
-      .filter(Boolean).length;
-  }
-
-  protected setSection(section: MaestroSection): void {
-    this.currentSection = section;
-    this.closeMobileMenu();
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'auto' });
-    void this.ensureSectionData(section);
-  }
-
-  protected toggleMobileMenu(): void {
-    if (this.isMobileViewport) this.isMobileMenuVisible = !this.isMobileMenuVisible;
-  }
-
-  protected closeMobileMenu(): void {
-    this.isMobileMenuVisible = false;
-  }
-
-  protected toggleNearbyPanel(): void {
-    this.nearbyPanelOpen = !this.nearbyPanelOpen;
-  }
-
-  protected toggleFiltersPanel(): void {
-    this.filtersPanelOpen = !this.filtersPanelOpen;
-  }
-
-  protected async toggleNearbySearch(): Promise<void> {
-    this.nearbyError = '';
-    this.nearbyMessage = '';
-
-    if (this.nearbyEnabled) {
-      this.nearbyEnabled = false;
-      this.maestroLocation = null;
-      clearNearbySearchPreference();
-      this.currentPage = 1;
-      this.refreshProductRows();
-      return;
-    }
-
-    this.isLocatingNearby = true;
-    try {
-      this.maestroLocation = await getCurrentBrowserLocation();
-      this.nearbyEnabled = true;
-      this.nearbyMessage = `Mostrando ferreterias a hasta ${this.nearbyRadiusKm} km de tu ubicacion.`;
-      saveNearbySearchPreference({
-        latitude: this.maestroLocation.latitude,
-        longitude: this.maestroLocation.longitude,
-        radiusKm: this.nearbyRadiusKm
-      });
-      this.currentPage = 1;
-      this.refreshProductRows();
-    } catch (error) {
-      this.nearbyError = error instanceof Error ? error.message : 'No se pudo obtener tu ubicacion.';
-    } finally {
-      this.isLocatingNearby = false;
-    }
-  }
-
-  protected onNearbyRadiusChange(value: number | string): void {
-    const parsed = Number(value);
-    this.nearbyRadiusKm = this.nearbyRadiusOptions.includes(parsed) ? parsed : 10;
-    this.nearbyMessage = this.nearbyEnabled
-      ? `Mostrando ferreterias a hasta ${this.nearbyRadiusKm} km de tu ubicacion.`
-      : '';
-    if (this.nearbyEnabled && this.maestroLocation) {
-      saveNearbySearchPreference({
-        latitude: this.maestroLocation.latitude,
-        longitude: this.maestroLocation.longitude,
-        radiusKm: this.nearbyRadiusKm
-      });
-    }
-    this.currentPage = 1;
-    this.refreshProductRows();
-  }
-
-  protected formatDistance(value: number | undefined): string {
-    if (value === undefined) return '';
-    if (value < 1) return `${Math.round(value * 1000)} m`;
-    return `${value.toFixed(1)} km`;
-  }
-
-  private async loadStoreOptions(): Promise<void> {
-    try {
-      const result = await this.storeDirectory!.list(1, '', '', '', 1);
-      if (this.destroyed) return;
-      this.storeOptions = result.storeOptions;
-      this.storeFilterError = '';
-      const selected = this.storeOptions.find(store => store.id === this.selectedStoreId);
-      if (selected) this.selectedStoreName = selected.name;
-    } catch { if (!this.destroyed) this.storeFilterError = 'No se pudo cargar el filtro de ferreterías.'; }
-    finally { if (!this.destroyed) this.changeDetector?.markForCheck(); }
-  }
-
-  protected onStoreFilterChange(id: string): void {
-    this.selectedStoreId = id;
-    this.selectedStoreName = this.storeOptions.find(store => store.id === id)?.name || '';
-    this.currentPage = 1;
-    this.syncStoreFilterUrl();
-    this.refreshProductRows();
-  }
-
-  private syncStoreFilterUrl(): void {
-    void this.router.navigate([], {relativeTo:this.route, queryParamsHandling:'merge', replaceUrl:true,
-      queryParams: {ferreteriaId:this.selectedStoreId || null, ferreteria:this.selectedStoreName || null,
-        marca:this.selectedBrand || null, marcaId:this.selectedBrandId || null,
-        categoria:this.selectedCategoryId || null, subcategoria:this.selectedSubcategoryId || null,
-        familia:this.selectedFamilyId || null, q:this.tableProductSearch || null}});
-  }
-
-  protected onCategoryInput(value: string): void {
-    this.categorySearch = value;
-    const match = this.findByName(this.categoryOptions, value);
-    this.selectedCategoryId = match?.id || '';
-    this.selectedSubcategoryId = '';
-    this.selectedFamilyId = '';
-    this.subcategorySearch = '';
-    this.familySearch = '';
-    this.currentPage = 1;
-    this.refreshProductRows();
-  }
-
-  protected onSubcategoryInput(value: string): void {
-    this.subcategorySearch = value;
-    const match = this.findByName(this.subcategoryOptions, value);
-    this.selectedSubcategoryId = match?.id || '';
-    this.selectedFamilyId = '';
-    this.familySearch = '';
-    this.currentPage = 1;
-    this.refreshProductRows();
-  }
-
-  protected onFamilyInput(value: string): void {
-    this.familySearch = value;
-    const match = this.findByName(this.familyOptions, value);
-    this.selectedFamilyId = match?.id || '';
-    this.currentPage = 1;
-    this.refreshProductRows();
-  }
-
-  protected onProductSearchChange(): void {
-    this.currentPage = 1;
-    // Ignore in-flight results as soon as the input changes, before debounce.
-    this.searchRequestId++;
-    if (this.productSearchTimer) {
-      clearTimeout(this.productSearchTimer);
-    }
-    this.productSearchTimer = setTimeout(() => {
-      this.productSearchTimer = null;
-      this.refreshProductRows();
-    }, 180);
-  }
-
-  protected onProductSortChange(value: string): void {
-    this.productSort = value;
-    this.currentPage = 1;
-    this.refreshProductRows();
-  }
-
-  protected clearBrandFilter(): void {
-    this.selectedBrand = '';
-    this.selectedBrandId = '';
-    this.currentPage = 1;
-    this.refreshProductRows();
-  }
-
-  protected clearCategoryFilter(): void {
-    const hadStoreFilter = !!this.selectedStoreId;
-    this.selectedStoreId = ''; this.selectedStoreName = '';
-    this.selectedBrand = '';
-    this.selectedBrandId = '';
-    this.categorySearch = '';
-    this.subcategorySearch = '';
-    this.familySearch = '';
-    this.selectedCategoryId = '';
-    this.selectedSubcategoryId = '';
-    this.selectedFamilyId = '';
-    this.currentPage = 1;
-    if (hadStoreFilter) this.syncStoreFilterUrl();
-    this.refreshProductRows();
-  }
-
-  protected clearSubcategoryFilter(): void {
-    this.subcategorySearch = '';
-    this.familySearch = '';
-    this.selectedSubcategoryId = '';
-    this.selectedFamilyId = '';
-    this.currentPage = 1;
-    this.refreshProductRows();
-  }
-
-  protected clearFamilyFilter(): void {
-    this.familySearch = '';
-    this.selectedFamilyId = '';
-    this.currentPage = 1;
-    this.refreshProductRows();
-  }
-
-  protected clearNearbyFilter(): void {
-    this.nearbyEnabled = false;
-    this.maestroLocation = null;
-    this.nearbyMessage = '';
-    this.nearbyError = '';
-    clearNearbySearchPreference();
-    this.currentPage = 1;
-    this.refreshProductRows();
-  }
-
-  protected onProductsPageChange(event: PaginatorState): void {
-    this.pageSize = event.rows ?? this.pageSize;
-    this.currentPage = (event.page ?? 0) + 1;
-    this.refreshProductRows();
-  }
-
-  protected selectProductCard(event: Event, productName: string, seoPath?:string): void {
-    const click = event as MouseEvent;
-    if (click.ctrlKey || click.metaKey || click.shiftKey || click.altKey || (click.button !== undefined && click.button !== 0)) return;
-    event.preventDefault();
-    if (this.isPickingProductForProject) this.addProductToProject(productName);
-    else void this.router.navigateByUrl(this.productUrl(productName, seoPath));
-  }
-
-  protected productUrl(productName: string, seoPath?:string): string {
-    const path = seoPath || productPath(productName);
-    return this.selectedStoreId ? `${path}?${new URLSearchParams({ferreteriaId:this.selectedStoreId,ferreteria:this.selectedStoreName})}` : path;
-  }
-
-  protected addProductToProject(productName: string): void {
-    if (!this.projectTarget) return;
-
-    const localTarget = this.projectTarget.startsWith('local:') ? this.projectTarget.slice(6) : '';
-    const commands = localTarget ? (localTarget === 'nuevo' ? ['/cotizaciones/nueva'] : ['/cotizaciones/local', localTarget])
-      : this.projectTarget === 'nuevo' ? (this.user ? ['/dashboard/maestro/cotizaciones/nuevo'] : ['/cotizaciones/nueva'])
-      : (this.user ? ['/dashboard/maestro/cotizaciones', this.projectTarget] : ['/cotizaciones/local', this.projectTarget]);
-
-    this.router.navigate(commands, {
-      queryParams: {
-        addProduct: productName,
-        draftName: (this.projectTarget === 'nuevo' || localTarget === 'nuevo') ? this.draftProjectName : null,
-        draftAddress: (this.projectTarget === 'nuevo' || localTarget === 'nuevo') ? this.draftProjectAddress : null
-      }
-    });
-  }
-
   protected goToNewProject(): void {
-    if (!this.user) {
-      this.router.navigate(['/cotizaciones/nueva']);
-      return;
-    }
+    if (!this.user) return;
     if (!this.canCreateQuotation) {
       this.quotationNotice = 'Ya tienes 2 cotizaciones guardadas. Elimina una para crear otra.';
       return;
@@ -644,16 +215,6 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
     return this.apiService.formatCurrency(value);
   }
 
-  protected logout(): void {
-    this.closeMobileMenu();
-    void this.authService.logout();
-    this.router.navigateByUrl('/');
-  }
-
-  protected goToLogin(): void {
-    this.router.navigate(['/login']);
-  }
-
   private async initializeDashboard(): Promise<void> {
     try {
       await this.ensureSectionData(this.currentSection);
@@ -663,20 +224,15 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
   }
 
   private async ensureSectionData(section: MaestroSection, force = false): Promise<void> {
+    // The catalog section loads its own data inside CatalogSearchComponent.
+    if (section === 'buscar') return;
     const currentUser = this.user;
+    if (!currentUser) return;
     if (!force && this.loadedSections.has(section)) return;
-    if (!currentUser && section !== 'buscar') return;
 
     this.isSectionLoading = true;
     try {
-      if (section === 'buscar') {
-        await this.apiService.refreshSearchTaxonomy(force);
-        if (this.storeDirectory) void this.loadStoreOptions();
-        this.searchReady = true;
-        if (!await this.fetchProductPage()) return;
-      }
-
-      if (currentUser && (section === 'inicio' || section === 'cotizaciones' || section === 'historial')) {
+      if (section === 'inicio' || section === 'cotizaciones' || section === 'historial') {
         await this.apiService.refreshMaestroProjectsSection(currentUser.id, force);
         this.projects = [...this.apiService.getProjects(currentUser.id)]
           .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
@@ -696,60 +252,6 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
     }
   }
 
-  private refreshProductRows(): void {
-    if (!this.searchReady) return;
-    if (this.landing) {
-      const selected:Record<string,string> = {familia:this.selectedFamilyId,categoria:this.selectedCategoryId,subcategoria:this.selectedSubcategoryId,marca:this.selectedBrand,marcaId:this.selectedBrandId};
-      if (Object.entries(this.landing.filters).some(([key,value])=>value && selected[key]!==value)) {
-        void this.router.navigate(['/buscar'],{queryParams:{...selected,q:this.tableProductSearch || undefined,ferreteriaId:this.selectedStoreId || undefined,ferreteria:this.selectedStoreName || undefined,projectTarget:this.projectTarget || undefined}});
-        return;
-      }
-    }
-    void this.fetchProductPage();
-  }
-
-  private async fetchProductPage(): Promise<boolean> {
-    if (this.productSearchTimer) {
-      clearTimeout(this.productSearchTimer);
-      this.productSearchTimer = null;
-    }
-    const requestId = ++this.searchRequestId;
-    this.syncTaxonomySearchLabels();
-    this.isPublicCatalogRefreshing = true;
-    this.sectionLoadError = '';
-    try {
-      const result = await this.apiService.searchProductPage({
-        query: this.tableProductSearch.trim(),
-        categoryId: this.selectedCategoryId,
-        subcategoryId: this.selectedSubcategoryId,
-        familyId: this.selectedFamilyId,
-        brand: this.selectedBrand,
-        ...(this.selectedStoreId ? {storeId:this.selectedStoreId} : {}),
-        ...(this.selectedBrandId ? {brandId:this.selectedBrandId} : {})
-      }, this.currentPage, this.pageSize, this.productSort, this.currentProximity);
-      if (requestId !== this.searchRequestId) return false;
-      this.productRows = result.items;
-      this.totalProducts = result.total;
-      this.currentPage = result.page;
-      this.pageSize = result.size;
-      return true;
-    } catch (error) {
-      if (requestId !== this.searchRequestId) return false;
-      this.sectionLoadError = error instanceof Error ? error.message : 'No se pudieron cargar los productos. Intenta nuevamente.';
-      this.loadedSections.delete('buscar');
-      return false;
-    } finally {
-      if (requestId === this.searchRequestId) this.isPublicCatalogRefreshing = false;
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.destroyed = true;
-    this.querySubscription?.unsubscribe();
-    if (this.productSearchTimer) clearTimeout(this.productSearchTimer);
-    this.searchRequestId++;
-  }
-
   private hydrateProfileDraft(): void {
     const currentUser = this.user;
     if (!currentUser) return;
@@ -760,35 +262,11 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
     };
   }
 
-  private findByName(options: TaxonomyOption[], value: string): TaxonomyOption | null {
-    const normalized = value.trim().toLowerCase();
-    return options.find((option) => option.name.toLowerCase() === normalized) || null;
-  }
-
-  private syncTaxonomySearchLabels(): void {
-    this.categorySearch = this.selectedCategoryId
-      ? this.apiService.getCategoryOptions(false).find((option) => option.id === this.selectedCategoryId)?.name || this.categorySearch
-      : '';
-    this.subcategorySearch = this.selectedSubcategoryId
-      ? this.apiService.getSubcategoryOptions(this.selectedCategoryId, false).find((option) => option.id === this.selectedSubcategoryId)?.name || this.subcategorySearch
-      : '';
-    this.familySearch = this.selectedFamilyId
-      ? this.apiService.getFamilyOptions(this.selectedSubcategoryId, false).find((option) => option.id === this.selectedFamilyId)?.name || this.familySearch
-      : '';
-  }
-
   private isValidSection(value: string | null): value is MaestroSection {
     return value === 'inicio' || value === 'buscar' || value === 'cotizaciones' || value === 'historial' || value === 'perfil';
   }
 
-  @HostListener('window:resize')
-  protected onWindowResize(): void {
-    this.syncViewportState();
-  }
-
-  private syncViewportState(): void {
-    if (typeof window === 'undefined') return;
-    this.isMobileViewport = window.innerWidth <= 1060;
-    if (!this.isMobileViewport) this.isMobileMenuVisible = false;
+  ngOnDestroy(): void {
+    this.querySubscription?.unsubscribe();
   }
 }

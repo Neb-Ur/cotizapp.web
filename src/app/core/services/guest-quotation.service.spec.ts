@@ -1,6 +1,23 @@
 import { GuestQuotationService } from './guest-quotation.service';
 describe('guest quotations in the browser', () => {
   beforeEach(() => localStorage.clear());
+  it('retains products added in another tab before adding a new product', () => {
+    const first = new GuestQuotationService();
+    const quote = first.create('Obra');
+    const other = new GuestQuotationService(); other.all();
+    first.add(quote.id, {productName: 'Cemento', quantity: 2, storeId: 'north'});
+    other.add(quote.id, {productName: 'Clavos', quantity: 1, storeId: 'south'});
+    expect(first.get(quote.id)?.items.map(item => item.productName)).toEqual(['Cemento', 'Clavos']);
+  });
+  it('does not restore a quotation deleted in another tab or overwrite its replacement', () => {
+    const first = new GuestQuotationService(); const quote = first.create('Obra');
+    const other = new GuestQuotationService(); other.all();
+    first.remove(quote.id);
+    expect(() => other.update(quote.id, {name: 'Obra antigua'})).toThrow('No encontramos');
+    const replacement = first.create('Obra nueva');
+    other.remove(quote.id);
+    expect(first.get(replacement.id)?.name).toBe('Obra nueva');
+  });
   it('allows one guest quotation, restores it and permits replacement only after deletion', () => {
     const service = new GuestQuotationService(); const first = service.create('Cocina');
     service.add(first.id, { productName: 'Cemento', quantity: 3, storeId: 's', productoMaestroId: 'p', productoFerreteriaId: 'o' });

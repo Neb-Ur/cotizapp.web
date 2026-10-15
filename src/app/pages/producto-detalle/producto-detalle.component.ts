@@ -42,6 +42,10 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   private readonly changeDetector = inject(ChangeDetectorRef);
   private routeSubscription?: Subscription;
   private loadGeneration = 0;
+  private offersRequestId = 0;
+  private requestedStoreName = '';
+  private requestedStoreId: string | null = null;
+  private requestedOfferId = '';
   protected detail: ProductDetailView | null = null;
   protected isLoading = true;
   protected loadError = '';
@@ -49,6 +53,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   protected selectedImageIndex = 0;
   protected selectedStoreName = '';
   protected selectedStoreId = '';
+  protected selectedOfferId = '';
   protected selectedQuantity = 1;
   protected selectedProjectId = '';
   protected projects: ProjectSummary[] = [];
@@ -87,6 +92,9 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
     this.routeSubscription = combineLatest([this.route.paramMap, this.route.queryParamMap]).subscribe(async ([routeParams, params]) => {
       this.vehicleFilters = {vehicleBrandId:params.get('vehiculoMarcaId') || undefined, vehicleModelId:params.get('vehiculoModeloId') || undefined, vehicleYear:params.get('vehiculoAnio') ? Number(params.get('vehiculoAnio')) : undefined};
       const generation = ++this.loadGeneration;
+      this.requestedStoreName = params.get('ferreteria') || '';
+      this.requestedStoreId = params.get('ferreteriaId');
+      this.requestedOfferId = params.get('ofertaId') || '';
       this.isLoading = true;
       this.loadError = '';
       this.offersLoading = true;
@@ -123,6 +131,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
         this.selectedImageIndex = 0;
         this.selectedStoreName = '';
         this.selectedStoreId = '';
+        this.selectedOfferId = '';
         this.selectedQuantity = 1;
         this.selectedProjectId = '';
         this.quoteFeedback = '';
@@ -162,25 +171,31 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   }
 
   protected retryOffers(): void {
-    if (this.detail) void this.refreshOffers(this.detail, this.loadGeneration);
+    if (this.detail) void this.refreshOffers(this.detail, this.loadGeneration,
+      this.selectedStoreName || this.requestedStoreName,
+      this.selectedStoreId || this.requestedStoreId,
+      this.selectedOfferId || this.requestedOfferId);
   }
 
-  private async refreshOffers(sheet: ProductDetailView, generation: number, requestedStore = '', requestedStoreId: string | null = null): Promise<void> {
+  private async refreshOffers(sheet: ProductDetailView, generation: number, requestedStore = this.requestedStoreName, requestedStoreId = this.requestedStoreId, requestedOfferId = this.requestedOfferId): Promise<void> {
+    const requestId = ++this.offersRequestId;
     this.offersLoading = true;
     this.offersError = '';
     try {
       const detail = this.vehicleFilters.vehicleBrandId
         ? await this.apiService.loadProductOffers(sheet, this.vehicleFilters)
         : await this.apiService.loadProductOffers(sheet);
-      if (generation !== this.loadGeneration) return;
+      if (generation !== this.loadGeneration || requestId !== this.offersRequestId) return;
       this.detail = detail;
       this.displayStores = this.buildDisplayStores(detail.stores);
       this.seoService.updateProduct(detail);
-      const matches = this.displayStores.filter(store => requestedStoreId
-        ? this.storeSelectionId(store) === requestedStoreId : store.storeName === requestedStore);
+      const matches = this.displayStores.filter(store => (requestedStoreId
+        ? this.storeSelectionId(store) === requestedStoreId : store.storeName === requestedStore)
+        && (!requestedOfferId || store.offerId === requestedOfferId));
       if (matches.length === 1) {
         this.selectedStoreName = matches[0].storeName;
         this.selectedStoreId = this.storeSelectionId(matches[0]);
+        this.selectedOfferId = matches[0].offerId || '';
       }
       for (const store of this.displayStores) {
         if (store.offerId && !this.recordedViews.has(store.offerId)) {
@@ -189,9 +204,9 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
         }
       }
     } catch {
-      if (generation === this.loadGeneration) this.offersError = 'No fue posible cargar los precios. Intenta nuevamente.';
+      if (generation === this.loadGeneration && requestId === this.offersRequestId) this.offersError = 'No fue posible cargar los precios. Intenta nuevamente.';
     } finally {
-      if (generation === this.loadGeneration) {
+      if (generation === this.loadGeneration && requestId === this.offersRequestId) {
         this.offersLoading = false;
         this.changeDetector.markForCheck();
       }
@@ -226,7 +241,8 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   }
 
   protected get selectedStore(): ProductStoreOfferRow | null {
-    return this.displayStores.find((store) => this.storeSelectionId(store) === this.selectedStoreId) || null;
+    return this.displayStores.find((store) => this.storeSelectionId(store) === this.selectedStoreId
+      && (!this.selectedOfferId || store.offerId === this.selectedOfferId)) || null;
   }
 
   protected get selectedQuotationName(): string { return this.projects.find(project => project.id === this.selectedProjectId)?.name || ''; }
@@ -260,10 +276,11 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
     return store.storeId || store.offerId || store.storeName;
   }
 
-  protected selectStore(storeName: string, storeId: string): void {
-    void this.apiService.recordOfferEvent(this.displayStores.find(store => this.storeSelectionId(store) === storeId)?.offerId, 'select');
+  protected selectStore(storeName: string, storeId: string, offerId = ''): void {
     this.selectedStoreName = storeName;
     this.selectedStoreId = storeId;
+    this.selectedOfferId = offerId;
+    void this.apiService.recordOfferEvent(this.selectedStore?.offerId, 'select');
     this.quoteFeedback = '';
   }
 
@@ -371,6 +388,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
         crearCotizacion: '1',
         ferreteria: this.selectedStoreName || null,
         ferreteriaId: this.selectedStoreId || null,
+        ofertaId: this.selectedOfferId || null,
         cantidad: this.selectedQuantity
       },
       queryParamsHandling: 'merge'
@@ -487,6 +505,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
     delete url.queryParams['crearCotizacion'];
     delete url.queryParams['ferreteria'];
     delete url.queryParams['ferreteriaId'];
+    delete url.queryParams['ofertaId'];
     delete url.queryParams['cantidad'];
     this.location.replaceState(this.router.serializeUrl(url));
   }

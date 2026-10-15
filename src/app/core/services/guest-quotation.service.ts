@@ -9,7 +9,7 @@ export class GuestQuotationService {
   private quotes: GuestQuotation[] = [];
   private restored = false;
   storageWarning = '';
-  all(): GuestQuotation[] { this.restore(); return structuredClone(this.quotes); }
+  all(): GuestQuotation[] { this.restore(true); return structuredClone(this.quotes); }
   get(id: string): GuestQuotation | null { return this.all().find(quote => quote.id === id) || null; }
   canCreate(): boolean { return this.all().length < 1; }
   create(name: string, address = '', items: ProjectItem[] = []): GuestQuotation {
@@ -19,7 +19,7 @@ export class GuestQuotationService {
     this.restore(); this.quotes.unshift(quote); this.persist(); return structuredClone(quote);
   }
   update(id: string, changes: Partial<Omit<GuestQuotation, 'id' | 'createdAt'>>): GuestQuotation {
-    this.restore(); const quote = this.quotes.find(quote => quote.id === id);
+    this.restore(true); const quote = this.quotes.find(quote => quote.id === id);
     if (!quote) throw new Error('No encontramos esta cotización en tu navegador.');
     const normalized = structuredClone(changes);
     if (normalized.items) normalized.items = this.normalizeItems(normalized.items, quote.items);
@@ -31,7 +31,7 @@ export class GuestQuotationService {
     if (existing) existing.quantity += item.quantity; else quote.items.push(structuredClone(item));
     return this.update(id, { items: quote.items });
   }
-  remove(id: string): void { this.restore(); this.quotes = this.quotes.filter(quote => quote.id !== id); this.persist(); }
+  remove(id: string): void { this.restore(true); this.quotes = this.quotes.filter(quote => quote.id !== id); this.persist(); }
   private normalizeItems(items: ProjectItem[], previous: ProjectItem[] = []): ProjectItem[] {
     return items.filter(item => typeof item.productName === 'string' && item.productName.trim()).map(item => {
       const old = previous.find(row => row.productName === item.productName && row.storeId === item.storeId && row.productoFerreteriaId === item.productoFerreteriaId);

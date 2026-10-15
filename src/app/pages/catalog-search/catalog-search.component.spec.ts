@@ -5,7 +5,7 @@ import { FirebaseDataService } from '../../core/services/firebase-data.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { convertToParamMap } from '@angular/router';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { VehicleCatalogService } from '../../core/services/vehicle-catalog.service';
 import { StoreDirectoryService } from '../../core/services/store-directory.service';
 
@@ -19,6 +19,18 @@ function fixture() {
   return {component:component as any,api};
 }
 describe('server-paginated product search',()=>{
+  it('applies query and URL filters together before requesting a page', async () => {
+    const {component, api} = fixture();
+    const params = new Subject<ReturnType<typeof convertToParamMap>>();
+    component.route = {queryParamMap: params};
+    component.ngOnInit();
+    await component.loadCatalog();
+    api.searchProductPage.mockClear();
+    params.next(convertToParamMap({q: 'Cemento', categoria: 'construccion', ferreteriaId: 'local-2'}));
+    expect(api.searchProductPage).toHaveBeenCalledOnce();
+    expect(api.searchProductPage).toHaveBeenCalledWith(expect.objectContaining({query: 'Cemento', categoryId: 'construccion', storeId: 'local-2'}), 1, 20, 'relevance', undefined);
+    component.ngOnDestroy();
+  });
   it('loads taxonomy and a single page, preserving the full total in the paginator',async()=>{
     const {component,api}=fixture();
     await component.loadCatalog();
@@ -79,6 +91,23 @@ describe('product card navigation',()=>{
 });
 
 describe('collection filter context',()=>{
+ it('removes taxonomy without clearing the independently selected store or brand',()=>{
+  const {component}=fixture();component.router.navigate=vi.fn();
+  component.selectedCategoryId='cat';component.selectedSubcategoryId='sub';component.selectedFamilyId='fam';
+  component.selectedStoreId='branch';component.selectedStoreName='Local';component.selectedBrand='Marca';
+  component.clearCategoryFilter();
+  expect(component.selectedStoreId).toBe('branch');expect(component.selectedBrand).toBe('Marca');
+  expect(component.router.navigate).toHaveBeenCalledWith([],expect.objectContaining({queryParams:expect.objectContaining({categoria:null,subcategoria:null,familia:null,ferreteriaId:'branch',marca:'Marca'})}));
+  component.clearAllFilters();expect(component.taxonomyFilterCount).toBe(0);
+ });
+ it('clears removed family and brand filters in the URL',()=>{
+  const {component}=fixture();component.router.navigate=vi.fn();
+  component.selectedFamilyId='family';component.selectedBrand='Marca';component.selectedBrandId='brand';
+  component.clearFamilyFilter();
+  expect(component.router.navigate).toHaveBeenLastCalledWith([],expect.objectContaining({queryParams:expect.objectContaining({familia:null,marcaId:'brand'})}));
+  component.clearBrandFilter();
+  expect(component.router.navigate).toHaveBeenLastCalledWith([],expect.objectContaining({queryParams:expect.objectContaining({marca:null,marcaId:null})}));
+ });
  it('returns to public search when removing the defining family filter',()=>{
   const {component}=fixture();component.router.navigate=vi.fn();component.searchReady=true;
   component.landing={filters:{familia:'mdf'}};component.selectedFamilyId='mdf';
@@ -100,6 +129,18 @@ it('filters products by store ID and carries the branch into product details', a
 });
 
 describe('vehicle filters', () => {
+ it('rejects invalid URL years and does not submit them when ordering changes', async () => {
+  const {component,api}=fixture();component.searchReady=true;
+  component.selectedVehicleYear='2010.5';
+  expect(await component.fetchProductPage()).toBe(false);
+  component.onProductSortChange('price-asc');
+  expect(component.vehicleYearError).toContain('año');
+  expect(api.searchProductPage).not.toHaveBeenCalled();
+  component.selectedVehicleYear='2010';
+  await component.fetchProductPage();
+  expect(component.vehicleYearError).toBe('');
+  expect(api.searchProductPage).toHaveBeenCalledOnce();
+ });
  it('sends the complete vehicle and preserves it in the detail link', async () => {
   const {component,api}=fixture();
   component.selectedVehicleBrandId='toyota';component.selectedVehicleModelId='corolla';component.selectedVehicleYear='2010';

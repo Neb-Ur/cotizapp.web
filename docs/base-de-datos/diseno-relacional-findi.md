@@ -13,7 +13,6 @@ Fecha de revisión: 2026-10-08. Alcance: diseño basado en el código actual, co
 - [Validación de integridad](../../sql/findi/004-validation.sql): datos sintéticos en una transacción que termina en ROLLBACK.
 - [Mapa de campos Firestore → PostgreSQL](mapa-firestore-postgresql.json): las **29 colecciones** declaradas en `functions/src/lib/collections.ts`, incluidas las que llevan prefijo `real_`.
 - [Inventario de endpoints](inventario-endpoints.json): **102 definiciones** de rutas en los routers; también se conservan `/config`, `/api/config`, los alias de montaje `/api` y las operaciones de Firebase SDK.
-- [Plan de migración y aceptación](plan-migracion-y-validacion.md).
 
 Se revisaron routers, servicios de consentimiento/privacidad/contratos, el motor de cotizaciones, la generación del catálogo público, los jobs de métricas y caché, modelos frontend, persistencia de sesión, scripts del catálogo, reglas Firestore y matriz de retención. Esta revisión del código no es una auditoría de cada documento real: los campos históricos o desconocidos se concilian antes del cambio de base.
 

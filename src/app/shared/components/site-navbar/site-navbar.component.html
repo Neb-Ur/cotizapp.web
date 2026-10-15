@@ -115,7 +115,7 @@
     </ng-container>
 
     <ng-template #loggedActions>
-      <div class="auth-group" *ngIf="!isMaestro">
+      <div class="auth-group">
         <a [href]="dashboardUrl" class="nav-login" (click)="closeMenu()">Mi panel</a>
         <button type="button" class="btn btn-outline btn-sm" (click)="logout()">Salir</button>
       </div>
