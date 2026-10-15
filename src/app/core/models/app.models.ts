@@ -212,6 +212,7 @@ export interface SearchRow {
 }
 
 export interface SearchFilters {
+  area?: 'materiales' | 'herramientas' | 'repuestos';
   vehicleBrandId?: string;
   vehicleModelId?: string;
   vehicleYear?: number;

@@ -15,6 +15,7 @@ async function setup() {
     {provide:CatalogSearchIndexService,useValue:index},
     {provide:AuthService,useValue:{isLoggedIn:()=>false,currentUser:()=>null,dashboardRouteForUser:()=>'/dashboard',logout:vi.fn()}}
   ] }).compileComponents();
+  vi.spyOn(TestBed.inject(Router),'url','get').mockReturnValue('/buscar');
   const fixture=TestBed.createComponent(SiteNavbarComponent);
   fixture.detectChanges();
   return {fixture,component:fixture.componentInstance as any,router:TestBed.inject(Router),data,index};
@@ -157,5 +158,24 @@ it('replaces public search with store navigation in the dashboard and restores H
  expect(fixture.nativeElement.querySelectorAll('.store-header-links a')).toHaveLength(6);
  expect(fixture.nativeElement.textContent).toContain('Ir a inicio');
  url.mockReturnValue('/');fixture.detectChanges();
- expect(fixture.nativeElement.querySelector('.navbar-search')).not.toBeNull();expect(fixture.nativeElement.textContent).toContain('Mi panel');
+ expect(fixture.nativeElement.querySelector('.navbar-search')).toBeNull();expect(fixture.nativeElement.textContent).toContain('Mi panel');
+});
+
+it('keeps the home header compact without duplicating the discovery search',async()=>{
+ const {fixture,router}=await setup();vi.spyOn(router,'url','get').mockReturnValue('/');fixture.detectChanges();
+ expect(fixture.nativeElement.querySelector('.navbar--home')).not.toBeNull();
+ expect(fixture.nativeElement.querySelector('.navbar-search')).toBeNull();
+ vi.spyOn(router,'url','get').mockReturnValue('/buscar');fixture.detectChanges();
+ expect(fixture.nativeElement.querySelector('.navbar-search')).not.toBeNull();
+});
+
+it('preserves discovery and vehicle context while searching another part from the results header',async()=>{
+ const {component,router,data}=await setup();
+ vi.spyOn(router,'url','get').mockReturnValue('/buscar?rubro=repuestos&vehiculoMarcaId=mahindra&vehiculoModeloId=kuv&vehiculoAnio=2018&q=foco');
+ data.searchProductPage.mockResolvedValue({items:[{productoMaestroId:'radiador',productName:'Radiador KUV100',productType:'Radiador',seoPath:'/productos/radiador-kuv'}]});
+ component.searchValue='radiador';component.onSearchInput();await new Promise(resolve=>setTimeout(resolve,300));
+ expect(data.searchProductPage).toHaveBeenCalledWith(expect.objectContaining({area:'repuestos',vehicleBrandId:'mahindra',vehicleModelId:'kuv',vehicleYear:2018,query:'radiador'}),1,6,'relevance');
+ expect(component.flatSuggestions[0].name).toBe('Radiador KUV100');
+ const navigate=vi.spyOn(router,'navigate').mockResolvedValue(true);component.submitSearch();
+ expect(navigate).toHaveBeenCalledWith(['/buscar'],{queryParams:{rubro:'repuestos',vehiculoMarcaId:'mahindra',vehiculoModeloId:'kuv',vehiculoAnio:'2018',q:'radiador'}});
 });

@@ -6,7 +6,7 @@
   aria-label="Cerrar menu"
 ></button>
 
-<header class="navbar" [class.navbar--store]="isStoreDashboard" [class.navbar--maestro]="isMaestro" [class.navbar--guest]="!isLogged && !isStoreDashboard">
+<header class="navbar" [class.navbar--home]="isHomePage" [class.navbar--store]="isStoreDashboard" [class.navbar--maestro]="isMaestro" [class.navbar--guest]="!isLogged && !isStoreDashboard">
   <a class="brand" routerLink="/" aria-label="Trovio · Ir al inicio" (click)="closeMenu()">
     <app-brand-mark />
     <span class="brand-wordmark" aria-hidden="true">trov<span>ı</span>o</span>
@@ -74,7 +74,7 @@
         </div>
       </section>
     </div>
-    <div #searchShell class="search-shell" (focusout)="onSearchFocusOut($event)">
+    <div #searchShell *ngIf="!isHomePage" class="search-shell" (focusout)="onSearchFocusOut($event)">
       <form class="navbar-search" role="search" aria-label="Buscar en el catálogo" (ngSubmit)="submitSearch()">
         <label for="header-product-search" class="visually-hidden">Buscar productos, categorías, familias o marcas</label>
         <input #searchInput id="header-product-search" name="q" type="search" [(ngModel)]="searchValue"
@@ -98,9 +98,9 @@
             </a>
           </section>
         </div>
-        <p class="search-panel-message" *ngIf="!searchIndex.ready() && searchIndex.loading()" role="status">Preparando el catálogo para buscar…</p>
-        <p class="search-panel-message" *ngIf="searchIndex.error()" role="status">{{ searchIndex.error() }} <button type="button" (click)="retrySearchIndex()">Reintentar</button></p>
-        <p class="search-panel-message" *ngIf="searchIndex.ready() && suggestionGroups.length===0" role="status">No encontramos coincidencias para “{{ searchValue }}”. Prueba con otro material o revisa el catálogo.</p>
+        <p class="search-panel-message" *ngIf="(!hasScopedSearch && !searchIndex.ready() && searchIndex.loading()) || scopedSearchLoading" role="status">Preparando el catálogo para buscar…</p>
+        <p class="search-panel-message" *ngIf="(!hasScopedSearch && searchIndex.error()) || scopedSearchError" role="status">{{ scopedSearchError || searchIndex.error() }} <button type="button" (click)="retrySearchIndex()">Reintentar</button></p>
+        <p class="search-panel-message" *ngIf="(searchIndex.ready() || hasScopedSearch) && !scopedSearchLoading && !scopedSearchError && suggestionGroups.length===0" role="status">No encontramos coincidencias para “{{ searchValue }}”. Prueba con otro material o revisa el catálogo.</p>
         <button type="button" class="search-view-all" (click)="submitSearch()">Ver todos los resultados de “{{ searchValue.trim() }}” <i class="pi pi-arrow-right" aria-hidden="true"></i></button>
         <p class="search-keyboard-hint">↑ ↓ para explorar · Enter para abrir · Esc para cerrar</p>
       </section>

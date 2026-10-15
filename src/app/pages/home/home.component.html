@@ -1,29 +1,61 @@
 <main class="home-page">
   <section class="discovery-section" aria-labelledby="home-title">
-    <img
-      class="discovery-background"
-      src="assets/home-hero-mixto-v1.webp"
-      alt=""
-      width="1600"
-      height="711"
-      fetchpriority="high"
-      decoding="async"
-    />
     <div class="discovery-grid">
       <div class="discovery-copy">
-        <span class="section-kicker"><i class="pi pi-sparkles" aria-hidden="true"></i> Compara antes de comprar</span>
-        <h1 id="home-title">Encuentra lo que necesitas.<br><em>Compara mejor.</em></h1>
-        <p>Crea tu cotización, agrega productos y compara precios sin registrarte. Inicia sesión cuando quieras descargar el PDF.</p>
-        <a class="start-quotation-button" routerLink="/cotizaciones/nueva">Crear cotización <i class="pi pi-arrow-right" aria-hidden="true"></i></a><p class="quotation-intro-hint">Sin cuenta para empezar.</p>
+        <h1 id="home-title">¿Qué estás buscando?</h1>
+        <p>Encuentra productos y compara precios.</p>
       </div>
-
-      <div class="quick-categories" aria-label="Categorías destacadas">
-        <a *ngFor="let category of featuredCategories | slice:0:6" [routerLink]="categoryPath(category.name)">
-          <i [class]="category.icon" aria-hidden="true"></i>
-          <span>{{ category.name }}</span>
-        </a>
-        <a class="quick-catalog-link" routerLink="/buscar">Ver catálogo <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
+      <div class="discovery-areas" role="group" aria-label="Tipo de producto">
+        <button type="button" *ngFor="let option of areas" [class.selected]="(area || '') === option.id"
+          [attr.aria-pressed]="(area || '') === option.id" (click)="selectArea(option.id)">
+          <i [class]="option.icon" aria-hidden="true"></i>{{ option.label }}
+        </button>
       </div>
+      <section *ngIf="area === 'repuestos'" class="discovery-vehicle" aria-labelledby="discovery-vehicle-title">
+        <strong id="discovery-vehicle-title">Tu vehículo</strong>
+        <div class="discovery-vehicle-fields">
+          <label>Marca<select aria-label="Marca del vehículo" [ngModel]="vehicleBrand" (ngModelChange)="changeVehicleBrand($event)" [disabled]="vehicleLoading">
+            <option value="">Todas</option><option *ngFor="let brand of vehicleCatalog.brands" [value]="brand.id">{{ brand.nombre }}</option>
+          </select></label>
+          <label>Modelo<select aria-label="Modelo del vehículo" [ngModel]="vehicleModel" (ngModelChange)="changeVehicleModel($event)" [disabled]="!vehicleBrand">
+            <option value="">Todos</option><option *ngFor="let model of modelOptions" [value]="model.id">{{ model.nombre }}</option>
+          </select></label>
+          <label>Año<select aria-label="Año del vehículo" [ngModel]="vehicleYear" (ngModelChange)="changeVehicleYear($event)" [disabled]="!vehicleModel">
+            <option value="">Todos</option><option *ngFor="let year of years" [value]="year">{{ year }}</option>
+          </select></label>
+        </div>
+        <span *ngIf="vehicleLoading" role="status" class="vehicle-status">Cargando vehículos…</span>
+        <p *ngIf="vehicleError" role="alert" class="vehicle-status">{{ vehicleError }} <button type="button" (click)="loadVehicles()">Reintentar</button></p>
+        <button type="button" class="discovery-vehicle-clear" (click)="clearVehicle()">Buscar sin vehículo</button>
+      </section>
+      <form #discoverySearch class="discovery-search" role="search" aria-label="Buscar productos" (ngSubmit)="submitDiscovery()" (focusout)="onDiscoveryFocusOut($event)">
+        <div class="discovery-input-wrap">
+          <label for="discovery-query" class="visually-hidden">Nombre del producto o repuesto</label>
+          <i class="pi pi-search discovery-search-icon" aria-hidden="true"></i>
+          <input id="discovery-query" name="discoveryQuery" type="search" autocomplete="off" [(ngModel)]="query"
+            (ngModelChange)="onDiscoveryInput()" (focus)="focusDiscovery()" (keydown)="onDiscoveryKeydown($event)"
+            [placeholder]="area === 'repuestos' ? 'Ej: radiador, foco o neblinero' : area === 'herramientas' ? 'Ej: taladro, alicate o martillo' : area === 'materiales' ? 'Ej: cemento, madera o pintura' : '¿Qué producto necesitas?'"
+            role="combobox" aria-autocomplete="list" [attr.aria-expanded]="suggestionsOpen" aria-controls="discovery-options"
+            [attr.aria-activedescendant]="suggestionsOpen && activeSuggestion >= 0 ? 'discovery-option-' + activeSuggestion : null" />
+          <section *ngIf="suggestionsOpen" class="discovery-suggestions" aria-label="Sugerencias de productos"
+            [style.--suggestion-top]="suggestionTop + 'px'" [style.--suggestion-height]="suggestionHeight + 'px'">
+            <div class="discovery-suggestion-heading"><strong>Sugerencias</strong><button type="button" (click)="closeSuggestions()" aria-label="Cerrar sugerencias"><i class="pi pi-times" aria-hidden="true"></i></button></div>
+            <div id="discovery-options" role="listbox" aria-label="Productos encontrados" [attr.aria-busy]="suggestionsLoading">
+              <a *ngFor="let product of suggestions; let i = index" role="option" [id]="'discovery-option-' + i"
+                [attr.aria-selected]="i === activeSuggestion" [class.active]="i === activeSuggestion"
+                [routerLink]="product.seoPath || productUrl(product.productName)" (click)="closeSuggestions()">
+                <i class="pi pi-box" aria-hidden="true"></i><span>{{ product.productName }}</span><i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+              </a>
+            </div>
+            <p *ngIf="suggestionsLoading" role="status">Buscando productos…</p>
+            <p *ngIf="suggestionsError" role="status">{{ suggestionsError }}</p>
+            <p *ngIf="!suggestionsLoading && !suggestionsError && !suggestions.length" role="status">{{ query.trim().length >= 2 ? 'No encontramos coincidencias con estos filtros.' : 'Escribe el nombre del producto que necesitas.' }}</p>
+            <button type="button" class="discovery-all-results" (click)="submitDiscovery()">Ver todos los resultados <i class="pi pi-arrow-right" aria-hidden="true"></i></button>
+          </section>
+        </div>
+        <button type="submit" class="discovery-submit">{{ searchLabel }} <i class="pi pi-arrow-right" aria-hidden="true"></i></button>
+      </form>
+      <a class="discovery-quotation" routerLink="/cotizaciones/nueva">Crear una cotización <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
     </div>
   </section>
 
@@ -31,10 +63,10 @@
     <div class="section-heading">
       <div>
         <span>Catálogo de Trovio</span>
-        <h2 id="featured-products-title">Explora el catálogo</h2>
-        <p>Encuentra productos y compara precios entre los locales con ofertas disponibles.</p>
+        <h2 id="featured-products-title">{{ previewTitle }}</h2>
+        <p>{{ area === 'repuestos' ? 'Compatibilidad registrada. Confirma con el local.' : 'Encuentra productos y compara precios entre los locales con ofertas disponibles.' }}</p>
       </div>
-      <a routerLink="/buscar">Ver más productos <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
+      <a routerLink="/buscar" [queryParams]="searchParams">Ver todos <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
     </div>
 
     @if (featuredProducts().length > 0) {
@@ -53,7 +85,7 @@
         <span class="home-product-stores" *ngIf="product.storeCount > 0"><i class="pi pi-shop" aria-hidden="true"></i> {{ product.storeCount }} {{ product.storeCount === 1 ? 'local' : 'locales' }}</span>
       </a>
     </div>
-    } @else if (catalogLoading()) {
+    } @else if (catalogLoading() || areaLoading()) {
       <div class="product-skeletons" aria-label="Cargando productos">
         <div *ngFor="let item of [1,2,3,4]">
           <p-skeleton height="11rem" styleClass="product-skeleton-image" />

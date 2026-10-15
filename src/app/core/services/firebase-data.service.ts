@@ -230,7 +230,7 @@ export class FirebaseDataService {
     try {
       return await this.apiClient.get<ProductSearchPage>('/busqueda', false, {
         vehiculoMarcaId: filters.vehicleBrandId, vehiculoModeloId: filters.vehicleModelId, vehiculoAnio: filters.vehicleYear,
-        vista: 'productos', query: filters.query, marca: filters.brand, marcaId: filters.brandId,
+        vista: 'productos', rubro: filters.area, query: filters.query, marca: filters.brand, marcaId: filters.brandId,
         categoriaId: filters.categoryId, subcategoriaId: filters.subcategoryId, familiaId: filters.familyId,
         ferreteriaId: filters.storeId, page, size, sort, latitude: proximity?.latitude, longitude: proximity?.longitude, radiusKm: proximity?.radiusKm
       });

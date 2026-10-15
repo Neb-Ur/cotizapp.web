@@ -781,3 +781,5 @@ app-dashboard-admin-validaciones .admin-data-table .p-datatable-tbody > tr > td 
   background: #fff4f4;
   color: #791919;
 }
+
+body.discovery-search-open app-help-widget, body.discovery-search-open app-pilot-banner { visibility: hidden; }

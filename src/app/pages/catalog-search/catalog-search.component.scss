@@ -726,3 +726,6 @@ input:disabled {
     font-size: 0.78rem;
   }
 }
+
+.area-filter { display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; margin-bottom: 1rem; font-weight: 700; color: var(--ink-900); }
+.area-filter select { min-height: 44px; max-width: 100%; padding: .5rem .8rem; font: inherit; border: 1px solid var(--border); border-radius: 10px; background: white; color: var(--ink-900); }

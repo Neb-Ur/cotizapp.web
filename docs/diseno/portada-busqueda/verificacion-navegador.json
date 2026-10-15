@@ -1,0 +1,60 @@
+{
+  "initial": {
+    "header": 60,
+    "hero": 467.25,
+    "cardTop": 612.25,
+    "overflow": false
+  },
+  "focus": {
+    "input": {
+      "x": 16,
+      "y": 68.25,
+      "width": 358,
+      "height": 44,
+      "top": 68.25,
+      "right": 374,
+      "bottom": 112.25,
+      "left": 16
+    },
+    "header": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 60,
+      "top": 0,
+      "right": 390,
+      "bottom": 60,
+      "left": 0
+    },
+    "panel": {
+      "x": 16,
+      "y": 120.25,
+      "width": 358,
+      "height": 181.28125,
+      "top": 120.25,
+      "right": 374,
+      "bottom": 301.53125,
+      "left": 16
+    },
+    "viewportBottom": 844,
+    "scroll": 315,
+    "help": "hidden"
+  },
+  "keyboard": {
+    "panel": {
+      "x": 16,
+      "y": 120.25,
+      "width": 358,
+      "height": 181.28125,
+      "top": 120.25,
+      "right": 374,
+      "bottom": 301.53125,
+      "left": 16
+    },
+    "viewportBottom": 480
+  },
+  "desktopScrollPreserved": true,
+  "resultsAndHeaderPreserveVehicle": true,
+  "areaNavigationWorks": true,
+  "browserErrors": []
+}

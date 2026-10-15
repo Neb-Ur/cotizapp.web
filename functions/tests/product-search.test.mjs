@@ -119,3 +119,18 @@ test('store filter removes unrelated masters and aggregates only prices from tha
  assert.equal(result.items[0].minPrice,1001);assert.equal(result.items[0].maxPrice,1001);assert.equal(result.items[0].storeCount,1);
  assert.equal(paginateProductSearch(snapshot,{...defaults,storeId:'missing'}).total,0);
 });
+
+test('discovery areas partition the master catalog before pagination and intersect vehicle compatibility',()=>{
+ const snapshot=catalog(6);snapshot.searchRows=[];
+ snapshot.products.forEach((p,i)=>{p.categoriaId=i<2?'cat-repuestos-automotrices':i<4?'cat-herramientas-y-consumibles':'cat-acero';});
+ snapshot.products[0].compatibilidadVehiculos=[{marcaId:'mahindra',modeloId:'kuv',anioDesde:2016,anioHasta:2019}];
+ snapshot.products[1].compatibilidadVehiculos=[{marcaId:'mahindra',modeloId:'kuv',anioDesde:2020,anioHasta:2023}];
+ for(const area of ['materiales','herramientas','repuestos'])assert.equal(paginateProductSearch(snapshot,{...defaults,area,size:1}).total,2);
+ const page=paginateProductSearch(snapshot,{...defaults,area:'repuestos',vehicleBrandId:'mahindra',vehicleModelId:'kuv',vehicleYear:2018});
+ assert.deepEqual(page.items.map(p=>p.productoMaestroId),[snapshot.products[0].id]);
+ assert.equal(paginateProductSearch(snapshot,{...defaults,area:'herramientas',vehicleBrandId:'mahindra'}).total,0);
+ assert.equal(paginateProductSearch(snapshot,{...defaults,area:'repuestos',vehicleBrandId:'mahindra',vehicleModelId:'kuv',vehicleYear:2025}).total,0);
+});
+test('product search rejects unknown or repeated discovery area parameters',async()=>{
+ for(const rubro of ['cualquier-cosa',['repuestos']]){const res=response();await handler({query:{vista:'productos',rubro}},res);assert.equal(res.statusCode,400);}
+});

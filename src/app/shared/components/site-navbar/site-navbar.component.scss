@@ -647,3 +647,15 @@
 .brand-wordmark > span { position: relative; }
 .brand-wordmark > span::before { content: ''; position: absolute; width: 0.18em; height: 0.18em; border-radius: 50%; background: var(--orange); top: 0.15em; left: 0.09em; }
 @media (max-width: 1000px) { .brand { width: 44px; } .brand-wordmark { display: none; } }
+
+@media(max-width:1000px) {
+  .navbar.navbar--home { grid-template-columns: minmax(0,1fr) 44px; min-height: 64px; }
+  .navbar--home .brand { width: auto; gap: 10px; }
+  .navbar--home .brand-wordmark { display: inline; font-size: 1.8rem; }
+  .navbar--home .hamburger { grid-column: 2; }
+}
+@media(max-width:1000px) {
+  .navbar.navbar--home { height: 60px; min-height: 60px; padding: 8px 16px; }
+  .navbar--home .brand { justify-content: flex-start; }
+}
+.navbar--home { background: #fff; }

@@ -9,7 +9,7 @@ import { Component, HostListener, OnDestroy, OnInit, ChangeDetectorRef, ElementR
 import { Router, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faChevronDown, faChevronRight, faRightToBracket, faTableCellsLarge, faXmark } from '@fortawesome/free-solid-svg-icons';
-import { TaxonomyOption } from '../../../core/models/app.models';
+import { SearchFilters, TaxonomyOption } from '../../../core/models/app.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { FirebaseDataService } from '../../../core/services/firebase-data.service';
 import { BrandMarkComponent } from '../brand-mark/brand-mark.component';
@@ -26,6 +26,20 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
   protected readonly categoryIcon = categoryIcon;
   protected searchValue = '';
   protected suggestionGroups: SuggestionGroup[] = [];
+  protected scopedSearchLoading = false;
+  protected scopedSearchError = '';
+  private scopedSearchTimer?: ReturnType<typeof setTimeout>;
+  private scopedSearchRequest = 0;
+  private get scopedSearchFilters(): SearchFilters {
+    if(this.router.url.split(/[?#]/)[0]!=='/buscar')return {};
+    const p=this.router.parseUrl(this.router.url).queryParams;
+    return {area:['materiales','herramientas','repuestos'].includes(p['rubro'])?p['rubro']:undefined,categoryId:p['categoria'] || undefined,subcategoryId:p['subcategoria'] || undefined,
+      familyId:p['familia'] || undefined,brand:p['marca'] || undefined,brandId:p['marcaId'] || undefined,
+      storeId:p['ferreteriaId'] || undefined,vehicleBrandId:p['vehiculoMarcaId'] || undefined,
+      vehicleModelId:p['vehiculoModeloId'] || undefined,vehicleYear:p['vehiculoAnio']?Number(p['vehiculoAnio']):undefined};
+  }
+  protected get hasScopedSearch():boolean {return Object.values(this.scopedSearchFilters).some(value=>value!==undefined);}
+
   protected searchOpen = false;
   protected activeSuggestion = -1;
   protected searchPanelTop = 70;
@@ -95,7 +109,18 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
 
   protected updateSuggestions():void {
     this.activeSuggestion=-1;
-    this.suggestionGroups=this.searchIndex.search(this.searchValue);
+    clearTimeout(this.scopedSearchTimer);const request=++this.scopedSearchRequest;
+    this.scopedSearchError='';this.scopedSearchLoading=false;
+    if(!this.hasScopedSearch){this.suggestionGroups=this.searchIndex.search(this.searchValue);return;}
+    this.suggestionGroups=[];if(this.searchValue.trim().length<2)return;
+    this.scopedSearchLoading=true;
+    this.scopedSearchTimer=setTimeout(()=>{
+      void this.dataService.searchProductPage({...this.scopedSearchFilters,query:this.searchValue.trim()},1,6,'relevance').then(page=>{
+        if(request!==this.scopedSearchRequest)return;
+        this.suggestionGroups=page.items.length?[{kind:'product',label:'Productos',items:page.items.map(p=>({kind:'product',id:p.productoMaestroId || p.productName,name:p.productName,path:p.seoPath,context:p.productType}))}]:[];
+      }).catch(()=>{if(request===this.scopedSearchRequest)this.scopedSearchError='No pudimos cargar sugerencias. Puedes continuar con Buscar.';})
+        .finally(()=>{if(request===this.scopedSearchRequest){this.scopedSearchLoading=false;this.changeDetector.markForCheck();}});
+    },250);
   }
   protected readonly storeNavigation = [
     {label:'Dashboard',icon:'pi pi-chart-bar',section:'inicio'},
@@ -114,6 +139,7 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
     return this.router.url.startsWith('/dashboard/ferreteria') && (query['section'] || 'inicio') === item.section && (query['accion'] || '') === (item.accion || '');
   }
 
+  protected get isHomePage(): boolean { return this.router.url.split(/[?#]/)[0] === '/'; }
   protected get returnUrl(): string { return this.router.url; }
   protected get isMaestro(): boolean { return this.authService.currentUser()?.role === 'maestro'; }
   protected readonly maestroNavigation = [
@@ -141,8 +167,8 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
     this.updateSuggestions();this.positionSearchPanel();void this.searchIndex.ensureReady(true);
   }
   protected clearSearch():void { this.searchValue='';this.updateSuggestions();this.searchOpen=false;this.searchInput?.nativeElement.focus(); }
-  protected retrySearchIndex():void { void this.searchIndex.ensureReady(); }
-  protected closeSearch():void { this.searchOpen=false;this.activeSuggestion=-1; }
+  protected retrySearchIndex():void { if(this.hasScopedSearch)this.updateSuggestions();else void this.searchIndex.ensureReady(); }
+  protected closeSearch():void { this.searchOpen=false;this.activeSuggestion=-1;this.scopedSearchRequest++;clearTimeout(this.scopedSearchTimer);this.scopedSearchLoading=false; }
   protected onSearchKeydown(event:KeyboardEvent):void {
     if (event.isComposing) return;
     const suggestions=this.flatSuggestions;
@@ -167,7 +193,8 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
   protected submitSearch():void {
     this.closeSearch();this.closeMenu();this.closeTaxonomy();
     const query=this.searchValue.trim();
-    void this.router.navigate(['/buscar'],{queryParams:query?{q:query}:undefined});
+    const context=this.router.url.split(/[?#]/)[0]==='/buscar'?this.router.parseUrl(this.router.url).queryParams:{};
+    void this.router.navigate(['/buscar'],{queryParams:{...context,q:query || undefined}});
   }
   protected onSearchFocusOut(event:FocusEvent):void {
     if(!this.searchShell?.nativeElement.contains(event.relatedTarget as Node|null)) this.closeSearch();
@@ -284,7 +311,7 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.navigationSubscription?.unsubscribe();
+    this.navigationSubscription?.unsubscribe();this.scopedSearchRequest++;clearTimeout(this.scopedSearchTimer);
     if (typeof window !== 'undefined') {
       window.visualViewport?.removeEventListener('resize', this.positionSearchPanel);
       window.visualViewport?.removeEventListener('scroll', this.positionSearchPanel);

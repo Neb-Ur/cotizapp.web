@@ -26,9 +26,9 @@ describe('server-paginated product search',()=>{
     component.ngOnInit();
     await component.loadCatalog();
     api.searchProductPage.mockClear();
-    params.next(convertToParamMap({q: 'Cemento', categoria: 'construccion', ferreteriaId: 'local-2'}));
+    params.next(convertToParamMap({q: 'Cemento', categoria: 'construccion', rubro:'materiales', ferreteriaId: 'local-2'}));
     expect(api.searchProductPage).toHaveBeenCalledOnce();
-    expect(api.searchProductPage).toHaveBeenCalledWith(expect.objectContaining({query: 'Cemento', categoryId: 'construccion', storeId: 'local-2'}), 1, 20, 'relevance', undefined);
+    expect(api.searchProductPage).toHaveBeenCalledWith(expect.objectContaining({query: 'Cemento', area:'materiales', categoryId: 'construccion', storeId: 'local-2'}), 1, 20, 'relevance', undefined);
     component.ngOnDestroy();
   });
   it('loads taxonomy and a single page, preserving the full total in the paginator',async()=>{

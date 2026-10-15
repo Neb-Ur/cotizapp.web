@@ -19,6 +19,10 @@ searchRouter.get('/busqueda', async (req, res) => {
   // Opt-in product pages preserve the legacy array response used by quotation
   // and catalog consumers, while the search screen downloads only one page.
   if (req.query['vista'] === 'productos') {
+    const area = req.query['rubro'];
+    if (area !== undefined && (typeof area !== 'string' || area !== '' && !['materiales', 'herramientas', 'repuestos'].includes(area))) {
+      return fail(res, 'SEARCH_INVALID_AREA', 'Selecciona un rubro válido.');
+    }
     const page = Number(req.query['page'] ?? 1);
     const size = Number(req.query['size'] ?? 20);
     const sort = String(req.query['sort'] ?? 'relevance');
@@ -33,6 +37,7 @@ searchRouter.get('/busqueda', async (req, res) => {
     }
     const result = paginateProductSearch(await getPublicCatalogSnapshot(), {
       ...vehicle,
+      area: area ? area as ProductSearchOptions['area'] : undefined,
       query: normalizeText(req.query['query']),
       categoryId: normalizeText(req.query['categoriaId']),
       subcategoryId: normalizeText(req.query['subcategoriaId']),

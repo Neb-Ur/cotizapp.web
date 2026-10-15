@@ -6,6 +6,7 @@ import type { ProjectProximity } from '../models/domain.models.js';
 import { coordinateValue, geographicDistanceKm } from '../lib/values.js';
 
 export type ProductSearchOptions = VehicleSearch & {
+  area?: 'materiales' | 'herramientas' | 'repuestos';
   query?: string;
   categoryId?: string;
   subcategoryId?: string;
@@ -47,6 +48,9 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
 
   for (const product of snapshot.products) {
     if (product.estado === 'inactivo') continue;
+    const area = product.categoriaId === 'cat-repuestos-automotrices' ? 'repuestos'
+      : product.categoriaId === 'cat-herramientas-y-consumibles' ? 'herramientas' : 'materiales';
+    if (options.area && area !== options.area) continue;
     if (hasVehicleFilter(options) && !matchesVehicle(product.compatibilidadVehiculos, options)) continue;
     const name = String(product.nombre || '');
     const text = normalize([name, product.marca, product.tipoProducto, ...(product.compatibilidadVehiculos||[]).map((a:any)=>[a.marcaNombre,a.modeloNombre,a.anioDesde,a.anioHasta].join(' ')), categories.get(product.categoriaId), subcategories.get(product.subcategoriaId), families.get(product.familiaId)].filter(Boolean).join(' '));
