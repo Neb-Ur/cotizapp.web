@@ -25,6 +25,50 @@ async function catalog(db){
  await db.collection('productosMaestro').doc('product').set({nombre:'MDF negro 18 mm',familiaId:'family',categoriaId:'cat',subcategoriaId:'sub',marcaId:'brand',marca:'Marca de prueba',estado:'activo',galeriaJson:[],caracteristicasDestacadas:['18 mm']});
  await db.collection('real_ferreterias').doc('store').set({usuarioDuenoId:'store-owner',nombreComercial:'Local de prueba',estado:'activo'});
 }
+test('200-product expansion writes normalized children, invalidates once and can resume without overwriting prior records', async t => {
+ const {db,pg}=await fixture(t);await catalog(db);
+ const before=(await db.collection('productosMaestro').doc('product').get()).data();
+ const {expansionFixture}=await import('./helpers/catalog-expansion.fixture.mjs');
+ const {planCatalogExpansion,applyExpansionChunk}=await import('../scripts/lib/catalog-expansion-200.mjs');
+ const now=new Date().toISOString(),{seed,state,categories}=await expansionFixture(now);
+ const put=async(c,d)=>{const {id,...data}=d;await db.collection(c).doc(id).set(data);};
+ for(const c of categories)await put('categorias',c);
+ for(const c of state.subcategories)await put('subcategorias',c);
+ for(const c of state.families)await put('familias',c);
+ for(const c of state.brands)await put('marcas',c);
+ for(const c of state.models)await put('modelosVehiculo',c);
+ for(const c of state.users)await put('usuarios',c);
+ for(const c of state.stores)await put('real_ferreterias',c);
+ const plan=planCatalogExpansion(seed,state,now);
+ await applyExpansionChunk(db,plan.prerequisites,plan.updates);
+ const revisions=async()=>(await pg.query('SELECT scope,revision FROM findi.catalog_revisions ORDER BY scope')).rows;
+ const initialRevisions=await revisions();
+ const docs=[...plan.products,...plan.offers];
+ assert.equal((await applyExpansionChunk(db,docs)).created,600);
+ const afterRevisions=await revisions();
+ assert.ok(afterRevisions.every((r,i)=>Number(r.revision)===Number(initialRevisions[i].revision)+1));
+ assert.deepEqual(await applyExpansionChunk(db,docs),{created:0,updated:0});
+ assert.deepEqual(await revisions(),afterRevisions);
+ assert.equal((await pg.query('SELECT count(*)::int n FROM findi.product_vehicle_applications')).rows[0].n,100);
+ assert.equal((await pg.query('SELECT count(*)::int n FROM findi.offer_vehicle_applications')).rows[0].n,0);
+ assert.equal((await pg.query('SELECT count(*)::int n FROM findi.product_media')).rows[0].n,244);
+ const mahindra=(await db.collection('marcas').doc(state.brands.find(b=>b.nombre==='Mahindra').id).get()).data();
+ assert.deepEqual(new Set(mahindra.usos),new Set(['vehiculo','fabricante']));
+ const edited=plan.offers[0];await db.collection(edited.collection).doc(edited.id).update({precio:77777});
+ assert.equal((await applyExpansionChunk(db,docs)).created,0);
+ assert.equal((await db.collection(edited.collection).doc(edited.id).get()).data().precio,77777);
+ assert.deepEqual((await db.collection('productosMaestro').doc('product').get()).data(),before);
+ const reference=(await pg.query("SELECT payload FROM findi.public_cache_artifacts WHERE key='meta'")).rows[0].payload;assert.equal(reference.dirty,true);
+ // A later chunk must still refuse a store that has ceased to be synthetic.
+ const extra={...plan.offers[1],id:'expansion-blocked-offer'};
+ await db.collection('real_ferreterias').doc(extra.data.ferreteriaId).update({esPrueba:false});
+ await assert.rejects(applyExpansionChunk(db,[extra]),/TEST_STORE_CHANGED/);
+ assert.equal((await db.collection(extra.collection).doc(extra.id).get()).exists,false);
+ const first={...plan.products[0],id:'expansion-rolled-back-product',data:{...plan.products[0].data,detalleVariante:'rollback-case'}};
+ const invalid={...plan.products[1],id:'expansion-invalid-product',data:{...plan.products[1].data,familiaId:'missing-family'}};
+ await assert.rejects(applyExpansionChunk(db,[first,invalid]));
+ assert.equal((await db.collection(first.collection).doc(first.id).get()).exists,false);
+});
 test('expanded KUV catalog persists galleries and master years, compares junkyards and leaves prior data intact', async t => {
  const {db,pg}=await fixture(t);await catalog(db);
  const before=(await db.collection('productosMaestro').doc('product').get()).data();

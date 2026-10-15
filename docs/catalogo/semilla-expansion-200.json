@@ -1,0 +1,4050 @@
+{
+  "batch": "trovio-expansion-200-2026-10-14",
+  "researchedAt": "2026-10-14",
+  "products": [
+    {
+      "key": "allmotor-0312caw00290n",
+      "group": "auto",
+      "part": "Volante motor",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0312CAW00290N",
+      "manufacturerCode": "0312CAW00290N",
+      "familyId": "fam-repuestos-embragues",
+      "sourceUrl": "https://allmotor.cl/repuestos-motor-mahindra-kuv100-chile/0312caw00290n-volante-motor-kuv-100-mahindra-4064",
+      "sourceTitle": "VOLANTE MOTOR KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8902-large_default/volante-motor-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0109baz00301n",
+      "group": "auto",
+      "part": "Vidrio espejo izquierdo",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0109BAZ00301N",
+      "manufacturerCode": "0109BAZ00301N",
+      "familyId": "fam-repuestos-carroceria",
+      "sourceUrl": "https://allmotor.cl/carroceria-interior-mahindra-kuv100-chile/0109baz00301n-vidrio-espejo-izquierdo-kuv-100-mahindra-4041",
+      "sourceTitle": "VIDRIO ESPEJO IZQUIERDO KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8426-large_default/vidrio-espejo-izquierdo-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0109baz00291n",
+      "group": "auto",
+      "part": "Vidrio espejo derecho",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0109BAZ00291N",
+      "manufacturerCode": "0109BAZ00291N",
+      "familyId": "fam-repuestos-carroceria",
+      "sourceUrl": "https://allmotor.cl/carroceria-interior-mahindra-kuv100-chile/0109baz00291n-vidrio-espejo-derecho-kuv-100-mahindra-4042",
+      "sourceTitle": "VIDRIO ESPEJO DERECHO KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8427-large_default/vidrio-espejo-derecho-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0310daw00021n",
+      "group": "auto",
+      "part": "Valvula escape (usa 6)",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0310DAW00021N",
+      "manufacturerCode": "0310DAW00021N",
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://allmotor.cl/repuestos-motor-mahindra-kuv100-chile/0310daw00021n-valvula-escape-usa-6-kuv-100-mahindra-4055",
+      "sourceTitle": "VALVULA ESCAPE (USA 6) KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/9083-large_default/valvula-escape-usa-6-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0310daw00011n",
+      "group": "auto",
+      "part": "Valvula admision (usa 6)",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0310DAW00011N",
+      "manufacturerCode": "0310DAW00011N",
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://allmotor.cl/repuestos-motor-mahindra-kuv100-chile/0310daw00011n-valvula-admision-usa-6-kuv-100-mahindra-4054",
+      "sourceTitle": "VALVULA ADMISION (USA 6) KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8379-large_default/valvula-admision-usa-6-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0304daw00080n",
+      "group": "auto",
+      "part": "Tubo salida de agua",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0304DAW00080N",
+      "manufacturerCode": "0304DAW00080N",
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://allmotor.cl/repuestos-motor-mahindra-kuv100-chile/0304daw00080n-tubo-salida-de-agua-kuv-100-mahindra-4082",
+      "sourceTitle": "TUBO SALIDA DE AGUA KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8424-large_default/tubo-salida-de-agua-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0304eaw00161n",
+      "group": "auto",
+      "part": "Termostato",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0304EAW00161N",
+      "manufacturerCode": "0304EAW00161N",
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://allmotor.cl/repuestos-motor-mahindra-kuv100-chile/0304eaw00161n-termostato-kuv-100-mahindra-4081",
+      "sourceTitle": "TERMOSTATO KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8423-large_default/termostato-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-s1101a010011n",
+      "group": "auto",
+      "part": "Terminal de direccion izq-der",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "S1101A010011N",
+      "manufacturerCode": "S1101A010011N",
+      "familyId": "fam-repuestos-direccion",
+      "sourceUrl": "https://allmotor.cl/direccion-suspension-frenos-mahindra-kuv100-chile/s1101a010011n-terminal-de-direccion-izq-der-kuv-100-mahindra-4127",
+      "sourceTitle": "TERMINAL DE DIRECCION IZQ-DER KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8375-large_default/terminal-de-direccion-izq-der-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-1101aaa03241n",
+      "group": "auto",
+      "part": "Terminal axial izq-der",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "1101AAA03241N",
+      "manufacturerCode": "1101AAA03241N",
+      "familyId": "fam-repuestos-direccion",
+      "sourceUrl": "https://allmotor.cl/direccion-suspension-frenos-mahindra-kuv100-chile/1101aaa03241n-terminal-axial-izq-der-kuv-100-mahindra-4126",
+      "sourceTitle": "TERMINAL AXIAL IZQ-DER KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8393-large_default/terminal-axial-izq-der-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0306gaw00022n",
+      "group": "auto",
+      "part": "Tensor correa",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0306GAW00022N",
+      "manufacturerCode": "0306GAW00022N",
+      "familyId": "fam-repuestos-distribucion",
+      "sourceUrl": "https://allmotor.cl/repuestos-motor-mahindra-kuv100-chile/0306gaw00022n-tensor-automatico-kuv-100-mahindra-4077",
+      "sourceTitle": "TENSOR CORREA KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8421-large_default/tensor-automatico-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0304daw00050n",
+      "group": "auto",
+      "part": "Tapa salida de agua",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0304DAW00050N",
+      "manufacturerCode": "0304DAW00050N",
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://allmotor.cl/repuestos-motor-mahindra-kuv100-chile/0304daw00050n-tapa-salida-de-agua-kuv-100-mahindra-4084",
+      "sourceTitle": "TAPA SALIDA DE AGUA KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8461-large_default/tapa-salida-de-agua-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0304daw00030n",
+      "group": "auto",
+      "part": "Tapa entrada de agua",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0304DAW00030N",
+      "manufacturerCode": "0304DAW00030N",
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://allmotor.cl/repuestos-motor-mahindra-kuv100-chile/0304daw00030n-tapa-entrada-de-agua-kuv-100-mahindra-4083",
+      "sourceTitle": "TAPA ENTRADA DE AGUA KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8383-large_default/tapa-entrada-de-agua-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0304aaw00031n",
+      "group": "auto",
+      "part": "Tapa deposito auxiliar",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0304AAW00031N",
+      "manufacturerCode": "0304AAW00031N",
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://allmotor.cl/carroceria-interior-mahindra-kuv100-chile/0304aaw00031n-tapa-deposito-auxiliar-kuv-100-mahindra-4205",
+      "sourceTitle": "TAPA DEPOSITO AUXILIAR KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8384-large_default/tapa-deposito-auxiliar-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0302aau00190n",
+      "group": "auto",
+      "part": "Switch presion de aceite lado flitro",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0302AAU00190N",
+      "manufacturerCode": "0302AAU00190N",
+      "familyId": "fam-repuestos-sensores",
+      "sourceUrl": "https://allmotor.cl/electronica-encendido-mahindra-kuv100-chile/0302aau00190n-switch-presion-de-aceite-lado-flitro-kuv-100-mahindra-4088",
+      "sourceTitle": "SWITCH PRESION DE ACEITE LADO FLITRO KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8877-large_default/switch-presion-de-aceite-lado-flitro-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0303daw00011n",
+      "group": "auto",
+      "part": "Switch presion de aceite",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0303DAW00011N",
+      "manufacturerCode": "0303DAW00011N",
+      "familyId": "fam-repuestos-sensores",
+      "sourceUrl": "https://allmotor.cl/electronica-encendido-mahindra-kuv100-chile/0303daw00011n-switch-presion-de-aceite-kuv-100-mahindra-4087",
+      "sourceTitle": "SWITCH PRESION DE ACEITE KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8385-large_default/switch-presion-de-aceite-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0203aar16401n",
+      "group": "auto",
+      "part": "Soporte de motor izquierdo",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0203AAR16401N",
+      "manufacturerCode": "0203AAR16401N",
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://allmotor.cl/repuestos-motor-mahindra-kuv100-chile/0203aar16401n-soporte-de-motor-izquierdo-kuv-100-mahindra-4043",
+      "sourceTitle": "SOPORTE DE MOTOR IZQUIERDO  KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8389-large_default/soporte-de-motor-izquierdo-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0203aar16391n",
+      "group": "auto",
+      "part": "Soporte de motor derecho",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0203AAR16391N",
+      "manufacturerCode": "0203AAR16391N",
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://allmotor.cl/repuestos-motor-mahindra-kuv100-chile/0203aar16391n-soporte-de-motor-derecho-kuv-100-mahindra-4044",
+      "sourceTitle": "SOPORTE DE MOTOR DERECHO KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8403-large_default/soporte-de-motor-derecho-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0203aar17811n",
+      "group": "auto",
+      "part": "Soporte de motor derecho",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0203AAR17811N",
+      "manufacturerCode": "0203AAR17811N",
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://allmotor.cl/repuestos-mahindra-kuv100-chile/0203aar17811n-soporte-de-motor-derecho-kuv-100-mahindra-4158",
+      "sourceTitle": "SOPORTE DE MOTOR DERECHO KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8341-large_default/soporte-de-motor-derecho-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0203car00011n",
+      "group": "auto",
+      "part": "Soporte de motor central",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0203CAR00011N",
+      "manufacturerCode": "0203CAR00011N",
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://allmotor.cl/repuestos-mahindra-kuv100-chile/0203car00011n-soporte-de-motor-central-kuv-100-mahindra-4045",
+      "sourceTitle": "SOPORTE DE MOTOR CENTRAL KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8388-large_default/soporte-de-motor-central-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0315caw00021n",
+      "group": "auto",
+      "part": "Sensor temperatura refrigerante",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0315CAW00021N",
+      "manufacturerCode": "0315CAW00021N",
+      "familyId": "fam-repuestos-sensores",
+      "sourceUrl": "https://allmotor.cl/electronica-encendido-mahindra-kuv100-chile/0315caw00021n-sensor-temperatura-refrigerante-kuv-100-mahindra-4094",
+      "sourceTitle": "SENSOR TEMPERATURA REFRIGERANTE KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8903-large_default/sensor-temperatura-refrigerante-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0802eaa00191n",
+      "group": "auto",
+      "part": "Sensor pedal de embrague",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0802EAA00191N",
+      "manufacturerCode": "0802EAA00191N",
+      "familyId": "fam-repuestos-embragues",
+      "sourceUrl": "https://allmotor.cl/electronica-encendido-mahindra-kuv100-chile/0802eaa00191n-sensor-pedal-de-embrague-kuv-100-mahindra-4095",
+      "sourceTitle": "SENSOR PEDAL DE EMBRAGUE KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8906-large_default/sensor-pedal-de-embrague-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0315caw00061n",
+      "group": "auto",
+      "part": "Sensor map",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0315CAW00061N",
+      "manufacturerCode": "0315CAW00061N",
+      "familyId": "fam-repuestos-sensores",
+      "sourceUrl": "https://allmotor.cl/electronica-encendido-mahindra-kuv100-chile/0315caw00061n-sensor-map-kuv-100-mahindra-4092",
+      "sourceTitle": "SENSOR MAP KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8378-large_default/sensor-map-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0609aaa00081n",
+      "group": "auto",
+      "part": "Sensor de velocidad trasero izquierdo derecho",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0609AAA00081N",
+      "manufacturerCode": "0609AAA00081N",
+      "familyId": "fam-repuestos-sensores",
+      "sourceUrl": "https://allmotor.cl/electronica-encendido-mahindra-kuv100-chile/0609aaa00081n-sensor-de-velocidad-trasero-izquierdo-derecho-kuv-100-mahindra-4097",
+      "sourceTitle": "SENSOR DE VELOCIDAD TRASERO IZQUIERDO DERECHO KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8395-large_default/sensor-de-velocidad-trasero-izquierdo-derecho-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0315caw00031n",
+      "group": "auto",
+      "part": "Sensor de velocidad",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0315CAW00031N",
+      "manufacturerCode": "0315CAW00031N",
+      "familyId": "fam-repuestos-sensores",
+      "sourceUrl": "https://allmotor.cl/electronica-encendido-mahindra-kuv100-chile/0315caw00031n-sensor-de-velocidad-kuv-100-mahindra-4089",
+      "sourceTitle": "SENSOR DE VELOCIDAD KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8075-large_default/sensor-de-velocidad-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0315caw00072n",
+      "group": "auto",
+      "part": "Sensor de oxigeno (usa 2)",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0315CAW00072N",
+      "manufacturerCode": "0315CAW00072N",
+      "familyId": "fam-repuestos-sensores",
+      "sourceUrl": "https://allmotor.cl/electronica-encendido-mahindra-kuv100-chile/0315caw00072n-sensor-de-oxigeno-usa-2-kuv-100-mahindra-4093",
+      "sourceTitle": "SENSOR DE OXIGENO (USA 2) KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8399-large_default/sensor-de-oxigeno-usa-2-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0315caw00041n",
+      "group": "auto",
+      "part": "Sensor de golpe",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0315CAW00041N",
+      "manufacturerCode": "0315CAW00041N",
+      "familyId": "fam-repuestos-sensores",
+      "sourceUrl": "https://allmotor.cl/electronica-encendido-mahindra-kuv100-chile/0315caw00041n-sensor-de-golpe-kuv-100-mahindra-4090",
+      "sourceTitle": "SENSOR DE GOLPE KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8400-large_default/sensor-de-golpe-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0310baw00042n",
+      "group": "auto",
+      "part": "Seguro valvulas",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0310BAW00042N",
+      "manufacturerCode": "0310BAW00042N",
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://allmotor.cl/repuestos-motor-mahindra-kuv100-chile/0310baw00042n-seguro-valvulas-kuv100-mahindra-4499",
+      "sourceTitle": "SEGURO VALVULAS KUV100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/9073-large_default/seguro-valvulas-kuv100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0401baa11051n",
+      "group": "auto",
+      "part": "Rotula 2 ranuras 41.7",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0401BAA11051N",
+      "manufacturerCode": "0401BAA11051N",
+      "familyId": "fam-repuestos-direccion",
+      "sourceUrl": "https://allmotor.cl/direccion-suspension-frenos-mahindra-kuv100-chile/0401baa11051n-rotula-2-ranuras-417-kuv-100-mahindra-4118",
+      "sourceTitle": "ROTULA 2 RANURAS 41.7 KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8398-large_default/rotula-2-ranuras-417-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0401baa11041n",
+      "group": "auto",
+      "part": "Rotula 1 ranura 41.5",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0401BAA11041N",
+      "manufacturerCode": "0401BAA11041N",
+      "familyId": "fam-repuestos-direccion",
+      "sourceUrl": "https://allmotor.cl/direccion-suspension-frenos-mahindra-kuv100-chile/0401baa11041n-rotula-1-ranura-415-kuv-100-mahindra-4117",
+      "sourceTitle": "ROTULA 1 RANURA 41.5 KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8414-large_default/rotula-1-ranura-415-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "allmotor-0401daa02771n",
+      "group": "auto",
+      "part": "Rodamiento maza izq-der",
+      "brand": "Mahindra",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "KUV100",
+      "years": [
+        2016,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "El proveedor identifica KUV100 sin declarar años. Intervalo editorial de prueba 2016–2023; compatibilidad pendiente de verificación por VIN y código.",
+      "code": "0401DAA02771N",
+      "manufacturerCode": "0401DAA02771N",
+      "familyId": "fam-repuestos-direccion",
+      "sourceUrl": "https://allmotor.cl/direccion-suspension-frenos-mahindra-kuv100-chile/0401daa02771n-rodamiento-maza-izq-der-kuv-100-mahindra-4112",
+      "sourceTitle": "RODAMIENTO MAZA IZQ-DER KUV 100 MAHINDRA",
+      "images": [
+        "https://allmotor.cl/8397-large_default/rodamiento-maza-izq-der-kuv-100-mahindra.jpg"
+      ],
+      "seedPrice": 25000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-juego-empaquetadura-motor-hyudai-accent-94-051-3-12v",
+      "group": "auto",
+      "part": "Juego Empaquetadura Motor",
+      "brand": "Por especificar",
+      "vehicleBrand": "Hyundai",
+      "vehicleModel": "Accent",
+      "years": [
+        1994,
+        2005
+      ],
+      "rangeMode": "declared",
+      "yearEvidence": "Intervalo indicado en el párrafo del proveedor correspondiente a Accent; pendiente de validación por VIN, versión y motor.",
+      "code": "H50073P",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/juego-empaquetadura-motor-hyudai-accent-94-051-3-12v",
+      "sourceTitle": "Juego Empaquetadura Motor Hyudai Accent 94/051.3 12V",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/H50073P.png?v=1766777631"
+      ],
+      "seedPrice": 18000,
+      "packaging": "1 juego"
+    },
+    {
+      "key": "fitalia-cable-bujia-para-hyundai-gran-i10-kia-rio-4-largo-n-1",
+      "group": "auto",
+      "part": "Cable Bujia",
+      "brand": "Por especificar",
+      "vehicleBrand": "Kia",
+      "vehicleModel": "Rio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Rio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "30123P",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-sensores",
+      "sourceUrl": "https://www.fitalia.cl/products/cable-bujia-para-hyundai-gran-i10-kia-rio-4-largo-n-1",
+      "sourceTitle": "Cable Bujia para Hyundai Gran I10 Kia Rio 4 Largo N°1",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/30123-1.png?v=1771865936"
+      ],
+      "seedPrice": 11000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-filtro-petroleo-scorpio-motor-2-2",
+      "group": "auto",
+      "part": "Filtro Petroleo Bosch",
+      "brand": "Bosch",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M60415-BOSCH",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-filtros-automotrices",
+      "sourceUrl": "https://www.fitalia.cl/products/filtro-petroleo-scorpio-motor-2-2",
+      "sourceTitle": "Filtro Petroleo Bosch Mahindra Pickup-scorpio-xuv-genio",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M60415-BOSCH_07cfc706-91f9-4d7b-922f-0d2d8bebfc50.png?v=1763566239"
+      ],
+      "seedPrice": 9000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-kit-pinon-satelite-planetario-mahindra-xuv-500",
+      "group": "auto",
+      "part": "Kit Piñon Satelite - Planetario",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M110415",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-transmision-y-diferencial",
+      "sourceUrl": "https://www.fitalia.cl/products/kit-pinon-satelite-planetario-mahindra-xuv-500",
+      "sourceTitle": "Kit Piñon Satelite - Planetario Mahindra XUV 500",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M110415.png?v=1767623941"
+      ],
+      "seedPrice": 36000,
+      "packaging": "1 juego"
+    },
+    {
+      "key": "fitalia-bomba-aceite-para-hyundai-new-accent-diesel",
+      "group": "auto",
+      "part": "Bomba Aceite",
+      "brand": "Por especificar",
+      "vehicleBrand": "Hyundai",
+      "vehicleModel": "Accent",
+      "years": [
+        2006,
+        2010
+      ],
+      "rangeMode": "declared",
+      "yearEvidence": "Intervalo indicado en el párrafo del proveedor correspondiente a Accent; pendiente de validación por VIN, versión y motor.",
+      "code": "H20698KOR",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/bomba-aceite-para-hyundai-new-accent-diesel",
+      "sourceTitle": "Bomba Aceite para Hyundai New Accent Diesel",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/H20698KOR.png?v=1766759404"
+      ],
+      "seedPrice": 64500,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-juego-bujias-hyundai-kia-elantra-cerato-accent-rb-rio-iridium",
+      "group": "auto",
+      "part": "Juego Bujias",
+      "brand": "Por especificar",
+      "vehicleBrand": "Kia",
+      "vehicleModel": "Rio",
+      "years": [
+        2011,
+        2017
+      ],
+      "rangeMode": "declared",
+      "yearEvidence": "Intervalo indicado en el párrafo del proveedor correspondiente a Rio; pendiente de validación por VIN, versión y motor.",
+      "code": "20929-MOBIS",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-sensores",
+      "sourceUrl": "https://www.fitalia.cl/products/juego-bujias-hyundai-kia-elantra-cerato-accent-rb-rio-iridium",
+      "sourceTitle": "Juego Bujias Hyundai-kia Elantra/cerato/accent Rb/ Rio/ Iridium",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/20929-MOBIS.png?v=1765914520"
+      ],
+      "seedPrice": 32000,
+      "packaging": "1 juego"
+    },
+    {
+      "key": "fitalia-filtro-de-aceite-mahindra-scorpio-2-2",
+      "group": "auto",
+      "part": "Filtro Aceite",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M60420",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-filtros-de-aceite",
+      "sourceUrl": "https://www.fitalia.cl/products/filtro-de-aceite-mahindra-scorpio-2-2",
+      "sourceTitle": "Filtro Aceite Mahindra Pick Up - Scorpio - XUV - Genio",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/products/2_a420001c-ed36-4e20-9378-482390a692e6.png?v=1763564690"
+      ],
+      "seedPrice": 4000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-bomba-deposito-limpia-parabrisas-mahindra-xuv-500",
+      "group": "auto",
+      "part": "Bomba Deposito Limpia Parabrisas",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M20712-ALT",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/bomba-deposito-limpia-parabrisas-mahindra-xuv-500",
+      "sourceTitle": "Bomba Deposito Limpia Parabrisas Mahindra XUV 500",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M20712.png?v=1766501527"
+      ],
+      "seedPrice": 11500,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-rodamiento-rda-delantera-hyundai-kia-accent-morning-rio-jb-i10-gran-i10",
+      "group": "auto",
+      "part": "Rodamiento Rda Delantera",
+      "brand": "Por especificar",
+      "vehicleBrand": "Hyundai",
+      "vehicleModel": "Accent",
+      "years": [
+        2000,
+        2021
+      ],
+      "rangeMode": "declared",
+      "yearEvidence": "Intervalo indicado en el párrafo del proveedor correspondiente a Accent; pendiente de validación por VIN, versión y motor.",
+      "code": "H190702KOR",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/rodamiento-rda-delantera-hyundai-kia-accent-morning-rio-jb-i10-gran-i10",
+      "sourceTitle": "Rodamiento Rda Delantera Hyundai-kia Accent/morning/rio Jb/ I10/gran I10",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/H190702.jpg?v=1765385776"
+      ],
+      "seedPrice": 12500,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-kit-embrague-hyundai-new-accent-rb-1-6-rio-jb-3-4-5-elatra-cerato-3pcs",
+      "group": "auto",
+      "part": "Kit Embrague",
+      "brand": "Por especificar",
+      "vehicleBrand": "Kia",
+      "vehicleModel": "Rio",
+      "years": [
+        2006,
+        2011
+      ],
+      "rangeMode": "declared",
+      "yearEvidence": "Intervalo indicado en el párrafo del proveedor correspondiente a Rio; pendiente de validación por VIN, versión y motor.",
+      "code": "H110416P-SECO",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-embragues",
+      "sourceUrl": "https://www.fitalia.cl/products/kit-embrague-hyundai-new-accent-rb-1-6-rio-jb-3-4-5-elatra-cerato-3pcs",
+      "sourceTitle": "Kit Embrague Hyundai New Accent Rb 1.6/ Rio Jb /elatra/cerato 3PCS",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/H110416P-SECO.png?v=1765309036"
+      ],
+      "seedPrice": 35500,
+      "packaging": "1 juego"
+    },
+    {
+      "key": "fitalia-filtro-aire-mahindra",
+      "group": "auto",
+      "part": "Filtro Aire",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M60405",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-filtros-automotrices",
+      "sourceUrl": "https://www.fitalia.cl/products/filtro-aire-mahindra",
+      "sourceTitle": "Filtro Aire Mahindra Pick Up - Scorpio 2.2",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M60405FILTROAIREMESCORPIOPICKUP.jpg?v=1691508889"
+      ],
+      "seedPrice": 11500,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-filtro-aire-mahindra-xuv-500",
+      "group": "auto",
+      "part": "Filtro Aire",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M60412",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-filtros-automotrices",
+      "sourceUrl": "https://www.fitalia.cl/products/filtro-aire-mahindra-xuv-500",
+      "sourceTitle": "Filtro Aire Mahindra XUV 500",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M60412.png?v=1763565823"
+      ],
+      "seedPrice": 12500,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-filtro-aceite-hyundai-kia-accent-rb-1-4-i10-gran-i10-morning-soluto",
+      "group": "auto",
+      "part": "Filtro Aceite",
+      "brand": "Por especificar",
+      "vehicleBrand": "Hyundai",
+      "vehicleModel": "Accent",
+      "years": [
+        2014,
+        2023
+      ],
+      "rangeMode": "declared",
+      "yearEvidence": "Intervalo indicado en el párrafo del proveedor correspondiente a Accent; pendiente de validación por VIN, versión y motor.",
+      "code": "H60501-ALT",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-filtros-de-aceite",
+      "sourceUrl": "https://www.fitalia.cl/products/filtro-aceite-hyundai-kia-accent-rb-1-4-i10-gran-i10-morning-soluto",
+      "sourceTitle": "Filtro Aceite Hyundai-kia Accent Rb 1.4/I10/GRAN I10/morning/soluto",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/H60501-ALT_2.png?v=1764778106"
+      ],
+      "seedPrice": 3000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-kit-embrague-hyundai-kia-acc-rb-1-4-13-20-rio-1-4-18-21-6-vel-3pcs",
+      "group": "auto",
+      "part": "Kit Embrague",
+      "brand": "Por especificar",
+      "vehicleBrand": "Kia",
+      "vehicleModel": "Rio",
+      "years": [
+        2018,
+        2021
+      ],
+      "rangeMode": "declared",
+      "yearEvidence": "Intervalo indicado en el párrafo del proveedor correspondiente a Rio; pendiente de validación por VIN, versión y motor.",
+      "code": "H110426P-VALE",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-embragues",
+      "sourceUrl": "https://www.fitalia.cl/products/kit-embrague-hyundai-kia-acc-rb-1-4-13-20-rio-1-4-18-21-6-vel-3pcs",
+      "sourceTitle": "Kit Embrague Hyundai-kia Acc Rb 1.4/ Rio 1.4 6 Velocidades",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/H110426P-VALE.png?v=1765305674"
+      ],
+      "seedPrice": 57000,
+      "packaging": "1 juego"
+    },
+    {
+      "key": "fitalia-rotulo-inferior-mahindra-pick-up-scorpio-2-2-2-5-2-6",
+      "group": "auto",
+      "part": "Rotulo Inferior",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M190700-ALT",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-direccion",
+      "sourceUrl": "https://www.fitalia.cl/products/rotulo-inferior-mahindra-pick-up-scorpio-2-2-2-5-2-6",
+      "sourceTitle": "Rotulo Inferior Mahindra Pick Up - Scorpio 2.2 2.5 2.6",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M190700-ALT_1.png?v=1763578589"
+      ],
+      "seedPrice": 8000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-juego-bieleta-barra-estabilizadora-delantera-mahindra-xuv-500",
+      "group": "auto",
+      "part": "Juego Bieleta Barra Estabilizadora Delantera",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M20413-ALT",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-direccion",
+      "sourceUrl": "https://www.fitalia.cl/products/juego-bieleta-barra-estabilizadora-delantera-mahindra-xuv-500",
+      "sourceTitle": "Juego Bieleta Barra Estabilizadora Delantera Mahindra XUV 500",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M20413-ALT.png?v=1746646864"
+      ],
+      "seedPrice": 13500,
+      "packaging": "1 juego"
+    },
+    {
+      "key": "fitalia-taquie-valvula-hidraulico-hyundai-kia-accent-getz-rio-jb-elantra-cerato",
+      "group": "auto",
+      "part": "Taquie Valvula Hidraulico",
+      "brand": "Por especificar",
+      "vehicleBrand": "Hyundai",
+      "vehicleModel": "Accent",
+      "years": [
+        2000,
+        2010
+      ],
+      "rangeMode": "declared",
+      "yearEvidence": "Intervalo indicado en el párrafo del proveedor correspondiente a Accent; pendiente de validación por VIN, versión y motor.",
+      "code": "H210041P",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/taquie-valvula-hidraulico-hyundai-kia-accent-getz-rio-jb-elantra-cerato",
+      "sourceTitle": "Taquie Valvula Hidraulico Hyundai-kia Accent/getz/rio Jb/elantra/cerato",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/H210041P.jpg?v=1764702148"
+      ],
+      "seedPrice": 3000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-kit-embrague-para-hyundai-kia-new-acc-rb-rio-jb-3-4-5-elantra-cerato-getz",
+      "group": "auto",
+      "part": "Kit Embrague",
+      "brand": "Por especificar",
+      "vehicleBrand": "Kia",
+      "vehicleModel": "Rio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Rio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "H110414P-VALE",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-embragues",
+      "sourceUrl": "https://www.fitalia.cl/products/kit-embrague-para-hyundai-kia-new-acc-rb-rio-jb-3-4-5-elantra-cerato-getz",
+      "sourceTitle": "Kit Embrague para Hyundai/kia New Acc Rb /rio Jb 3/4/5 Elantra/cerato/getz",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/H110414P-VALE_2.png?v=1764273336"
+      ],
+      "seedPrice": 37000,
+      "packaging": "1 juego"
+    },
+    {
+      "key": "fitalia-reten-ciguenal-trasero-mahindra-pick-up-scorpio-2-2",
+      "group": "auto",
+      "part": "Reten Cigueñal Trasero",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M190290",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/reten-ciguenal-trasero-mahindra-pick-up-scorpio-2-2",
+      "sourceTitle": "Reten Cigueñal Trasero Mahindra Pick Up - Scorpio 2.2",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M190290.jpg?v=1763576477"
+      ],
+      "seedPrice": 9000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-amortiguador-trasero-mahindra-xuv-500",
+      "group": "auto",
+      "part": "Amortiguador Trasero",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M10607-ALT",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-amortiguadores",
+      "sourceUrl": "https://www.fitalia.cl/products/amortiguador-trasero-mahindra-xuv-500",
+      "sourceTitle": "Amortiguador Trasero Mahindra XUV 500",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M10607-ALT.png?v=1746638446"
+      ],
+      "seedPrice": 39000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-taquie-valvula-hyundai-kia-frontier-porter-h1-acc-rb-1-4-i10",
+      "group": "auto",
+      "part": "Taquie Valvula",
+      "brand": "Por especificar",
+      "vehicleBrand": "Hyundai",
+      "vehicleModel": "Accent",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Accent en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "H210039P-INA",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/taquie-valvula-hyundai-kia-frontier-porter-h1-acc-rb-1-4-i10",
+      "sourceTitle": "Taquie Valvula Hyundai-kia Frontier/porter/h1/accent Rb/ I10",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/H210039P-INA.png?v=1764700542"
+      ],
+      "seedPrice": 32500,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-kit-embrague-para-hyundai-kia-mornin-1-2-gran-i10-1-2-rio-1-2",
+      "group": "auto",
+      "part": "Kit Embrague",
+      "brand": "Por especificar",
+      "vehicleBrand": "Kia",
+      "vehicleModel": "Rio",
+      "years": [
+        2012,
+        2018
+      ],
+      "rangeMode": "declared",
+      "yearEvidence": "Intervalo indicado en el párrafo del proveedor correspondiente a Rio; pendiente de validación por VIN, versión y motor.",
+      "code": "H110391P-VALE",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-embragues",
+      "sourceUrl": "https://www.fitalia.cl/products/kit-embrague-para-hyundai-kia-mornin-1-2-gran-i10-1-2-rio-1-2",
+      "sourceTitle": "Kit Embrague para Hyundai/kia Mornin 1.2-/GRAN I10 1.2/RIO 1.2",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/H110391.png?v=1764264940"
+      ],
+      "seedPrice": 46500,
+      "packaging": "1 juego"
+    },
+    {
+      "key": "fitalia-porta-corona-trasera-mahindra",
+      "group": "auto",
+      "part": "Porta Corona Trasera",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M170520-ORI",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-transmision-y-diferencial",
+      "sourceUrl": "https://www.fitalia.cl/products/porta-corona-trasera-mahindra",
+      "sourceTitle": "Porta Corona Trasera Mahindra Pick Up - Scorpio",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/Disenosintitulo_1.png?v=1692884437"
+      ],
+      "seedPrice": 130000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-soporte-motor-trasero-mahindra-xuv-500",
+      "group": "auto",
+      "part": "Soporte Motor Trasero",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M200606",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/soporte-motor-trasero-mahindra-xuv-500",
+      "sourceTitle": "Soporte Motor Trasero Mahindra Xuv 500",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M200606.png?v=1784126278",
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M200606-2.png?v=1784126278"
+      ],
+      "seedPrice": 38500,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-kit-dist-new-accen-prim-rio-jb-elan-cera-get-105d",
+      "group": "auto",
+      "part": "Kit Distribucion",
+      "brand": "Por especificar",
+      "vehicleBrand": "Hyundai",
+      "vehicleModel": "Accent",
+      "years": [
+        2006,
+        2011
+      ],
+      "rangeMode": "declared",
+      "yearEvidence": "Intervalo indicado en el párrafo del proveedor correspondiente a Accent; pendiente de validación por VIN, versión y motor.",
+      "code": "HA006KOR",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-distribucion",
+      "sourceUrl": "https://www.fitalia.cl/products/kit-dist-new-accen-prim-rio-jb-elan-cera-get-105d",
+      "sourceTitle": "Kit Distribucion para Hyundai-kia Accent/ Rio Jb/elantra/cerato/getz 105D",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/HA006.png?v=1764099007"
+      ],
+      "seedPrice": 22500,
+      "packaging": "1 juego"
+    },
+    {
+      "key": "fitalia-filtro-aceite-para-hyundai-kia-accent-rio-elantra-cerato",
+      "group": "auto",
+      "part": "Filtro Aceite",
+      "brand": "Por especificar",
+      "vehicleBrand": "Kia",
+      "vehicleModel": "Rio",
+      "years": [
+        2011,
+        2017
+      ],
+      "rangeMode": "declared",
+      "yearEvidence": "Intervalo indicado en el párrafo del proveedor correspondiente a Rio; pendiente de validación por VIN, versión y motor.",
+      "code": "H60430-MOBIS",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-filtros-de-aceite",
+      "sourceUrl": "https://www.fitalia.cl/products/filtro-aceite-para-hyundai-kia-accent-rio-elantra-cerato",
+      "sourceTitle": "Filtro Aceite para Hyundai-kia Accent/rio/elantra/cerato",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/H60430MOBIS.png?v=1764003828"
+      ],
+      "seedPrice": 3000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-cremallera-mahindra-pick-up-scorpio-2-2",
+      "group": "auto",
+      "part": "Cremallera",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M30220-ALT",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-direccion",
+      "sourceUrl": "https://www.fitalia.cl/products/cremallera-mahindra-pick-up-scorpio-2-2",
+      "sourceTitle": "Cremallera Mahindra Pick Up - Scorpio 2.2",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M30220ALT.png?v=1763560504"
+      ],
+      "seedPrice": 292000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-farol-neblinero-izquierdo-mahindra-xuv-501",
+      "group": "auto",
+      "part": "Farol Neblinero Izquierdo",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M60026",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-neblineros",
+      "sourceUrl": "https://www.fitalia.cl/products/farol-neblinero-izquierdo-mahindra-xuv-501",
+      "sourceTitle": "Farol Neblinero Izquierdo Mahindra Xuv 500",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M60026.png?v=1783700759",
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M60026-2.png?v=1783700763"
+      ],
+      "seedPrice": 35000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-filtro-aceite-para-hyundai-kia-accent-rb-1-4-i10-gran-i10-morning-solut0",
+      "group": "auto",
+      "part": "Filtro Aceite",
+      "brand": "Por especificar",
+      "vehicleBrand": "Hyundai",
+      "vehicleModel": "Accent",
+      "years": [
+        2014,
+        2023
+      ],
+      "rangeMode": "declared",
+      "yearEvidence": "Intervalo indicado en el párrafo del proveedor correspondiente a Accent; pendiente de validación por VIN, versión y motor.",
+      "code": "H60560-MOBIS",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-filtros-de-aceite",
+      "sourceUrl": "https://www.fitalia.cl/products/filtro-aceite-para-hyundai-kia-accent-rb-1-4-i10-gran-i10-morning-solut0",
+      "sourceTitle": "Filtro Aceite para Hyundai-kia Accent Rb 1.4 I10 Gran I10 Morning Solut0",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/H60560MOBIS.jpg?v=1764000826"
+      ],
+      "seedPrice": 3500,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-balancin-admision-escape-mahindra-pickup-scorpio-genio-xuv",
+      "group": "auto",
+      "part": "Balancin Admision Escape",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M20000-ORI",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/balancin-admision-escape-mahindra-pickup-scorpio-genio-xuv",
+      "sourceTitle": "Balancin Admision Escape Mahindra Pickup-scorpio-genio-xuv",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M20000.png?v=1763557369"
+      ],
+      "seedPrice": 5000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-farol-neblinero-izquierdo-mahindra-xuv-500",
+      "group": "auto",
+      "part": "Farol Neblinero Izquierdo",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M60008",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-neblineros",
+      "sourceUrl": "https://www.fitalia.cl/products/farol-neblinero-izquierdo-mahindra-xuv-500",
+      "sourceTitle": "Farol Neblinero Izquierdo Mahindra Xuv 500",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M60008.png?v=1783698889",
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M60008-2.png?v=1783698888"
+      ],
+      "seedPrice": 25500,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-juego-bujia-para-hyundai-accent-rb-elantra-11-17",
+      "group": "auto",
+      "part": "Juego Bujia",
+      "brand": "Por especificar",
+      "vehicleBrand": "Hyundai",
+      "vehicleModel": "Accent",
+      "years": [
+        2011,
+        2024
+      ],
+      "rangeMode": "declared",
+      "yearEvidence": "Intervalo indicado en el párrafo del proveedor correspondiente a Accent; pendiente de validación por VIN, versión y motor.",
+      "code": "20924-MOBIS",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-sensores",
+      "sourceUrl": "https://www.fitalia.cl/products/juego-bujia-para-hyundai-accent-rb-elantra-11-17",
+      "sourceTitle": "Juego Bujia para Hyundai-kia Accent Rb/elantra 11-17/CERATO",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/20924_d359c69b-8d37-4742-b076-0789fc2918d4.png?v=1763825783"
+      ],
+      "seedPrice": 13500,
+      "packaging": "1 juego"
+    },
+    {
+      "key": "fitalia-juego-metal-axial-std-mahindra-pick-up-2-2-scorpio-2-2",
+      "group": "auto",
+      "part": "Juego Metal Axial Std",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M130201-ALT",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/juego-metal-axial-std-mahindra-pick-up-2-2-scorpio-2-2",
+      "sourceTitle": "Juego Metal Axial Std Mahindra Pick Up 2.2 Scorpio 2.2",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M130201-ALT_1.png?v=1746819869"
+      ],
+      "seedPrice": 10000,
+      "packaging": "1 juego"
+    },
+    {
+      "key": "fitalia-farol-neblinero-derecho-mahindra-xuv-500",
+      "group": "auto",
+      "part": "Farol Neblinero Derecho",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M60007",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-neblineros",
+      "sourceUrl": "https://www.fitalia.cl/products/farol-neblinero-derecho-mahindra-xuv-500",
+      "sourceTitle": "Farol Neblinero Derecho Mahindra Xuv 500",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M60007.png?v=1783698720",
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M60007-2.png?v=1783698720"
+      ],
+      "seedPrice": 24500,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-juego-bujia-rosca-chica-para-hyundai-accent-excel-elantra",
+      "group": "auto",
+      "part": "Juego Bujia Rosca Chica",
+      "brand": "Por especificar",
+      "vehicleBrand": "Hyundai",
+      "vehicleModel": "Accent",
+      "years": [
+        1995,
+        2010
+      ],
+      "rangeMode": "declared",
+      "yearEvidence": "Intervalo indicado en el párrafo del proveedor correspondiente a Accent; pendiente de validación por VIN, versión y motor.",
+      "code": "H20860-MOBIS",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-sensores",
+      "sourceUrl": "https://www.fitalia.cl/products/juego-bujia-rosca-chica-para-hyundai-accent-excel-elantra",
+      "sourceTitle": "Juego Bujia Rosca Chica para Hyundai Accent/excel/elantra",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/H20860.png?v=1763823762"
+      ],
+      "seedPrice": 12500,
+      "packaging": "1 juego"
+    },
+    {
+      "key": "fitalia-rotula-superior-mahindra-pick-up-2-2-scorpio-2-2",
+      "group": "auto",
+      "part": "Rotula Superior",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M190705-ALT",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-direccion",
+      "sourceUrl": "https://www.fitalia.cl/products/rotula-superior-mahindra-pick-up-2-2-scorpio-2-2",
+      "sourceTitle": "Rotula Superior Mahindra Pick Up 2.2 Scorpio 2.2",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M190705-ALT_1.png?v=1746567906"
+      ],
+      "seedPrice": 6000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-electroventilador-radiador-mahindra-xuv-500",
+      "group": "auto",
+      "part": "Electroventilador Radiador",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M10003",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/electroventilador-radiador-mahindra-xuv-500",
+      "sourceTitle": "Electroventilador Radiador Mahindra Xuv 500",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M10003.png?v=1783626086",
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M10003-2.png?v=1783626086"
+      ],
+      "seedPrice": 162000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-bomba-agua-para-hyundai-accent-elantra",
+      "group": "auto",
+      "part": "Bomba Agua",
+      "brand": "Por especificar",
+      "vehicleBrand": "Hyundai",
+      "vehicleModel": "Accent",
+      "years": [
+        2011,
+        2014
+      ],
+      "rangeMode": "declared",
+      "yearEvidence": "Intervalo indicado en el párrafo del proveedor correspondiente a Accent; pendiente de validación por VIN, versión y motor.",
+      "code": "H20649KOR",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/bomba-agua-para-hyundai-accent-elantra",
+      "sourceTitle": "Bomba Agua para Hyundai Accent - Elantra",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/H20649KOR.png?v=1763671376"
+      ],
+      "seedPrice": 19000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-amortiguador-trasero-mahindra-scorpio-2-2-2-5",
+      "group": "auto",
+      "part": "Amortiguador Trasero",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M10635-ALT",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-amortiguadores",
+      "sourceUrl": "https://www.fitalia.cl/products/amortiguador-trasero-mahindra-scorpio-2-2-2-5",
+      "sourceTitle": "Amortiguador Trasero Mahindra Scorpio 2.2 - 2.5",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M10635.png?v=1783696030",
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M10635-2.png?v=1783696030"
+      ],
+      "seedPrice": 37000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-mensula-parachoque-trasero-mahindra-xuv-500",
+      "group": "auto",
+      "part": "Mensula Parachoque Trasero",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M130320",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-carroceria",
+      "sourceUrl": "https://www.fitalia.cl/products/mensula-parachoque-trasero-mahindra-xuv-500",
+      "sourceTitle": "Mensula Parachoque Trasero Mahindra XUV 500",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M130320.png?v=1767629042"
+      ],
+      "seedPrice": 12500,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-bobina-encendido-accent-rb",
+      "group": "auto",
+      "part": "Bobina Encendido",
+      "brand": "Por especificar",
+      "vehicleBrand": "Hyundai",
+      "vehicleModel": "Accent",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Accent en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "H20719-MOBIS",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-sensores",
+      "sourceUrl": "https://www.fitalia.cl/products/bobina-encendido-accent-rb",
+      "sourceTitle": "Bobina Encendido Accent Rb",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/H20719MOBIS_72b0a36a-7560-40b0-a3b0-1b079bfd9941.jpg?v=1762889900"
+      ],
+      "seedPrice": 27000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-manguera-inferior-radiador-mahindra-scorpio-2-5",
+      "group": "auto",
+      "part": "Manguera Inferior Radiador",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M130020-ALT",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/manguera-inferior-radiador-mahindra-scorpio-2-5",
+      "sourceTitle": "Manguera Inferior Radiador Mahindra Scorpio 2.5",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M130020.png?v=1767624991"
+      ],
+      "seedPrice": 7000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-manguera-succion-filtro-aire-mahindra-xuv-502",
+      "group": "auto",
+      "part": "Manguera Succion Filtro Aire",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M130031",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-filtros-automotrices",
+      "sourceUrl": "https://www.fitalia.cl/products/manguera-succion-filtro-aire-mahindra-xuv-502",
+      "sourceTitle": "Manguera Succion Filtro Aire Mahindra XUV 500",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M130031.png?v=1767626486"
+      ],
+      "seedPrice": 3000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-turbo-hyundai-accent-rb-1-6-2012-al-2017",
+      "group": "auto",
+      "part": "Turbo",
+      "brand": "Por especificar",
+      "vehicleBrand": "Hyundai",
+      "vehicleModel": "Accent",
+      "years": [
+        2012,
+        2017
+      ],
+      "rangeMode": "declared",
+      "yearEvidence": "Intervalo indicado en el párrafo del proveedor correspondiente a Accent; pendiente de validación por VIN, versión y motor.",
+      "code": "H210863CHN",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/turbo-hyundai-accent-rb-1-6-2012-al-2017",
+      "sourceTitle": "Turbo Hyundai Accent Rb 1.6 2012 al 2017",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/H210863CHN.png?v=1744041963"
+      ],
+      "seedPrice": 260500,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-cremallera-alza-vidrio-manual-trasera-izquierda-mahindra-scorpio-2-5",
+      "group": "auto",
+      "part": "Cremallera Alza Vidrio Manual Trasera Izquierda",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M30666",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-direccion",
+      "sourceUrl": "https://www.fitalia.cl/products/cremallera-alza-vidrio-manual-trasera-izquierda-mahindra-scorpio-2-5",
+      "sourceTitle": "Cremallera Alza Vidrio Manual Trasera Izquierda Mahindra Scorpio 2.5",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M30666.png?v=1766506746"
+      ],
+      "seedPrice": 11500,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-manguera-succion-filtro-aire-mahindra-xuv-501",
+      "group": "auto",
+      "part": "Manguera Succion Filtro Aire",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M130029",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-filtros-automotrices",
+      "sourceUrl": "https://www.fitalia.cl/products/manguera-succion-filtro-aire-mahindra-xuv-501",
+      "sourceTitle": "Manguera Succion Filtro Aire Mahindra XUV 500",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M130029.png?v=1767626315"
+      ],
+      "seedPrice": 3000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-turbo-hyundai-accent-prime-2005-al-2009",
+      "group": "auto",
+      "part": "Turbo",
+      "brand": "Por especificar",
+      "vehicleBrand": "Hyundai",
+      "vehicleModel": "Accent",
+      "years": [
+        2005,
+        2009
+      ],
+      "rangeMode": "declared",
+      "yearEvidence": "Intervalo indicado en el párrafo del proveedor correspondiente a Accent; pendiente de validación por VIN, versión y motor.",
+      "code": "H210826CHN",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/turbo-hyundai-accent-prime-2005-al-2009",
+      "sourceTitle": "Turbo Hyundai Accent Prime 1.5 2005 al 2009",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/H210826CHN-2.png?v=1744041162"
+      ],
+      "seedPrice": 193500,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-caneria-inyector-nª4-mahindra-scorpio-2-5",
+      "group": "auto",
+      "part": "Cañeria Inyector Nª4",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M30123",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/caneria-inyector-nª4-mahindra-scorpio-2-5",
+      "sourceTitle": "Cañeria Inyector Nª4 Mahindra Scorpio 2.5",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M30123.png?v=1766505345"
+      ],
+      "seedPrice": 13000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-manguera-succion-filtro-aire-mahindra-xuv-500",
+      "group": "auto",
+      "part": "Manguera Succion Filtro Aire",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M130028",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-filtros-automotrices",
+      "sourceUrl": "https://www.fitalia.cl/products/manguera-succion-filtro-aire-mahindra-xuv-500",
+      "sourceTitle": "Manguera Succion Filtro Aire Mahindra XUV 500",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M130028.png?v=1767625336"
+      ],
+      "seedPrice": 8500,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-caneria-inyector-nª2-mahindra-scorpio-2-5",
+      "group": "auto",
+      "part": "Cañeria Inyector Nª2",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M30122",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/caneria-inyector-nª2-mahindra-scorpio-2-5",
+      "sourceTitle": "Cañeria Inyector Nª2 Mahindra Scorpio 2.5",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M30122.png?v=1766505219"
+      ],
+      "seedPrice": 13000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-interruptor-nivelacion-luces-delantera-mahindra-xuv-500-todas",
+      "group": "auto",
+      "part": "Interruptor Nivelacion Luces Delantera",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M90239",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/interruptor-nivelacion-luces-delantera-mahindra-xuv-500-todas",
+      "sourceTitle": "Interruptor Nivelacion Luces Delantera Mahindra XUV 500 Todas",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M90239.png?v=1767622930"
+      ],
+      "seedPrice": 9000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-juego-terminal-interior-exterior-mahindra-pickup",
+      "group": "auto",
+      "part": "Juego Terminal Interior - Exterior",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M210305-ALT",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-direccion",
+      "sourceUrl": "https://www.fitalia.cl/products/juego-terminal-interior-exterior-mahindra-pickup",
+      "sourceTitle": "Juego Terminal Interior - Exterior Mahindra Pick Up - Scorpio 2.2 - 2.5",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M210305-ALT_598de66f-a4a3-4da1-bb41-baec0d79b6e6.png?v=1764076849"
+      ],
+      "seedPrice": 32500,
+      "packaging": "1 juego"
+    },
+    {
+      "key": "fitalia-eje-secundario-2-caja-cambio-solo-mahindra-xuv-500",
+      "group": "auto",
+      "part": "Eje Secundario 2 Caja Cambio Solo",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M50182",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/eje-secundario-2-caja-cambio-solo-mahindra-xuv-500",
+      "sourceTitle": "Eje Secundario 2 Caja Cambio Solo Mahindra XUV 500",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M50182.png?v=1766521621"
+      ],
+      "seedPrice": 62000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-tensor-correa-bomba-agua-mahindra-pick-up-scorpio-2-2",
+      "group": "auto",
+      "part": "Tensor Correa Bomba Agua",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M210205",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-distribucion",
+      "sourceUrl": "https://www.fitalia.cl/products/tensor-correa-bomba-agua-mahindra-pick-up-scorpio-2-2",
+      "sourceTitle": "Tensor Correa Bomba Agua Mahindra Pick Up - Scorpio 2.2",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M210205.png?v=1764076185"
+      ],
+      "seedPrice": 36000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-deposito-limpia-parabrisas-trasero-mahindra-xuv-500",
+      "group": "auto",
+      "part": "Deposito Limpia Parabrisas Trasero",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M30237",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/deposito-limpia-parabrisas-trasero-mahindra-xuv-500",
+      "sourceTitle": "Deposito Limpia Parabrisas Trasero Mahindra XUV 500",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M30237.png?v=1766518735"
+      ],
+      "seedPrice": 5000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-tensor-con-alternador-mahindra-pick-up-scorpio-2-2",
+      "group": "auto",
+      "part": "Tensor con Alternador",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M210200",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-distribucion",
+      "sourceUrl": "https://www.fitalia.cl/products/tensor-con-alternador-mahindra-pick-up-scorpio-2-2",
+      "sourceTitle": "Tensor con Alternador Mahindra Pick Up- Scorpio 2.2",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M210200.png?v=1764076009"
+      ],
+      "seedPrice": 50000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-deposito-liquido-de-freno-mahindra-xuv500",
+      "group": "auto",
+      "part": "Deposito Liquido de Freno",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M40241",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-frenos",
+      "sourceUrl": "https://www.fitalia.cl/products/deposito-liquido-de-freno-mahindra-xuv500",
+      "sourceTitle": "Deposito Liquido de Freno Mahindra Xuv500",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M40241.png?v=1766518253"
+      ],
+      "seedPrice": 14000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-sensor-riel-inyeccion-mahindra-pick-up-scorpio-2-2-bosch",
+      "group": "auto",
+      "part": "Sensor Riel Inyeccion",
+      "brand": "Bosch",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M200115P-BOSCH",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-sensores",
+      "sourceUrl": "https://www.fitalia.cl/products/sensor-riel-inyeccion-mahindra-pick-up-scorpio-2-2-bosch",
+      "sourceTitle": "Sensor Riel Inyeccion Mahindra Pick Up - Scorpio 2.2 Bosch",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M200115PBOSCH.png?v=1763579138"
+      ],
+      "seedPrice": 42000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-barra-estabilizadora-delantera-mahindra-xuv-500-todas",
+      "group": "auto",
+      "part": "Barra Estabilizadora Delantera",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M20172",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/barra-estabilizadora-delantera-mahindra-xuv-500-todas",
+      "sourceTitle": "Barra Estabilizadora Delantera Mahindra XUV 500 Todas",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M20172.png?v=1766501020"
+      ],
+      "seedPrice": 31000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-rodamiento-pinon-ataque-exterior-mahindra-pick-up-scorpio-2-2",
+      "group": "auto",
+      "part": "Rodamiento Piñon Ataque Exterior",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M190660",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-distribucion",
+      "sourceUrl": "https://www.fitalia.cl/products/rodamiento-pinon-ataque-exterior-mahindra-pick-up-scorpio-2-2",
+      "sourceTitle": "Rodamiento Piñon Ataque Exterior Mahindra Pick Up - Scorpio 2.2",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M190660.png?v=1763578208"
+      ],
+      "seedPrice": 12500,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-juego-pastillas-freno-delantera-mahindra-xuv-500-bosch",
+      "group": "auto",
+      "part": "Juego Pastillas Freno Delantera",
+      "brand": "Bosch",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M170002-BOSCH",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-pastillas-de-freno",
+      "sourceUrl": "https://www.fitalia.cl/products/juego-pastillas-freno-delantera-mahindra-xuv-500-bosch",
+      "sourceTitle": "Juego Pastillas Freno Delantera Mahindra XUV 500 Bosch",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M170002-BOSCH.png?v=1763569332"
+      ],
+      "seedPrice": 26000,
+      "packaging": "1 juego"
+    },
+    {
+      "key": "fitalia-juego-reten-valvula-mahindra-pick-up-scorpio-2-2",
+      "group": "auto",
+      "part": "Juego Reten Valvula",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M190200P",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/juego-reten-valvula-mahindra-pick-up-scorpio-2-2",
+      "sourceTitle": "Juego Reten Valvula Mahindra Pick Up - Scorpio 2.2",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/Disenosintitulo-2025-11-19T152629.196.png?v=1763576808"
+      ],
+      "seedPrice": 15500,
+      "packaging": "1 juego"
+    },
+    {
+      "key": "fitalia-inyector-mahindra-pick-up-scorpio-xuv-500-genio-ev-bosch",
+      "group": "auto",
+      "part": "Inyector",
+      "brand": "Bosch",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M90310P-BOSCH",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/inyector-mahindra-pick-up-scorpio-xuv-500-genio-ev-bosch",
+      "sourceTitle": "Inyector Mahindra Pick Up - Scorpio - XUV 500 - Genio Ev Bosch",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M90310bosch.png?v=1763567364"
+      ],
+      "seedPrice": 114000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-juego-pistones-std-mahindra-pick-up-scorpio-2-2",
+      "group": "auto",
+      "part": "Juego Pistones Std",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M170412",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/juego-pistones-std-mahindra-pick-up-scorpio-2-2",
+      "sourceTitle": "Juego Pistones Std Mahindra Pick Up - Scorpio 2.2",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M170412-ALT.png?v=1763575560"
+      ],
+      "seedPrice": 123500,
+      "packaging": "1 juego"
+    },
+    {
+      "key": "fitalia-bandeja-delantero-inferior-derecho-mahindra-xuv500",
+      "group": "auto",
+      "part": "Bandeja Delantero Inferior Derecho",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M20101",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/bandeja-delantero-inferior-derecho-mahindra-xuv500",
+      "sourceTitle": "Bandeja Delantero Inferior Derecho Mahindra Xuv500",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M20101.png?v=1763557753"
+      ],
+      "seedPrice": 87500,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-pinon-y-corona-mahindra-pick-up-scorpio-2-2",
+      "group": "auto",
+      "part": "Piñon y Corona",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M170180",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-transmision-y-diferencial",
+      "sourceUrl": "https://www.fitalia.cl/products/pinon-y-corona-mahindra-pick-up-scorpio-2-2",
+      "sourceTitle": "Piñon y Corona Mahindra Pick Up - Scorpio 2.2",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M170180_1.png?v=1763574624"
+      ],
+      "seedPrice": 130000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-bandeja-delantero-inferior-izquierdo-mahindra-xuv500",
+      "group": "auto",
+      "part": "Bandeja Delantero Inferior Izquierdo",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M20102",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/bandeja-delantero-inferior-izquierdo-mahindra-xuv500",
+      "sourceTitle": "Bandeja Delantero Inferior Izquierdo Mahindra Xuv500",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M20102.png?v=1763557626"
+      ],
+      "seedPrice": 104000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-juego-perno-culata-mahindra-pick-up-scorpio-2-2",
+      "group": "auto",
+      "part": "Juego Perno Culata",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M170210",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/juego-perno-culata-mahindra-pick-up-scorpio-2-2",
+      "sourceTitle": "Juego Perno Culata Mahindra Pick Up - Scorpio 2.2",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M170210.png?v=1763574403"
+      ],
+      "seedPrice": 10500,
+      "packaging": "1 juego"
+    },
+    {
+      "key": "fitalia-brazo-limpiaparabrisa-izquierdo-mahindra-xuv-500",
+      "group": "auto",
+      "part": "Brazo Limpia Parabrisa Izquierdo",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "XUV500",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para XUV500 en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M20840",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/brazo-limpiaparabrisa-izquierdo-mahindra-xuv-500",
+      "sourceTitle": "Brazo Limpia Parabrisa Izquierdo Mahindra XUV 500",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M20840-2.png?v=1747081022"
+      ],
+      "seedPrice": 23000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "fitalia-modulo-vacio-egr-mahindra-pick-up-scorpio-xuv-500-genio-original",
+      "group": "auto",
+      "part": "Modulo Vacio Egr",
+      "brand": "Por especificar",
+      "vehicleBrand": "Mahindra",
+      "vehicleModel": "Scorpio",
+      "years": [
+        2010,
+        2023
+      ],
+      "rangeMode": "editorial",
+      "yearEvidence": "No se identifica un intervalo cerrado inequívoco para Scorpio en la fuente. Se usa 2010–2023 como intervalo editorial de prueba, sin certificar compatibilidad real.",
+      "code": "M130400",
+      "manufacturerCode": null,
+      "familyId": "fam-repuestos-motor-y-refrigeracion",
+      "sourceUrl": "https://www.fitalia.cl/products/modulo-vacio-egr-mahindra-pick-up-scorpio-xuv-500-genio-original",
+      "sourceTitle": "Modulo Vacio Egr Mahindra Pick Up - Scorpio - XUV 500 - Genio Original",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0519/4439/0828/files/M1304002.png?v=1763574100"
+      ],
+      "seedPrice": 31000,
+      "packaging": "1 unidad"
+    },
+    {
+      "key": "dab-makita-taladro-atornillador-percutor-18v-dhp487rfx4",
+      "group": "construction",
+      "name": "Makita Taladro Atornillador 13mm. 2 Baterias 3ah + Cargador - Dhp487rfx4-1",
+      "brand": "Makita",
+      "code": "1052321",
+      "manufacturerCode": null,
+      "familyId": "fam-perforacion-y-atornillado",
+      "sourceUrl": "https://dab.cl/products/makita-taladro-atornillador-percutor-18v-dhp487rfx4",
+      "sourceTitle": "Makita Taladro Atornillador 13mm. 2 Baterias 3ah + Cargador - Dhp487rfx4-1",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/dhp487rfx4-1_1.jpg?v=1781820580",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/d_nq_np_2x_638968-mla83626297872.jpg?v=1781820579"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 154500
+    },
+    {
+      "key": "dab-esmeril-bosch-gws-2200-230-vulcano-2200w-tc",
+      "group": "construction",
+      "name": "Esmeril Angular Bosch 9 Gws 2200-230 Vulcano 2200w Tc",
+      "brand": "Bosch",
+      "code": "1051620",
+      "manufacturerCode": null,
+      "familyId": "fam-corte-desbaste-y-lijado",
+      "sourceUrl": "https://dab.cl/products/esmeril-bosch-gws-2200-230-vulcano-2200w-tc",
+      "sourceTitle": "Esmeril Angular Bosch 9 Gws 2200-230 Vulcano 2200w Tc",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/esmeril_bosch_gws_2200-230_vulcano_9_2200w.jpg?v=1781820481",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/esmeril_bosch_gws_2200_180_vulcano_7_2200w_2_1.jpg?v=1781820482"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 113500
+    },
+    {
+      "key": "dab-einhell-taladro-impacto-inalambrico-18v-4514305-tp-cd-18-80-li-i-bl-solo",
+      "group": "construction",
+      "name": "Einhell Taladro Impacto Inalambrico 18V 4514305 TP-CD 18/80 Li-i BL - Solo",
+      "brand": "Einhell",
+      "code": "1051189",
+      "manufacturerCode": null,
+      "familyId": "fam-perforacion-y-atornillado",
+      "sourceUrl": "https://dab.cl/products/einhell-taladro-impacto-inalambrico-18v-4514305-tp-cd-18-80-li-i-bl-solo",
+      "sourceTitle": "Einhell Taladro Impacto  Inalambrico 18V  4514305  TP-CD 18/80 Li-i BL - Solo",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/FJPG-FWEBP-B800_82895399-77e2-4f38-939d-d4c97eafb37b.webp?v=1788808682",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/FJPG-FWEBP_5b71b337-5e8c-4c7d-a03a-01345f4bc8e2.webp?v=1788808693"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 88500
+    },
+    {
+      "key": "dab-stanley-llave-stilson-24p-87626-1",
+      "group": "construction",
+      "name": "Stanley Llave Stilson 24\" 87626",
+      "brand": "Stanley",
+      "code": "1043109",
+      "manufacturerCode": null,
+      "familyId": "fam-llaves-alicates-y-destornilladores",
+      "sourceUrl": "https://dab.cl/products/stanley-llave-stilson-24p-87626-1",
+      "sourceTitle": "Stanley Llave Stilson 24\" 87626",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/10004202-llave-stillson-24p_1_hkjl0cqwiex7ec1o.jpg?v=1781819113"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 41500
+    },
+    {
+      "key": "dab-bahco-llave-cadena-4-370-4-1",
+      "group": "construction",
+      "name": "Bahco Llave Cadena 4 / 370-4",
+      "brand": "Bahco",
+      "code": "1049849",
+      "manufacturerCode": null,
+      "familyId": "fam-llaves-alicates-y-destornilladores",
+      "sourceUrl": "https://dab.cl/products/bahco-llave-cadena-4-370-4-1",
+      "sourceTitle": "Bahco Llave Cadena 4 / 370-4",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/image_3__rh6mpx07n1gzrgcy.png?v=1781819980",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/16a093e9a1edc83f.png?v=1792001304"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 22500
+    },
+    {
+      "key": "dab-tecle-de-arrastre-4-0-ton-truper-1",
+      "group": "construction",
+      "name": "Tecle De Arrastre 4,0 Ton Truper",
+      "brand": "Truper",
+      "code": "1040407",
+      "manufacturerCode": null,
+      "familyId": "fam-carpinteria-albanileria-y-sujecion",
+      "sourceUrl": "https://dab.cl/products/tecle-de-arrastre-4-0-ton-truper-1",
+      "sourceTitle": "Tecle De Arrastre 4,0 Ton Truper",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/https___s3-sa-east-1.amazonaws.com_centryproduction_belanit-inventario_products_5a6a171617ea2591a1abecc9_original_mal-4_hcvricedn9nhpjpp.jpg?v=1781818850"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 52500
+    },
+    {
+      "key": "dab-sikaceram-110-extra-25kg",
+      "group": "construction",
+      "name": "Sikaceram-110 Extra Saco De 25 Kg (Sobre Ceram)",
+      "brand": "Sika",
+      "code": "1051442",
+      "manufacturerCode": null,
+      "familyId": "fam-adhesivos-fragues-y-niveladores",
+      "sourceUrl": "https://dab.cl/products/sikaceram-110-extra-25kg",
+      "sourceTitle": "Sikaceram-110 Extra Saco De 25 Kg (Sobre Ceram)",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/89211-1.jpg?v=1781820446"
+      ],
+      "packaging": "Saco de 25 Kg",
+      "seedPrice": 13000
+    },
+    {
+      "key": "dab-agorex-tapagotera-cartucho-440ml-22702031",
+      "group": "construction",
+      "name": "Agorex Tapagotera Cartucho 440Ml (22702031)",
+      "brand": "Agorex",
+      "code": "1048129",
+      "manufacturerCode": null,
+      "familyId": "fam-selladores-y-espumas",
+      "sourceUrl": "https://dab.cl/products/agorex-tapagotera-cartucho-440ml-22702031",
+      "sourceTitle": "Agorex Tapagotera Cartucho 440Ml (22702031)",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/w_800_h_800_fit_pad_9.jpg?v=1781820036"
+      ],
+      "packaging": "Envase de 440 Ml",
+      "seedPrice": 6500
+    },
+    {
+      "key": "dab-espuma-poliuretano-750ml-soudal",
+      "group": "construction",
+      "name": "Espuma Poliuretano 750Ml * Soudal",
+      "brand": "Soudal",
+      "code": "1011076",
+      "manufacturerCode": null,
+      "familyId": "fam-selladores-y-espumas",
+      "sourceUrl": "https://dab.cl/products/espuma-poliuretano-750ml-soudal",
+      "sourceTitle": "Espuma Poliuretano 750Ml * Soudal",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/w_1500_h_1500_fit_cover_50f052fe-3cca-4050-9dad-cb6626e2fa24.webp?v=1789500122",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/w_1200_h_1200_fit_pad_eb3dbf29-8adb-48e2-8646-a070cb51786e.webp?v=1789500128"
+      ],
+      "packaging": "Envase de 750 Ml",
+      "seedPrice": 6500
+    },
+    {
+      "key": "dab-3m-silicona-sellador-550-poliuret-600ml-gris-1",
+      "group": "construction",
+      "name": "3M Silicona Sellador 550 Poliuret 600Ml Gris",
+      "brand": "3M",
+      "code": "1044326",
+      "manufacturerCode": null,
+      "familyId": "fam-selladores-y-espumas",
+      "sourceUrl": "https://dab.cl/products/3m-silicona-sellador-550-poliuret-600ml-gris-1",
+      "sourceTitle": "3M Silicona Sellador 550 Poliuret 600Ml Gris",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/sellador-poliuretano-550-gris-de-600ml_1_z2pntkeizlk3ktjm.jpg?v=1781819244"
+      ],
+      "packaging": "Envase de 600 Ml",
+      "seedPrice": 7500
+    },
+    {
+      "key": "dab-loctite-sb-ultra-20gr-2818299",
+      "group": "construction",
+      "name": "Loctite Sb Ultra 20Gr.2818299",
+      "brand": "Loctite",
+      "code": "1050391",
+      "manufacturerCode": null,
+      "familyId": "fam-adhesivos-de-montaje-y-carpinteria",
+      "sourceUrl": "https://dab.cl/products/loctite-sb-ultra-20gr-2818299",
+      "sourceTitle": "Loctite Sb Ultra 20Gr.2818299",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/ADH0012.webp?v=1789577054",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/D_NQ_NP_2X_898789-MLA92925140005_092025-F.webp?v=1789577072"
+      ],
+      "packaging": "Envase de 20 Gr",
+      "seedPrice": 3000
+    },
+    {
+      "key": "dab-harden-set-23pcs-llaves-punta-corona-540106-1",
+      "group": "construction",
+      "name": "Harden Set 23Pcs Llaves Punta Corona 540106",
+      "brand": "Harden",
+      "code": "1047155",
+      "manufacturerCode": null,
+      "familyId": "fam-llaves-alicates-y-destornilladores",
+      "sourceUrl": "https://dab.cl/products/harden-set-23pcs-llaves-punta-corona-540106-1",
+      "sourceTitle": "Harden Set 23Pcs Llaves Punta Corona 540106",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/540106_2000x2000_sgwfj6cg9pkvorf3.png?v=1781819681"
+      ],
+      "packaging": "Juego de 23 piezas",
+      "seedPrice": 60500
+    },
+    {
+      "key": "dab-disco-lijador-115mm-n60-flap-disc-norton-1",
+      "group": "construction",
+      "name": "Disco Lijador 115Mm N60 Flap Disc Norton",
+      "brand": "Norton",
+      "code": "1012883",
+      "manufacturerCode": null,
+      "familyId": "fam-discos-hojas-y-abrasivos",
+      "sourceUrl": "https://dab.cl/products/disco-lijador-115mm-n60-flap-disc-norton-1",
+      "sourceTitle": "Disco Lijador 115Mm N60 Flap Disc Norton",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/1002436425-1_v7kqwpx0ntec1fni.png?v=1781818386"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 1000
+    },
+    {
+      "key": "dab-irimo-juego-llave-dado-1-slash-2p-58-pz-129-58-4-1",
+      "group": "construction",
+      "name": "Irimo Juego Llave Dado 1/2\" 58 Pz 129-58-4",
+      "brand": "Irimo",
+      "code": "1040767",
+      "manufacturerCode": null,
+      "familyId": "fam-llaves-alicates-y-destornilladores",
+      "sourceUrl": "https://dab.cl/products/irimo-juego-llave-dado-1-slash-2p-58-pz-129-58-4-1",
+      "sourceTitle": "Irimo Juego Llave Dado 1/2\" 58 Pz 129-58-4",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/1214348_hnyvuwdlrtj7iqjs.jpg?v=1781818873"
+      ],
+      "packaging": "Juego de 58 piezas",
+      "seedPrice": 64000
+    },
+    {
+      "key": "dab-ceresita-esmalte-cereluxe-gris-perla-1gl-1",
+      "group": "construction",
+      "name": "Ceresita Esmalte Cereluxe Gris Perla 1Gl",
+      "brand": "Ceresita",
+      "code": "1039804",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-de-muro-y-fachada",
+      "sourceUrl": "https://dab.cl/products/ceresita-esmalte-cereluxe-gris-perla-1gl-1",
+      "sourceTitle": "Ceresita Esmalte Cereluxe Gris Perla 1Gl",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/w_1200_h_1200_fit_pad_b5b189c2-c7f1-4343-9a85-9d87998a7d10.webp?v=1788784792"
+      ],
+      "packaging": "Envase de 1 Gl",
+      "seedPrice": 33500
+    },
+    {
+      "key": "dab-vitrolux-63-vitrificador-1-4-gl",
+      "group": "construction",
+      "name": "Chilcorrofin Vitrolux 63 Vitrificador 1/4 Gl",
+      "brand": "Chilcorrofin",
+      "code": "1010138",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-y-protectores-especiales",
+      "sourceUrl": "https://dab.cl/products/vitrolux-63-vitrificador-1-4-gl",
+      "sourceTitle": "Vitrolux 63 Vitrificador    1/4 Gl",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/163646-800-1067.jpg?v=1781820407"
+      ],
+      "packaging": "Envase de 4 Gl",
+      "seedPrice": 12000
+    },
+    {
+      "key": "dab-sipa-water-proof-acr-incoloro-1gl-1",
+      "group": "construction",
+      "name": "Sipa Water Proof Acr. Incoloro 1Gl",
+      "brand": "Sipa",
+      "code": "1039848",
+      "manufacturerCode": null,
+      "familyId": "fam-impermeabilizantes",
+      "sourceUrl": "https://dab.cl/products/sipa-water-proof-acr-incoloro-1gl-1",
+      "sourceTitle": "Sipa Water Proof Acr. Incoloro 1Gl",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/1039846-01_3_ybjqbsmdx0sws3jg.png?v=1781818803"
+      ],
+      "packaging": "Envase de 1 Gl",
+      "seedPrice": 19000
+    },
+    {
+      "key": "dab-klingspor-rueda-fibra-gr-150-ncs600-60x50x6-258942-1",
+      "group": "construction",
+      "name": "Klingspor Rueda Fibra Gr/150 Ncs600 60X50X6 258942",
+      "brand": "Klingspor",
+      "code": "1049700",
+      "manufacturerCode": null,
+      "familyId": "fam-discos-hojas-y-abrasivos",
+      "sourceUrl": "https://dab.cl/products/klingspor-rueda-fibra-gr-150-ncs600-60x50x6-258942-1",
+      "sourceTitle": "Klingspor Rueda Fibra Gr/150 Ncs600 60X50X6 258942",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/ncs600_u7sjwcchlgde9irq.jpg?v=1781819974"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 8000
+    },
+    {
+      "key": "dab-kwb-huincha-medir-10m-060810",
+      "group": "construction",
+      "name": "Kwb Huincha De Medir 10 Mts - 060810",
+      "brand": "KWB",
+      "code": "1052043",
+      "manufacturerCode": null,
+      "familyId": "fam-instrumentos-de-medicion",
+      "sourceUrl": "https://dab.cl/products/kwb-huincha-medir-10m-060810",
+      "sourceTitle": "Kwb Huincha De Medir 10 Mts - 060810",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/sin-titulo-1.jpg?v=1781820536",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/2-2.jpg?v=1781820536"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 7500
+    },
+    {
+      "key": "dab-tesa-moll-9-mm-x-6-0-mt-5559-pvc-cafe-1",
+      "group": "construction",
+      "name": "Tesa Moll 9 Mm X 6,0 Mt 5559 Pvc Café",
+      "brand": "Tesa",
+      "code": "1015667",
+      "manufacturerCode": null,
+      "familyId": "fam-selladores-y-espumas",
+      "sourceUrl": "https://dab.cl/products/tesa-moll-9-mm-x-6-0-mt-5559-pvc-cafe-1",
+      "sourceTitle": "Tesa Moll 9 Mm X 6,0 Mt 5559 Pvc Caf&eacute;",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/tesa-05422-pa-002-fullsize_499203_fixedwidth_6_1_obkhbbf9bpdr76ua.jpg?v=1781818657"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 3500
+    },
+    {
+      "key": "dab-rust-oleum-spray-uc2x-rojo-manz-bri-340gr-262151",
+      "group": "construction",
+      "name": "Rust-Oleum Spray Uc2X Rojo Manzana Brillante 340Gr 262151",
+      "brand": "Rust-Oleum",
+      "code": "1041581",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-y-protectores-especiales",
+      "sourceUrl": "https://dab.cl/products/rust-oleum-spray-uc2x-rojo-manz-bri-340gr-262151",
+      "sourceTitle": "Rust-Oleum Spray Uc2X Rojo Manzana Brillante 340Gr 262151",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/6081ce0633f82_rojo-manzana.jpg?v=1781820323"
+      ],
+      "packaging": "Envase de 340 Gr",
+      "seedPrice": 5500
+    },
+    {
+      "key": "dab-makita-broca-cemento-8mm-d-0529-1",
+      "group": "construction",
+      "name": "Broca Cemento Makita 8mm D-0529",
+      "brand": "Makita",
+      "code": "1016606",
+      "manufacturerCode": null,
+      "familyId": "fam-brocas-puntas-y-sierras-copa",
+      "sourceUrl": "https://dab.cl/products/makita-broca-cemento-8mm-d-0529-1",
+      "sourceTitle": "Broca Cemento Makita 8mm D-0529",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/broca-hormigon-makita_13.jpg?v=1781818625"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 1000
+    },
+    {
+      "key": "dab-bosch-sierra-sable-gsa-120-1200w",
+      "group": "construction",
+      "name": "Bosch Sierra Sable Gsa 120/1200w",
+      "brand": "Bosch",
+      "code": "1016884",
+      "manufacturerCode": null,
+      "familyId": "fam-corte-desbaste-y-lijado",
+      "sourceUrl": "https://dab.cl/products/bosch-sierra-sable-gsa-120-1200w",
+      "sourceTitle": "Bosch Sierra Sable Gsa 120/1200w",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/164400-800-auto.png?v=1781820601",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/164401-800-auto.png?v=1781820601"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 183000
+    },
+    {
+      "key": "dab-einhell-caja-c-ruedas-p-herramientas-y-acc-4540014-e-case-l-with-wheels-1",
+      "group": "construction",
+      "name": "Einhell Caja De Herramientas Con Ruedas 4540014 E-case",
+      "brand": "Einhell",
+      "code": "1050060",
+      "manufacturerCode": null,
+      "familyId": "fam-organizacion-y-transporte-de-herramientas",
+      "sourceUrl": "https://dab.cl/products/einhell-caja-c-ruedas-p-herramientas-y-acc-4540014-e-case-l-with-wheels-1",
+      "sourceTitle": "Einhell Caja De Herramientas Con Ruedas 4540014 E-case",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/4540014_xcshtcmneeilrzjb.jpg?v=1781820010",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/mximo-espacio-almacenamiento_4nhzsecgiy1xaoc9.png?v=1781820010"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 70000
+    },
+    {
+      "key": "dab-stanley-clavadora-3-en-1-tr-250-1",
+      "group": "construction",
+      "name": "Stanley Clavadora 3 En 1 Tr 250",
+      "brand": "Stanley",
+      "code": "1040599",
+      "manufacturerCode": null,
+      "familyId": "fam-carpinteria-albanileria-y-sujecion",
+      "sourceUrl": "https://dab.cl/products/stanley-clavadora-3-en-1-tr-250-1",
+      "sourceTitle": "Stanley Clavadora 3 En 1 Tr 250",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/d_nq_np_714705-mla43988189237_112020-o_luztfjfcoocs4wbh.jpg?v=1781818857",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/engrapadora_tmf0wwl5lcsirs1r.jpg?v=1781818858"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 53000
+    },
+    {
+      "key": "dab-bahco-tijera-pasto-p59-25-f-1",
+      "group": "construction",
+      "name": "Bahco Tijera Pasto P59-25-F",
+      "brand": "Bahco",
+      "code": "1015626",
+      "manufacturerCode": null,
+      "familyId": "fam-carpinteria-albanileria-y-sujecion",
+      "sourceUrl": "https://dab.cl/products/bahco-tijera-pasto-p59-25-f-1",
+      "sourceTitle": "Bahco Tijera Pasto P59-25-F",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/bahco_tijera_pasto_p59-25-f.1_92exxcpyan5pzxwg.png?v=1781818648",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/bahco_tijera_pasto_p59-25-f.2_u36slroecxphydyg.png?v=1781818655"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 18500
+    },
+    {
+      "key": "dab-remachadora-pop-trupper-c-slash-fuelle-4-boqui-1",
+      "group": "construction",
+      "name": "Truper Remachadora Pop Trupper C/Fuelle 4 Boqui",
+      "brand": "Truper",
+      "code": "1014761",
+      "manufacturerCode": null,
+      "familyId": "fam-carpinteria-albanileria-y-sujecion",
+      "sourceUrl": "https://dab.cl/products/remachadora-pop-trupper-c-slash-fuelle-4-boqui-1",
+      "sourceTitle": "Remachadora Pop Trupper C/Fuelle 4 Boqui",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/remaco234531-1_cbczez8nupwanatu.jpg?v=1781818723"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 26000
+    },
+    {
+      "key": "dab-sika-sikafill-elasticidad-3-kg-1",
+      "group": "construction",
+      "name": "Sika Sikafill Elasticidad 3 Kg",
+      "brand": "Sika",
+      "code": "1042811",
+      "manufacturerCode": null,
+      "familyId": "fam-impermeabilizantes",
+      "sourceUrl": "https://dab.cl/products/sika-sikafill-elasticidad-3-kg-1",
+      "sourceTitle": "Sika Sikafill Elasticidad 3 Kg",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/8004373-04_6nybpro4pw03xp1a.jpg?v=1781819075",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/8004373-03_tamrhmjpaci52i1e.jpg?v=1781819076"
+      ],
+      "packaging": "Envase de 3 Kg",
+      "seedPrice": 23500
+    },
+    {
+      "key": "dab-agorex-transp-750cc-henkel-1",
+      "group": "construction",
+      "name": "Agorex Adhesivo Transparente 750cc",
+      "brand": "Agorex",
+      "code": "1011202",
+      "manufacturerCode": null,
+      "familyId": "fam-adhesivos-de-montaje-y-carpinteria",
+      "sourceUrl": "https://dab.cl/products/agorex-transp-750cc-henkel-1",
+      "sourceTitle": "Agorex Adhesivo Transparente 750cc",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/1011202-01_clrgzuqoykeopqqp.png?v=1781818263",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/1011202-02_rfyfiac8b0lwj3cq.png?v=1781818264"
+      ],
+      "packaging": "Envase de 750 cc",
+      "seedPrice": 11500
+    },
+    {
+      "key": "dab-silicona-soudaflex-soudal-137745-1",
+      "group": "construction",
+      "name": "Silicona Soudaflex Soudal 137745",
+      "brand": "Soudal",
+      "code": "1043764",
+      "manufacturerCode": null,
+      "familyId": "fam-selladores-y-espumas",
+      "sourceUrl": "https://dab.cl/products/silicona-soudaflex-soudal-137745-1",
+      "sourceTitle": "Silicona Soudaflex Soudal 137745",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/1043764_0nkk65p86nf07mxh.jpg?v=1781819205"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 4000
+    },
+    {
+      "key": "dab-3m-silicona-sellador-550-poliuret-600ml-blanco-1",
+      "group": "construction",
+      "name": "3m Sellador Poliuretano Pu 550 600ml Blanco",
+      "brand": "3M",
+      "code": "1044327",
+      "manufacturerCode": null,
+      "familyId": "fam-selladores-y-espumas",
+      "sourceUrl": "https://dab.cl/products/3m-silicona-sellador-550-poliuret-600ml-blanco-1",
+      "sourceTitle": "3m Sellador Poliuretano Pu 550 600ml Blanco",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/sellador-poliuretano-550-gris-de-600ml_6ufcdp4lq08mgghb.jpg?v=1781819245"
+      ],
+      "packaging": "Envase de 600 ml",
+      "seedPrice": 7500
+    },
+    {
+      "key": "dab-harden-serrucho-carpintero-rp-18p-631018-1",
+      "group": "construction",
+      "name": "Harden Serrucho Carpintero Rp 18\" 631018",
+      "brand": "Harden",
+      "code": "1043619",
+      "manufacturerCode": null,
+      "familyId": "fam-carpinteria-albanileria-y-sujecion",
+      "sourceUrl": "https://dab.cl/products/harden-serrucho-carpintero-rp-18p-631018-1",
+      "sourceTitle": "Harden Serrucho Carpintero Rp 18\" 631018",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/1043619-01_n9ygidlheeo6cdae.jpg?v=1781819166"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 5500
+    },
+    {
+      "key": "dab-disco-lijador-115mm-n-80-flap-disc-norton-1",
+      "group": "construction",
+      "name": "Disco Lijador 115Mm N 80 Flap Disc Norton",
+      "brand": "Norton",
+      "code": "1012881",
+      "manufacturerCode": null,
+      "familyId": "fam-discos-hojas-y-abrasivos",
+      "sourceUrl": "https://dab.cl/products/disco-lijador-115mm-n-80-flap-disc-norton-1",
+      "sourceTitle": "Disco Lijador 115Mm N 80 Flap Disc Norton",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/1012881-02_nqdyw6osr0ufg1ey.png?v=1781818386"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 1000
+    },
+    {
+      "key": "dab-irimo-juego-llave-allen-48-9-h-1",
+      "group": "construction",
+      "name": "Irimo Juego Llave Allen 48-9-H",
+      "brand": "Irimo",
+      "code": "1041545",
+      "manufacturerCode": null,
+      "familyId": "fam-llaves-alicates-y-destornilladores",
+      "sourceUrl": "https://dab.cl/products/irimo-juego-llave-allen-48-9-h-1",
+      "sourceTitle": "Irimo Juego Llave Allen 48-9-H",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/set-llaves-con-d_nq_np_705967-mla28709342258_112018-f_kxxd71vwsr3jx1gz.jpg?v=1781818942"
+      ],
+      "packaging": "1 juego",
+      "seedPrice": 7500
+    },
+    {
+      "key": "dab-ceresita-esmalte-cereluxe-azul-electrico-1gl-1",
+      "group": "construction",
+      "name": "Ceresita Esmalte Cereluxe Azul Electrico 1Gl",
+      "brand": "Ceresita",
+      "code": "1039794",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-de-muro-y-fachada",
+      "sourceUrl": "https://dab.cl/products/ceresita-esmalte-cereluxe-azul-electrico-1gl-1",
+      "sourceTitle": "Ceresita Esmalte Cereluxe Azul Electrico 1Gl",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/cereluxe_14_ohfs8ztjmbvfd4pn.jpg?v=1781818788"
+      ],
+      "packaging": "Envase de 1 Gl",
+      "seedPrice": 28500
+    },
+    {
+      "key": "dab-pasta-piscina-gris-agua-7-kg-chilc-1",
+      "group": "construction",
+      "name": "Pasta Piscina Pp-77 Gris Agua 7 Kg Chilcorrofin",
+      "brand": "Chilcorrofin",
+      "code": "1010146",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-y-protectores-especiales",
+      "sourceUrl": "https://dab.cl/products/pasta-piscina-gris-agua-7-kg-chilc-1",
+      "sourceTitle": "Pasta Piscina Pp-77 Gris Agua  7 Kg      Chilcorrofin",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/258427-800-800_2.png?v=1781818216",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/image_7__3.png?v=1781818216"
+      ],
+      "packaging": "Envase de 7 Kg",
+      "seedPrice": 41500
+    },
+    {
+      "key": "dab-sipa-piscina-celeste-1gl",
+      "group": "construction",
+      "name": "Pintura Piscina Sipa Celeste 1gl",
+      "brand": "Sipa",
+      "code": "1042155",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-y-protectores-especiales",
+      "sourceUrl": "https://dab.cl/products/sipa-piscina-celeste-1gl",
+      "sourceTitle": "Pintura Piscina Sipa Celeste 1gl",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/770864_1.png?v=1781820337",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/image_4__3.png?v=1781820336"
+      ],
+      "packaging": "Envase de 1 gl",
+      "seedPrice": 33000
+    },
+    {
+      "key": "dab-klingspor-grata-copa-bt600z-trenz-65mm-slash-m14-358335-1",
+      "group": "construction",
+      "name": "Klingspor Grata Copa Bt600Z Trenz. 65Mm / M14 358335",
+      "brand": "Klingspor",
+      "code": "1048344",
+      "manufacturerCode": null,
+      "familyId": "fam-discos-hojas-y-abrasivos",
+      "sourceUrl": "https://dab.cl/products/klingspor-grata-copa-bt600z-trenz-65mm-slash-m14-358335-1",
+      "sourceTitle": "Klingspor Grata Copa Bt600Z Trenz. 65Mm / M14 358335",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/d_nq_np_931125-mlc48390777787_112021-o_7jkj186oi4kbawyw.jpg?v=1781819841"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 7500
+    },
+    {
+      "key": "dab-kwb-hoja-sierra-sable-bimetal-2-un-c-grueso-152mm-571095",
+      "group": "construction",
+      "name": "Kwb Hoja Sierra Sable Bimetal 2 Un. C/grueso 152mm - 571095",
+      "brand": "KWB",
+      "code": "1051884",
+      "manufacturerCode": null,
+      "familyId": "fam-discos-hojas-y-abrasivos",
+      "sourceUrl": "https://dab.cl/products/kwb-hoja-sierra-sable-bimetal-2-un-c-grueso-152mm-571095",
+      "sourceTitle": "Kwb Hoja Sierra Sable Bimetal 2 Un. C/grueso 152mm - 571095",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/571085_21013_100.jpg?v=1781820520"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 6000
+    },
+    {
+      "key": "dab-rust-oleum-spray-mp-negro-mate-340gr-272088",
+      "group": "construction",
+      "name": "Rust-Oleum Spray Mp Negro Mate 340Gr 272088",
+      "brand": "Rust-Oleum",
+      "code": "1041608",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-y-protectores-especiales",
+      "sourceUrl": "https://dab.cl/products/rust-oleum-spray-mp-negro-mate-340gr-272088",
+      "sourceTitle": "Rust-Oleum Spray Mp Negro Mate 340Gr 272088",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/1807051910_66.png?v=1781820311"
+      ],
+      "packaging": "Envase de 340 Gr",
+      "seedPrice": 6000
+    },
+    {
+      "key": "dab-makita-esmeril-angular-18v-dga455rf1-2-baterias",
+      "group": "construction",
+      "name": "Makita Esmeril Angular 4 1/2´ 2 Baterias 3ah + Cargador - Dga455rf-1",
+      "brand": "Makita",
+      "code": "1052320",
+      "manufacturerCode": null,
+      "familyId": "fam-corte-desbaste-y-lijado",
+      "sourceUrl": "https://dab.cl/products/makita-esmeril-angular-18v-dga455rf1-2-baterias",
+      "sourceTitle": "Makita Esmeril Angular 4 1/2&acute; 2 Baterias 3ah + Cargador - Dga455rf-1",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/esmeril_angular_412_115mm_18v_lx.jpg?v=1781820579"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 216500
+    },
+    {
+      "key": "dab-einhell-atornillador-inalambrico-3-6v-4510503-1",
+      "group": "construction",
+      "name": "Einhell Atornillador Inalambrico 3.6V 4510503 Tc-Sd 3,6 Li-Ion Kit",
+      "brand": "Einhell",
+      "code": "1047798",
+      "manufacturerCode": null,
+      "familyId": "fam-perforacion-y-atornillado",
+      "sourceUrl": "https://dab.cl/products/einhell-atornillador-inalambrico-3-6v-4510503-1",
+      "sourceTitle": "Einhell Atornillador Inalambrico 3.6V 4510503 Tc-Sd 3,6 Li-Ion Kit",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/detailbild_ohne_untertitel-2_dbn1kit9jszyspcw.jpg?v=1781819784",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/detailbild_ohne_untertitel-1_4_5smmny7wbmxlgie8.jpg?v=1781819783"
+      ],
+      "packaging": "1 juego",
+      "seedPrice": 25000
+    },
+    {
+      "key": "dab-stanley-juego-atornillador-10-pz-60-100-60-010-1",
+      "group": "construction",
+      "name": "Stanley Juego Atornillador 10 Pz 60-100 60-010",
+      "brand": "Stanley",
+      "code": "1011700",
+      "manufacturerCode": null,
+      "familyId": "fam-llaves-alicates-y-destornilladores",
+      "sourceUrl": "https://dab.cl/products/stanley-juego-atornillador-10-pz-60-100-60-010-1",
+      "sourceTitle": "Stanley Juego Atornillador 10 Pz 60-100 60-010",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/1425010_bsf8arh7hxavwjvm.jpg?v=1781818295"
+      ],
+      "packaging": "Juego de 10 piezas",
+      "seedPrice": 18500
+    },
+    {
+      "key": "dab-bahco-serrucho-podar-36cm-340-6t-1",
+      "group": "construction",
+      "name": "Bahco Serrucho Podar 36Cm 340-6T",
+      "brand": "Bahco",
+      "code": "1015030",
+      "manufacturerCode": null,
+      "familyId": "fam-carpinteria-albanileria-y-sujecion",
+      "sourceUrl": "https://dab.cl/products/bahco-serrucho-podar-36cm-340-6t-1",
+      "sourceTitle": "Bahco Serrucho Podar 36Cm 340-6T",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/1015030_b5lqijr6dal6t8x0.png?v=1781818600",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/1015030.2_vq08oppgay22lttg.png?v=1781818602"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 25500
+    },
+    {
+      "key": "dab-huincha-medir-5-mts-truper-impac-145-1",
+      "group": "construction",
+      "name": "Huincha Medir 5 Mts Truper Impac 145",
+      "brand": "Truper",
+      "code": "1013483",
+      "manufacturerCode": null,
+      "familyId": "fam-instrumentos-de-medicion",
+      "sourceUrl": "https://dab.cl/products/huincha-medir-5-mts-truper-impac-145-1",
+      "sourceTitle": "Huincha Medir 5 Mts Truper Impac 145",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/1002555351-1_sfhqin3reviwlkls.png?v=1781818422",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/1002555351-3_as4rm67jfyeihgsy.png?v=1781818422"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 4000
+    },
+    {
+      "key": "dab-sika-igol-denso-tarro-3-kgs-1",
+      "group": "construction",
+      "name": "Sika Igol Denso Tarro 3 Kgs",
+      "brand": "Sika",
+      "code": "1011346",
+      "manufacturerCode": null,
+      "familyId": "fam-impermeabilizantes",
+      "sourceUrl": "https://dab.cl/products/sika-igol-denso-tarro-3-kgs-1",
+      "sourceTitle": "Sika Igol Denso Tarro 3 Kgs",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/8002380-04_gtzri1dbv5zcio4h.jpg?v=1781818273",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/8002380-03_ztcq9wgxg013kqpi.jpg?v=1781818273"
+      ],
+      "packaging": "Envase de 3 Kgs",
+      "seedPrice": 25000
+    },
+    {
+      "key": "dab-agorex-silic-ft101-blanco-300ml",
+      "group": "construction",
+      "name": "Agorex Silicona Ft101 Blanco 300Ml",
+      "brand": "Agorex",
+      "code": "1047216",
+      "manufacturerCode": null,
+      "familyId": "fam-selladores-y-espumas",
+      "sourceUrl": "https://dab.cl/products/agorex-silic-ft101-blanco-300ml",
+      "sourceTitle": "Agorex Silicona Ft101 Blanco 300Ml",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/892275-0000-001.jpg?v=1791394583"
+      ],
+      "packaging": "Envase de 300 Ml",
+      "seedPrice": 8500
+    },
+    {
+      "key": "dab-sellador-poliuretano-600ml-soudal-blanco-1",
+      "group": "construction",
+      "name": "Sellador Poliuretano 600Ml Soudal Blanco",
+      "brand": "Soudal",
+      "code": "1046290",
+      "manufacturerCode": null,
+      "familyId": "fam-selladores-y-espumas",
+      "sourceUrl": "https://dab.cl/products/sellador-poliuretano-600ml-soudal-blanco-1",
+      "sourceTitle": "Sellador Poliuretano 600Ml Soudal Blanco",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/sel3101-1_ndx4dzvip6hny2zm.jpg?v=1781819518"
+      ],
+      "packaging": "Envase de 600 Ml",
+      "seedPrice": 5500
+    },
+    {
+      "key": "dab-harden-nivel-400mm-profesional-580534-1",
+      "group": "construction",
+      "name": "Harden Nivel 400Mm Profesional 580534",
+      "brand": "Harden",
+      "code": "1049364",
+      "manufacturerCode": null,
+      "familyId": "fam-instrumentos-de-medicion",
+      "sourceUrl": "https://dab.cl/products/harden-nivel-400mm-profesional-580534-1",
+      "sourceTitle": "Harden Nivel 400Mm Profesional 580534",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/580534-580542_1_lp1ld6lrarm8fcov.jpg?v=1781819946",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/580534-580542_2_ivdevcvj7jwz9d5w.jpg?v=1781819946"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 8500
+    },
+    {
+      "key": "dab-disco-cortar-metal-7p-a30t-norton-classic-a302-1",
+      "group": "construction",
+      "name": "Disco Cortar Metal 7´ A30T Norton (Classic A302)",
+      "brand": "Norton",
+      "code": "1037311",
+      "manufacturerCode": null,
+      "familyId": "fam-discos-hojas-y-abrasivos",
+      "sourceUrl": "https://dab.cl/products/disco-cortar-metal-7p-a30t-norton-classic-a302-1",
+      "sourceTitle": "Disco Cortar Metal 7&acute; A30T Norton (Classic A302)",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/1037310-01_1_t3zcc7oeqkzebwe7.png?v=1781818686"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 1000
+    },
+    {
+      "key": "dab-ceresita-esm-sint-b-agua-cereluxe-ultra-blanco-1",
+      "group": "construction",
+      "name": "Ceresita Esmalte Sintetico Base Agua� Cereluxe Ultra Blanco",
+      "brand": "Ceresita",
+      "code": "1043196",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-de-muro-y-fachada",
+      "sourceUrl": "https://dab.cl/products/ceresita-esm-sint-b-agua-cereluxe-ultra-blanco-1",
+      "sourceTitle": "Ceresita Esmalte Sintetico Base Agua� Cereluxe Ultra Blanco",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/11701001_18_ykrvwgnzki3cknyl.jpg?v=1781819128"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 28000
+    },
+    {
+      "key": "dab-pasta-piscina-celeste-2-kg-chilc-1",
+      "group": "construction",
+      "name": "Pasta Piscina Pp-77 Celeste 2 Kg Chilcorrofin",
+      "brand": "Chilcorrofin",
+      "code": "1010147",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-y-protectores-especiales",
+      "sourceUrl": "https://dab.cl/products/pasta-piscina-celeste-2-kg-chilc-1",
+      "sourceTitle": "Pasta Piscina Pp-77 Celeste    2 Kg      Chilcorrofin",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/484139-0000-001.png?v=1781818219",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/image_7__2.png?v=1781818217"
+      ],
+      "packaging": "Envase de 2 Kg",
+      "seedPrice": 16000
+    },
+    {
+      "key": "dab-sipa-esmalte-al-agua-semibrillo-blanco-tineta-1",
+      "group": "construction",
+      "name": "Sipa Esmalte Al Agua Semibrillo Blanco Tineta",
+      "brand": "Sipa",
+      "code": "1039397",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-de-muro-y-fachada",
+      "sourceUrl": "https://dab.cl/products/sipa-esmalte-al-agua-semibrillo-blanco-tineta-1",
+      "sourceTitle": "Sipa Esmalte Al Agua Semibrillo Blanco Tineta",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/25072024031308_sipa_4g.png?v=1781818772"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 107500
+    },
+    {
+      "key": "dab-klingspor-disco-corte-a346extra-230x1-9x22-plano-340952",
+      "group": "construction",
+      "name": "Klingspor Disco Corte A346Extra 230X1,9X22 Plano 340952",
+      "brand": "Klingspor",
+      "code": "1048337",
+      "manufacturerCode": null,
+      "familyId": "fam-discos-hojas-y-abrasivos",
+      "sourceUrl": "https://dab.cl/products/klingspor-disco-corte-a346extra-230x1-9x22-plano-340952",
+      "sourceTitle": "Klingspor Disco Corte A346Extra 230X1,9X22 Plano 340952",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/disc1450-1.png?v=1781820199"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 2000
+    },
+    {
+      "key": "dab-kwb-disco-diam-segment-115x22-mm-49796170-1",
+      "group": "construction",
+      "name": "Kwb Disco Diamentado Segmentado 115X22 Mm 49796170",
+      "brand": "KWB",
+      "code": "1048267",
+      "manufacturerCode": null,
+      "familyId": "fam-discos-hojas-y-abrasivos",
+      "sourceUrl": "https://dab.cl/products/kwb-disco-diam-segment-115x22-mm-49796170-1",
+      "sourceTitle": "Kwb Disco Diamentado Segmentado 115X22 Mm 49796170",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/81cl0qtu-sl._ac_sx425__gfektzmvw2g4jevb.jpg?v=1781819834"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 4500
+    },
+    {
+      "key": "dab-rust-oleum-spray-mp-metalico-alumin-340gr-272117",
+      "group": "construction",
+      "name": "Rust-Oleum Spray Mp Metalico Aluminio 340Gr 272117",
+      "brand": "Rust-Oleum",
+      "code": "1042828",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-y-protectores-especiales",
+      "sourceUrl": "https://dab.cl/products/rust-oleum-spray-mp-metalico-alumin-340gr-272117",
+      "sourceTitle": "Rust-Oleum Spray Mp Metalico Aluminio 340Gr 272117",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/10pzs-2023-03-24t130918.028.jpg?v=1781820310"
+      ],
+      "packaging": "Envase de 340 Gr",
+      "seedPrice": 6500
+    },
+    {
+      "key": "dab-makita-kit-taladro-percutor-inalambrico-13mm-18v-dhp486rte",
+      "group": "construction",
+      "name": "Makita Kit Taladro Percutor Inalambrico 13mm 18v Dhp486rte",
+      "brand": "Makita",
+      "code": "1051770",
+      "manufacturerCode": null,
+      "familyId": "fam-perforacion-y-atornillado",
+      "sourceUrl": "https://dab.cl/products/makita-kit-taladro-percutor-inalambrico-13mm-18v-dhp486rte",
+      "sourceTitle": "Makita Kit Taladro Percutor Inalambrico 13mm 18v  Dhp486rte",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/taladro-percutor-dhp486.jpg?v=1781820499",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/238950-800-800.jpg?v=1781820499"
+      ],
+      "packaging": "1 juego",
+      "seedPrice": 504000
+    },
+    {
+      "key": "dab-einhell-taladro-ator-impac-2b-1c-1",
+      "group": "construction",
+      "name": "Einhell Taladro +Atornillador Impacto +2 Baterias +1 Cargador",
+      "brand": "Einhell",
+      "code": "1046340",
+      "manufacturerCode": null,
+      "familyId": "fam-perforacion-y-atornillado",
+      "sourceUrl": "https://dab.cl/products/einhell-taladro-ator-impac-2b-1c-1",
+      "sourceTitle": "Einhell Taladro +Atornillador Impacto +2 Baterias +1 Cargador",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/promo_pack_einhell-04_xv0hncegfabkxwqf.jpg?v=1781819524"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 127000
+    },
+    {
+      "key": "dab-bahco-martillo-carpintero-mango-fibra-16-oz-428f-16",
+      "group": "construction",
+      "name": "Bahco Martillo Carpintero Mango Fibra 16 Oz 428F-16",
+      "brand": "Bahco",
+      "code": "1051307",
+      "manufacturerCode": null,
+      "familyId": "fam-carpinteria-albanileria-y-sujecion",
+      "sourceUrl": "https://dab.cl/products/bahco-martillo-carpintero-mango-fibra-16-oz-428f-16",
+      "sourceTitle": "Bahco Martillo Carpintero Mango Fibra 16 Oz 428F-16",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/173904479a24f03f_1.jpg?v=1781820450"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 6000
+    },
+    {
+      "key": "dab-huincha-medir-10-mts-truper-fh-10m-1",
+      "group": "construction",
+      "name": "Huincha Medir 10 Mts Truper Fh-10M",
+      "brand": "Truper",
+      "code": "1013509",
+      "manufacturerCode": null,
+      "familyId": "fam-instrumentos-de-medicion",
+      "sourceUrl": "https://dab.cl/products/huincha-medir-10-mts-truper-fh-10m-1",
+      "sourceTitle": "Huincha Medir 10 Mts Truper Fh-10M",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/1013509_s21ctk9tvihwe5eq.png?v=1781818425"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 15000
+    },
+    {
+      "key": "dab-agorex-silic-ft101-gris-300ml",
+      "group": "construction",
+      "name": "Agorex Silicona Ft101 Gris 300Ml",
+      "brand": "Agorex",
+      "code": "1047215",
+      "manufacturerCode": null,
+      "familyId": "fam-selladores-y-espumas",
+      "sourceUrl": "https://dab.cl/products/agorex-silic-ft101-gris-300ml",
+      "sourceTitle": "Agorex Silicona Ft101 Gris 300Ml",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/w_1160_6739fadc-a8f0-4b69-b25a-4013cf610d70.webp?v=1791398569",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/w_1500_h_1500_fit_cover_7ab87d2c-f3f8-47c9-b091-10b2a6fc6d18.webp?v=1791398561"
+      ],
+      "packaging": "Envase de 300 Ml",
+      "seedPrice": 8500
+    },
+    {
+      "key": "dab-harden-manguera-tipo-espiral-10mts-p-compresor",
+      "group": "construction",
+      "name": "Harden Manguera Tipo Espiral 10Mts P/Compresor",
+      "brand": "Harden",
+      "code": "1050720",
+      "manufacturerCode": null,
+      "familyId": "fam-equipos-y-accesorios-de-herramienta",
+      "sourceUrl": "https://dab.cl/products/harden-manguera-tipo-espiral-10mts-p-compresor",
+      "sourceTitle": "Harden Manguera Tipo Espiral 10Mts P/Compresor",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/d_nq_np_695293-mlc69787172320_062023-o-manguera-espiral-para-compresor-de-aire-15-mts.jpg?v=1781820175"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 7000
+    },
+    {
+      "key": "dab-ceresita-aerosol-esm-brillante-negro-1",
+      "group": "construction",
+      "name": "Ceresita Aerosol Esm Brillante Negro",
+      "brand": "Ceresita",
+      "code": "1042324",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-de-muro-y-fachada",
+      "sourceUrl": "https://dab.cl/products/ceresita-aerosol-esm-brillante-negro-1",
+      "sourceTitle": "Ceresita Aerosol Esm Brillante Negro",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/1042326-02_1_uovi3wopsy11ukdz.png?v=1781819007"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 4000
+    },
+    {
+      "key": "dab-chilcorrofin-46-verde-reja-1-slash-4-1",
+      "group": "construction",
+      "name": "Chilcorrofin 46 Verde Reja 1/4",
+      "brand": "Chilcorrofin",
+      "code": "1045094",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-de-muro-y-fachada",
+      "sourceUrl": "https://dab.cl/products/chilcorrofin-46-verde-reja-1-slash-4-1",
+      "sourceTitle": "Chilcorrofin 46 Verde Reja 1/4",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/238201_12_1_9pd2cv8buq92xgbv.jpg?v=1781819313"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 11500
+    },
+    {
+      "key": "dab-sipa-latex-extracubriente-blanco-tineta-1",
+      "group": "construction",
+      "name": "Sipa Latex Extracubriente Blanco Tineta",
+      "brand": "Sipa",
+      "code": "1039387",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-de-muro-y-fachada",
+      "sourceUrl": "https://dab.cl/products/sipa-latex-extracubriente-blanco-tineta-1",
+      "sourceTitle": "Sipa Latex Extracubriente Blanco Tineta",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/pexsipa013--7805362026926-03_2kdkp6nx3aovgij6.jpg?v=1781818773"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 69000
+    },
+    {
+      "key": "dab-klingspor-disco-lija-lamina-115x22-23-gr-80-flap-1",
+      "group": "construction",
+      "name": "Klingspor Disco Lija Lamina 115X22.23 Gr 80 Flap",
+      "brand": "Klingspor",
+      "code": "1035172",
+      "manufacturerCode": null,
+      "familyId": "fam-discos-hojas-y-abrasivos",
+      "sourceUrl": "https://dab.cl/products/klingspor-disco-lija-lamina-115x22-23-gr-80-flap-1",
+      "sourceTitle": "Klingspor Disco Lija Lamina 115X22.23 Gr 80 Flap",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/322768_1scagutajgxjaewi.jpg?v=1781818646"
+      ],
+      "packaging": "Envase de 22.23 Gr",
+      "seedPrice": 3500
+    },
+    {
+      "key": "dab-rust-oleum-spray-uc2x-transp-satin-340gr-262170-1",
+      "group": "construction",
+      "name": "Rust-Oleum Spray Uc2X Transparente Satinado 340Gr 262170",
+      "brand": "Rust-Oleum",
+      "code": "1042825",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-y-protectores-especiales",
+      "sourceUrl": "https://dab.cl/products/rust-oleum-spray-uc2x-transp-satin-340gr-262170-1",
+      "sourceTitle": "Rust-Oleum Spray Uc2X Transparente Satinado 340Gr 262170",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/load_2.jpg?v=1781819075"
+      ],
+      "packaging": "Envase de 340 Gr",
+      "seedPrice": 5500
+    },
+    {
+      "key": "dab-makita-hidrolavadora-hw101",
+      "group": "construction",
+      "name": "Makita Hidrolavadora /presion 220v Hw101",
+      "brand": "Makita",
+      "code": "1051712",
+      "manufacturerCode": null,
+      "familyId": "fam-equipos-y-accesorios-de-herramienta",
+      "sourceUrl": "https://dab.cl/products/makita-hidrolavadora-hw101",
+      "sourceTitle": "Makita Hidrolavadora /presion 220v Hw101",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/hidrolavadora_hw101.jpg?v=1781820496",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/hidrolavadora_hw101_2.jpg?v=1781820497"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 74500
+    },
+    {
+      "key": "dab-einhell-taladro-percusion-1010w-4259825-1",
+      "group": "construction",
+      "name": "Einhell Taladro Percutor 1010W 4259825 Tc-Id 1000 E",
+      "brand": "Einhell",
+      "code": "1045481",
+      "manufacturerCode": null,
+      "familyId": "fam-perforacion-y-atornillado",
+      "sourceUrl": "https://dab.cl/products/einhell-taladro-percusion-1010w-4259825-1",
+      "sourceTitle": "Einhell Taladro Percutor 1010W 4259825 Tc-Id 1000 E",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/einhell-classic-taladro-percutor-tc-id-1000-e-produktbild-1_z7bri9rbsmxtmhk9.jpg?v=1781819369",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/comprar-taladro-percutor-einhell-castellon_srr2xrus9idygusd.jpg?v=1781819368"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 42000
+    },
+    {
+      "key": "dab-bahco-martillo-carp-m-slash-fibra-20-oz-428-20-1",
+      "group": "construction",
+      "name": "Bahco Martillo Carp.M/Fibra 20 Oz 428-20",
+      "brand": "Bahco",
+      "code": "1040043",
+      "manufacturerCode": null,
+      "familyId": "fam-carpinteria-albanileria-y-sujecion",
+      "sourceUrl": "https://dab.cl/products/bahco-martillo-carp-m-slash-fibra-20-oz-428-20-1",
+      "sourceTitle": "Bahco Martillo Carp.M/Fibra 20 Oz 428-20",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/716gukqwgrl._ac_sl1500__62f6fs5rzi4lk6ji.jpg?v=1781818816",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/dsfg_py213gjllr9fjnd6.png?v=1781818816"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 14500
+    },
+    {
+      "key": "dab-serrucho-podar-truper-14p-18172-1",
+      "group": "construction",
+      "name": "Serrucho Podar Truper 14\" 18172",
+      "brand": "Truper",
+      "code": "1043802",
+      "manufacturerCode": null,
+      "familyId": "fam-carpinteria-albanileria-y-sujecion",
+      "sourceUrl": "https://dab.cl/products/serrucho-podar-truper-14p-18172-1",
+      "sourceTitle": "Serrucho Podar Truper 14\" 18172",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/999_zeszaixhzgr71iku.jpg?v=1781819209"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 7500
+    },
+    {
+      "key": "dab-agorex-vinilico-1-slash-4-galon-1",
+      "group": "construction",
+      "name": "Agorex Adhesivo Vinilico 1/4 Galon",
+      "brand": "Agorex",
+      "code": "1011248",
+      "manufacturerCode": null,
+      "familyId": "fam-adhesivos-de-montaje-y-carpinteria",
+      "sourceUrl": "https://dab.cl/products/agorex-vinilico-1-slash-4-galon-1",
+      "sourceTitle": "Agorex Adhesivo Vinilico 1/4 Galon",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/D_NQ_NP_990741-MLA99940320433_112025-O.webp?v=1791395914"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 8000
+    },
+    {
+      "key": "dab-harden-juego-llave-dado-46p-1-slash-4p-510346-1",
+      "group": "construction",
+      "name": "Harden Juego Llave Dado 46P 1/4\" 510346",
+      "brand": "Harden",
+      "code": "1044372",
+      "manufacturerCode": null,
+      "familyId": "fam-llaves-alicates-y-destornilladores",
+      "sourceUrl": "https://dab.cl/products/harden-juego-llave-dado-46p-1-slash-4p-510346-1",
+      "sourceTitle": "Harden Juego Llave Dado 46P 1/4\" 510346",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/510346_--___opt_dqaplswjxhttgpor.png?v=1781819252"
+      ],
+      "packaging": "1 juego",
+      "seedPrice": 26000
+    },
+    {
+      "key": "dab-ceresita-aerosol-esm-brillante-naranja-1",
+      "group": "construction",
+      "name": "Ceresita Aerosol Esm Brillante Naranja",
+      "brand": "Ceresita",
+      "code": "1043258",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-de-muro-y-fachada",
+      "sourceUrl": "https://dab.cl/products/ceresita-aerosol-esm-brillante-naranja-1",
+      "sourceTitle": "Ceresita Aerosol Esm Brillante Naranja",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/1043258-02_pgoywyqvuu9qqkqe.png?v=1781819138"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 4000
+    },
+    {
+      "key": "dab-pintura-piscina-super-caucho-azul-tahiti-gl-1",
+      "group": "construction",
+      "name": "Chilcorrofin Pintura Piscina Super Caucho Azul Tahiti Gl",
+      "brand": "Chilcorrofin",
+      "code": "1010171",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-y-protectores-especiales",
+      "sourceUrl": "https://dab.cl/products/pintura-piscina-super-caucho-azul-tahiti-gl-1",
+      "sourceTitle": "Pintura Piscina Super Caucho Azul Tahiti Gl",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/105504-01_tquaq5cw7a5nvjmh.jpg?v=1781818218",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/image_6__2.png?v=1781818218"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 33000
+    },
+    {
+      "key": "dab-rust-oleum-spray-uc2x-lila-satin-340gr-262201",
+      "group": "construction",
+      "name": "Rust-Oleum Spray Uc2X Lila Satinado 340Gr 262201",
+      "brand": "Rust-Oleum",
+      "code": "1042409",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-y-protectores-especiales",
+      "sourceUrl": "https://dab.cl/products/rust-oleum-spray-uc2x-lila-satin-340gr-262201",
+      "sourceTitle": "Rust-Oleum Spray Uc2X Lila Satinado 340Gr 262201",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/262201-1-uc2x-lila-satinado7906.png?v=1781820319"
+      ],
+      "packaging": "Envase de 340 Gr",
+      "seedPrice": 5500
+    },
+    {
+      "key": "dab-makita-sierra-ingleteadora-10-1450w-tel-ls111of",
+      "group": "construction",
+      "name": "Sierra Ingleteadora Telescopica 10 Makita 1450w Ls1110f",
+      "brand": "Makita",
+      "code": "1051710",
+      "manufacturerCode": null,
+      "familyId": "fam-corte-desbaste-y-lijado",
+      "sourceUrl": "https://dab.cl/products/makita-sierra-ingleteadora-10-1450w-tel-ls111of",
+      "sourceTitle": "Sierra Ingleteadora Telescopica 10 Makita   1450w Ls1110f",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/ls1110f-c7c09519.jpg?v=1781820495",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/ls1110f-d1ck4986.jpg?v=1781820495"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 379000
+    },
+    {
+      "key": "dab-einhell-kit-hidropack-650w-4173190-1",
+      "group": "construction",
+      "name": "Einhell Kit Hidropack 650W 4173190 Gc-Ww 6538",
+      "brand": "Einhell",
+      "code": "1045415",
+      "manufacturerCode": null,
+      "familyId": "fam-equipos-y-accesorios-de-herramienta",
+      "sourceUrl": "https://dab.cl/products/einhell-kit-hidropack-650w-4173190-1",
+      "sourceTitle": "Einhell  Kit Hidropack 650W  4173190 Gc-Ww 6538",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/einhell-4173190-grupo-de-presion-con-hidrobox-gc-ww-6038_4rlneyleeszefrpa.jpg?v=1781819362",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/einhell-classic-kit-hidropack-gc-ww-6538-detailbild-ohne-untertitel-5_rnluqsuz3btru9mr.jpg?v=1781819362"
+      ],
+      "packaging": "1 juego",
+      "seedPrice": 107000
+    },
+    {
+      "key": "dab-bahco-lima-redonda-10-c-mango-1-230-10-2-2",
+      "group": "construction",
+      "name": "Bahco Lima Redonda 10\" C/Mango 1-230-10-2-2",
+      "brand": "Bahco",
+      "code": "1045526",
+      "manufacturerCode": null,
+      "familyId": "fam-carpinteria-albanileria-y-sujecion",
+      "sourceUrl": "https://dab.cl/products/bahco-lima-redonda-10-c-mango-1-230-10-2-2",
+      "sourceTitle": "Bahco Lima Redonda 10\" C/Mango 1-230-10-2-2",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/169ff4796cc16b3f_3.png?v=1781820065",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/169ff4546ca61a3f_3.png?v=1781820064"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 9500
+    },
+    {
+      "key": "dab-rastrillo-hojas-pvc-truper-26-dientes",
+      "group": "construction",
+      "name": "Rastrillo Hojas Pvc Truper 26 Dientes",
+      "brand": "Truper",
+      "code": "1045300",
+      "manufacturerCode": null,
+      "familyId": "fam-discos-hojas-y-abrasivos",
+      "sourceUrl": "https://dab.cl/products/rastrillo-hojas-pvc-truper-26-dientes",
+      "sourceTitle": "Rastrillo Hojas Pvc Truper 26 Dientes",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/363182702.png?v=1781820279"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 9000
+    },
+    {
+      "key": "dab-harden-tijera-podar-8-pulgadas-20cm-630401",
+      "group": "construction",
+      "name": "Harden Tijera Podar 8\" 20cm - 630401",
+      "brand": "Harden",
+      "code": "1051017",
+      "manufacturerCode": null,
+      "familyId": "fam-carpinteria-albanileria-y-sujecion",
+      "sourceUrl": "https://dab.cl/products/harden-tijera-podar-8-pulgadas-20cm-630401",
+      "sourceTitle": "Harden Tijera Podar 8\" 20cm - 630401",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/d_nq_np_844844-mla53178153273_01.jpg?v=1781820186",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/d_nq_np_725183-mla53177910743_01.jpg?v=1781820187"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 4000
+    },
+    {
+      "key": "dab-ceresita-aerosol-esm-brillante-gris-1",
+      "group": "construction",
+      "name": "Ceresita Aerosol Esm Brillante Gris",
+      "brand": "Ceresita",
+      "code": "1043257",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-de-muro-y-fachada",
+      "sourceUrl": "https://dab.cl/products/ceresita-aerosol-esm-brillante-gris-1",
+      "sourceTitle": "Ceresita Aerosol Esm Brillante Gris",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/1043257-02_uewxqhnadylb58nb.png?v=1781819137"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 4000
+    },
+    {
+      "key": "dab-pintura-piscina-plastipiscinaina-33-azul-tahiti-gl-1",
+      "group": "construction",
+      "name": "Chilcorrofin Plastipiscinaina 33 Azul Tahiti Gl",
+      "brand": "Chilcorrofin",
+      "code": "1040735",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-y-protectores-especiales",
+      "sourceUrl": "https://dab.cl/products/pintura-piscina-plastipiscinaina-33-azul-tahiti-gl-1",
+      "sourceTitle": "Chilcorrofin Plastipiscinaina 33 Azul Tahiti Gl",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/pin023333_2_miexnlckekvewxnj.jpg?v=1781818869",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/image_3__2.png?v=1781818869"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 51000
+    },
+    {
+      "key": "dab-rust-oleum-spray-uc2x-verde-limon-bri-340gr-262162",
+      "group": "construction",
+      "name": "Rust-Oleum Spray Uc2X Verde Limon Brillante 340Gr 262162",
+      "brand": "Rust-Oleum",
+      "code": "1042399",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-y-protectores-especiales",
+      "sourceUrl": "https://dab.cl/products/rust-oleum-spray-uc2x-verde-limon-bri-340gr-262162",
+      "sourceTitle": "Rust-Oleum Spray Uc2X Verde Limon Brillante 340Gr 262162",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/262162_1_uc2x_verdelima_brillante.jpg?v=1781820325"
+      ],
+      "packaging": "Envase de 340 Gr",
+      "seedPrice": 5500
+    },
+    {
+      "key": "dab-makita-bateria-18v-50ah-197282-4",
+      "group": "construction",
+      "name": "Makita Bateria 18v 50ah 197282-4",
+      "brand": "Makita",
+      "code": "1051709",
+      "manufacturerCode": null,
+      "familyId": "fam-equipos-y-accesorios-de-herramienta",
+      "sourceUrl": "https://dab.cl/products/makita-bateria-18v-50ah-197282-4",
+      "sourceTitle": "Makita Bateria 18v 50ah 197282-4",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/bateria-makita-18v-5-ah-bl1850b-litio.jpg?v=1781820496"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 91000
+    },
+    {
+      "key": "dab-einhell-sierra-de-banco-10-1800w-extendible-4340515-1",
+      "group": "construction",
+      "name": "Einhell Sierra De Banco 10 1800W Extendible 4340515 Tc-Ts 2225 U",
+      "brand": "Einhell",
+      "code": "1045092",
+      "manufacturerCode": null,
+      "familyId": "fam-corte-desbaste-y-lijado",
+      "sourceUrl": "https://dab.cl/products/einhell-sierra-de-banco-10-1800w-extendible-4340515-1",
+      "sourceTitle": "Einhell Sierra De Banco 10 1800W Extendible 4340515 Tc-Ts 2225 U",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/FJPG-FWEBP_d349f979-c86b-4db7-93fd-b781e0f552b5.webp?v=1790954024",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/FJPG-FWEBP_04b03d72-4da9-4e23-bd63-2eb38757363f.webp?v=1790954026"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 190500
+    },
+    {
+      "key": "dab-bahco-hoja-p160-r160a-1",
+      "group": "construction",
+      "name": "Bahco Hoja (P160 ) R160A",
+      "brand": "Bahco",
+      "code": "1015567",
+      "manufacturerCode": null,
+      "familyId": "fam-discos-hojas-y-abrasivos",
+      "sourceUrl": "https://dab.cl/products/bahco-hoja-p160-r160a-1",
+      "sourceTitle": "Bahco Hoja (P160 ) R160A",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/1015567_87mbqtinvk1jvgrs.png?v=1781818652"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 27500
+    },
+    {
+      "key": "dab-harden-llave-torque-1-slash-2p-10-110nm-538111-1",
+      "group": "construction",
+      "name": "Harden Llave Torque 1/2\" 10-110Nm 538111",
+      "brand": "Harden",
+      "code": "1044375",
+      "manufacturerCode": null,
+      "familyId": "fam-llaves-alicates-y-destornilladores",
+      "sourceUrl": "https://dab.cl/products/harden-llave-torque-1-slash-2p-10-110nm-538111-1",
+      "sourceTitle": "Harden Llave Torque 1/2\" 10-110Nm 538111",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/538111_szm2y0plkwh6pcy3.jpg?v=1781819251",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/538111.2_mo0xppaxhopmbham.jpg?v=1781819251"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 50000
+    },
+    {
+      "key": "dab-calorkote-aluminio-1-slash-4-gl-solvente-1",
+      "group": "construction",
+      "name": "Ceresita Calorkote Aluminio 1/4 Gl. Solvente",
+      "brand": "Ceresita",
+      "code": "1040476",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-de-muro-y-fachada",
+      "sourceUrl": "https://dab.cl/products/calorkote-aluminio-1-slash-4-gl-solvente-1",
+      "sourceTitle": "Calorkote Aluminio 1/4 Gl. Solvente",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/004022011_1_dpcto8vjbmja0hq6.jpg?v=1781818852"
+      ],
+      "packaging": "Envase de 4 Gl",
+      "seedPrice": 9000
+    },
+    {
+      "key": "dab-rust-sp-brochable-alta-temperatura-negro-mate-322633",
+      "group": "construction",
+      "name": "Rust-Oleum Alta Temperatura Negro Mate 322633",
+      "brand": "Rust-Oleum",
+      "code": "1048160",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-de-muro-y-fachada",
+      "sourceUrl": "https://dab.cl/products/rust-sp-brochable-alta-temperatura-negro-mate-322633",
+      "sourceTitle": "Rust-Oleum Alta Temperatura Negro Mate 322633",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/load_4.jpg?v=1781820296"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 20000
+    },
+    {
+      "key": "dab-broca-madera-larga-makita-100-x-315mm-d-07179",
+      "group": "construction",
+      "name": "Broca Madera Larga Makita 100 X 315mm D-07179",
+      "brand": "Makita",
+      "code": "1051669",
+      "manufacturerCode": null,
+      "familyId": "fam-brocas-puntas-y-sierras-copa",
+      "sourceUrl": "https://dab.cl/products/broca-madera-larga-makita-100-x-315mm-d-07179",
+      "sourceTitle": "Broca Madera Larga Makita 100 X 315mm    D-07179",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/broca_madera_larga.jpg?v=1781820484"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 5000
+    },
+    {
+      "key": "dab-einhell-herram-multiprop-tipo-dremel-4419169-1",
+      "group": "construction",
+      "name": "Einhell Herramienta Multiproprosito Tipo Dremel 4419169 Tc-Mg 135 E",
+      "brand": "Einhell",
+      "code": "1043766",
+      "manufacturerCode": null,
+      "familyId": "fam-equipos-y-accesorios-de-herramienta",
+      "sourceUrl": "https://dab.cl/products/einhell-herram-multiprop-tipo-dremel-4419169-1",
+      "sourceTitle": "Einhell Herramienta Multiproprosito Tipo Dremel 4419169 Tc-Mg 135 E",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/einhell-classic-multiherramienta-tc-mg-135-e-product_contents-3_pqw1stf4gyv21481.jpg?v=1781819205",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/5884_4_fr5twslwydrkl0dv.jpg?v=1781819206"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 45500
+    },
+    {
+      "key": "dab-bahco-serrucho-para-molduras-14p-300-14-f15-slash-16hp-1",
+      "group": "construction",
+      "name": "Bahco Serrucho Para Molduras 14\" 300-14-F15/16Hp",
+      "brand": "Bahco",
+      "code": "1047102",
+      "manufacturerCode": null,
+      "familyId": "fam-carpinteria-albanileria-y-sujecion",
+      "sourceUrl": "https://dab.cl/products/bahco-serrucho-para-molduras-14p-300-14-f15-slash-16hp-1",
+      "sourceTitle": "Bahco Serrucho Para Molduras 14\" 300-14-F15/16Hp",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/300-14-f15_1_o225vssisdaoyppu.png?v=1781819665",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/300-14-f15_3_rvsro26lmb3m5ieu.png?v=1781819665"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 6500
+    },
+    {
+      "key": "dab-harden-juego-llave-dado-32p-1-slash-2p-510432-1",
+      "group": "construction",
+      "name": "Harden Juego Llave Dado 32P 1/2\" 510432",
+      "brand": "Harden",
+      "code": "1044370",
+      "manufacturerCode": null,
+      "familyId": "fam-llaves-alicates-y-destornilladores",
+      "sourceUrl": "https://dab.cl/products/harden-juego-llave-dado-32p-1-slash-2p-510432-1",
+      "sourceTitle": "Harden Juego Llave Dado 32P 1/2\" 510432",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/510432_opt_jfclsfsmt5svluuu.jpg?v=1781819250"
+      ],
+      "packaging": "1 juego",
+      "seedPrice": 49500
+    },
+    {
+      "key": "dab-ceresita-aerosol-esm-brillante-verde-esmeralda-1",
+      "group": "construction",
+      "name": "Ceresita Aerosol Esm Brillante Verde Esmeralda",
+      "brand": "Ceresita",
+      "code": "1043259",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-de-muro-y-fachada",
+      "sourceUrl": "https://dab.cl/products/ceresita-aerosol-esm-brillante-verde-esmeralda-1",
+      "sourceTitle": "Ceresita Aerosol Esm Brillante Verde Esmeralda",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/1043259-02_h50whmoxmuywvtki.png?v=1781819137"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 4000
+    },
+    {
+      "key": "dab-rust-oleum-zinsser-mold-killing-primer-gl-322363-e-hon",
+      "group": "construction",
+      "name": "Rust-Oleum Zinsser Eliminador de Hongo y Moho Gl 322363",
+      "brand": "Rust-Oleum",
+      "code": "1050606",
+      "manufacturerCode": null,
+      "familyId": "fam-pinturas-de-muro-y-fachada",
+      "sourceUrl": "https://dab.cl/products/rust-oleum-zinsser-mold-killing-primer-gl-322363-e-hon",
+      "sourceTitle": "Rust-Oleum Zinsser Eliminador de Hongo y Moho Gl 322363",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/6377965c0c7e3_322362379812ibu00091121latammoldkillingprimer1lwhiter4.jpg?v=1781820330",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/5eb2dbb3ccce2_zinssermoldkilling1_1.png?v=1781820330"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 40000
+    },
+    {
+      "key": "dab-broca-madera-makita-50-x-85mm-d-07048",
+      "group": "construction",
+      "name": "Broca Madera Makita 50 X 85mm D-07048",
+      "brand": "Makita",
+      "code": "1051654",
+      "manufacturerCode": null,
+      "familyId": "fam-brocas-puntas-y-sierras-copa",
+      "sourceUrl": "https://dab.cl/products/broca-madera-makita-50-x-85mm-d-07048",
+      "sourceTitle": "Broca Madera Makita 50 X 85mm    D-07048",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/broca_madera_makita_5.jpg?v=1781820486"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 1000
+    },
+    {
+      "key": "dab-einhell-rotomartillo-inalambrico-18v-4514265-tp-hd-18-26-li-bl-solo",
+      "group": "construction",
+      "name": "Einhell Rotomartillo Inalambrico 18V. 4514265 TP-HD 18/26 Li BL - Solo",
+      "brand": "Einhell",
+      "code": "1051143",
+      "manufacturerCode": null,
+      "familyId": "fam-perforacion-y-atornillado",
+      "sourceUrl": "https://dab.cl/products/einhell-rotomartillo-inalambrico-18v-4514265-tp-hd-18-26-li-bl-solo",
+      "sourceTitle": "Einhell Rotomartillo Inalambrico 18V. 4514265  TP-HD 18/26 Li BL - Solo",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/martillo-perforador-con-batera.jpg?v=1781820420",
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/manipulacin-ergonmica.jpg?v=1781820420"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 150000
+    },
+    {
+      "key": "dab-bahco-martillo-ergo-20-oz-529-20-l-1",
+      "group": "construction",
+      "name": "Bahco Martillo Ergo 20 Oz 529-20-L",
+      "brand": "Bahco",
+      "code": "1047103",
+      "manufacturerCode": null,
+      "familyId": "fam-carpinteria-albanileria-y-sujecion",
+      "sourceUrl": "https://dab.cl/products/bahco-martillo-ergo-20-oz-529-20-l-1",
+      "sourceTitle": "Bahco Martillo Ergo 20 Oz 529-20-L",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/image_8__omkatr00nekvjru5.jpg?v=1781819664"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 19500
+    },
+    {
+      "key": "dab-makita-broca-sds-plus-6-x-210-mm-d-00072",
+      "group": "construction",
+      "name": "Broca Sds Plus Makita 6 X 210 Mm D-00072",
+      "brand": "Makita",
+      "code": "1051578",
+      "manufacturerCode": null,
+      "familyId": "fam-brocas-puntas-y-sierras-copa",
+      "sourceUrl": "https://dab.cl/products/makita-broca-sds-plus-6-x-210-mm-d-00072",
+      "sourceTitle": "Broca Sds Plus Makita 6 X 210 Mm     D-00072",
+      "images": [
+        "https://cdn.shopify.com/s/files/1/0792/8099/6537/files/makita_broca_cemento_sds_3.jpg?v=1781820466"
+      ],
+      "packaging": "1 unidad",
+      "seedPrice": 2000
+    }
+  ]
+}
