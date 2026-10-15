@@ -1,0 +1,54 @@
+{
+  "checkedAt": "2026-10-15",
+  "images": [
+    {
+      "productId": "base-fam-pernos-tuercas-y-arandelas--arandela-plana",
+      "name": "Arandela plana",
+      "file": "docs/catalogo/imagenes/ia-tanda-02/arandela-plana.webp",
+      "tool": "built-in image_gen",
+      "prompt": "Use case: product-mockup. Asset type: Trovio generic construction catalog image. Subject: one plain flat steel washer, arandela plana, a simple smooth silver circular metal disk with a circular hole, seen in three-quarter view showing modest thickness. Unbranded unspecified generic product. Square white seamless studio background, centered complete object with generous margins, soft natural shadow, realistic brushed galvanized steel texture, crisp professional product photography. No text, logos, packaging, dimensions, certifications, hands, other objects or watermark. Referential illustration, do not imply a specific manufacturer.",
+      "sha256": "371b74ad66c169d8fe7b88ef7a33b342b7b9c939e9ff6f6746456d1235341508",
+      "referential": true,
+      "sourceType": "ai_generated",
+      "provider": "OpenAI",
+      "checkedAt": "2026-10-15"
+    },
+    {
+      "productId": "base-fam-perfiles-estructurales--angulo-de-acero",
+      "name": "Ángulo de acero",
+      "file": "docs/catalogo/imagenes/ia-tanda-02/angulo-acero.webp",
+      "tool": "built-in image_gen",
+      "prompt": "Use case: product-mockup. Asset type: Trovio construction catalog referential illustration. Subject: a single short sample of a generic hot-rolled steel angle profile (ángulo de acero), clear L shaped cross section, equal flanges, dark gray mill scale steel with realistic subtle texture, no holes, square-cut ends visible in three-quarter perspective. Entire object centered on pure white seamless background, professional photorealistic studio lighting, subtle contact shadow, square image, generous margins. No markings, logos, text, watermarks, dimensions, certifications, hands, construction site or extra objects. Do not imply a specific manufacturer or exact size.",
+      "sha256": "e696eb0e2fc99a5eaa7e6b54a95426c211ff06b560064311c7ad9381263ffcca",
+      "referential": true,
+      "sourceType": "ai_generated",
+      "provider": "OpenAI",
+      "checkedAt": "2026-10-15"
+    },
+    {
+      "productId": "base-fam-aridos-de-construccion--arena-fina",
+      "name": "Arena fina",
+      "file": "docs/catalogo/imagenes/ia-tanda-02/arena-fina.webp",
+      "tool": "built-in image_gen",
+      "prompt": "Use case: product-mockup. Asset type: Trovio construction catalog generic referential image for Arena fina. Subject: a small neat conical mound of fine dry beige construction sand, uniform fine mineral grains visible close up. On a seamless clean white studio surface, centered with generous white margins, entire mound in frame, subtle contact shadow, square image, photorealistic natural studio light, believable fine sandy texture. No gravel, shells, tools, container, bag, packaging, brand, text, people, watermark, specifications or certifications. Generic illustrative material sample, not a certified specific commercial product.",
+      "sha256": "1ce1420dc9da530a28d4072a01d2b4f8d7ad3f534520d0e4f49bdcdc270625d1",
+      "referential": true,
+      "sourceType": "ai_generated",
+      "provider": "OpenAI",
+      "checkedAt": "2026-10-15"
+    },
+    {
+      "productId": "base-fam-pavimentos-y-elementos-prefabricados--adoquin-de-hormigon",
+      "name": "Adoquín de hormigón",
+      "file": "docs/catalogo/imagenes/ia-tanda-02/adoquin-hormigon.webp",
+      "tool": "built-in image_gen",
+      "prompt": "Use case: product-mockup. Asset type: Trovio construction catalog referential product image for Adoquín de hormigón. Subject: one single unbranded rectangular solid gray concrete paving block, small chamfered top edges, realistic fine porous concrete surface and tiny aggregate grains, no holes, no pattern imprint. Three-quarter view with top and two sides visible, complete object centered, isolated on seamless pure white background with generous margins, subtle contact shadow, photorealistic professional studio product photography, square composition. No text, logos, watermark, packaging, dimensions, certifications, tools, people or extra blocks. Generic illustrative reference, not a specific manufacturer's product.",
+      "sha256": "e1b066a786cc41f54efc6bb91694497702679e9d07123c75fa21b636cdaeddfc",
+      "referential": true,
+      "sourceType": "ai_generated",
+      "provider": "OpenAI",
+      "checkedAt": "2026-10-15"
+    }
+  ],
+  "batch": "ia-tanda-02"
+}

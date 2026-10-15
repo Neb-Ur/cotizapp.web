@@ -20,6 +20,8 @@ async function main() {
   const manifestPath = resolve(process.argv[argument + 1]);
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
   if (!Array.isArray(manifest.images) || !manifest.images.length) throw Error('MANIFEST_INVALID');
+  const batch = manifest.batch;
+  if (batch !== undefined && (typeof batch !== 'string' || !/^[a-z0-9][a-z0-9-]{0,79}$/.test(batch))) throw Error('BATCH_INVALID');
   const auth = await cloudAuth();
   if (manifest.images.some(item => item.file || item.storeInR2 === true)) {
     process.env.FINDI_R2_ACCESS_KEY_ID = await secretValue(auth, 'FINDI_R2_ACCESS_KEY_ID');
@@ -51,9 +53,9 @@ async function main() {
         fields = {
           imagenPrincipalUrl: image.storageImageUrl, imagenStorageUrl: image.storageImageUrl, imagenStoragePath: image.storageImagePath,
           imagenMiniaturaUrl: image.thumbnailImageUrl, imagenMiniaturaPath: image.thumbnailImagePath, galeriaJson: [image.storageImageUrl],
-          origenImagen: 'ai_generated', proveedorImagen: 'OpenAI', referenciaAutorizacion: `Generación propia Findi: sha256:${item.sha256}`,
+          origenImagen: 'ai_generated', proveedorImagen: 'OpenAI', referenciaAutorizacion: `Generación propia Trovio: sha256:${item.sha256}`,
           terminosFuenteUrl: 'https://openai.com/policies/terms-of-use/', contieneMarcasTerceros: false,
-          derechosRevisadosEn: null, derechosRevisadosPor: null, imagenReferencial: true, imagenLote: 'ia-tanda-01'
+          derechosRevisadosEn: null, derechosRevisadosPor: null, imagenReferencial: true, imagenLote: batch || 'ia-tanda-01'
         };
       } else {
         await verifyExternal(item.url);
@@ -64,7 +66,7 @@ async function main() {
             imagenPrincipalUrl: item.url, imagenExternaUrl: item.url, galeriaJson: [item.url],
             origenImagen: 'external_url', proveedorImagen: new URL(item.sourceUrl).hostname, fuenteImagenUrl: item.sourceUrl,
             referenciaAutorizacion: null, derechosRevisadosEn: null, derechosRevisadosPor: null,
-            imagenReferencial: item.referential === true, imagenLote: 'urls-tanda-02'
+            imagenReferencial: item.referential === true, imagenLote: batch || 'urls-tanda-02'
           };
         if (item.storeInR2 === true && !current.imagenStorageUrl) {
           const response = await fetch(item.url, { signal: AbortSignal.timeout(25000) });
