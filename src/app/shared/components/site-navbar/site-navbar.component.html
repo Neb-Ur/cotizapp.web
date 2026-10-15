@@ -84,8 +84,8 @@
         <button *ngIf="searchValue" type="button" class="search-clear" (click)="clearSearch()" aria-label="Limpiar búsqueda"><i class="pi pi-times" aria-hidden="true"></i></button>
         <button type="submit" class="search-submit" aria-label="Buscar"><i class="pi pi-search" aria-hidden="true"></i></button>
       </form>
-      <section class="search-panel" *ngIf="searchOpen" aria-label="Sugerencias de búsqueda">
-        <div class="search-panel-heading"><span>Encuentra tu material</span><button type="button" (click)="closeSearch()" aria-label="Cerrar sugerencias"><i class="pi pi-times" aria-hidden="true"></i></button></div>
+      <section class="search-panel" *ngIf="searchOpen" [style.--search-panel-top]="searchPanelTop + 'px'" [style.--search-panel-max-height]="searchPanelMaxHeight + 'px'" aria-label="Sugerencias de búsqueda">
+        <div class="search-panel-heading"><span>Encuentra tu producto</span><button type="button" (click)="closeSearch()" aria-label="Cerrar sugerencias"><i class="pi pi-times" aria-hidden="true"></i></button></div>
         <div id="header-search-options" role="listbox" aria-label="Productos, familias y marcas" class="search-groups" [class.with-products]="suggestionGroups[0]?.kind==='product'">
           <section *ngFor="let group of suggestionGroups" class="search-group" [class.search-group-products]="group.kind==='product'" role="group" [attr.aria-label]="group.label">
             <h2>{{ group.label }}</h2>

@@ -21,7 +21,7 @@ async function setup() {
 }
 
 describe('header navigation and search',()=>{
-  afterEach(()=>{ TestBed.resetTestingModule(); vi.restoreAllMocks(); });
+  afterEach(()=>{ TestBed.resetTestingModule(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
   it('opens the admin panel with a fresh document on desktop and mobile rather than loading an old lazy route',async()=>{
     const {fixture,router}=await setup();const auth=TestBed.inject(AuthService) as any;
@@ -60,6 +60,44 @@ describe('header navigation and search',()=>{
     expect(fixture.nativeElement.querySelector('[href="/registro"]')).toBeNull();
     expect(fixture.nativeElement.querySelector('[href="/preguntas-frecuentes"]')).toBeNull();
     expect(fixture.nativeElement.querySelector('.mobile-drawer [href="/ferreterias"]')).not.toBeNull();
+  });
+
+  it('keeps mobile suggestions below the input when the pilot notice is visible and the keyboard opens',async()=>{
+    const viewport=Object.assign(new EventTarget(),{height:800,offsetTop:0});
+    vi.stubGlobal('visualViewport',viewport);vi.stubGlobal('innerWidth',390);
+    const {fixture}=await setup();
+    const shell=fixture.nativeElement.querySelector('.search-shell') as HTMLElement;
+    vi.spyOn(shell,'getBoundingClientRect').mockReturnValue({bottom:224} as DOMRect);
+    const input=fixture.nativeElement.querySelector('input[role="combobox"]') as HTMLInputElement;
+    input.value='ma';input.dispatchEvent(new Event('input',{bubbles:true}));
+    fixture.detectChanges();await fixture.whenStable();fixture.detectChanges();
+    const panel=fixture.nativeElement.querySelector('.search-panel') as HTMLElement;
+    expect(panel.style.getPropertyValue('--search-panel-top')).toBe('234px');
+    expect(panel.style.getPropertyValue('--search-panel-max-height')).toBe('554px');
+    viewport.height=460;viewport.dispatchEvent(new Event('resize'));fixture.detectChanges();
+    expect(panel.style.getPropertyValue('--search-panel-top')).toBe('234px');
+    expect(panel.style.getPropertyValue('--search-panel-max-height')).toBe('214px');
+    expect(input.value).toBe('ma');expect(input.getAttribute('aria-expanded')).toBe('true');
+    vi.spyOn(shell,'getBoundingClientRect').mockReturnValue({bottom:62} as DOMRect);
+    window.dispatchEvent(new Event('scroll'));fixture.detectChanges();
+    expect(panel.style.getPropertyValue('--search-panel-top')).toBe('72px');
+    viewport.offsetTop=30;viewport.dispatchEvent(new Event('scroll'));fixture.detectChanges();
+    expect(panel.style.getPropertyValue('--search-panel-max-height')).toBe('406px');
+  });
+
+  it('fits suggestions without VisualViewport and releases viewport listeners on destroy',async()=>{
+    vi.stubGlobal('visualViewport',undefined);vi.stubGlobal('innerHeight',600);
+    const {fixture,component}=await setup();
+    vi.spyOn(fixture.nativeElement.querySelector('.search-shell'),'getBoundingClientRect').mockReturnValue({bottom:200} as DOMRect);
+    component.searchValue='ma';component.onSearchInput();fixture.detectChanges();
+    expect(component.searchPanelMaxHeight).toBe(378);
+    vi.stubGlobal('innerHeight',180);window.dispatchEvent(new Event('resize'));fixture.detectChanges();
+    expect(component.searchPanelMaxHeight).toBe(0);fixture.destroy();TestBed.resetTestingModule();
+    const viewport=Object.assign(new EventTarget(),{height:600,offsetTop:0});
+    const remove=vi.spyOn(viewport,'removeEventListener');vi.stubGlobal('visualViewport',viewport);
+    const next=await setup();next.fixture.destroy();
+    expect(remove).toHaveBeenCalledWith('resize',expect.any(Function));
+    expect(remove).toHaveBeenCalledWith('scroll',expect.any(Function));
   });
 
   it('opens the selected product directly',async()=>{

@@ -28,6 +28,16 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
   protected suggestionGroups: SuggestionGroup[] = [];
   protected searchOpen = false;
   protected activeSuggestion = -1;
+  protected searchPanelTop = 70;
+  protected searchPanelMaxHeight = 400;
+  private readonly positionSearchPanel = (): void => {
+    if (!this.searchOpen || typeof window === 'undefined' || !this.searchShell) return;
+    const viewport = window.visualViewport;
+    this.searchPanelTop = this.searchShell.nativeElement.getBoundingClientRect().bottom + 10;
+    this.searchPanelMaxHeight = Math.max(0,
+      (viewport?.offsetTop || 0) + (viewport?.height ?? window.innerHeight) - this.searchPanelTop - 12);
+    this.changeDetector.markForCheck();
+  };
   @ViewChild('searchInput') private searchInput?: ElementRef<HTMLInputElement>;
   @ViewChild('searchShell') private searchShell?: ElementRef<HTMLElement>;
   private navigationSubscription?: Subscription;
@@ -53,6 +63,10 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
     private readonly changeDetector: ChangeDetectorRef,
     protected readonly searchIndex: CatalogSearchIndexService
   ) {
+    afterNextRender(() => {
+      window.visualViewport?.addEventListener('resize', this.positionSearchPanel);
+      window.visualViewport?.addEventListener('scroll', this.positionSearchPanel);
+    });
     afterNextRender(()=>{if (!this.isStoreDashboard) {void this.searchIndex.ensureReady();this.preloadTaxonomy();}});
     effect(()=>{const version=this.searchIndex.version();this.dataService.acceptCatalogSearchVersion(version);this.searchIndex.ready();this.updateSuggestions();});
   }
@@ -118,12 +132,13 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
     if (now - this.lastSearchInputAt > 1500) void this.searchIndex.ensureReady(true);
     this.lastSearchInputAt = now;
     this.updateSuggestions();this.searchOpen=this.searchValue.trim().length>=2;
+    this.positionSearchPanel();
     this.closeTaxonomy();
   }
   protected focusSearch():void {
     this.closeTaxonomy();this.closeMenu();
     this.searchOpen=this.searchValue.trim().length>=2;
-    this.updateSuggestions();void this.searchIndex.ensureReady(true);
+    this.updateSuggestions();this.positionSearchPanel();void this.searchIndex.ensureReady(true);
   }
   protected clearSearch():void { this.searchValue='';this.updateSuggestions();this.searchOpen=false;this.searchInput?.nativeElement.focus(); }
   protected retrySearchIndex():void { void this.searchIndex.ensureReady(); }
@@ -134,6 +149,7 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
     if (event.key==='Escape') {this.closeSearch();event.stopPropagation();return;}
     if ((event.key==='ArrowDown'||event.key==='ArrowUp') && suggestions.length) {
       event.preventDefault();this.searchOpen=true;
+      this.positionSearchPanel();
       this.activeSuggestion=event.key==='ArrowDown'?(this.activeSuggestion+1)%suggestions.length
         :(this.activeSuggestion<=0?suggestions.length-1:this.activeSuggestion-1);
       const id=this.activeOptionId;
@@ -176,8 +192,12 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
     }
   }
 
+  @HostListener('window:scroll')
+  protected onWindowScroll(): void { this.positionSearchPanel(); }
+
   @HostListener('window:resize')
   protected onResize(): void {
+    this.positionSearchPanel();
     if (typeof window !== 'undefined' && window.innerWidth > 1000 && !this.isMaestro) this.closeMenu();
   }
 
@@ -265,6 +285,10 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.navigationSubscription?.unsubscribe();
+    if (typeof window !== 'undefined') {
+      window.visualViewport?.removeEventListener('resize', this.positionSearchPanel);
+      window.visualViewport?.removeEventListener('scroll', this.positionSearchPanel);
+    }
     if (this.menuOpen) this.restoreBodyScroll();
   }
 
