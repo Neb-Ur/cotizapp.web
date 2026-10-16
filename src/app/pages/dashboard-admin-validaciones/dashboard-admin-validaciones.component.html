@@ -90,7 +90,7 @@
                   <td>{{ store.storeAgreementStatus === 'vigente' ? 'Vigente' : (store.storeAgreementStatus || 'Pendiente') }}</td>
                   <td class="actions store-actions">
                     <button pButton type="button" icon="pi pi-check" [rounded]="true" [text]="true" severity="success" class="store-action-button" *ngIf="userStatus(store) !== 'activo'" (click)="activateStore(store)" aria-label="Activar local" title="Activar local"></button>
-                    <button pButton type="button" icon="pi pi-pencil" [rounded]="true" [text]="true" class="store-action-button" (click)="openUserEdit(store)" aria-label="Editar local" title="Editar local"></button>
+                    <button pButton type="button" icon="pi pi-pencil" [rounded]="true" [text]="true" class="store-action-button" (click)="setSection('usuarios'); openUserEdit(store)" aria-label="Editar local" title="Editar local"></button>
                     <button pButton type="button" icon="pi pi-eye" [rounded]="true" [text]="true" severity="info" class="store-action-button" (click)="inspectStoreCatalog(store)" aria-label="Ver detalle" title="Ver detalle"></button>
                     <button pButton type="button" icon="pi pi-ban" [rounded]="true" [text]="true" severity="danger" class="store-action-button" *ngIf="userStatus(store) !== 'bloqueado'" (click)="quickBlock(store)" aria-label="Bloquear local" title="Bloquear local"></button>
                   </td>
