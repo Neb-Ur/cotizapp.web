@@ -126,6 +126,9 @@ export const api = onRequest(
     region: 'southamerica-west1',
     cors: false,
     maxInstances: 10,
+    // Image decoding shares this service with catalog snapshots and SSR.
+    memory: '1GiB',
+    concurrency: 4,
     // Discovery can run before dotenv is loaded. Bind provisioned R2 secrets
     // explicitly; the provider flag still controls whether uploads are allowed.
     secrets: [sqlPassword, visitAnalyticsKey, 'FINDI_R2_ACCESS_KEY_ID', 'FINDI_R2_SECRET_ACCESS_KEY']

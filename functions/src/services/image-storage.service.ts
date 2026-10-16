@@ -28,6 +28,9 @@ export async function prepareProductImage(body: Buffer, contentType: string) {
   if (!IMAGE_CONTENT_TYPES.includes(contentType)) throw new ImageStorageError('IMAGE_TYPE_INVALID', 'Usa una imagen JPG, PNG, WebP o AVIF.');
   if (!Buffer.isBuffer(body) || !body.length || body.length > MAX_IMAGE_BYTES) throw new ImageStorageError('IMAGE_SIZE_INVALID', 'La imagen debe pesar entre 1 byte y 8 MB.');
   const { default: sharp } = await import('sharp');
+  // Bound native memory while processing simultaneous seller uploads.
+  sharp.cache({ memory: 16, files: 0, items: 16 });
+  sharp.concurrency(1);
   try {
     const input = sharp(body, { limitInputPixels: 16_000_000, animated: false, failOn: 'warning' });
     const metadata = await input.metadata();
@@ -39,7 +42,7 @@ export async function prepareProductImage(body: Buffer, contentType: string) {
   } catch { throw new ImageStorageError('IMAGE_CONTENT_INVALID', 'El archivo no contiene una imagen válida o supera las dimensiones permitidas.'); }
 }
 
-// This runs only for admin uploads. Product views use the public CDN URL directly.
+// Admin and local uploads share processing. Product views use the public CDN URL directly.
 export async function uploadProductImage(body: Buffer, contentType: string, root = 'productos') {
   const config = imageStorageConfig();
   if (!config.configured) throw new ImageStorageError('IMAGE_STORAGE_NOT_CONFIGURED', 'La carga de imágenes aún no está configurada.', 503);

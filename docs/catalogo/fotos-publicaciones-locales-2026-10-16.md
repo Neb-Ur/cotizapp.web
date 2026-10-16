@@ -20,6 +20,10 @@ Cada local conserva una publicación por producto maestro. El maestro mantiene s
 - El detalle carga las fotos de los locales junto a las ofertas, sin incorporarlas a la ficha genérica persistida en el navegador. Las respuestas dinámicas usan `Cache-Control: no-store`.
 - Si una foto de un local falla, se muestra el marcador de imagen no disponible; no se sustituye por una imagen genérica debajo del nombre del vendedor.
 
+## Recursos de procesamiento
+
+La API dispone de 1 GiB y hasta cuatro solicitudes simultáneas por instancia. Sharp limita su caché a 16 MB y utiliza un hilo de procesamiento. La verificación en producción detectó que el límite anterior de 256 MB agotaba la memoria durante las subidas.
+
 ## Validación automatizada
 
 272 pruebas de frontend y 215 de backend aprobadas, más compilación de producción. Incluyen alta con condición, subida y eliminación desde el formulario, fallas parciales de carga, límites de archivos, permisos, atribución pública, aislamiento entre locales, persistencia SQL y recuperación de imágenes fallidas.
