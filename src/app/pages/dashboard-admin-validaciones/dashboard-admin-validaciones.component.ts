@@ -3,7 +3,7 @@ import {VehicleApplication} from '../../core/services/vehicle-catalog.service';
 import { UiModalComponent } from '../../shared/components/ui-modal/ui-modal.component';
 import { OfferVehicleApplicationsComponent } from '../../shared/components/offer-vehicle-applications/offer-vehicle-applications.component';
 import { VehicleCatalogAdminComponent } from '../../shared/components/vehicle-catalog-admin/vehicle-catalog-admin.component';
-import { BUSINESS_TYPES, businessTypeLabel, normalizeBusinessType, type BusinessType } from '../../core/utils/business-type.util';
+import { BUSINESS_TYPES, businessTypeLabel, normalizeBusinessType, PRODUCT_BUSINESS_SCOPES, normalizeProductBusinessScope, productBusinessScopeLabel, type ProductBusinessScope, type BusinessType } from '../../core/utils/business-type.util';
 import {AdminMetricsComponent} from '../../shared/components/admin-metrics/admin-metrics.component';
 import {AdminMetricsService,AdminMetrics} from '../../core/services/admin-metrics.service';
 import { ProductImageUploadComponent, UploadedProductImage } from '../../shared/components/product-image-upload/product-image-upload.component';
@@ -65,6 +65,7 @@ import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.c
 type AdminSection = 'inicio' | 'ferreterias' | 'productos' | 'solicitudes' | 'contacto' | 'precios' | 'propiedad' | 'privacidad' | 'gobierno' | 'usuarios';
 
 interface MasterProductDraft {
+  businessScope: ProductBusinessScope;
   partName: string;
   variantLabel: string;
   vehicleCompatibility: VehicleApplication[];
@@ -185,6 +186,8 @@ interface AdminSectionMeta {
 })
 export class DashboardAdminValidacionesComponent implements OnInit {
   protected readonly businessTypes = BUSINESS_TYPES;
+  protected readonly productBusinessScopes = PRODUCT_BUSINESS_SCOPES;
+  protected readonly productBusinessScopeLabel = productBusinessScopeLabel;
   protected readonly businessTypeLabel = businessTypeLabel;
   private sectionLoadError = '';
   protected get dataLoadError(): string { return this.sectionLoadError || this.apiService.loadError(); }
@@ -303,6 +306,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   protected readonly masterPageSizeOptions = [10, 20, 50];
   protected masterCatalogLoading = false;
   protected selectedMasterProduct: CatalogProduct | null = null;
+  protected masterBusinessScopeTouched = false;
   protected masterDetailDraft: MasterProductDraft = this.createEmptyMasterProductDraft();
   protected masterAttributeDrafts: MasterAttributeDraft[] = [];
   protected masterDetailModalOpen = false;
@@ -1048,6 +1052,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   }
 
   protected async openMasterProductCreate(): Promise<void> {
+    this.masterBusinessScopeTouched = false;
     this.masterDetailModalOpen = true; this.masterDetailReadonly = false; this.masterDetailLoading = true;
     this.changeDetector.detectChanges();
     try { await this.ensureMasterDefinitionsLoaded(); } catch (error) { this.error = 'No se pudo cargar la taxonomía.'; this.masterDetailModalOpen = false; return; } finally { this.masterDetailLoading = false; this.changeDetector.detectChanges(); }
@@ -1061,6 +1066,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     this.masterDetailReadonly = false;
     this.masterDetailDraft = {
       ...this.createEmptyMasterProductDraft(),
+      businessScope: normalizeProductBusinessScope(undefined, firstCategoryId),
       categoryId: firstCategoryId,
       subcategoryId: firstSubcategoryId,
       familyId: firstFamilyId
@@ -1080,6 +1086,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   }
 
   protected onDraftCategoryChange(): void {
+    if (!this.masterDetailDraft.masterProductId && !this.masterBusinessScopeTouched) this.masterDetailDraft.businessScope = normalizeProductBusinessScope(undefined, this.masterDetailDraft.categoryId);
     const options = this.draftSubcategoryOptions;
     if (!options.some((option) => option.id === this.masterDetailDraft.subcategoryId)) {
       this.masterDetailDraft.subcategoryId = options[0]?.id || '';
@@ -1159,6 +1166,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
       try {
         const payload = {
           isPublished: this.masterDetailDraft.isPublished,
+          businessScope: this.masterDetailDraft.businessScope,
           name,
           barcode: this.masterDetailDraft.barcode,
           brand,
@@ -1647,7 +1655,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     if (this.storeProductSearch.trim().length < 2) { this.storeProductError = 'Escribe al menos dos caracteres.'; return; }
     this.storeProductSearching = true; this.storeProductError = ''; this.changeDetector.detectChanges();
     try {
-      const page = await this.apiService.getAdminMasterCatalogPage({query: this.storeProductSearch, size: 20});
+      const page = await this.apiService.searchMasterCatalogProducts({storeId:this.selectedStore?.ferreteriaId,query:this.storeProductSearch,size:20});
       if (request === this.storeProductSearchRequest) this.storeProductResults = page.items.filter(product => product.isPublished);
     } catch (error) { this.storeProductError = 'No se pudieron buscar los productos. Intenta nuevamente.'; }
     finally { if (request === this.storeProductSearchRequest) { this.storeProductSearching = false; this.changeDetector.detectChanges(); } }
@@ -2124,6 +2132,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
 
   private createEmptyMasterProductDraft(): MasterProductDraft {
     return {
+      businessScope: 'ferreteria',
       partName: '', variantLabel: '', vehicleCompatibility: [],
       isPublished: false,
       masterProductId: '',
@@ -2219,6 +2228,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     const palletUnits = this.extractTechnicalNumericValue(product.technicalSheet, 'unidades por pallet');
 
     return {
+      businessScope: normalizeProductBusinessScope(product.businessScope, product.categoryId),
       partName: product.partName || '', variantLabel: product.variantLabel || '', vehicleCompatibility: structuredClone(product.vehicleCompatibility || []),
       isPublished: product.isPublished,
       masterProductId: product.masterProductId || product.id,

@@ -67,3 +67,14 @@ it('creates a test store explicitly and preserves its classification when openin
  expect(component.authService.adminCreateUser).toHaveBeenCalledWith(expect.objectContaining({role:'ferreteria',isTestStore:true}));
  component.openUserEdit(created);expect(component.userModalDraft.isTestStore).toBe(true);
 });
+
+it('preserves the explicit shared product classification when reopening its editor',()=>{
+ const {component}=fixture();expect(component.mapProductToDraft({...product,businessScope:'ambos'}).businessScope).toBe('ambos');
+ expect(component.mapProductToDraft({...product,categoryId:'cat-repuestos-automotrices'}).businessScope).toBe('desarmaduria');
+});
+
+it('keeps an explicit business scope when changing a new product category',()=>{
+ const {component,api}=fixture();api.getSubcategoryOptions=()=>[];api.getFamilyOptions=()=>[];
+ component.masterDetailDraft.categoryId='cat-repuestos-automotrices';component.onDraftCategoryChange();expect(component.masterDetailDraft.businessScope).toBe('desarmaduria');
+ component.masterBusinessScopeTouched=true;component.masterDetailDraft.businessScope='ambos';component.masterDetailDraft.categoryId='construction';component.onDraftCategoryChange();expect(component.masterDetailDraft.businessScope).toBe('ambos');
+});

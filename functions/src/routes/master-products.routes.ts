@@ -11,7 +11,7 @@ import { nowIso, normalizeText, numberValue } from '../lib/values.js';
 import { rows, row, createRow, patchRow, deleteRowsByIds } from '../repositories/firestore.repository.js';
 import { resolveProductBrand } from '../lib/brands.js';
 import { brandUses } from '../domain/brand-use.js';
-import { categoryMatchesBusinessType, isBusinessType } from '../domain/business-type.js';
+import { productMatchesBusinessType, isBusinessType, normalizeBusinessType, isProductBusinessScope, normalizeProductBusinessScope } from '../domain/business-type.js';
 export const masterProductsRouter = Router();
 
 const validImageSources = ['external_url', 'ai_generated', 'manufacturer_authorized', 'store_authorized', 'licensed_stock', 'original', 'other'];
@@ -101,14 +101,14 @@ masterProductsRouter.get('/marcas', async (_req, res) => {
 });
 
 masterProductsRouter.get('/productos-maestro', async (req, res) => {
-  const businessType = req.query['tipoNegocio'];
+  let businessType = req.query['tipoNegocio'];
   if (businessType !== undefined && !isBusinessType(businessType)) return fail(res, 'BUSINESS_TYPE_INVALID', 'Selecciona un tipo de local válido.', 400);
   const q = normalizeText(req.query['query']).toLowerCase();
   const categoryId = normalizeText(req.query['categoriaId']);
   const subcategoryId = normalizeText(req.query['subcategoriaId']);
   const familyId = normalizeText(req.query['familiaId']);
   const data = (await rows(COLLECTIONS.masterProducts))
-    .filter(item => !businessType || categoryMatchesBusinessType(item.categoriaId, businessType))
+    .filter(item => !businessType || productMatchesBusinessType(item, businessType))
     .filter((item) => item.estado !== 'inactivo' && publicRecordVisible(item))
     .filter((item) => !q || normalizeText(item.nombre).toLowerCase().includes(q) || normalizeText(item.marca).toLowerCase().includes(q) || normalizeText(item.codigoBarras).toLowerCase().includes(q))
     .filter((item) => !categoryId || item.categoriaId === categoryId)
@@ -119,7 +119,13 @@ masterProductsRouter.get('/productos-maestro', async (req, res) => {
 });
 
 const listMasterPage = async (req: Request, res: Response) => {
-  const businessType = req.query['tipoNegocio'];
+  let businessType = req.query['tipoNegocio'];
+  if (req.params?.storeId) {
+    const store = await row(COLLECTIONS.stores, req.params?.storeId);
+    if (!store) return fail(res, 'FERRETERIA_NOT_FOUND', 'No existe el local.', 404);
+    if (req.authRole !== 'admin' && store.usuarioDuenoId !== req.authUserId) return fail(res, 'AUTH_FORBIDDEN', 'No puedes consultar el catálogo de otro local.', 403);
+    businessType = normalizeBusinessType(store.tipoNegocio);
+  }
   if (businessType !== undefined && !isBusinessType(businessType)) return fail(res, 'BUSINESS_TYPE_INVALID', 'Selecciona un tipo de local válido.', 400);
   const q = normalizeText(req.query['query']).toLowerCase();
   const categoryId = normalizeText(req.query['categoriaId']);
@@ -128,9 +134,11 @@ const listMasterPage = async (req: Request, res: Response) => {
   const excluded = new Set(normalizeText(req.query['excludeProductoMaestroIds']).split(',').filter(Boolean));
   const page = Math.max(1, Math.floor(numberValue(req.query['page'], 1)));
   const size = Math.min(100, Math.max(1, Math.floor(numberValue(req.query['size'], 25))));
-  const all = (await rows(COLLECTIONS.masterProducts))
-    .filter(item => !businessType || categoryMatchesBusinessType(item.categoriaId, businessType))
-    .filter((item) => req.authRole === 'admin' || item.estado !== 'inactivo' && publicRecordVisible(item))
+  const eligible = (await rows(COLLECTIONS.masterProducts))
+    .filter(item => !businessType || productMatchesBusinessType(item, businessType))
+    .filter((item) => req.authRole === 'admin' || item.estado !== 'inactivo' && (!!req.params?.storeId || publicRecordVisible(item)));
+  const categoryIds = [...new Set(eligible.map(item => item.categoriaId))];
+  const all = eligible
     .filter((item) => !excluded.has(item.id))
     .filter((item) => !q || normalizeText(item.nombre).toLowerCase().includes(q) || normalizeText(item.marca).toLowerCase().includes(q) || normalizeText(item.codigoBarras).toLowerCase().includes(q))
     .filter((item) => !categoryId || item.categoriaId === categoryId)
@@ -141,11 +149,12 @@ const listMasterPage = async (req: Request, res: Response) => {
   const totalPages = Math.max(1, Math.ceil(total / size));
   const safePage = Math.min(page, totalPages);
   const items = all.slice((safePage - 1) * size, safePage * size);
-  return ok(res, { items, page: safePage, size, total, totalPages });
+  return ok(res, { items, page: safePage, size, total, totalPages, categoryIds });
 };
 
 masterProductsRouter.get('/admin/productos-maestro/paginado', requireAuth, requireRole('admin'), listMasterPage);
 masterProductsRouter.get('/productos-maestro/paginado', listMasterPage);
+masterProductsRouter.get('/ferreterias/:storeId/productos-disponibles', requireAuth, requireRole('ferreteria', 'admin'), listMasterPage);
 
 const masterDetail = async (req: Request, res: Response) => {
   const product = await row(COLLECTIONS.masterProducts, req.params.id);
@@ -157,6 +166,7 @@ masterProductsRouter.get('/admin/productos-maestro/:id', requireAuth, requireRol
 masterProductsRouter.get('/productos-maestro/:id', masterDetail);
 
 masterProductsRouter.post('/productos-maestro', requireAuth, requireRole('admin'), async (req, res) => {
+  if (req.body?.ambitoComercial !== undefined && !isProductBusinessScope(req.body.ambitoComercial)) return fail(res, 'PRODUCT_BUSINESS_SCOPE_INVALID', 'Selecciona Ferretería, Desarmaduría o Ambos.', 400);
   let automotive: Record<string, unknown>;
   try { automotive=await vehicleFields(req.body || {}); } catch(error) {return fail(res,(error as Error).message,'Indica pieza, marca/modelo y rangos de años válidos del producto maestro.',400);}
   if(req.body?.categoriaId==='cat-repuestos-automotrices' && !automotive.compatibilidadVehiculos)return fail(res,'PRODUCT_COMPATIBILITY_REQUIRED','Los repuestos requieren pieza y compatibilidad en el maestro.',400);
@@ -169,6 +179,7 @@ masterProductsRouter.post('/productos-maestro', requireAuth, requireRole('admin'
   const manufacturer=await resolveProductBrand(req.body?.marca);
   if(automotive.compatibilidadVehiculos){const candidate={...req.body,...automotive,...manufacturer};const duplicate=(await rows(COLLECTIONS.masterProducts)).find(p=>p.estado!=='inactivo'&&p.compatibilidadVehiculos?.length&&automotiveIdentity(p)===automotiveIdentity(candidate));if(duplicate)return fail(res,'PRODUCT_VARIANT_DUPLICATE','Ya existe esta variante. Usa su ficha o indica la especificación que distingue otra pieza.',409);}
   const created = await createRow(COLLECTIONS.masterProducts, {
+    ambitoComercial: normalizeProductBusinessScope(req.body?.ambitoComercial, req.body?.categoriaId),
     categoriaId: normalizeText(req.body?.categoriaId),
     subcategoriaId: normalizeText(req.body?.subcategoriaId),
     familiaId: normalizeText(req.body?.familiaId),
@@ -196,6 +207,7 @@ masterProductsRouter.post('/productos-maestro', requireAuth, requireRole('admin'
 masterProductsRouter.patch('/productos-maestro/:id', requireAuth, requireRole('admin'), async (req, res) => {
   const current = await row(COLLECTIONS.masterProducts, req.params.id);
   if (!current) return fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro.', 404);
+  if (req.body?.ambitoComercial !== undefined && !isProductBusinessScope(req.body.ambitoComercial)) return fail(res, 'PRODUCT_BUSINESS_SCOPE_INVALID', 'Selecciona Ferretería, Desarmaduría o Ambos.', 400);
   let automotive: Record<string, unknown>;
   try { automotive=await vehicleFields(req.body || {},current); } catch(error) {const code=(error as Error).message;return fail(res,code,code==='PRODUCT_VARIANT_HAS_OFFERS_CREATE_NEW'?'Esta variante tiene ofertas publicadas. Crea una nueva ficha para otro vehículo o rango de años.':'Revisa pieza, marca/modelo y rangos de años del maestro.',code==='PRODUCT_VARIANT_HAS_OFFERS_CREATE_NEW'?409:400);}
   const nextImageUrl = req.body?.imagenPrincipalUrl !== undefined ? req.body.imagenPrincipalUrl : current.imagenPrincipalUrl;
@@ -211,7 +223,7 @@ masterProductsRouter.patch('/productos-maestro/:id', requireAuth, requireRole('a
   const contentRights = contentRightsPayload(rightsInput, req.authUserId);
   if (contentRights === null) return fail(res, 'PRODUCT_CONTENT_RIGHTS_REQUIRED', 'Registra la fuente o autorización de las descripciones y fichas del producto.', 400);
   const allowed = [
-    'categoriaId', 'subcategoriaId', 'familiaId', 'nombre', 'marca', 'codigoBarras',
+    'ambitoComercial', 'categoriaId', 'subcategoriaId', 'familiaId', 'nombre', 'marca', 'codigoBarras',
     'descripcionCorta', 'descripcionLarga', 'imagenPrincipalUrl', 'galeriaJson', 'estado', 'tipoProducto', 'unidadVenta', 'presentacion'
   ];
   const patch: Record<string, unknown> = { ...imageRights, ...contentRights, ...additionalFields(rightsInput), actualizadoEn: nowIso() };

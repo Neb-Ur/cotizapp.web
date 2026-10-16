@@ -96,7 +96,7 @@
           <thead><tr><th>Producto</th><th>SKU</th><th>Precio</th><th>Stock</th><th>Estado</th><th>Fotos</th><th>Publicado</th><th>Actualizado</th><th>Acciones</th></tr></thead>
           <tbody>
             <tr *ngFor="let product of paginatedCatalog">
-              <td>{{ product.name }}</td>
+              <td>{{ product.name }}<small class="helper-text"> · {{ productBusinessScopeLabel(product.businessScope, product.categoryId) }}</small></td>
               <td>{{ product.sku || '-' }}</td>
               <td>{{ formatCurrency(product.price) }}</td>
               <td>{{ product.stock }}</td>
@@ -204,7 +204,7 @@
             <tbody>
               <tr *ngFor="let product of masterRows">
                 <td><input type="checkbox" [checked]="masterSelectionDrafts[product.masterProductId || product.id]?.selected" (change)="toggleMasterSelection(product, $any($event.target).checked)" /></td>
-                <td>{{ product.name }}</td>
+                <td>{{ product.name }}<small class="helper-text"> · {{ productBusinessScopeLabel(product.businessScope, product.categoryId) }}</small></td>
                 <td>{{ product.brand }}</td>
                 <td><select [ngModel]="masterSelectionCondition(product)" (ngModelChange)="updateMasterSelectionCondition(product, $event)" [attr.aria-label]="'Estado de ' + product.name"><option *ngFor="let condition of conditionOptions" [value]="condition">{{ conditionLabel(condition) }}</option></select></td>
                 <td><input type="number" min="1" [ngModel]="masterSelectionPrice(product)" (ngModelChange)="updateMasterSelectionPrice(product, $event)" /></td>

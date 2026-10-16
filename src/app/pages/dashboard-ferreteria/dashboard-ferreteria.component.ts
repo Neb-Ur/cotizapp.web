@@ -1,7 +1,7 @@
 import { OfferVehicleApplicationsComponent } from '../../shared/components/offer-vehicle-applications/offer-vehicle-applications.component';
 import { OfferPhotoManagerComponent } from '../../shared/components/offer-photo-manager/offer-photo-manager.component';
 import { OfferPhoto } from '../../core/models/app.models';
-import { BUSINESS_TYPES, businessTypeLabel, normalizeBusinessType, categoryMatchesBusinessType, type BusinessType } from '../../core/utils/business-type.util';
+import { BUSINESS_TYPES, businessTypeLabel, normalizeBusinessType, categoryMatchesBusinessType, productBusinessScopeLabel, type BusinessType } from '../../core/utils/business-type.util';
 import { OFFER_CONDITIONS, normalizeOfferCondition, offerConditionLabel, type OfferCondition } from '../../core/utils/offer-condition.util';
 import { StoreQuotationVerifierComponent } from '../../shared/components/store-quotation-verifier/store-quotation-verifier.component';
 import { StoreDailyAnalytics } from '../../core/models/app.models';
@@ -251,13 +251,15 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
     return Math.min(this.catalogPage * this.catalogPageSize, this.filteredCatalog.length);
   }
 
+  protected masterCategoryIds: string[] | null = null;
+  protected readonly productBusinessScopeLabel = productBusinessScopeLabel;
   protected get categoryOptions(): TaxonomyOption[] {
-    return this.apiService.getCategoryOptions().filter(option => categoryMatchesBusinessType(option.id, this.user?.businessType));
+    return this.apiService.getCategoryOptions().filter(option => this.masterCategoryIds ? this.masterCategoryIds.includes(option.id) : categoryMatchesBusinessType(option.id, this.user?.businessType));
   }
   protected get catalogScopeDescription(): string {
     return normalizeBusinessType(this.user?.businessType) === 'ferreteria'
-      ? 'Mostramos materiales, herramientas y productos de ferretería.'
-      : 'Mostramos únicamente repuestos automotrices para tu local.';
+      ? 'Mostramos productos clasificados como Ferretería o Ambos.'
+      : 'Mostramos productos clasificados como Desarmaduría o Ambos.';
   }
 
   protected get subcategoryOptions(): TaxonomyOption[] {
@@ -847,6 +849,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
         size: this.masterPageSize
       });
       if (generation !== this.masterSearchGeneration) return;
+      this.masterCategoryIds = result.categoryIds || null;
       this.masterRows = result.items;
       this.masterTotal = result.total;
       this.masterTotalPages = result.totalPages;

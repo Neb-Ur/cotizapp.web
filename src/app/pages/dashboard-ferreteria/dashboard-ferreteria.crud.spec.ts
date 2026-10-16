@@ -35,7 +35,7 @@ describe('junkyard catalog user flow',()=>{
    if(path==='/familias')return [{id:'radiators',nombre:'Radiadores',subcategoriaId:'motor',permiteVehiculos:true}];
    if(path==='/productos-maestro')return [master];
    if(path==='/productos-maestro/radiator')return master;
-   if(path==='/productos-maestro/paginado')return {items:offers.length?[]:[master],page:1,size:25,total:offers.length?0:1,totalPages:1};
+   if(path==='/ferreterias/junkyard/productos-disponibles')return {items:offers.length?[]:[master],page:1,size:25,total:offers.length?0:1,totalPages:1};
    if(path==='/busqueda')return [];
    throw Error('Unexpected GET: '+path);
   }),post:vi.fn(async(path:string,body:any)=>{offers.push({id:'offer',...body});return offers[0];}),

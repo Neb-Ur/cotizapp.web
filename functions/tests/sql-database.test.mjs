@@ -492,3 +492,13 @@ test('owned photo galleries persist atomically in SQL without changing master im
  assert.deepEqual((await db.collection('real_productosFerreteria').doc('photo-offer').get()).data().fotosPublicacion,[]);
  assert.equal((await pg.query("SELECT count(*)::int n FROM findi.offer_history WHERE offer_reference='photo-offer' AND action='photos_updated'")).rows[0].n,2);
 });
+
+test('product business scope persists across unrelated SQL updates and rejects invalid values',async t=>{
+ const {db,pg}=await fixture(t);await catalog(db);const ref=db.collection('productosMaestro').doc('product');
+ assert.equal((await ref.get()).data().ambitoComercial,'ferreteria');
+ await ref.update({ambitoComercial:'ambos'});await ref.update({descripcionCorta:'Se conserva la clasificación'});
+ assert.equal((await ref.get()).data().ambitoComercial,'ambos');
+ assert.equal((await pg.query("SELECT api_payload->>'ambitoComercial' AS scope FROM findi.products WHERE id='product'")).rows[0].scope,'ambos');
+ await assert.rejects(ref.update({ambitoComercial:'todo'}),/PRODUCT_BUSINESS_SCOPE_INVALID/);
+ assert.equal((await ref.get()).data().ambitoComercial,'ambos');
+});

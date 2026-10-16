@@ -64,3 +64,7 @@ El admin puede seleccionar «Local de prueba» al crear y editar locales; el lis
 ## Primer ingreso y lectura de documentos en otra pestaña — 16 de octubre
 
 Se corrigió la pérdida de sesión al abrir documentos desde el modal y se separó el guardado de aceptaciones de la actualización posterior de sesión. El formulario conserva las casillas cuando no puede confirmar el resultado y permite continuar sin reenviar declaraciones que ya se guardaron. Véase la [reproducción y validación](correccion-primer-ingreso-locales-2026-10-16.md).
+
+## Clasificación explícita de productos — 16 de octubre
+
+Se reemplazó la deducción por categoría por «Ferretería», «Desarmaduría» o «Ambos» en el maestro. El panel utiliza un selector privado cuyo ámbito se obtiene del local en el servidor; CSV, altas y ofertas existentes respetan la misma clasificación. Véase la [implementación y carga inicial](clasificacion-productos-locales-2026-10-16.md).

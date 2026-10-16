@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import type { PoolClient } from 'pg';
 import type { Data } from './port.js';
 import { isOfferCondition } from '../domain/offer-condition.js';
-import { isBusinessType } from '../domain/business-type.js';
+import { isBusinessType, isProductBusinessScope, normalizeProductBusinessScope } from '../domain/business-type.js';
 import { brandUses, validBrandUses } from '../domain/brand-use.js';
 import {CURRENT_STORE_AGREEMENT_VERSION,STORE_AGREEMENT_PROVIDER,STORE_AGREEMENT_CLAUSES} from '../lib/legal.js';
 export type SqlClient = Pick<PoolClient,'query'>;
@@ -47,6 +47,10 @@ export async function writeDocument(client:SqlClient,collection:string,id:string
  if(key==='stores'){
   if(input.tipoNegocio!==undefined&&!isBusinessType(input.tipoNegocio))throw new Error('BUSINESS_TYPE_INVALID');
   input={...input,tipoNegocio:input.tipoNegocio??'ferreteria'};
+ }
+ if(key==='masterProducts'){
+  if(input.ambitoComercial!==undefined&&!isProductBusinessScope(input.ambitoComercial))throw new Error('PRODUCT_BUSINESS_SCOPE_INVALID');
+  input={...input,ambitoComercial:normalizeProductBusinessScope(input.ambitoComercial,input.categoriaId)};
  }
  if(key==='masterProducts' && input.compatibilidadVehiculos!==undefined){
   const applications=normalizeProductApplications(input.compatibilidadVehiculos);

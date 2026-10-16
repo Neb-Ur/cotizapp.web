@@ -1,5 +1,5 @@
 import { normalizeOfferCondition } from '../utils/offer-condition.util';
-import { normalizeBusinessType, categoryMatchesBusinessType, type BusinessType } from '../utils/business-type.util';
+import { normalizeBusinessType, productMatchesBusinessType, normalizeProductBusinessScope, type BusinessType } from '../utils/business-type.util';
 import { StoreDailyAnalytics } from '../models/app.models';
 import { DataModeService } from './data-mode.service';
 import { findExactMasterMatch } from '../utils/catalog-match.util';
@@ -56,6 +56,7 @@ interface SearchRowExtended extends SearchRow {
 }
 
 interface ProductoMaestroApi {
+  ambitoComercial?: import('../utils/business-type.util').ProductBusinessScope;
   nombrePieza?: string;
   detalleVariante?: string;
   compatibilidadVehiculos?: import('./vehicle-catalog.service').VehicleApplication[];
@@ -100,6 +101,7 @@ interface ProductoMaestroApi {
 }
 
 interface PaginatedMasterCatalogApi {
+  categoryIds?: string[];
   items: ProductoMaestroApi[];
   page: number;
   size: number;
@@ -140,7 +142,7 @@ export interface TaxonomyDefinitionApi {
 export class FirebaseDataService {
   private storeCatalogBusinessType(): BusinessType | undefined {
     const user = this.authService.currentUser();
-    return user?.role === 'ferreteria' ? normalizeBusinessType(user.businessType) : undefined;
+    return user?.role === 'ferreteria' && user.businessType ? normalizeBusinessType(user.businessType) : undefined;
   }
   private readonly observedLoads = new WeakSet<Promise<void>>();
 
@@ -492,6 +494,7 @@ export class FirebaseDataService {
   }
 
   async searchMasterCatalogProducts(payload: {
+    storeId?: string;
     query?: string;
     categoryId?: string;
     subcategoryId?: string;
@@ -501,13 +504,16 @@ export class FirebaseDataService {
     size?: number;
   }): Promise<{
     items: CatalogProduct[];
+    categoryIds?: string[];
     page: number;
     size: number;
     total: number;
     totalPages: number;
   }> {
-    const raw = await this.apiClient.get<PaginatedMasterCatalogApi>('/productos-maestro/paginado', false, {
-      tipoNegocio: this.storeCatalogBusinessType(),
+    const user = this.authService.currentUser();
+    const storeId = payload.storeId || (user?.role === 'ferreteria' ? user.ferreteriaId : undefined);
+    if (user?.role === 'ferreteria' && !storeId) throw new Error('No se encontró el local de tu sesión. Vuelve a iniciar sesión.');
+    const raw = await this.apiClient.get<PaginatedMasterCatalogApi>(storeId ? `/ferreterias/${storeId}/productos-disponibles` : '/productos-maestro/paginado', !!storeId, {
       query: payload.query?.trim() || undefined,
       categoriaId: payload.categoryId || undefined,
       subcategoriaId: payload.subcategoryId || undefined,
@@ -527,6 +533,7 @@ export class FirebaseDataService {
 
     return {
       items,
+      categoryIds: raw.categoryIds,
       page: raw.page || 1,
       size: raw.size || payload.size || 25,
       total: raw.total || 0,
@@ -628,6 +635,7 @@ export class FirebaseDataService {
     logisticsPalletUnits?: number | null;
   }, refreshCache = true): Promise<CatalogProduct> {
     const created = await this.apiClient.post<any>('/productos-maestro', {
+      ambitoComercial: payload.businessScope,
       nombre: payload.name,
       tipoProducto: payload.productType,
       unidadVenta: payload.unitLabel,
@@ -675,6 +683,7 @@ export class FirebaseDataService {
     logisticsPalletUnits?: number | null;
   }, refreshCache = true): Promise<CatalogProduct | null> {
     const payload = {
+      ambitoComercial: patch.businessScope,
       nombre: patch.name,
       tipoProducto: patch.productType,
       unidadVenta: patch.unitLabel,
@@ -830,7 +839,7 @@ export class FirebaseDataService {
     const rawMaster = await this.apiClient.get<ProductoMaestroApi>(`/productos-maestro/${encodeURIComponent(masterProductId)}`);
     const master = this.mapMasterProduct(rawMaster, 0);
     const businessType = this.storeCatalogBusinessType();
-    if (businessType && !categoryMatchesBusinessType(master.categoryId, businessType)) throw new Error('Este producto no corresponde al tipo de negocio del local.');
+    if (businessType && !productMatchesBusinessType({ambitoComercial:master.businessScope,categoriaId:master.categoryId}, businessType)) throw new Error('Este producto no corresponde al tipo de negocio del local.');
 
     const sku = relation.sku?.trim() || master.sku?.trim() || `SKU-${masterProductId.slice(0, 8).toUpperCase()}`;
     try {
@@ -936,6 +945,16 @@ export class FirebaseDataService {
     };
   }
 
+  private async availableStoreMasters(storeId: string): Promise<ProductoMaestroApi[]> {
+    const products: ProductoMaestroApi[] = [];
+    let page = 1, totalPages = 1;
+    do {
+      const result = await this.apiClient.get<PaginatedMasterCatalogApi>(`/ferreterias/${storeId}/productos-disponibles`, true, {page, size:100});
+      products.push(...result.items); totalPages = result.totalPages; page++;
+    } while (page <= totalPages);
+    return products;
+  }
+
   async importCatalogBatch(
     ownerId: string,
     ownerLabel: string,
@@ -951,15 +970,14 @@ export class FirebaseDataService {
     }
   ): Promise<{ catalog: CatalogProduct[]; report: CatalogImportReport }> {
     const mode = options.mode || 'initial';
-    const businessType = this.storeCatalogBusinessType();
+    const ferreteriaId = await this.resolveFerreteriaId(ownerId);
     const [, , rawMasters] = await Promise.all([
       this.ensureTaxonomyLoaded(),
       this.ensureCatalogLoaded(ownerId, true),
-      mode === 'update' ? Promise.resolve([] as ProductoMaestroApi[]) : this.apiClient.get<ProductoMaestroApi[]>('/productos-maestro', false, { tipoNegocio: businessType })
+      mode === 'update' ? Promise.resolve([] as ProductoMaestroApi[]) : this.availableStoreMasters(ferreteriaId)
     ]);
-    const importMasters = rawMasters.filter(product => !businessType || categoryMatchesBusinessType(product.categoriaId, businessType)).map(product => this.mapMasterProduct(product, 0));
+    const importMasters = rawMasters.map(product => this.mapMasterProduct(product, 0));
 
-    const ferreteriaId = await this.resolveFerreteriaId(ownerId);
     const parsedRows = await this.parseCatalogCsv(csvContent);
     const reportRows: CatalogImportRowResult[] = [];
 
@@ -2176,6 +2194,7 @@ export class FirebaseDataService {
     return {
       id: product.id,
       masterProductId: product.id,
+      businessScope: normalizeProductBusinessScope(product.ambitoComercial, product.categoriaId),
       partName: product.nombrePieza,
       variantLabel: product.detalleVariante,
       vehicleCompatibility: product.compatibilidadVehiculos,
@@ -2241,6 +2260,7 @@ export class FirebaseDataService {
       vehicleApplicationsEditable: row.vehiculosEditables === true,
       vehicleApplications: Array.isArray(row.asociacionesVehiculos) ? row.asociacionesVehiculos : [],
       masterProductId: master.id || row.productoMaestroId,
+      businessScope: normalizeProductBusinessScope(master.ambitoComercial, master.categoriaId),
       name: master.nombre || 'Producto',
       barcode: row.codigoBarras || '',
       categoryId: master.categoriaId,

@@ -9,7 +9,7 @@ import { nowIso, normalizeText, numberValue } from '../lib/values.js';
 import { rows, row, createRow, patchRow } from '../repositories/firestore.repository.js';
 import { canAccessOwner, requireStoreWriteAccess } from '../lib/ownership.js';
 import { requireCurrentStoreAgreement } from '../services/store-agreement.service.js';
-import { categoryMatchesBusinessType } from '../domain/business-type.js';
+import { productMatchesBusinessType } from '../domain/business-type.js';
 import { deleteOfferImageFiles } from '../services/image-storage.service.js';
 export const storeCatalogRouter = Router();
 
@@ -56,7 +56,7 @@ storeCatalogRouter.get('/ferreterias/:storeId/catalogo', requireAuth, requireRol
   const data = (await rows(COLLECTIONS.storeProducts))
     .filter((item) => item.ferreteriaId === req.params.storeId)
     .map((item) => ({ ...item, vehiculosEditables: !productById.get(item.productoMaestroId)?.compatibilidadVehiculos?.length && vehicleApplicationsEnabled(req.params.storeId) && vehicleFamilies.has(productById.get(item.productoMaestroId)?.familiaId), productoMaestro: productById.get(item.productoMaestroId) }))
-    .filter((item) => !!item.productoMaestro);
+    .filter((item) => !!item.productoMaestro && (req.authRole === 'admin' || productMatchesBusinessType(item.productoMaestro, store.tipoNegocio)));
   return ok(res, data);
 });
 
@@ -68,7 +68,7 @@ storeCatalogRouter.post('/ferreterias/:storeId/catalogo', requireAuth, requireRo
   const product = await row(COLLECTIONS.masterProducts, masterId);
   if (!product || product.estado === 'inactivo') return fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro indicado.', 404);
   const store = await row(COLLECTIONS.stores, req.params.storeId);
-  if (!categoryMatchesBusinessType(product.categoriaId, store?.tipoNegocio)) return fail(res, 'STORE_PRODUCT_BUSINESS_TYPE_MISMATCH', 'Este producto no corresponde al tipo de negocio del local.', 400);
+  if (!productMatchesBusinessType(product, store?.tipoNegocio)) return fail(res, 'STORE_PRODUCT_BUSINESS_TYPE_MISMATCH', 'Este producto no corresponde al tipo de negocio del local.', 400);
   const offerPayload = {
     condicion: normalizeOfferCondition(req.body?.condicion),
     ferreteriaId: req.params.storeId,
@@ -125,6 +125,9 @@ storeCatalogRouter.patch('/ferreterias/:storeId/catalogo/:offerId', requireAuth,
   if (!(await requireCurrentStoreAgreement(req, res, req.params.storeId))) return;
   const existing = await row(COLLECTIONS.storeProducts, req.params.offerId);
   if (!existing || existing.ferreteriaId !== req.params.storeId) return fail(res, 'CATALOGO_NOT_FOUND', 'Producto de ferreteria no encontrado.', 404);
+  const store = await row(COLLECTIONS.stores, req.params.storeId);
+  const master = await row(COLLECTIONS.masterProducts, existing.productoMaestroId);
+  if (req.authRole !== 'admin' && master && !productMatchesBusinessType(master, store?.tipoNegocio)) return fail(res, 'STORE_PRODUCT_BUSINESS_TYPE_MISMATCH', 'Este producto no corresponde a la clasificación del local.', 400);
   const patch: Record<string, unknown> = { actualizadoEn: nowIso() };
   if (req.body?.condicion !== undefined) {
     if (!isOfferCondition(req.body.condicion)) return fail(res, 'OFFER_CONDITION_INVALID', 'Selecciona una condición válida.', 400);

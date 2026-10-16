@@ -11,6 +11,7 @@ function fixture() {
  const api = {
   get: vi.fn(async (path: string) => {
    if (path === '/productos-maestro') return [master];
+   if (path === '/ferreterias/store/productos-disponibles') return {items:[master],page:1,size:100,total:1,totalPages:1};
    if (path === '/productos-maestro/master') return master;
    if (path === '/productos/detalle') return {productoMaestro:master,stores:[],atributosProducto:[{definicionAtributoId:'weight',etiqueta:'Peso',valorNumero:0},{definicionAtributoId:'waterproof',etiqueta:'Impermeable',valorBooleano:false}]};
    if (path === '/familias') return [{id:'fam',nombre:'Cemento',subcategoriaId:'sub'}];
@@ -160,7 +161,13 @@ describe('saved quotation prices',()=>{
 
 it('requests only a paginated business catalog without downloading all public offers or masters',async()=>{
  const api:any={get:vi.fn(async()=>({items:[master],page:1,size:25,total:1,totalPages:1}))};
- const service=new FirebaseDataService(api,{currentUser:()=>({id:'owner',role:'ferreteria',businessType:'desarmaduria'})} as any);
+ const service=new FirebaseDataService(api,{currentUser:()=>({id:'owner',ferreteriaId:'store',role:'ferreteria',businessType:'ferreteria'})} as any);
  await service.searchMasterCatalogProducts({query:'radiador',page:2});
- expect(api.get).toHaveBeenCalledExactlyOnceWith('/productos-maestro/paginado',false,expect.objectContaining({tipoNegocio:'desarmaduria',query:'radiador',page:2}));
+ expect(api.get).toHaveBeenCalledExactlyOnceWith('/ferreterias/store/productos-disponibles',true,expect.objectContaining({query:'radiador',page:2}));
+ expect(api.get.mock.calls[0][2]).not.toHaveProperty('tipoNegocio');
+});
+
+it('never falls back to the global catalog when a store session lacks its store id',async()=>{
+ const api:any={get:vi.fn()};const service=new FirebaseDataService(api,{currentUser:()=>({id:'owner',role:'ferreteria'})} as any);
+ await expect(service.searchMasterCatalogProducts({})).rejects.toThrow('No se encontró el local');expect(api.get).not.toHaveBeenCalled();
 });

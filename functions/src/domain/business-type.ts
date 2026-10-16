@@ -14,3 +14,19 @@ export function businessTypeLabel(value: unknown): string {
   const labels: Record<BusinessType, string> = { ferreteria: 'Ferretería', repuestos: 'Tienda de repuestos', desarmaduria: 'Desarmaduría' };
   return labels[normalizeBusinessType(value)];
 }
+
+export const PRODUCT_BUSINESS_SCOPES = ['ferreteria', 'desarmaduria', 'ambos'] as const;
+export type ProductBusinessScope = typeof PRODUCT_BUSINESS_SCOPES[number];
+export function isProductBusinessScope(value: unknown): value is ProductBusinessScope {
+  return typeof value === 'string' && (PRODUCT_BUSINESS_SCOPES as readonly string[]).includes(value);
+}
+export function normalizeProductBusinessScope(value: unknown, categoryId?: unknown): ProductBusinessScope {
+  return isProductBusinessScope(value) ? value : categoryId === 'cat-repuestos-automotrices' ? 'desarmaduria' : 'ferreteria';
+}
+export function productMatchesBusinessType(product: {ambitoComercial?: unknown; categoriaId?: unknown}, businessType: unknown): boolean {
+  const scope = normalizeProductBusinessScope(product.ambitoComercial, product.categoriaId);
+  return scope === 'ambos' || scope === (normalizeBusinessType(businessType) === 'ferreteria' ? 'ferreteria' : 'desarmaduria');
+}
+export function productBusinessScopeLabel(value: unknown, categoryId?: unknown): string {
+  return {ferreteria:'Ferretería',desarmaduria:'Desarmaduría',ambos:'Ambos'}[normalizeProductBusinessScope(value, categoryId)];
+}

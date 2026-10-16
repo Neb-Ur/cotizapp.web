@@ -1149,6 +1149,7 @@
           <p class="error" *ngIf="error" role="alert">{{ error }}</p><p class="saved" *ngIf="notice" role="status">{{ notice }}</p>
           <h3 class="form-section-title"><i class="pi pi-box" aria-hidden="true"></i> Identidad y clasificación</h3>
           <div class="toolbar modal-form-grid">
+            <label>Clasificación del producto<select [(ngModel)]="masterDetailDraft.businessScope" (ngModelChange)="masterBusinessScopeTouched = true" [disabled]="masterDetailReadonly"><option *ngFor="let scope of productBusinessScopes" [value]="scope">{{ productBusinessScopeLabel(scope) }}</option></select><small>Determina qué locales pueden agregarlo a su catálogo.</small></label>
             <ng-container *ngIf="masterDetailDraft.categoryId === 'cat-repuestos-automotrices'">
               <label>Pieza<input [(ngModel)]="masterDetailDraft.partName" (ngModelChange)="updateMasterVehicleName()" [disabled]="masterDetailReadonly" placeholder="Radiador, alternador..." /></label>
               <label>Especificación de la variante<input [(ngModel)]="masterDetailDraft.variantLabel" (ngModelChange)="updateMasterVehicleName()" [disabled]="masterDetailReadonly" placeholder="Motor, transmisión, posición o código" /></label>

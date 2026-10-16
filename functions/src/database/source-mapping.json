@@ -206,7 +206,8 @@
       "catalogoPlanVersion": "products.api_payload.catalogoPlanVersion (compatibility metadata)",
       "nombrePieza": "products.part_name",
       "detalleVariante": "products.variant_label",
-      "compatibilidadVehiculos": "product_vehicle_applications by product_id; ordered model/brand/year ranges"
+      "compatibilidadVehiculos": "product_vehicle_applications by product_id; ordered model/brand/year ranges",
+      "ambitoComercial": "products.api_payload.ambitoComercial (ferreteria, desarmaduria or ambos; editable classification)"
     },
     "notes": "Image and description rights are distinct records. Preserve current generic bases as products; model parent optional. Existing paths must be imported into seo_routes, including hashed duplicate-name URLs.",
     "sourceCollection": "productosMaestro",

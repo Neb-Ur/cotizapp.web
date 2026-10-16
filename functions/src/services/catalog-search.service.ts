@@ -1,3 +1,4 @@
+import { productMatchesBusinessType } from '../domain/business-type.js';
 import { normalizeVehicleApplications } from '../domain/vehicle-application.js';
 import { rows } from '../repositories/firestore.repository.js';
 import { normalizeOfferCondition } from '../domain/offer-condition.js';
@@ -39,6 +40,7 @@ export async function buildSearchRows(source?: any[][], asOf?:number): Promise<S
         || product.estado === 'inactivo'
         || !publicRecordVisible(product)
         || !storeCanPublish(store)
+        || !productMatchesBusinessType(product, store.tipoNegocio)
         || owner.estadoCuenta !== 'activo'
       ) return null;
 

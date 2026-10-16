@@ -468,6 +468,7 @@ export interface ProjectComparisonStrategy {
 }
 
 export interface CatalogProduct {
+  businessScope?: import('../utils/business-type.util').ProductBusinessScope;
   offerPhotos?: OfferPhoto[];
   partName?: string;
   variantLabel?: string;
