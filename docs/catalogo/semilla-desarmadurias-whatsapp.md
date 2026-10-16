@@ -30,4 +30,21 @@ Se habilitaron las ocho identidades reservadas de desarmadurías en Firebase Aut
 
 La herramienta `functions/scripts/enable-junkyard-auth.mjs --firebase-cli-auth` comprueba las ocho identidades de las tres semillas sin escribir. Para habilitar las cuentas se usa `--apply`, `CONFIRM_PROJECT_ID=cotizapp-d71c8` y una contraseña de prueba mediante `PILOT_AUTH_PASSWORD`; `--reset-password` permite restablecerla de forma explícita. La herramienta valida todas las identidades antes de modificar Authentication y no modifica catálogos ni registra aceptaciones legales. Las contraseñas se entregan de forma privada y no se guardan en el repositorio.
 
-Al entrar por primera vez, el usuario debe revisar y aceptar las condiciones del panel. Las direcciones `example.invalid` son identidades de prueba, no buzones de correo.
+Al entrar por primera vez, el usuario debe revisar y aceptar las condiciones del panel. Las direcciones `demo.test` son identidades de prueba, no buzones de correo.
+
+### Correos simplificados
+
+Se simplificaron los correos en Firebase Authentication y en los perfiles SQL, conservando los UID, locales, productos y aceptaciones existentes. La herramienta admite los correos originales de las semillas y los simplificados para poder reanudar una actualización interrumpida, y verifica colisiones en ambos sistemas antes de escribir.
+
+| Desarmaduría | Correo de acceso |
+| --- | --- |
+| Trovio | `trovio@demo.test` |
+| Ruta Norte | `norte@demo.test` |
+| Patio Central | `central@demo.test` |
+| Garage Sur | `sur@demo.test` |
+| Trovio Oriente | `oriente@demo.test` |
+| Trovio Poniente | `poniente@demo.test` |
+| Trovio Mecánica | `mecanica@demo.test` |
+| Trovio Carrocería | `carroceria@demo.test` |
+
+La contraseña compartida de prueba se entregó directamente al usuario y no se incorpora al repositorio.
