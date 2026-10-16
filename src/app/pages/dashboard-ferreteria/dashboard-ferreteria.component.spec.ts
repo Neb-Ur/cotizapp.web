@@ -21,3 +21,29 @@ it('handles a failed snapshot independently so catalog management stays availabl
  await component.ensureSectionData('inicio');expect(component.dashboardError).toBeTruthy();expect(component.isSectionLoading).toBe(false);
  await component.ensureSectionData('catalogo');expect(api.refreshFerreteriaCatalogSection).toHaveBeenCalledOnce();
 });
+
+it('keeps the latest master search when an earlier response arrives late',async()=>{
+ const {component,api}=fixture();let firstResolve:any;
+ api.searchMasterCatalogProducts=vi.fn().mockImplementationOnce(()=>new Promise(resolve=>firstResolve=resolve))
+  .mockResolvedValueOnce({items:[{id:'kuv',name:'Radiador Mahindra KUV100 2016–2019'}],total:1,totalPages:1,page:1});
+ component.masterProductQuery='radiador';const first=component.loadMasterCatalog();
+ component.masterProductQuery='radiador kuv';await component.loadMasterCatalog();
+ firstResolve({items:[{id:'other',name:'Radiador de otro vehículo'}],total:1,totalPages:1,page:1});await first;
+ expect(component.masterRows[0].id).toBe('kuv');
+});
+it('sends only one delete while confirmation is pending and clears a prior error after success',async()=>{
+ const {component,api}=fixture();let resolveDelete:any;
+ api.deleteCatalog=vi.fn(()=>new Promise(resolve=>resolveDelete=resolve));
+ component.requestDeleteCatalog({id:'offer'});component.catalogError='Error anterior';
+ const pending=component.confirmDeleteCatalog();const repeated=component.confirmDeleteCatalog();
+ expect(api.deleteCatalog).toHaveBeenCalledTimes(1);
+ component.closeDeleteCatalogModal();expect(component.deleteCatalogModalOpen).toBe(true);
+ resolveDelete([]);await Promise.all([pending,repeated]);
+ expect(component.deleteCatalogModalOpen).toBe(false);expect(component.catalogError).toBe('');
+});
+it('rejects a negative measurement quantity instead of silently clearing it on save',async()=>{
+ const {component,api}=fixture();api.upsertCatalog=vi.fn(async()=>[]);
+ component.openCatalogEdit({id:'offer',name:'Aceite',price:15000,stock:1,isPublished:true});
+ component.catalogEditDraft.measurementUnit='l';component.catalogEditDraft.measurementQuantity=-1;
+ await component.saveCatalogEdit();expect(api.upsertCatalog).not.toHaveBeenCalled();expect(component.catalogEditError).toBeTruthy();
+});

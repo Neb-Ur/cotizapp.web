@@ -98,6 +98,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   protected catalogError = '';
   protected catalogDeleteCandidate: CatalogProduct | null = null;
   protected deleteCatalogModalOpen = false;
+  protected catalogDeleting = false;
 
   protected uploadMode: CatalogUploadMode = 'buscar';
   protected masterProductQuery = '';
@@ -111,6 +112,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   protected masterTotalPages = 1;
   protected masterSelectionDrafts: Partial<Record<string, MasterCatalogSelectionDraft>> = {};
   protected masterLoading = false;
+  private masterSearchGeneration = 0;
   protected relationNotice = '';
   protected relationError = '';
 
@@ -361,6 +363,11 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
         this.catalogEditError = 'Para calcular el precio por unidad, indica tanto la unidad de medida como la cantidad del envase.';
         return;
       }
+      if (this.catalogEditDraft.measurementQuantity !== null
+        && (!Number.isFinite(Number(this.catalogEditDraft.measurementQuantity)) || Number(this.catalogEditDraft.measurementQuantity) <= 0)) {
+        this.catalogEditError = 'La cantidad del envase debe ser un número mayor a 0.';
+        return;
+      }
 
       const priceChanged = product.price !== price;
       const stockChanged = product.stock !== stock;
@@ -415,25 +422,34 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   }
 
   protected requestDeleteCatalog(product: CatalogProduct): void {
+    if (this.catalogDeleting) return;
     this.catalogDeleteCandidate = product;
+    this.catalogError = '';
     this.deleteCatalogModalOpen = true;
   }
 
   protected closeDeleteCatalogModal(): void {
+    if (this.catalogDeleting) return;
     this.catalogDeleteCandidate = null;
     this.deleteCatalogModalOpen = false;
   }
 
   protected async confirmDeleteCatalog(): Promise<void> {
-    if (!this.user || !this.catalogDeleteCandidate) return;
+    if (!this.user || !this.catalogDeleteCandidate || this.catalogDeleting) return;
+    this.catalogDeleting = true;
+    this.catalogError = '';
     try {
       this.catalog = await this.apiService.deleteCatalog(this.user.id, this.catalogDeleteCandidate.id);
-      this.closeDeleteCatalogModal();
+      this.catalogDeleteCandidate = null;
+      this.deleteCatalogModalOpen = false;
       this.catalogPage = Math.min(this.catalogPage, this.catalogTotalPages);
       this.refreshSummary();
       this.catalogNotice = 'Producto eliminado del catalogo.';
     } catch (error) {
       this.catalogError = error instanceof Error ? error.message : 'No se pudo eliminar el producto.';
+    } finally {
+      this.catalogDeleting = false;
+      this.changeDetector.markForCheck();
     }
   }
 
@@ -782,7 +798,9 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
 
   private async loadMasterCatalog(): Promise<void> {
     if (!this.user) return;
+    const generation = ++this.masterSearchGeneration;
     this.masterLoading = true;
+    this.relationError = '';
     try {
       const result = await this.apiService.searchMasterCatalogProducts({
         query: this.masterProductQuery,
@@ -793,15 +811,22 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
         page: this.masterPage,
         size: this.masterPageSize
       });
+      if (generation !== this.masterSearchGeneration) return;
       this.masterRows = result.items;
       this.masterTotal = result.total;
       this.masterTotalPages = result.totalPages;
       this.masterPage = result.page;
     } catch (error) {
+      if (generation !== this.masterSearchGeneration) return;
       this.relationError = error instanceof Error ? error.message : 'No se pudo cargar el catalogo maestro.';
       this.masterRows = [];
+      this.masterTotal = 0;
+      this.masterTotalPages = 1;
     } finally {
-      this.masterLoading = false;
+      if (generation === this.masterSearchGeneration) {
+        this.masterLoading = false;
+        this.changeDetector.markForCheck();
+      }
     }
   }
 

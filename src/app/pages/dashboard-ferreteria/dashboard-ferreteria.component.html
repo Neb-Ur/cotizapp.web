@@ -383,11 +383,12 @@
     </section>
   </app-ui-modal>
 
-  <app-ui-modal [open]="deleteCatalogModalOpen" eyebrow="Acción irreversible" title="Eliminar producto" size="sm" (closed)="closeDeleteCatalogModal()">
+  <app-ui-modal [open]="deleteCatalogModalOpen" eyebrow="Acción irreversible" title="Eliminar producto" size="sm" [closeDisabled]="catalogDeleting" [closeOnBackdrop]="!catalogDeleting" (closed)="closeDeleteCatalogModal()">
     <p>¿Eliminar <strong>{{ catalogDeleteCandidate?.name }}</strong> del catálogo?</p>
+    <p *ngIf="catalogError" class="error-text" role="alert">{{ catalogError }}</p>
     <div class="confirm-delete-actions">
-      <button type="button" class="btn btn-outline" (click)="closeDeleteCatalogModal()">Cancelar</button>
-      <button type="button" class="btn btn-danger" (click)="confirmDeleteCatalog()">Eliminar</button>
+      <button type="button" class="btn btn-outline" (click)="closeDeleteCatalogModal()" [disabled]="catalogDeleting">Cancelar</button>
+      <button type="button" class="btn btn-danger" (click)="confirmDeleteCatalog()" [disabled]="catalogDeleting">{{ catalogDeleting ? 'Eliminando…' : 'Eliminar' }}</button>
     </div>
   </app-ui-modal>
 

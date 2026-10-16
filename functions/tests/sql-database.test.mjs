@@ -423,3 +423,50 @@ test('SQL master variants persist compatibility and unique identity, inherit pri
  assert.equal(paginateProductSearch(snapshot,options).items[0].minPrice,10000);
  const late=paginateProductSearch(snapshot,{...options,vehicleYear:2021});assert.equal(late.total,1);assert.equal(late.items[0].storeCount,0);
 });
+
+test('store catalog CRUD persists junkyard parts and hardware offers through SQL, with ownership and duplicate protection', async t => {
+ const {db}=await fixture(t);await catalog(db);
+ await db.collection('familias').doc('radiators').set({nombre:'Radiadores',subcategoriaId:'sub',permiteVehiculos:true});
+ await db.collection('marcas').doc('mahindra').set({nombre:'Mahindra',nombreNormalizado:'mahindra',usos:['vehiculo']});
+ await db.collection('modelosVehiculo').doc('kuv').set({nombre:'KUV100',nombreNormalizado:'kuv100',marcaId:'mahindra',activo:true});
+ const compatibility=[{marcaId:'mahindra',modeloId:'kuv',marcaNombre:'Mahindra',modeloNombre:'KUV100',anioDesde:2016,anioHasta:2019}];
+ await db.collection('productosMaestro').doc('radiator').set({nombre:'Radiador Mahindra KUV100 2016–2019',nombrePieza:'Radiador',familiaId:'radiators',categoriaId:'cat',subcategoriaId:'sub',compatibilidadVehiculos:compatibility,estado:'activo',imagenPrincipalUrl:'/radiator.webp'});
+ const firebase=await import('../lib/lib/firebase.js');
+ for(const method of ['collection','runTransaction','batch'])t.mock.method(firebase.db,method,db[method].bind(db));
+ const {storeCatalogRouter}=await import('../lib/routes/store-catalog.routes.js');
+ const {CURRENT_STORE_AGREEMENT_VERSION}=await import('../lib/lib/legal.js');
+ const {storeAgreementDocumentHash}=await import('../lib/services/store-agreement.service.js');
+ const {COLLECTIONS}=await import('../lib/lib/collections.js');
+ const {buildSearchRows}=await import('../lib/services/catalog-search.service.js');
+ const publicOffers=async storeId=>(await buildSearchRows()).filter(o=>o.storeId===storeId);
+ const handler=method=>storeCatalogRouter.stack.find(l=>l.route?.path===`/ferreterias/:storeId/catalogo${['patch','delete'].includes(method)?'/:offerId':''}`&&l.route.methods[method]).route.stack.at(-1).handle;
+ const call=async(method,storeId,body={},offerId='',owner='store-owner')=>{const res={statusCode:200,status(n){this.statusCode=n;return this;},json(body){this.body=body;return this;}};await handler(method)({params:{storeId,offerId},authUserId:owner,authRole:'ferreteria',body},res);return res;};
+ for(const [storeId,type] of [['store','ferreteria'],['junkyard','desarmaduria']]){
+  const productId=type==='desarmaduria'?'radiator':'product';
+  await db.collection(COLLECTIONS.stores).doc(storeId).set({usuarioDuenoId:'store-owner',nombreComercial:type,estado:'activo',tipoNegocio:type,contratoEstado:'vigente',contratoVersion:CURRENT_STORE_AGREEMENT_VERSION,contratoDocumentHash:storeAgreementDocumentHash()});
+  await db.collection(COLLECTIONS.storeAgreements).doc('agreement-'+storeId).set({ferreteriaId:storeId,usuarioFirmanteId:'store-owner',version:CURRENT_STORE_AGREEMENT_VERSION,estado:'vigente',documentHash:storeAgreementDocumentHash(),proveedor:{},ferreteria:{},firmante:{},declaraciones:{},evidencia:{source:'isolated-crud-test'},aceptadoEn:new Date().toISOString()});
+  const created=await call('post',storeId,{productoMaestroId:productId,precio:25000,stock:2,condicion:type==='desarmaduria'?'usado':'nuevo',publicado:true});
+  assert.equal(created.statusCode,201);const id=created.body.data.id;
+  assert.equal((await publicOffers(storeId))[0].comparisonEligible,true);
+  const duplicate=await call('post',storeId,{productoMaestroId:productId,precio:25000,stock:2});assert.equal(duplicate.statusCode,409);
+  const read=await call('get',storeId);assert.equal(read.body.data.length,1);
+  assert.equal(read.body.data[0].productoMaestro.nombre,type==='desarmaduria'?'Radiador Mahindra KUV100 2016–2019':'MDF negro 18 mm');
+  if(type==='desarmaduria')assert.deepEqual(read.body.data[0].productoMaestro.compatibilidadVehiculos,compatibility);
+  assert.equal((await call('get',storeId,{},'', 'other-owner')).statusCode,403);
+  assert.equal((await call('patch',storeId,{precio:1},id,'other-owner')).statusCode,403);
+  assert.equal((await call('delete',storeId,{},id,'other-owner')).statusCode,403);
+  const edited=await call('patch',storeId,{precio:27000,stock:0,condicion:'reacondicionado',publicado:false,condicionesOferta:'Retiro en local'},id);
+  assert.equal(edited.statusCode,200);assert.equal(edited.body.data.precio,27000);assert.equal(edited.body.data.stock,0);assert.equal(edited.body.data.publicado,false);assert.equal(edited.body.data.condicion,'reacondicionado');
+  assert.equal((await publicOffers(storeId)).length,0);
+  assert.equal((await call('patch',storeId,{publicado:true,stock:1},id)).statusCode,200);
+  const visible=(await publicOffers(storeId))[0];assert.equal(visible.price,27000);assert.equal(visible.condition,'reacondicionado');
+  if(type==='desarmaduria')assert.equal(visible.vehicleApplications[0].anioHasta,2019);
+  assert.equal((await call('delete',storeId,{},id)).statusCode,200);assert.equal((await call('get',storeId)).body.data.length,0);
+  assert.equal((await publicOffers(storeId)).length,0);
+  assert.equal((await call('delete',storeId,{},id)).statusCode,404);
+  const history=(await db.collection(COLLECTIONS.priceHistory).get()).docs.map(d=>d.data()).filter(h=>h.ferreteriaId===storeId);
+  assert.deepEqual(history.map(h=>h.action).sort(),['created','deleted','updated','updated']);
+  assert.ok(history.every(h=>h.productoFerreteriaId===id));
+  assert.equal((await call('post',storeId,{productoMaestroId:productId,precio:25000,stock:1})).statusCode,201);
+ }
+});
