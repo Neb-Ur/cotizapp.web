@@ -27,3 +27,7 @@ La API dispone de 1 GiB y hasta cuatro solicitudes simultáneas por instancia. S
 ## Validación automatizada
 
 272 pruebas de frontend y 215 de backend aprobadas, más compilación de producción. Incluyen alta con condición, subida y eliminación desde el formulario, fallas parciales de carga, límites de archivos, permisos, atribución pública, aislamiento entre locales, persistencia SQL y recuperación de imágenes fallidas.
+
+## Verificación en producción
+
+Publicado en Firebase Hosting y en la API. Playwright con un navegador aislado comprobó el acceso de Poniente, la creación de una publicación temporal con condición usada, la subida de dos PNG y su conversión a WebP, y la galería pública con imagen genérica, nombre del local y condición. Se revisaron panel y detalle en escritorio y a 390 px, sin desbordamiento horizontal. La eliminación individual se reflejó en el detalle y la eliminación de la publicación retiró las fotos restantes. Al finalizar se retiró la publicación temporal y se comprobó que el catálogo mantuviera sus veinte productos originales.

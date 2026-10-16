@@ -28,7 +28,7 @@ La suite existente cubre además importación de Excel/CSV, resolución administ
 ## Alcance actual del catálogo de una desarmaduría
 
 - El propietario administra precio, stock, condición, vigencia, condiciones de oferta y publicación.
-- Nombre, fotos, ficha técnica y compatibilidad de años pertenecen al producto maestro y se administran desde el panel administrativo. Si la pieza no existe, el local envía una solicitud para revisión.
+- Nombre, imágenes genéricas, ficha técnica y compatibilidad de años pertenecen al producto maestro y se administran desde el panel administrativo. Desde el 16 de octubre, cada local puede agregar hasta doce fotos propias a su publicación, identificadas con su nombre en el detalle público. Si la pieza no existe, el local envía una solicitud para revisión.
 - Eliminar una oferta no elimina la ficha maestra ni las ofertas de otros locales.
 - Existe una oferta por combinación local/producto maestro. Todavía no se pueden mantener dos publicaciones independientes del mismo maestro en el mismo local, por ejemplo una pieza nueva y otra usada con fotos y precios distintos.
 - Las declaraciones vehiculares adicionales del vendedor siguen sujetas a la habilitación gradual existente. Las variantes automotrices con compatibilidad en el maestro conservan ese rango; no necesitan activar esa edición adicional.
@@ -51,3 +51,7 @@ Se corrigió la pantalla «Agregar productos», que consultaba el catálogo comp
 - La carga inicial por archivo busca coincidencias dentro del rubro; la actualización masiva utiliza únicamente el catálogo propio, sin descargar todos los maestros.
 
 Se conservan los productos, ofertas e historial existentes; esta corrección no elimina registros ni cambia los tipos de negocio.
+
+## Fotos propias y estado — 16 de octubre
+
+Implementado y publicado el [flujo de condición y fotos propias](fotos-publicaciones-locales-2026-10-16.md). Verificado en producción con Poniente: alta con estado usado, dos fotos subidas desde el panel, atribución pública en móvil y escritorio, eliminación individual y eliminación de la publicación. Se retiraron los datos temporales y el catálogo conservó sus veinte productos originales.
