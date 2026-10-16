@@ -93,13 +93,15 @@
 
       <div class="table-wrap" *ngIf="filteredCatalog.length > 0; else emptyCatalog">
         <table>
-          <thead><tr><th>Producto</th><th>SKU</th><th>Precio</th><th>Stock</th><th>Publicado</th><th>Actualizado</th><th>Acciones</th></tr></thead>
+          <thead><tr><th>Producto</th><th>SKU</th><th>Precio</th><th>Stock</th><th>Estado</th><th>Fotos</th><th>Publicado</th><th>Actualizado</th><th>Acciones</th></tr></thead>
           <tbody>
             <tr *ngFor="let product of paginatedCatalog">
               <td>{{ product.name }}</td>
               <td>{{ product.sku || '-' }}</td>
               <td>{{ formatCurrency(product.price) }}</td>
               <td>{{ product.stock }}</td>
+              <td>{{ conditionLabel(product.condition) }}</td>
+              <td><button type="button" class="ghost" (click)="openCatalogEdit(product)">Fotos ({{ product.offerPhotos?.length || 0 }})</button></td>
               <td>{{ product.isPublished ? 'Si' : 'No' }}</td>
               <td>{{ product.updatedAt ? (product.updatedAt | date:'dd/MM/yyyy HH:mm') : '-' }}</td>
               <td class="actions">
@@ -107,7 +109,7 @@
                   type="button"
                   class="table-action-button table-action-button--edit"
                   aria-label="Editar producto"
-                  title="Editar producto"
+                  title="Editar producto y fotos"
                   (click)="openCatalogEdit(product)"
                 >
                   <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -198,12 +200,13 @@
 
         <div class="table-wrap" *ngIf="!masterLoading && masterRows.length > 0">
           <table>
-            <thead><tr><th></th><th>Producto</th><th>Marca</th><th>Precio</th><th>Stock</th></tr></thead>
+            <thead><tr><th></th><th>Producto</th><th>Marca</th><th>Estado de la pieza</th><th>Precio</th><th>Stock</th></tr></thead>
             <tbody>
               <tr *ngFor="let product of masterRows">
                 <td><input type="checkbox" [checked]="masterSelectionDrafts[product.masterProductId || product.id]?.selected" (change)="toggleMasterSelection(product, $any($event.target).checked)" /></td>
                 <td>{{ product.name }}</td>
                 <td>{{ product.brand }}</td>
+                <td><select [ngModel]="masterSelectionCondition(product)" (ngModelChange)="updateMasterSelectionCondition(product, $event)" [attr.aria-label]="'Estado de ' + product.name"><option *ngFor="let condition of conditionOptions" [value]="condition">{{ conditionLabel(condition) }}</option></select></td>
                 <td><input type="number" min="1" [ngModel]="masterSelectionPrice(product)" (ngModelChange)="updateMasterSelectionPrice(product, $event)" /></td>
                 <td><input type="number" min="0" [ngModel]="masterSelectionStock(product)" (ngModelChange)="updateMasterSelectionStock(product, $event)" /></td>
               </tr>
@@ -222,6 +225,7 @@
           currentPageReportTemplate="{first}–{last} de {totalRecords}"
           (onPageChange)="onMasterPageChange($event)"
         />
+        <p class="helper-text">Selecciona el estado, precio y stock. Al agregar una pieza se abrirá su ficha para subir fotos propias; también puedes hacerlo desde «Editar producto».</p>
         <button type="button" (click)="saveSelectedMasterProducts()" [disabled]="selectedMasterProducts.length === 0">Agregar seleccionados</button>
       </section>
 
@@ -305,10 +309,10 @@
   <app-ui-modal
     [open]="catalogEditModalOpen"
     eyebrow="Catálogo"
-    title="Editar producto"
+    title="Editar producto y fotos"
     size="sm"
-    [closeDisabled]="catalogEditSaving || catalogVehicleSaving"
-    [closeOnBackdrop]="!catalogEditSaving && !catalogVehicleSaving"
+    [closeDisabled]="catalogEditSaving || catalogVehicleSaving || catalogPhotosBusy"
+    [closeOnBackdrop]="!catalogEditSaving && !catalogVehicleSaving && !catalogPhotosBusy"
     (closed)="closeCatalogEdit()"
   >
     <section *ngIf="catalogEditCandidate as product" class="catalog-edit-modal">
@@ -374,11 +378,13 @@
 
       <app-offer-vehicle-applications *ngIf="product.vehicleApplicationsEditable || product.vehicleApplications?.length" [storeId]="user?.ferreteriaId || ''" [offerId]="product.id" [disabled]="catalogEditSaving" (busyChange)="catalogVehicleSaving=$event" />
 
+      <app-offer-photo-manager [storeId]="user?.ferreteriaId || ''" [offerId]="product.id" [photos]="product.offerPhotos || []" [disabled]="catalogEditSaving || catalogVehicleSaving" (busyChange)="catalogPhotosBusy=$event" (photosChange)="onOfferPhotosChanged($event)" />
+
       <p *ngIf="catalogEditError" class="catalog-edit-error">{{ catalogEditError }}</p>
 
       <div class="confirm-delete-actions">
-        <button type="button" class="btn btn-outline" (click)="closeCatalogEdit()" [disabled]="catalogEditSaving || catalogVehicleSaving">Cancelar</button>
-        <button type="button" class="btn btn-primary" (click)="saveCatalogEdit()" [disabled]="catalogEditSaving || catalogVehicleSaving">
+        <button type="button" class="btn btn-outline" (click)="closeCatalogEdit()" [disabled]="catalogEditSaving || catalogVehicleSaving || catalogPhotosBusy">Cancelar</button>
+        <button type="button" class="btn btn-primary" (click)="saveCatalogEdit()" [disabled]="catalogEditSaving || catalogVehicleSaving || catalogPhotosBusy">
           {{ catalogEditSaving ? 'Guardando...' : 'Guardar cambios' }}
         </button>
       </div>

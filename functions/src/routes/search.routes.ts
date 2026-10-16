@@ -10,6 +10,7 @@ import { normalizeText, numberValue, normalizeProjectProximity } from '../lib/va
 import { paginateProductSearch, type ProductSearchOptions } from '../domain/product-search.js';
 import { rows, row } from '../repositories/firestore.repository.js';
 import { buildSearchRows } from '../services/catalog-search.service.js';
+import { attributedOfferPhotos } from '../domain/offer-photo.js';
 export const searchRouter = Router();
 
 searchRouter.get('/busqueda', async (req, res) => {
@@ -131,6 +132,7 @@ searchRouter.get('/productos/detalle', async (req, res) => {
     if (!sheet) return fail(res, 'PRODUCTO_NOT_FOUND', 'No se encontro el producto solicitado.', 404);
     return ok(res, sheet);
   }
+  res.set('Cache-Control','no-store');
   const snapshot = await getPublicCatalogSnapshot();
   const slug = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 120);
   const product = snapshot.products.find(item => requestedSlug
@@ -138,6 +140,8 @@ searchRouter.get('/productos/detalle', async (req, res) => {
     : normalizeText(item.nombre).toLowerCase() === name);
   if (!product) return fail(res, 'PRODUCTO_NOT_FOUND', 'No se encontro el producto solicitado.', 404);
   const searchRows = snapshot.searchRows.filter(item => item.productoMaestroId === product.id && matchesVehicle(item.vehicleApplications, vehicle));
+  const photoOffers=await db.collection(COLLECTIONS.storeProducts).where('productoMaestroId','==',product.id).get();
+  const storePhotos=attributedOfferPhotos(photoOffers.docs.map(doc=>({id:doc.id,...doc.data()})),searchRows);
   const offersOnly = req.query['vista'] === 'ofertas';
   const [attributeSnapshot, definitionSnapshot] = offersOnly ? [{ docs: [] }, { docs: [] }] : await Promise.all([
     db.collection(COLLECTIONS.masterAttributes).where('productoMaestroId', '==', product.id).get(),
@@ -180,10 +184,12 @@ searchRouter.get('/productos/detalle', async (req, res) => {
     condition: item.condition
   })).sort((a, b) => Number(b.comparisonEligible) - Number(a.comparisonEligible) || a.price - b.price);
   if (offersOnly) return ok(res, {
+    storePhotos,
     stores, minPrice: stores.length ? Math.min(...stores.map(item => item.price)) : 0,
     maxPrice: stores.length ? Math.max(...stores.map(item => item.price)) : 0
   });
   return ok(res, {
+    storePhotos,
     productoMaestro: {...product,seoPath:`/productos/${seoProductSlug(product,snapshot.products)}`},
     categoryName: snapshot.taxonomy.categories.find(item => item.id === product.categoriaId)?.nombre || 'Sin categoria',
     subcategoryName: snapshot.taxonomy.subcategories.find(item => item.id === product.subcategoriaId)?.nombre || 'Sin subcategoria',

@@ -10,7 +10,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject, PLATFORM_ID } 
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { combineLatest, Subscription } from 'rxjs';
-import { SearchFilters, ProductDetailView, ProductStoreOfferRow, ProjectSummary, SessionUser } from '../../core/models/app.models';
+import { SearchFilters, ProductDetailView, ProductStoreOfferRow, ProjectSummary, SessionUser, ProductGalleryPhoto } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
 import { FirebaseDataService } from '../../core/services/firebase-data.service';
 import { SeoService } from '../../core/services/seo.service';
@@ -187,6 +187,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
         : await this.apiService.loadProductOffers(sheet);
       if (generation !== this.loadGeneration || requestId !== this.offersRequestId) return;
       this.detail = detail;
+      this.selectedImageIndex=Math.min(this.selectedImageIndex,Math.max(0,this.galleryImages.length-1));
       this.displayStores = this.buildDisplayStores(detail.stores);
       this.seoService.updateProduct(detail);
       const matches = this.displayStores.filter(store => (requestedStoreId
@@ -236,8 +237,26 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   }
 
   protected get currentImageUrl(): string {
-    if (!this.detail) return '';
-    return this.detail.gallery[this.selectedImageIndex] || this.detail.imageUrl;
+    return this.currentGalleryImage?.url || '';
+  }
+  protected get galleryImages(): ProductGalleryPhoto[] {
+    if(!this.detail)return [];
+    const generic=[...new Set((this.detail.gallery?.length?this.detail.gallery:[this.detail.imageUrl]).filter(Boolean))].map(url=>({url}));
+    return [...generic,...(this.detail.storePhotos||[])];
+  }
+  protected get currentGalleryImage(): ProductGalleryPhoto | undefined {
+    return this.galleryImages[this.selectedImageIndex]||this.galleryImages[0];
+  }
+  protected galleryImageKey(index:number,image:ProductGalleryPhoto):string {
+    return `${image.offerId||'catalogo'}:${image.id||image.url||index}`;
+  }
+  protected hasStorePhotos(store:ProductStoreOfferRow):boolean {
+    return !!store.offerId && !!store.storeId && this.galleryImages.some(photo=>photo.offerId===store.offerId&&photo.storeId===store.storeId);
+  }
+  protected showStorePhotos(store:ProductStoreOfferRow,event?:Event):void {
+    event?.stopPropagation();
+    const index=this.galleryImages.findIndex(photo=>photo.offerId===store.offerId&&photo.storeId===store.storeId);
+    if(index>=0){this.selectImage(index);if(typeof document!=='undefined')document.querySelector('.gallery-panel')?.scrollIntoView({behavior:'smooth',block:'start'});}
   }
 
   protected get selectedStore(): ProductStoreOfferRow | null {
@@ -280,6 +299,8 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
     this.selectedStoreName = storeName;
     this.selectedStoreId = storeId;
     this.selectedOfferId = offerId;
+    const photoIndex=this.galleryImages.findIndex(photo=>photo.storeId===storeId&&(!offerId||photo.offerId===offerId));
+    if(photoIndex>=0)this.selectedImageIndex=photoIndex;
     void this.apiService.recordOfferEvent(this.selectedStore?.offerId, 'select');
     this.quoteFeedback = '';
   }

@@ -378,6 +378,18 @@
     "middlewareCount": 3
   },
   {
+    "method": "post",
+    "path": "/ferreterias/:storeId/catalogo/:offerId/fotos",
+    "auth": true,
+    "middlewareCount": 5
+  },
+  {
+    "method": "delete",
+    "path": "/ferreterias/:storeId/catalogo/:offerId/fotos/:photoId",
+    "auth": true,
+    "middlewareCount": 4
+  },
+  {
     "method": "get",
     "path": "/marcas",
     "auth": false,

@@ -259,7 +259,8 @@
       "propiedadIntelectualReporteId": "offers.ip_report_id",
       "creadoEn": "offers.created_at",
       "actualizadoEn": "offers.updated_at",
-      "asociacionesVehiculos": "offer_vehicle_applications ordered rows"
+      "asociacionesVehiculos": "offer_vehicle_applications ordered rows",
+      "fotosPublicacion": "offers.api_payload.fotosPublicacion (bounded owned gallery with CDN URLs and storage keys)"
     },
     "notes": "One offer per store/product. Zero prices and zero stock remain representable; public eligibility excludes zero prices and purchasing eligibility excludes zero stock. Invalid old VAT flags require audit, not blind conversion.",
     "sourceCollection": "real_productosFerreteria",

@@ -5,7 +5,7 @@ import { CURRENT_STORE_AGREEMENT_VERSION } from '../lib/lib/legal.js';
 import { storeAgreementDocumentHash } from '../lib/services/store-agreement.service.js';
 import { firestoreFixture } from './helpers/firestore-fixture.mjs';
 const handler=searchRouter.stack.find(layer=>layer.route?.path==='/productos/detalle').route.stack.at(-1).handle;
-function response(){return {statusCode:200,status(code){this.statusCode=code;return this;},json(body){this.body=body;return this;}};}
+function response(){return {statusCode:200,set(){return this;},status(code){this.statusCode=code;return this;},json(body){this.body=body;return this;}};}
 test('direct slug detail returns taxonomy and only attributes from its product and family without offers',async t=>{
  const product={id:'base',nombre:'Abrazadera metálica',categoriaId:'cat',subcategoriaId:'sub',familiaId:'fam',estado:'activo'};
  firestoreFixture(t,{
@@ -35,4 +35,16 @@ test('product offers carry the public WhatsApp number and pilot flag through the
  firestoreFixture(t,{cachePublico:{meta:{dirty:false,version:'whatsapp-detail',updatedAt:new Date().toISOString(),policy:`data-modes-v5:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']},products:{items:[product]},offers:{items:rows},taxonomy:{categories:[],subcategories:[],families:[]}},productosMaestro:{base:product}});
  const res=response();await handler({query:{slug:'foco-mahindra-kuv-100-2016-2020',vista:'ofertas'}},res);
  assert.equal(res.statusCode,200);assert.equal(res.body.data.stores[0].whatsappPhone,'+56991036780');assert.equal(res.body.data.stores[0].pilot,true);
+});
+
+test('dynamic detail and offer responses expose owned images with server attribution while the generic sheet stays independent',async t=>{
+ const product={id:'photo-master',nombre:'Pieza con galería por local',estado:'activo',galeriaJson:['https://generic.example/catalog.webp']};
+ const offerRow={productoMaestroId:product.id,productoFerreteriaId:'photo-offer',storeId:'store',storeName:'Desarmaduría Norte',price:12000,stock:1,condition:'usado'};
+ const own={id:'photo',url:'https://cdn.example/own.webp',thumbnailUrl:'https://cdn.example/thumb.webp',storagePath:'private-key',uploadedBy:'private-uid'};
+ firestoreFixture(t,{cachePublico:{meta:{dirty:false,version:'photo-detail',updatedAt:new Date().toISOString(),policy:`data-modes-v5:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']},products:{items:[product]},offers:{items:[offerRow]},taxonomy:{categories:[],subcategories:[],families:[]}},productosMaestro:{[product.id]:product},productosFerreteria:{'photo-offer':{productoMaestroId:product.id,ferreteriaId:'store',condicion:'usado',fotosPublicacion:[own]}}});
+ for(const vista of [undefined,'ofertas']){
+  const res=response();await handler({query:{producto:product.nombre.toLowerCase(),vista}},res);assert.equal(res.statusCode,200);
+  assert.equal(res.body.data.storePhotos[0].storeName,'Desarmaduría Norte');assert.equal(res.body.data.storePhotos[0].condition,'usado');assert.equal(res.body.data.storePhotos[0].storagePath,undefined);assert.equal(res.body.data.storePhotos[0].uploadedBy,undefined);
+  if(!vista)assert.deepEqual(res.body.data.productoMaestro.galeriaJson,product.galeriaJson);
+ }
 });

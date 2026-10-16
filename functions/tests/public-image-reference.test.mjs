@@ -26,7 +26,7 @@ test('rebuilt public detail preserves image disclosure without exposing editoria
     return ref;
   });
   const handler = searchRouter.stack.find(layer => layer.route?.path === '/productos/detalle').route.stack.at(-1).handle;
-  const res = { statusCode: 200, status(code) { this.statusCode = code; return this; }, json(body) { this.body = body; return this; } };
+  const res = { statusCode: 200, set(){return this;}, status(code) { this.statusCode = code; return this; }, json(body) { this.body = body; return this; } };
   await handler({ query: { producto: 'Alternador automotriz' } }, res);
   assert.equal(res.statusCode, 200);
   const product = res.body.data.productoMaestro;

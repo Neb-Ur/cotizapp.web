@@ -337,7 +337,25 @@ export interface ProductExtraSection {
   points: string[];
 }
 
+export interface OfferPhoto {
+  id: string;
+  url: string;
+  thumbnailUrl: string;
+}
+
+export interface ProductGalleryPhoto {
+  id?: string;
+  url: string;
+  thumbnailUrl?: string;
+  storeId?: string;
+  storeName?: string;
+  offerId?: string;
+  condition?: OfferCondition;
+  pilot?: boolean;
+}
+
 export interface ProductDetailView {
+  storePhotos?: ProductGalleryPhoto[];
   vehicleCompatibility?: import('../services/vehicle-catalog.service').VehicleApplication[];
   compatibilityReference?: boolean;
   seoPath?:string;
@@ -449,6 +467,7 @@ export interface ProjectComparisonStrategy {
 }
 
 export interface CatalogProduct {
+  offerPhotos?: OfferPhoto[];
   partName?: string;
   variantLabel?: string;
   vehicleCompatibility?: import('../services/vehicle-catalog.service').VehicleApplication[];

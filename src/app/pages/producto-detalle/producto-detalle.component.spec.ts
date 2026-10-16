@@ -221,3 +221,19 @@ it('opens offer information without selecting or expanding the offer row', async
  document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'}));fixture.detectChanges();
  expect(document.querySelector('.cdk-overlay-container [role="dialog"]')).toBeNull();
 });
+
+it('mixes generic and seller photos, labels the owner over the image and never falls back to a generic image under a seller label',async()=>{
+ const {fixture,resolvers,offerResolvers,component}=await setup();
+ const generic={...detail,gallery:['https://generic.example/main.webp'],imageUrl:'https://generic.example/main.webp',imageFallbackUrl:'https://generic.example/fallback.webp',imageDisclosure:'Imagen genérica'};
+ resolvers[0](generic);await fixture.whenStable();fixture.detectChanges();
+ offerResolvers[0]({...generic,storePhotos:[{id:'photo',url:'https://cdn.example/part.webp',thumbnailUrl:'https://cdn.example/thumb.webp',storeId:'north',storeName:'Desarmaduría Norte',offerId:'offer',condition:'usado'}]});
+ await fixture.whenStable();fixture.detectChanges();
+ expect(fixture.nativeElement.querySelector('.photo-attribution').textContent).toContain('Imagen de catálogo');
+ const thumb=fixture.nativeElement.querySelector('[aria-label="Ver foto 2 de Desarmaduría Norte"]');expect(thumb).not.toBeNull();thumb.click();fixture.detectChanges();
+ expect(fixture.nativeElement.querySelector('.photo-attribution').textContent).toContain('Desarmaduría Norte');
+ expect(fixture.nativeElement.querySelector('.photo-attribution').textContent).toContain('Usado');
+ const image=fixture.nativeElement.querySelector('.main-image img');expect(image.getAttribute('src')).toBe('https://cdn.example/part.webp');
+ image.dispatchEvent(new Event('error'));fixture.detectChanges();expect(image.getAttribute('src')).toContain('product-image-unavailable.svg');
+ expect(fixture.nativeElement.querySelector('.gallery-panel').textContent).not.toContain('Imagen genérica');
+ fixture.destroy();
+});

@@ -10,6 +10,7 @@ import { rows, row, createRow, patchRow } from '../repositories/firestore.reposi
 import { canAccessOwner, requireStoreWriteAccess } from '../lib/ownership.js';
 import { requireCurrentStoreAgreement } from '../services/store-agreement.service.js';
 import { categoryMatchesBusinessType } from '../domain/business-type.js';
+import { deleteOfferImageFiles } from '../services/image-storage.service.js';
 export const storeCatalogRouter = Router();
 
 const measurementUnits = ['kg', 'l', 'm', 'm2', 'm3', 'unidad'];
@@ -34,7 +35,8 @@ function offerEvidence(value: Record<string, any> | null | undefined): Record<st
     vigenteHasta: normalizeText(value['vigenteHasta']) || null,
     condicionesOferta: normalizeText(value['condicionesOferta']).slice(0, 500) || null,
     activo: value['activo'] !== false,
-    publicado: value['publicado'] !== false
+    publicado: value['publicado'] !== false,
+    fotosPublicacion: value['fotosPublicacion'] || []
   };
 }
 
@@ -192,6 +194,8 @@ storeCatalogRouter.delete('/ferreterias/:storeId/catalogo/:offerId', requireAuth
     snapshotNuevo: null
   });
   await db.collection(COLLECTIONS.storeProducts).doc(req.params.offerId).delete();
+  const cleanup=await Promise.allSettled((existing.fotosPublicacion||[]).map((photo:any)=>deleteOfferImageFiles(photo)));
+  if(cleanup.some(result=>result.status==='rejected'))console.error('OFFER_PHOTOS_DELETE_CLEANUP_FAILED');
   return ok(res, { deleted: true });
 });
 

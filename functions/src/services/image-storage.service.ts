@@ -40,7 +40,7 @@ export async function prepareProductImage(body: Buffer, contentType: string) {
 }
 
 // This runs only for admin uploads. Product views use the public CDN URL directly.
-export async function uploadProductImage(body: Buffer, contentType: string) {
+export async function uploadProductImage(body: Buffer, contentType: string, root = 'productos') {
   const config = imageStorageConfig();
   if (!config.configured) throw new ImageStorageError('IMAGE_STORAGE_NOT_CONFIGURED', 'La carga de imágenes aún no está configurada.', 503);
   const images = await prepareProductImage(body, contentType);
@@ -51,7 +51,7 @@ export async function uploadProductImage(body: Buffer, contentType: string) {
     if (!accessKeyId || !secretAccessKey) throw new Error('Missing credentials');
     client = new S3Client({ region: 'auto', endpoint: `https://${config.accountId}.r2.cloudflarestorage.com`, credentials: { accessKeyId, secretAccessKey }, maxAttempts: 2 });
   } catch { throw new ImageStorageError('IMAGE_STORAGE_NOT_CONFIGURED', 'La carga de imágenes aún no está configurada.', 503); }
-  const prefix = `productos/${randomUUID()}`;
+  const prefix = `${root}/${randomUUID()}`;
   const keys = [`${prefix}/detalle.webp`, `${prefix}/miniatura.webp`];
   try {
     const results = await Promise.allSettled(keys.map((Key, index) => client.send(new PutObjectCommand({ Bucket: config.bucket, Key, Body: index === 0 ? images.main : images.thumbnail, ContentType: 'image/webp', CacheControl: IMAGE_CACHE_CONTROL }))));
@@ -61,4 +61,17 @@ export async function uploadProductImage(body: Buffer, contentType: string) {
     }
     return { storageImageUrl: `${config.publicBaseUrl}/${keys[0]}`, storageImagePath: keys[0], thumbnailImageUrl: `${config.publicBaseUrl}/${keys[1]}`, thumbnailImagePath: keys[1], width: images.width, height: images.height };
   } finally { client.destroy(); }
+}
+
+export async function deleteOfferImageFiles(image: {storagePath:string;thumbnailPath:string}): Promise<void> {
+  const config=imageStorageConfig();
+  if(!config.configured)throw new ImageStorageError('IMAGE_STORAGE_NOT_CONFIGURED','El almacenamiento no está disponible.',503);
+  const keys=[image.storagePath,image.thumbnailPath];
+  if(keys.some(key=>!/^locales\/[a-f0-9]{24}\/ofertas\/[a-f0-9]{24}\/[a-f0-9-]{36}\/(detalle|miniatura)\.webp$/.test(key)))throw new ImageStorageError('IMAGE_PATH_INVALID','No se puede eliminar esta imagen.');
+  const {S3Client,DeleteObjectCommand}=await import('@aws-sdk/client-s3');
+  const accessKeyId=process.env['FINDI_R2_ACCESS_KEY_ID'],secretAccessKey=process.env['FINDI_R2_SECRET_ACCESS_KEY'];
+  if(!accessKeyId||!secretAccessKey)throw new ImageStorageError('IMAGE_STORAGE_NOT_CONFIGURED','El almacenamiento no está disponible.',503);
+  const client=new S3Client({region:'auto',endpoint:`https://${config.accountId}.r2.cloudflarestorage.com`,credentials:{accessKeyId,secretAccessKey},maxAttempts:2});
+  try { await Promise.all(keys.map(Key=>client.send(new DeleteObjectCommand({Bucket:config.bucket,Key})))); }
+  finally {client.destroy();}
 }

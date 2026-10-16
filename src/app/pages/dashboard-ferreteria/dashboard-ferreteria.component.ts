@@ -1,4 +1,6 @@
 import { OfferVehicleApplicationsComponent } from '../../shared/components/offer-vehicle-applications/offer-vehicle-applications.component';
+import { OfferPhotoManagerComponent } from '../../shared/components/offer-photo-manager/offer-photo-manager.component';
+import { OfferPhoto } from '../../core/models/app.models';
 import { BUSINESS_TYPES, businessTypeLabel, normalizeBusinessType, categoryMatchesBusinessType, type BusinessType } from '../../core/utils/business-type.util';
 import { OFFER_CONDITIONS, normalizeOfferCondition, offerConditionLabel, type OfferCondition } from '../../core/utils/offer-condition.util';
 import { StoreQuotationVerifierComponent } from '../../shared/components/store-quotation-verifier/store-quotation-verifier.component';
@@ -42,6 +44,7 @@ interface FerreteriaSectionMeta {
 }
 
 interface MasterCatalogSelectionDraft {
+  condition: OfferCondition;
   selected: boolean;
   price: number;
   stock: number;
@@ -50,7 +53,7 @@ interface MasterCatalogSelectionDraft {
 @Component({
   selector: 'app-dashboard-ferreteria',
   standalone: true,
-  imports: [OfferVehicleApplicationsComponent, StoreQuotationVerifierComponent, CommonModule, FormsModule, PaginatorModule, UiModalComponent, UiLoaderComponent, StoreOnboardingComponent],
+  imports: [OfferPhotoManagerComponent, OfferVehicleApplicationsComponent, StoreQuotationVerifierComponent, CommonModule, FormsModule, PaginatorModule, UiModalComponent, UiLoaderComponent, StoreOnboardingComponent],
   templateUrl: './dashboard-ferreteria.component.html',
   styleUrl: './dashboard-ferreteria.component.scss'
 })
@@ -94,6 +97,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   protected catalogEditError = '';
   protected catalogEditSaving = false;
   protected catalogVehicleSaving = false;
+  protected catalogPhotosBusy = false;
   protected catalogNotice = '';
   protected catalogError = '';
   protected catalogDeleteCandidate: CatalogProduct | null = null;
@@ -264,13 +268,13 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
     return this.uploadSubcategoryId ? this.apiService.getFamilyOptions(this.uploadSubcategoryId) : [];
   }
 
-  protected get selectedMasterProducts(): Array<{ product: CatalogProduct; price: number; stock: number }> {
+  protected get selectedMasterProducts(): Array<{ product: CatalogProduct; price: number; stock: number; condition: OfferCondition }> {
     return this.masterRows
       .map((product) => {
         const draft = this.masterSelectionDrafts[this.masterProductId(product)];
-        return draft?.selected ? { product, price: Number(draft.price) || 0, stock: Number(draft.stock) || 0 } : null;
+        return draft?.selected ? { product, price: Number(draft.price) || 0, stock: Number(draft.stock) || 0, condition: draft.condition } : null;
       })
-      .filter((item): item is { product: CatalogProduct; price: number; stock: number } => !!item);
+      .filter((item): item is { product: CatalogProduct; price: number; stock: number; condition: OfferCondition } => !!item);
   }
 
   protected setSection(section: FerreteriaSection): void {
@@ -322,6 +326,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   }
 
   protected openCatalogEdit(product: CatalogProduct): void {
+    if(this.catalogPhotosBusy)return;
     this.catalogEditCandidate = product;
     this.catalogEditDraft = {
       condition: normalizeOfferCondition(product.condition),
@@ -339,7 +344,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   }
 
   protected closeCatalogEdit(): void {
-    if (this.catalogEditSaving || this.catalogVehicleSaving) return;
+    if (this.catalogEditSaving || this.catalogVehicleSaving || this.catalogPhotosBusy) return;
     this.catalogEditCandidate = null;
     this.catalogEditModalOpen = false;
     this.catalogEditError = '';
@@ -348,7 +353,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   protected async saveCatalogEdit(): Promise<void> {
     await this.writeFeedback.run('dashboard-ferreteria:saveCatalogEdit', async () => {
       const product = this.catalogEditCandidate;
-      if (!this.user || !product || this.catalogEditSaving || this.catalogVehicleSaving) return;
+      if (!this.user || !product || this.catalogEditSaving || this.catalogVehicleSaving || this.catalogPhotosBusy) return;
 
       const rawPrice = Number(this.catalogEditDraft.price);
       const rawStock = Number(this.catalogEditDraft.stock);
@@ -486,7 +491,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
 
   protected toggleMasterSelection(product: CatalogProduct, selected: boolean): void {
     const id = this.masterProductId(product);
-    const current = this.masterSelectionDrafts[id] || { selected: false, price: Math.max(1, product.price), stock: 0 };
+    const current = this.masterSelectionDrafts[id] || { selected: false, price: Math.max(1, product.price), stock: 0, condition: 'sin_especificar' as OfferCondition };
     this.masterSelectionDrafts = {
       ...this.masterSelectionDrafts,
       [id]: { ...current, selected }
@@ -499,6 +504,19 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
 
   protected masterSelectionStock(product: CatalogProduct): number {
     return this.masterSelectionDrafts[this.masterProductId(product)]?.stock || 0;
+  }
+  protected masterSelectionCondition(product: CatalogProduct): OfferCondition {
+    return this.masterSelectionDrafts[this.masterProductId(product)]?.condition || 'sin_especificar';
+  }
+  protected updateMasterSelectionCondition(product: CatalogProduct, value: OfferCondition): void {
+    this.patchMasterSelection(product,{condition:value});
+  }
+  protected onOfferPhotosChanged(photos: OfferPhoto[]): void {
+    if(!this.catalogEditCandidate)return;
+    this.catalogEditCandidate.offerPhotos=photos;
+    const product=this.catalog.find(item=>item.id===this.catalogEditCandidate!.id);
+    if(product)product.offerPhotos=photos;
+    this.changeDetector.markForCheck();
   }
 
   protected updateMasterSelectionPrice(product: CatalogProduct, value: number | string): void {
@@ -527,6 +545,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
           this.user.id,
           selected.map((item) => ({
             masterProductId: this.masterProductId(item.product),
+            condition: item.condition,
             price: item.price,
             stock: item.stock
           }))
@@ -537,6 +556,10 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
         this.relationNotice = `${result.createdCount} producto(s) agregado(s) y ${result.updatedCount} actualizado(s).`;
         this.relationError = '';
         await this.loadMasterCatalog();
+        if(selected.length===1){
+          const added=this.catalog.find(product=>this.masterProductId(product)===this.masterProductId(selected[0].product));
+          if(added)this.openCatalogEdit(added);
+        }
       } catch (error) {
         this.relationError = error instanceof Error ? error.message : 'No se pudieron agregar los productos.';
       }
@@ -844,7 +867,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
 
   private patchMasterSelection(product: CatalogProduct, patch: Partial<MasterCatalogSelectionDraft>): void {
     const id = this.masterProductId(product);
-    const current = this.masterSelectionDrafts[id] || { selected: true, price: Math.max(1, product.price), stock: 0 };
+    const current = this.masterSelectionDrafts[id] || { selected: true, price: Math.max(1, product.price), stock: 0, condition: 'sin_especificar' as OfferCondition };
     this.masterSelectionDrafts = { ...this.masterSelectionDrafts, [id]: { ...current, ...patch } };
   }
 

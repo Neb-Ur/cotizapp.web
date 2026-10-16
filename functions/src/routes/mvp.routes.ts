@@ -1,4 +1,5 @@
 import { offerVehiclesRouter } from './offer-vehicles.routes.js';
+import { offerPhotosRouter } from './offer-photos.routes.js';
 import { storeDirectoryRouter } from './store-directory.routes.js';
 import { vehicleCatalogRouter } from './vehicle-catalog.routes.js';
 import { storeQuotationsRouter } from './store-quotations.routes.js';
@@ -36,6 +37,7 @@ mvpRouter.use(intellectualPropertyRouter);
 mvpRouter.use(taxonomyRouter);
 mvpRouter.use(vehicleCatalogRouter);
 mvpRouter.use(offerVehiclesRouter);
+mvpRouter.use(offerPhotosRouter);
 mvpRouter.use(masterProductsRouter);
 mvpRouter.use(searchRouter);
 mvpRouter.use(storeDirectoryRouter);

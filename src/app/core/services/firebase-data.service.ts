@@ -803,6 +803,7 @@ export class FirebaseDataService {
   }
 
   async addCatalogProductFromMaster(ownerId: string, masterProductId: string, relation: {
+    condition?: CatalogProduct['condition'];
     price: number;
     stock: number;
     sku?: string;
@@ -816,6 +817,7 @@ export class FirebaseDataService {
     if (current) {
       const updated = await this.upsertCatalog(ownerId, {
         ...current,
+        condition: relation.condition ?? current.condition,
         price: relation.price,
         stock: relation.stock,
         sku: relation.sku || current.sku,
@@ -834,6 +836,7 @@ export class FirebaseDataService {
     try {
       const next = await this.upsertCatalog(ownerId, {
         ...master,
+        condition: relation.condition,
         id: '',
         masterProductId,
         sku,
@@ -858,6 +861,7 @@ export class FirebaseDataService {
 
       const updated = await this.upsertCatalog(ownerId, {
         ...synced,
+        condition: relation.condition ?? synced.condition,
         price: relation.price,
         stock: relation.stock,
         sku: relation.sku || synced.sku || sku,
@@ -869,6 +873,7 @@ export class FirebaseDataService {
   }
 
   async addCatalogProductsFromMasterBatch(ownerId: string, relations: Array<{
+    condition?: CatalogProduct['condition'];
     masterProductId: string;
     price: number;
     stock: number;
@@ -879,6 +884,7 @@ export class FirebaseDataService {
 
     for (const relation of relations) {
       const result = await this.addCatalogProductFromMaster(ownerId, relation.masterProductId, {
+        condition: relation.condition,
         price: relation.price,
         stock: relation.stock
       });
@@ -1612,6 +1618,7 @@ export class FirebaseDataService {
       }));
 
       return {
+        storePhotos: Array.isArray(raw.storePhotos) ? raw.storePhotos : [],
         vehicleCompatibility: master.compatibilidadVehiculos || [],
         compatibilityReference: master.compatibilidadReferencial === true,
         seoPath:master.seoPath,
@@ -1702,7 +1709,7 @@ export class FirebaseDataService {
       vehiculoMarcaId: vehicle?.vehicleBrandId, vehiculoModeloId: vehicle?.vehicleModelId, vehiculoAnio: vehicle?.vehicleYear
     });
     const offers = this.mapProductDetail({ ...raw, productoMaestro: { id: sheet.productoMaestroId, nombre: sheet.productName } });
-    return { ...sheet, stores: offers.stores, minPrice: offers.minPrice, maxPrice: offers.maxPrice,
+    return { ...sheet, storePhotos: offers.storePhotos, stores: offers.stores, minPrice: offers.minPrice, maxPrice: offers.maxPrice,
       sku: offers.sku, stock: offers.stock };
   }
 
@@ -2229,6 +2236,7 @@ export class FirebaseDataService {
     const master = row.productoMaestro || {};
 
     const item: CatalogProduct = {
+      offerPhotos: Array.isArray(row.fotosPublicacion) ? row.fotosPublicacion.map((photo:any)=>({id:photo.id,url:photo.url,thumbnailUrl:photo.thumbnailUrl})) : [],
       id: row.id,
       vehicleApplicationsEditable: row.vehiculosEditables === true,
       vehicleApplications: Array.isArray(row.asociacionesVehiculos) ? row.asociacionesVehiculos : [],

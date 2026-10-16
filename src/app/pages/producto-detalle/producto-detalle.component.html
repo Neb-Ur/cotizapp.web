@@ -31,19 +31,27 @@
     <section class="hero-grid">
       <div class="gallery-panel">
         <div class="main-image">
-          <img [findiProductImage]="currentImageUrl" [externalImageUrl]="product.imageFallbackUrl" [alt]="product.productName" width="720" height="540" fetchpriority="high" decoding="async" />
+          <img [findiProductImage]="currentImageUrl" [externalImageUrl]="currentGalleryImage?.storeId ? '' : product.imageFallbackUrl" [alt]="product.productName + (currentGalleryImage?.storeName ? ' · Foto de ' + currentGalleryImage?.storeName : ' · Imagen de catálogo')" width="720" height="540" fetchpriority="high" decoding="async" />
+          <div class="photo-attribution" [class.photo-attribution--store]="currentGalleryImage?.storeId" aria-live="polite">
+            <strong>{{ currentGalleryImage?.storeName || 'Imagen de catálogo' }}</strong>
+            <span *ngIf="currentGalleryImage?.condition && currentGalleryImage?.condition !== 'sin_especificar'">{{ conditionLabel(currentGalleryImage?.condition) }}</span>
+          </div>
         </div>
         <div class="thumb-strip">
           <button
-            *ngFor="let image of product.gallery; let i = index"
+            *ngFor="let image of galleryImages; let i = index; trackBy: galleryImageKey"
             type="button"
             [class.active]="i === selectedImageIndex"
             (click)="selectImage(i)"
+            [attr.aria-label]="'Ver foto ' + (i+1) + ' de ' + (image.storeName || 'catálogo')"
+            [title]="image.storeName || 'Imagen de catálogo'"
           >
-            <img [findiProductImage]="image" [externalImageUrl]="product.imageFallbackUrl" [alt]="product.productName + ' vista ' + (i + 1)" width="96" height="72" loading="lazy" decoding="async" />
+            <img [findiProductImage]="image.thumbnailUrl || image.url" [fullImageUrl]="image.url" [externalImageUrl]="image.storeId ? '' : product.imageFallbackUrl" [alt]="product.productName + ' · ' + (image.storeName || 'Catálogo') + ' · vista ' + (i + 1)" width="96" height="72" loading="lazy" decoding="async" />
+            <span class="thumb-source">{{image.storeName || 'Catálogo'}}</span>
           </button>
         </div>
-        <p class="image-disclosure" *ngIf="product.imageDisclosure">{{ product.imageDisclosure }}</p>
+        <p class="image-disclosure" *ngIf="!currentGalleryImage?.storeId && product.imageDisclosure">{{ product.imageDisclosure }}</p>
+        <p class="image-disclosure" *ngIf="currentGalleryImage?.storeId">Foto publicada por {{currentGalleryImage?.storeName}}. Confirma el estado y la disponibilidad con el local.</p>
       </div>
 
       <aside class="purchase-panel">
@@ -146,6 +154,7 @@
                     {{ store.storeName }}
                   </p>
                   <p class="store-stock"><span *ngIf="store.condition && store.condition !== 'sin_especificar'">{{ conditionLabel(store.condition) }} · </span>Stock: {{ store.stock }}</p>
+                  <button type="button" class="store-photo-link" *ngIf="hasStorePhotos(store)" (click)="showStorePhotos(store,$event)">Ver fotos de este local</button>
 
                 </div>
               </div>

@@ -472,3 +472,23 @@ test('store catalog CRUD persists junkyard parts and hardware offers through SQL
   assert.equal((await call('post',storeId,{productoMaestroId:productId,precio:25000,stock:1})).statusCode,201);
  }
 });
+
+test('owned photo galleries persist atomically in SQL without changing master images or another local offer',async t=>{
+ const {db,pg}=await fixture(t);await catalog(db);
+ await db.collection('real_productosFerreteria').doc('photo-offer').set({ferreteriaId:'store',productoMaestroId:'product',precio:10000,stock:1,condicion:'usado',activo:true,publicado:true});
+ await db.collection('real_ferreterias').doc('other-store').set({usuarioDuenoId:'store-owner',nombreComercial:'Other',estado:'activo'});
+ await db.collection('real_productosFerreteria').doc('other-offer').set({ferreteriaId:'other-store',productoMaestroId:'product',precio:15000,stock:2,activo:true,publicado:true});
+ const firebase=await import('../lib/lib/firebase.js');for(const method of ['collection','runTransaction','batch'])t.mock.method(firebase.db,method,db[method].bind(db));
+ const {changeOfferPhotos}=await import('../lib/services/offer-photos.service.js');
+ const photo={id:'photo',url:'https://cdn.example/own.webp',thumbnailUrl:'https://cdn.example/thumb.webp',storagePath:'owned/main',thumbnailPath:'owned/thumb',uploadedAt:new Date().toISOString(),uploadedBy:'store-owner'};
+ const masterBefore=(await db.collection('productosMaestro').doc('product').get()).data();
+ await changeOfferPhotos('store','photo-offer','store-owner',false,()=>[photo]);
+ assert.deepEqual((await pg.query("SELECT api_payload->'fotosPublicacion' photos FROM findi.offers WHERE id='photo-offer'")).rows[0].photos,[photo]);
+ await assert.rejects(changeOfferPhotos('store','photo-offer','intruder',false,()=>[]),e=>e.status===403);
+ assert.equal((await db.collection('real_productosFerreteria').doc('photo-offer').get()).data().fotosPublicacion.length,1);
+ assert.equal((await db.collection('real_productosFerreteria').doc('other-offer').get()).data().fotosPublicacion,undefined);
+ assert.deepEqual((await db.collection('productosMaestro').doc('product').get()).data(),masterBefore);
+ await changeOfferPhotos('store','photo-offer','store-owner',false,()=>[]);
+ assert.deepEqual((await db.collection('real_productosFerreteria').doc('photo-offer').get()).data().fotosPublicacion,[]);
+ assert.equal((await pg.query("SELECT count(*)::int n FROM findi.offer_history WHERE offer_reference='photo-offer' AND action='photos_updated'")).rows[0].n,2);
+});
