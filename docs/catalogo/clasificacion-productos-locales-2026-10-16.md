@@ -22,3 +22,5 @@ La carga inicial clasificó 1.130 fichas: 920 de ferretería, 174 de desarmadur�
 ## Validación
 
 282 pruebas de frontend y 223 de backend aprobadas, más compilación de producción. Cubren el ámbito compartido, independencia de categoría, restricciones por propietario, sesiones incompletas, clasificación inválida, imposibilidad de falsificarla desde una oferta y persistencia SQL durante otras ediciones.
+
+La publicación se verificó con Playwright en el sitio real: el admin cambió una ficha temporal a «Ambos», la desarmaduría Norte no recibió cemento y sí mostró la herramienta compartida con su etiqueta en móvil. La misma ficha se probó como exclusiva de ferretería y de desarmaduría, manteniendo su categoría de herramientas. Se comprobó que un propietario no puede consultar el selector privado de otro local ni falsear la clasificación al agregar una oferta. La ficha temporal se eliminó al terminar y no quedaron maestros activos sin clasificación.
