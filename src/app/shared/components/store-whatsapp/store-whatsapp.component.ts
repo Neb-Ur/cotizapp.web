@@ -7,21 +7,21 @@ import { storeWhatsappUrl } from '../../../core/utils/store-whatsapp.util';
     @if (url; as href) {
       <a class="whatsapp-contact" [href]="href" target="_blank" rel="noopener noreferrer"
         [attr.aria-label]="label" [title]="label" (click)="$event.stopPropagation()">
-        <i class="pi pi-whatsapp" aria-hidden="true"></i><span>WhatsApp</span>
+        <i class="pi pi-whatsapp" aria-hidden="true"></i>
       </a>
     } @else {
       <button class="whatsapp-contact" type="button" disabled
         [attr.aria-label]="storeName + ': WhatsApp no disponible'" title="Este local no tiene un número público de WhatsApp">
-        <i class="pi pi-whatsapp" aria-hidden="true"></i><span>Sin WhatsApp</span>
+        <i class="pi pi-whatsapp" aria-hidden="true"></i>
       </button>
     }
   `,
   styles: [`
     :host { display: inline-flex; vertical-align: middle; }
-    .whatsapp-contact { display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
-      min-height: 44px; box-sizing: border-box; padding: .5rem .7rem; border: 1px solid #147d42;
-      border-radius: 8px; background: #147d42; color: #fff; font: inherit; font-size: .8rem;
-      font-weight: 600; text-decoration: none; cursor: pointer; }
+    .whatsapp-contact { display: inline-flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px; flex: 0 0 44px; box-sizing: border-box; padding: 0; border: 1px solid #147d42;
+      border-radius: 8px; background: #147d42; color: #fff; font: inherit;
+      text-decoration: none; cursor: pointer; }
     .whatsapp-contact i { font-size: 1.2rem; }
     a:hover { background: #106234; border-color: #106234; }
     a:focus-visible { outline: 3px solid #123b55; outline-offset: 3px; }
