@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { Router } from '@angular/router';
@@ -14,7 +15,7 @@ describe('first store login', () => {
   let api: any;
   let router: any;
   beforeEach(async () => {
-    auth = { currentUser: vi.fn().mockReturnValue({ id: 'store-user', email: 'store@example.test' }), emailVerified: signal(false), logout: vi.fn().mockImplementation(async () => { auth.currentUser.mockReturnValue(null); }), refreshCurrentUser: vi.fn().mockResolvedValue({}), refreshEmailVerification: vi.fn().mockResolvedValue(false), sendVerificationEmail: vi.fn().mockResolvedValue(undefined) };
+    auth = { currentUser: vi.fn().mockReturnValue({ id: 'store-user', email: 'store@example.test' }), emailVerified: signal(false), logout: vi.fn().mockImplementation(async () => { auth.currentUser.mockReturnValue(null); }), refreshCurrentUser: vi.fn().mockResolvedValue({id:'store-user'}), refreshEmailVerification: vi.fn().mockResolvedValue(false), sendVerificationEmail: vi.fn().mockResolvedValue(undefined) };
     api = { get: vi.fn().mockResolvedValue(overview), post: vi.fn().mockResolvedValue({ accepted: true }) };
     router = { navigate: vi.fn().mockResolvedValue(true) };
     await TestBed.configureTestingModule({ imports: [StoreOnboardingComponent], providers: [{ provide: AuthService, useValue: auth }, { provide: ApiClientService, useValue: api }, { provide: Router, useValue: router }] }).compileComponents();
@@ -97,8 +98,49 @@ describe('first store login', () => {
     expect(fixture.nativeElement.querySelector('.verification-banner')).toBeNull();
     expect(auth.refreshEmailVerification).not.toHaveBeenCalled();
   });
-  it('logs out if the user leaves the dashboard before accepting', async () => {
+  it('preserves the session when the view is destroyed without an explicit rejection', async () => {
     await render(); fixture.destroy();
-    expect(auth.logout).toHaveBeenCalledOnce();
+    expect(auth.logout).not.toHaveBeenCalled();
+    expect(api.post).not.toHaveBeenCalled();
   });
+  it('retries only session refresh when acceptance saved but the refresh failed', async () => {
+    await render(); checkAll(); auth.refreshCurrentUser.mockRejectedValueOnce(new Error('offline'));
+    const ready = vi.spyOn(component.ready, 'emit');
+    await component.accept(); fixture.detectChanges();
+    expect(component.acceptanceSaved).toBe(true);expect(component.error).toContain('están guardadas');
+    expect(ready).not.toHaveBeenCalled();expect([...fixture.nativeElement.querySelectorAll('input')].every((box:any)=>box.matches(':disabled'))).toBe(true);
+    await component.accept();
+    expect(api.post).toHaveBeenCalledOnce();expect(auth.refreshCurrentUser).toHaveBeenCalledTimes(2);expect(ready).toHaveBeenCalledOnce();
+  });
+  it('reconciles a lost save response with the server instead of reporting a false failure', async () => {
+    await render(); checkAll();api.post.mockRejectedValueOnce(new HttpErrorResponse({status:0}));
+    api.get.mockResolvedValueOnce({...overview,acceptanceRequired:false});
+    await component.accept();
+    expect(component.acceptanceOpen).toBe(false);expect(api.post).toHaveBeenCalledOnce();expect(auth.refreshCurrentUser).toHaveBeenCalledOnce();
+  });
+  it('preserves all choices when returning from a document and a save cannot be confirmed', async () => {
+    await render();checkAll();window.dispatchEvent(new Event('focus'));
+    api.post.mockRejectedValueOnce(new HttpErrorResponse({status:0}));api.get.mockRejectedValueOnce(new Error('offline'));
+    await component.accept();
+    expect(component.acceptanceSaved).toBe(false);expect(component.acceptanceReady).toBe(true);expect(component.error).toContain('casillas se conservaron');
+    expect(auth.logout).not.toHaveBeenCalled();expect(component.acceptanceOpen).toBe(true);
+    await component.accept();expect(component.acceptanceOpen).toBe(false);
+  });
+  it('reloads updated documents and requires fresh choices after a version conflict', async () => {
+    await render();checkAll();api.post.mockRejectedValueOnce(new HttpErrorResponse({status:409}));
+    api.get.mockResolvedValueOnce({...overview,termsVersion:'2.0'});
+    await component.accept();expect(component.overview.termsVersion).toBe('2.0');expect(Object.values(component.checks).every(value=>value===false)).toBe(true);
+    expect(component.error).toContain('documentos cambiaron');expect(auth.refreshCurrentUser).not.toHaveBeenCalled();
+  });
+  it('does not enable the dashboard if the session ended after the save', async () => {
+    await render();checkAll();auth.refreshCurrentUser.mockResolvedValueOnce(null);const ready=vi.spyOn(component.ready,'emit');
+    await component.accept();expect(component.acceptanceSaved).toBe(true);expect(component.error).toContain('La sesión terminó');expect(ready).not.toHaveBeenCalled();
+  });
+
+  it('does not reuse another account declarations after a session changes in another tab', async () => {
+    await render();checkAll();auth.refreshCurrentUser.mockRejectedValueOnce(new Error('offline'));
+    await component.accept();auth.currentUser.mockReturnValue({id:'other-user'});
+    await component.accept();expect(api.post).toHaveBeenCalledOnce();expect(component.error).toContain('cuenta de la sesión cambió');expect(component.acceptanceOpen).toBe(true);
+  });
+
 });

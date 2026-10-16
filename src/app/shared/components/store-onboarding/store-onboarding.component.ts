@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, NgZone, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -28,6 +29,7 @@ export class StoreOnboardingComponent implements OnInit, OnDestroy {
   protected acceptanceOpen = true;
   protected loading = true;
   protected saving = false;
+  protected acceptanceSaved = false;
   protected error = '';
   protected verificationOpen = false;
   protected sentOpen = false;
@@ -39,6 +41,7 @@ export class StoreOnboardingComponent implements OnInit, OnDestroy {
   };
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private checkingEmail = false;
+  private acceptanceUserId: string | null = null;
   private destroyed = false;
   private readonly onFocus = () => { void this.checkVerification(); };
 
@@ -71,22 +74,74 @@ export class StoreOnboardingComponent implements OnInit, OnDestroy {
   }
 
   protected async accept(): Promise<void> {
-    if (!this.acceptanceReady || this.saving || !this.overview) return;
+    if (this.saving || !this.overview || (!this.acceptanceSaved && !this.acceptanceReady)) return;
+    const userId = this.auth.currentUser()?.id;
+    if (!userId) { this.error = 'Tu sesión terminó. Vuelve a iniciar sesión para continuar.'; return; }
+    if (this.acceptanceUserId && this.acceptanceUserId !== userId) {
+      this.error = 'La cuenta de la sesión cambió. Recarga la página para revisar las condiciones de esa cuenta.';
+      return;
+    }
+    this.acceptanceUserId = userId;
     this.saving = true;
     this.error = '';
     try {
-      await this.api.post('/store-onboarding/accept', {
-        ...this.checks,
-        termsVersion: this.overview.termsVersion,
-        privacyVersion: this.overview.privacyVersion,
-        agreementVersion: this.overview.agreementVersion
-      }, true);
+      if (!this.acceptanceSaved) {
+        try {
+          await this.api.post('/store-onboarding/accept', {
+            ...this.checks,
+            termsVersion: this.overview.termsVersion,
+            privacyVersion: this.overview.privacyVersion,
+            agreementVersion: this.overview.agreementVersion
+          }, true);
+          this.acceptanceSaved = true;
+        } catch (error) {
+          if (this.destroyed) return;
+          if (error instanceof HttpErrorResponse && error.status === 409) {
+            Object.keys(this.checks).forEach(key => this.checks[key as keyof typeof this.checks] = false);
+            await this.load();
+            if (this.acceptanceOpen) this.error = 'Los documentos cambiaron. Revisa las versiones actuales y vuelve a marcar las casillas.';
+            return;
+          }
+          // A lost response does not prove the transaction failed. Consult the
+          // server before asking the owner to submit the same declarations again.
+          try {
+            const current = await this.api.get<OnboardingOverview>('/store-onboarding/current', true);
+            if (this.destroyed) return;
+            if (current.acceptanceRequired) throw error;
+            this.overview = current;
+            this.acceptanceSaved = true;
+          } catch {
+            this.error = this.acceptanceError(error);
+            return;
+          }
+        }
+      }
       if (this.destroyed) return;
-      await this.auth.refreshCurrentUser();
-      if (!this.destroyed) this.finishAcceptance();
-    } catch {
-      this.error = 'No pudimos confirmar la aceptación. Reintenta; si los documentos cambiaron, recarga la página.';
+      try {
+        const user = await this.auth.refreshCurrentUser();
+        if (this.destroyed) return;
+        if (!user) {
+          this.error = 'Tus aceptaciones están guardadas. La sesión terminó; vuelve a iniciar sesión para continuar.';
+          return;
+        }
+        if (user.id !== this.acceptanceUserId) {
+          this.error = 'La cuenta de la sesión cambió. Recarga la página para continuar.';
+          return;
+        }
+        this.finishAcceptance();
+      } catch {
+        this.error = 'Tus aceptaciones están guardadas, pero no pudimos actualizar tu sesión. Pulsa «Continuar» para reintentar.';
+      }
     } finally { this.saving = false; }
+  }
+
+  private acceptanceError(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      if (error.status === 401) return 'Tu sesión terminó. Vuelve a iniciar sesión y continúa con la aceptación.';
+      if ([400, 403, 423].includes(error.status)) return error.error?.error?.message || 'No fue posible confirmar las condiciones. Revisa tu cuenta o contacta a Trovio.';
+    }
+    if (!this.auth.currentUser()) return 'Tu sesión terminó. Vuelve a iniciar sesión para continuar.';
+    return 'No pudimos comprobar si la aceptación se guardó. Revisa tu conexión y reintenta; tus casillas se conservaron.';
   }
 
   protected async reject(): Promise<void> {
@@ -151,6 +206,7 @@ export class StoreOnboardingComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroyed = true;
     this.stopPolling();
-    if (this.acceptanceOpen && this.auth.currentUser()) void this.auth.logout();
+    // Reading documents or leaving a view is not an explicit rejection.
+    // The server continues to block catalog operations until acceptance.
   }
 }

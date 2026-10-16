@@ -18,7 +18,7 @@ it('keeps the notice collapsed until requested and preserves the full warning an
   expect(fixture.nativeElement.querySelector('aside')).toBeNull();
   trigger.click(); fixture.detectChanges();
   expect(trigger.getAttribute('aria-expanded')).toBe('true');
-  expect(fixture.nativeElement.querySelector('aside').textContent).toContain('No realizan ventas');
+  expect(fixture.nativeElement.querySelector('aside').textContent).toMatch(/no realizan ventas/i);
   expect(fixture.nativeElement.querySelector('a').getAttribute('href')).toBe('/contacto');
   fixture.nativeElement.querySelector('.pilot-close').click(); fixture.detectChanges();
   expect(fixture.nativeElement.querySelector('aside')).toBeNull();

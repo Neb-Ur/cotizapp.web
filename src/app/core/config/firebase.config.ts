@@ -1,5 +1,5 @@
 import { getApp, getApps, initializeApp, type FirebaseApp, type FirebaseOptions } from 'firebase/app';
-import { getAuth, type Auth } from 'firebase/auth';
+import { getAuth, initializeAuth, browserLocalPersistence, browserSessionPersistence, indexedDBLocalPersistence, browserPopupRedirectResolver, type Auth } from 'firebase/auth';
 
 const DEFAULT_FIREBASE_CONFIG: FirebaseOptions = {
   apiKey: 'AIzaSyAA4Rf0vlYVR-8F7KVnMO00n2xxrUzGo7k',
@@ -17,6 +17,7 @@ declare global {
 }
 
 let appPromise: Promise<FirebaseApp> | null = null;
+let authPromise: Promise<Auth> | null = null;
 
 async function resolveFirebaseConfig(): Promise<FirebaseOptions> {
   if (typeof window === 'undefined') {
@@ -61,5 +62,16 @@ export async function getFirebaseApp(): Promise<FirebaseApp> {
 }
 
 export async function getFirebaseAuthInstance(): Promise<Auth> {
-  return getAuth(await getFirebaseApp());
+  if (!authPromise) authPromise = getFirebaseApp().then(app => {
+    if (typeof window === 'undefined') return getAuth(app);
+    // Match the localStorage persistence selected by login/register. Firebase's
+    // default IndexedDB-first order migrates and removes that key in a new tab,
+    // which signs out tabs still listening to localStorage. Retain IndexedDB as
+    // a legacy fallback while keeping every new tab on the same preference.
+    return initializeAuth(app, {
+      persistence: [browserLocalPersistence, browserSessionPersistence, indexedDBLocalPersistence],
+      popupRedirectResolver: browserPopupRedirectResolver
+    });
+  });
+  return authPromise;
 }

@@ -60,3 +60,7 @@ Implementado y publicado el [flujo de condición y fotos propias](fotos-publicac
 ## Locales reales y de prueba — 16 de octubre
 
 El admin puede seleccionar «Local de prueba» al crear y editar locales; el listado identifica esta clasificación. `PILOT_STORES_ENABLED=true` incluye los locales de prueba además de los reales. Con `false` se retiran del catálogo público los locales de prueba y sus ofertas/fotos, además de los productos maestros y ofertas semilla marcados como prueba. El administrador conserva acceso a todos los registros. Véase el [comportamiento y validación del piloto](../piloto-ferreterias.md#clasificación-desde-administración--16-de-octubre-de-2026).
+
+## Primer ingreso y lectura de documentos en otra pestaña — 16 de octubre
+
+Se corrigió la pérdida de sesión al abrir documentos desde el modal y se separó el guardado de aceptaciones de la actualización posterior de sesión. El formulario conserva las casillas cuando no puede confirmar el resultado y permite continuar sin reenviar declaraciones que ya se guardaron. Véase la [reproducción y validación](correccion-primer-ingreso-locales-2026-10-16.md).
