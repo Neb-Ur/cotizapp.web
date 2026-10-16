@@ -7,6 +7,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Encuentra productos, compara precios y disponibilidad entre locales y crea tu cotización.">
   <meta name="theme-color" content="#0f2d4a">
+  <style id="startup-loading-styles">
+    .startup-loading{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;box-sizing:border-box;padding:32px 24px;background:#f3f5f7;color:#0f2d4a;font-family:Manrope,system-ui,sans-serif;text-align:center}
+    .startup-loading__content{display:flex;flex-direction:column;align-items:center;max-width:360px}
+    .startup-loading img{display:block;width:64px;height:64px}
+    .startup-loading__brand{margin-top:12px;font-size:32px;font-weight:800;letter-spacing:-1.5px}
+    .startup-loading h1{margin:28px 0 8px;font-size:20px;font-weight:700;line-height:1.35}
+    .startup-loading p{margin:0;color:#657386;font-size:14px;line-height:1.6}
+    .startup-loading__progress{width:144px;height:4px;margin-top:28px;overflow:hidden;border-radius:8px;background:#e0e6ed}
+    .startup-loading__progress span{display:block;width:45%;height:100%;border-radius:inherit;background:#ff7900;animation:startup-progress 1.4s ease-in-out infinite}
+    .startup-loading button{margin-top:24px;padding:12px 20px;border:0;border-radius:10px;background:#0f2d4a;color:#fff;font:inherit;font-weight:700;cursor:pointer}
+    .startup-loading button:focus-visible{outline:3px solid #ff7900;outline-offset:4px}
+    @keyframes startup-progress{0%{transform:translateX(-100%)}100%{transform:translateX(325%)}}
+    @media(prefers-reduced-motion:reduce){.startup-loading__progress span{animation:none;width:100%}}
+  </style>
   <meta property="og:site_name" content="Trovio">
   <meta property="og:locale" content="es_CL">
   <meta property="og:type" content="website">
@@ -28,6 +42,16 @@
   </script>
 </head>
 <body>
-  <app-root></app-root>
+  <app-root>
+    <div class="startup-loading" role="status" aria-live="polite">
+      <div class="startup-loading__content">
+        <img src="assets/trovio-mark.svg" width="64" height="64" alt="" />
+        <span class="startup-loading__brand">trovio</span>
+        <h1>Cargando Trovio</h1>
+        <p>En un momento podrás continuar.</p>
+        <div class="startup-loading__progress" aria-hidden="true"><span></span></div>
+      </div>
+    </div>
+  </app-root>
 </body>
 </html>

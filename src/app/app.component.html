@@ -1,10 +1,29 @@
-<app-pilot-banner></app-pilot-banner>
-<div class="app-content">
+@if (pageLoading()) {
+  <div class="startup-loading" role="status" aria-live="polite">
+    <div class="startup-loading__content">
+      <img src="assets/trovio-mark.svg" width="64" height="64" alt="" />
+      <span class="startup-loading__brand">trovio</span>
+      @if (pageLoadFailed()) {
+        <h1>No pudimos cargar la página</h1>
+        <p>Revisa tu conexión y vuelve a intentarlo.</p>
+        <button type="button" (click)="retryPageLoad()">Volver a intentar</button>
+      } @else {
+        <h1>Cargando Trovio</h1>
+        <p>En un momento podrás continuar.</p>
+        <div class="startup-loading__progress" aria-hidden="true"><span></span></div>
+      }
+    </div>
+  </div>
+}
+<div class="app-content" [hidden]="pageLoading()" [attr.aria-busy]="pageLoading()">
   <router-outlet />
 </div>
-<app-site-footer></app-site-footer>
-<app-help-widget></app-help-widget>
-<app-cookie-consent></app-cookie-consent>
+@if (!pageLoading()) {
+  <app-pilot-banner></app-pilot-banner>
+  <app-site-footer></app-site-footer>
+  <app-help-widget></app-help-widget>
+  <app-cookie-consent></app-cookie-consent>
+}
 
 @if (api.pending() > 0) {
   <div class="write-progress" role="status" aria-live="polite"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Procesando solicitud…</div>

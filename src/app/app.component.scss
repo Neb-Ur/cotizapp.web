@@ -7,3 +7,5 @@
 .app-content {
   flex: 1 1 auto;
 }
+
+.app-content[hidden] { display: none; }

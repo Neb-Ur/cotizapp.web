@@ -23,3 +23,11 @@ CONFIRM_PROJECT_ID=cotizapp-d71c8 node functions/scripts/seed-junkyards-whatsapp
 ```
 
 La escritura se realiza en una transacción serializable, con respaldo privado previo, validación de identidad y rechazo de cambios sobre locales reales o teléfonos públicos distintos. La repetición conserva precios/stock editados y no duplica documentos. Invalida la caché de ofertas; no modifica el esquema SQL.
+
+## Acceso de las cuentas de prueba — 15 de octubre de 2026
+
+Se habilitaron las ocho identidades reservadas de desarmadurías en Firebase Authentication, conservando los UID y sus vínculos existentes con Cloud SQL. Se verificó inicio de sesión con contraseña, sesión de la API, local asociado y disponibilidad del onboarding para cada cuenta.
+
+La herramienta `functions/scripts/enable-junkyard-auth.mjs --firebase-cli-auth` comprueba las ocho identidades de las tres semillas sin escribir. Para habilitar las cuentas se usa `--apply`, `CONFIRM_PROJECT_ID=cotizapp-d71c8` y una contraseña de prueba mediante `PILOT_AUTH_PASSWORD`; `--reset-password` permite restablecerla de forma explícita. La herramienta valida todas las identidades antes de modificar Authentication y no modifica catálogos ni registra aceptaciones legales. Las contraseñas se entregan de forma privada y no se guardan en el repositorio.
+
+Al entrar por primera vez, el usuario debe revisar y aceptar las condiciones del panel. Las direcciones `example.invalid` son identidades de prueba, no buzones de correo.
