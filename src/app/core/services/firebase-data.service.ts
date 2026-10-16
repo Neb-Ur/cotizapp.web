@@ -1,4 +1,5 @@
 import { normalizeOfferCondition } from '../utils/offer-condition.util';
+import { normalizeBusinessType, categoryMatchesBusinessType, type BusinessType } from '../utils/business-type.util';
 import { StoreDailyAnalytics } from '../models/app.models';
 import { DataModeService } from './data-mode.service';
 import { findExactMasterMatch } from '../utils/catalog-match.util';
@@ -137,6 +138,10 @@ export interface TaxonomyDefinitionApi {
   providedIn: 'root'
 })
 export class FirebaseDataService {
+  private storeCatalogBusinessType(): BusinessType | undefined {
+    const user = this.authService.currentUser();
+    return user?.role === 'ferreteria' ? normalizeBusinessType(user.businessType) : undefined;
+  }
   private readonly observedLoads = new WeakSet<Promise<void>>();
 
   private observeLoad(promise: Promise<void>): void {
@@ -501,9 +506,8 @@ export class FirebaseDataService {
     total: number;
     totalPages: number;
   }> {
-    await this.ensureSearchRowsLoaded();
-
     const raw = await this.apiClient.get<PaginatedMasterCatalogApi>('/productos-maestro/paginado', false, {
+      tipoNegocio: this.storeCatalogBusinessType(),
       query: payload.query?.trim() || undefined,
       categoriaId: payload.categoryId || undefined,
       subcategoriaId: payload.subcategoryId || undefined,
@@ -763,7 +767,7 @@ export class FirebaseDataService {
     }
 
     const masterId = payload.masterProductId || payload.id;
-    if (!masterId || !this.masterCatalog.some((item) => (item.masterProductId || item.id) === masterId)) {
+    if (!masterId) {
       throw new Error('Solo puedes subir productos que existan en el catalogo maestro.');
     }
 
@@ -806,7 +810,6 @@ export class FirebaseDataService {
     isPublished?: boolean;
   }): Promise<{ catalog: CatalogProduct[]; wasUpdate: boolean }> {
     await this.ensureCatalogLoaded(ownerId, true);
-    await this.ensureMasterCatalogLoaded();
     const catalog = this.getCatalog(ownerId);
     const current = catalog.find((item) => (item.masterProductId || item.id) === masterProductId);
 
@@ -822,10 +825,10 @@ export class FirebaseDataService {
       return { catalog: updated, wasUpdate: true };
     }
 
-    const master = this.masterCatalog.find((item) => (item.masterProductId || item.id) === masterProductId);
-    if (!master) {
-      throw new Error('No se encontro el producto maestro seleccionado.');
-    }
+    const rawMaster = await this.apiClient.get<ProductoMaestroApi>(`/productos-maestro/${encodeURIComponent(masterProductId)}`);
+    const master = this.mapMasterProduct(rawMaster, 0);
+    const businessType = this.storeCatalogBusinessType();
+    if (businessType && !categoryMatchesBusinessType(master.categoryId, businessType)) throw new Error('Este producto no corresponde al tipo de negocio del local.');
 
     const sku = relation.sku?.trim() || master.sku?.trim() || `SKU-${masterProductId.slice(0, 8).toUpperCase()}`;
     try {
@@ -901,10 +904,11 @@ export class FirebaseDataService {
     price: number;
     sku?: string;
     isPublished?: boolean;
+    possibleMatch?: boolean;
   }): Promise<{ id: string; type: CatalogValidationType }> {
     const ferreteriaId = await this.resolveFerreteriaId(ownerId);
 
-    const maybeMatch = this.masterCatalog.some((item) => {
+    const maybeMatch = draft.possibleMatch ?? this.masterCatalog.some((item) => {
       const barcodeMatches = !!draft.barcode && !!item.barcode && this.normalizeBarcode(item.barcode) === this.normalizeBarcode(draft.barcode);
       const nameMatches = item.name.toLowerCase().includes(draft.name.trim().toLowerCase());
       return barcodeMatches || nameMatches;
@@ -940,16 +944,18 @@ export class FirebaseDataService {
       mode?: 'initial' | 'update';
     }
   ): Promise<{ catalog: CatalogProduct[]; report: CatalogImportReport }> {
-    await Promise.all([
+    const mode = options.mode || 'initial';
+    const businessType = this.storeCatalogBusinessType();
+    const [, , rawMasters] = await Promise.all([
       this.ensureTaxonomyLoaded(),
-      this.ensureMasterCatalogLoaded(true),
-      this.ensureCatalogLoaded(ownerId, true)
+      this.ensureCatalogLoaded(ownerId, true),
+      mode === 'update' ? Promise.resolve([] as ProductoMaestroApi[]) : this.apiClient.get<ProductoMaestroApi[]>('/productos-maestro', false, { tipoNegocio: businessType })
     ]);
+    const importMasters = rawMasters.filter(product => !businessType || categoryMatchesBusinessType(product.categoriaId, businessType)).map(product => this.mapMasterProduct(product, 0));
 
     const ferreteriaId = await this.resolveFerreteriaId(ownerId);
     const parsedRows = await this.parseCatalogCsv(csvContent);
     const reportRows: CatalogImportRowResult[] = [];
-    const mode = options.mode || 'initial';
 
     const duplicateLineNumbers = new Set<number>();
     if (mode === 'update') {
@@ -1126,8 +1132,8 @@ export class FirebaseDataService {
           continue;
         }
 
-        const suggestions = this.suggestMatches(parsed.name);
-        const firstMatch = findExactMasterMatch(this.masterCatalog, parsed.name, parsed.barcode);
+        const suggestions = this.suggestMatches(parsed.name, importMasters);
+        const firstMatch = findExactMasterMatch(importMasters, parsed.name, parsed.barcode);
         if (!firstMatch) {
           const fallbackBarcode = parsed.barcode || '';
           const created = await this.requestCatalogProductCreation(ownerId, ownerLabel, {
@@ -1136,7 +1142,8 @@ export class FirebaseDataService {
             quantity: parsed.stock,
             price: parsed.price,
             sku: parsed.sku,
-            isPublished: options.isPublished
+            isPublished: options.isPublished,
+            possibleMatch: suggestions.length > 0
           });
 
           reportRows.push({
@@ -2425,13 +2432,13 @@ export class FirebaseDataService {
     return 'pendiente';
   }
 
-  private suggestMatches(name: string): Array<{ masterProductId: string; name: string; brand: string; familyName: string; score: number }> {
+  private suggestMatches(name: string, catalog = this.masterCatalog): Array<{ masterProductId: string; name: string; brand: string; familyName: string; score: number }> {
     const normalized = name.trim().toLowerCase();
     if (!normalized) {
       return [];
     }
 
-    return this.masterCatalog
+    return catalog
       .map((item) => {
         let score = 0;
         if (item.name.toLowerCase() === normalized) score += 90;

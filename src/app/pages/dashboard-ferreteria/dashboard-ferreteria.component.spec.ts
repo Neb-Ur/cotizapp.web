@@ -47,3 +47,13 @@ it('rejects a negative measurement quantity instead of silently clearing it on s
  component.catalogEditDraft.measurementUnit='l';component.catalogEditDraft.measurementQuantity=-1;
  await component.saveCatalogEdit();expect(api.upsertCatalog).not.toHaveBeenCalled();expect(component.catalogEditError).toBeTruthy();
 });
+
+it('limits category choices to the business type and keeps tools in hardware stores',()=>{
+ const {component,api}=fixture();api.getCategoryOptions=()=>[{id:'materials'},{id:'tools'},{id:'cat-repuestos-automotrices'}];
+ component.authService.currentUser=()=>({id:'owner',businessType:'desarmaduria'});
+ expect(component.categoryOptions.map((c:any)=>c.id)).toEqual(['cat-repuestos-automotrices']);
+ component.authService.currentUser=()=>({id:'owner',businessType:'repuestos'});
+ expect(component.categoryOptions.map((c:any)=>c.id)).toEqual(['cat-repuestos-automotrices']);
+ component.authService.currentUser=()=>({id:'owner',businessType:'ferreteria'});
+ expect(component.categoryOptions.map((c:any)=>c.id)).toEqual(['materials','tools']);
+});

@@ -1,5 +1,5 @@
 import { OfferVehicleApplicationsComponent } from '../../shared/components/offer-vehicle-applications/offer-vehicle-applications.component';
-import { BUSINESS_TYPES, businessTypeLabel, normalizeBusinessType, type BusinessType } from '../../core/utils/business-type.util';
+import { BUSINESS_TYPES, businessTypeLabel, normalizeBusinessType, categoryMatchesBusinessType, type BusinessType } from '../../core/utils/business-type.util';
 import { OFFER_CONDITIONS, normalizeOfferCondition, offerConditionLabel, type OfferCondition } from '../../core/utils/offer-condition.util';
 import { StoreQuotationVerifierComponent } from '../../shared/components/store-quotation-verifier/store-quotation-verifier.component';
 import { StoreDailyAnalytics } from '../../core/models/app.models';
@@ -248,7 +248,12 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   }
 
   protected get categoryOptions(): TaxonomyOption[] {
-    return this.apiService.getCategoryOptions();
+    return this.apiService.getCategoryOptions().filter(option => categoryMatchesBusinessType(option.id, this.user?.businessType));
+  }
+  protected get catalogScopeDescription(): string {
+    return normalizeBusinessType(this.user?.businessType) === 'ferreteria'
+      ? 'Mostramos materiales, herramientas y productos de ferretería.'
+      : 'Mostramos únicamente repuestos automotrices para tu local.';
   }
 
   protected get subcategoryOptions(): TaxonomyOption[] {
@@ -714,6 +719,13 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
       this.profileSaving = true;
       try {
         await this.authService.updateProfile(this.profileDraft);
+        this.uploadCategoryId = '';
+        this.uploadSubcategoryId = '';
+        this.uploadFamilyId = '';
+        this.masterSelectionDrafts = {};
+        this.masterRows = [];
+        this.masterPage = 1;
+        this.masterSearchGeneration++;
         this.profileSaved = true;
         setTimeout(() => this.profileSaved = false, 1800);
       } catch (error) {

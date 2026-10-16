@@ -166,6 +166,7 @@
       </div>
 
       <section *ngIf="uploadMode === 'buscar'" class="upload-search-card">
+        <p class="helper-text">{{ catalogScopeDescription }}</p>
         <div class="catalog-filters-grid">
           <label>Categoría
             <select [ngModel]="uploadCategoryId" (ngModelChange)="onUploadCategoryChange($event)">
@@ -193,6 +194,7 @@
         <p *ngIf="relationError" class="error-text">{{ relationError }}</p>
         <p *ngIf="relationNotice" class="saved">{{ relationNotice }}</p>
         <p *ngIf="masterLoading">Cargando catálogo maestro...</p>
+        <p *ngIf="!masterLoading && !relationError && masterRows.length === 0">No hay productos disponibles con estos filtros para tu tipo de local.</p>
 
         <div class="table-wrap" *ngIf="!masterLoading && masterRows.length > 0">
           <table>

@@ -38,3 +38,16 @@ La suite existente cubre además importación de Excel/CSV, resolución administ
 - 265 pruebas de frontend aprobadas, incluido el recorrido completo del formulario y tres regresiones reproducidas antes de aplicar las correcciones.
 - 205 pruebas de backend aprobadas, incluida la nueva prueba de rutas CRUD con PostgreSQL aislado para ferretería y desarmaduría.
 - Compilación de producción aprobada. Persisten las advertencias previas de presupuestos CSS y del entorno de pruebas.
+
+## Separación por tipo de local
+
+Se corrigió la pantalla «Agregar productos», que consultaba el catálogo completo sin considerar el tipo de negocio:
+
+- Desarmadurías y tiendas de repuestos: categoría de repuestos automotrices.
+- Ferreterías: categorías de materiales, herramientas y demás productos de ferretería; se excluyen los repuestos automotrices.
+- La separación se aplica en el servidor antes de búsqueda, filtros, exclusiones y paginación. Las categorías del formulario respetan el mismo criterio.
+- La apertura de esta pantalla solicita una página de maestros, sin descargar todas las ofertas públicas ni todo el catálogo maestro. Al agregar, consulta únicamente la ficha seleccionada.
+- La API valida el tipo real del local al crear una oferta, aunque el cliente envíe otra clasificación. La aprobación de solicitudes también rechaza productos de otro rubro.
+- La carga inicial por archivo busca coincidencias dentro del rubro; la actualización masiva utiliza únicamente el catálogo propio, sin descargar todos los maestros.
+
+Se conservan los productos, ofertas e historial existentes; esta corrección no elimina registros ni cambia los tipos de negocio.

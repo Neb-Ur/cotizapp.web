@@ -1,6 +1,7 @@
 import { db } from '../lib/firebase.js';
 import { COLLECTIONS } from '../lib/collections.js';
 import { normalizeText, numberValue, nowIso } from '../lib/values.js';
+import { categoryMatchesBusinessType } from '../domain/business-type.js';
 
 export class ProductRequestError extends Error {
   constructor(readonly code: string, message: string, readonly status: number) { super(message); }
@@ -28,6 +29,7 @@ export async function resolveProductRequest(id: string, action: 'aprobar' | 'rec
       ]);
       if (!master.exists || master.data()?.['estado'] === 'inactivo') throw new ProductRequestError('PRODUCTO_MAESTRO_NOT_FOUND', 'El producto maestro no está disponible.', 400);
       if (!store.exists) throw new ProductRequestError('FERRETERIA_NOT_FOUND', 'La ferretería ya no existe.', 404);
+      if (!categoryMatchesBusinessType(master.data()?.['categoriaId'], store.data()?.['tipoNegocio'])) throw new ProductRequestError('STORE_PRODUCT_BUSINESS_TYPE_MISMATCH', 'El producto no corresponde al tipo de negocio del local.', 400);
       if (offers.empty) {
         const offerRef = db.collection(COLLECTIONS.storeProducts).doc();
         const offer = {

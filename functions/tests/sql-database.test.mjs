@@ -426,11 +426,13 @@ test('SQL master variants persist compatibility and unique identity, inherit pri
 
 test('store catalog CRUD persists junkyard parts and hardware offers through SQL, with ownership and duplicate protection', async t => {
  const {db}=await fixture(t);await catalog(db);
- await db.collection('familias').doc('radiators').set({nombre:'Radiadores',subcategoriaId:'sub',permiteVehiculos:true});
+ await db.collection('categorias').doc('cat-repuestos-automotrices').set({nombre:'Repuestos automotrices'});
+ await db.collection('subcategorias').doc('auto-motor').set({nombre:'Motor',categoriaId:'cat-repuestos-automotrices'});
+ await db.collection('familias').doc('radiators').set({nombre:'Radiadores',subcategoriaId:'auto-motor',permiteVehiculos:true});
  await db.collection('marcas').doc('mahindra').set({nombre:'Mahindra',nombreNormalizado:'mahindra',usos:['vehiculo']});
  await db.collection('modelosVehiculo').doc('kuv').set({nombre:'KUV100',nombreNormalizado:'kuv100',marcaId:'mahindra',activo:true});
  const compatibility=[{marcaId:'mahindra',modeloId:'kuv',marcaNombre:'Mahindra',modeloNombre:'KUV100',anioDesde:2016,anioHasta:2019}];
- await db.collection('productosMaestro').doc('radiator').set({nombre:'Radiador Mahindra KUV100 2016–2019',nombrePieza:'Radiador',familiaId:'radiators',categoriaId:'cat',subcategoriaId:'sub',compatibilidadVehiculos:compatibility,estado:'activo',imagenPrincipalUrl:'/radiator.webp'});
+ await db.collection('productosMaestro').doc('radiator').set({nombre:'Radiador Mahindra KUV100 2016–2019',nombrePieza:'Radiador',familiaId:'radiators',categoriaId:'cat-repuestos-automotrices',subcategoriaId:'auto-motor',compatibilidadVehiculos:compatibility,estado:'activo',imagenPrincipalUrl:'/radiator.webp'});
  const firebase=await import('../lib/lib/firebase.js');
  for(const method of ['collection','runTransaction','batch'])t.mock.method(firebase.db,method,db[method].bind(db));
  const {storeCatalogRouter}=await import('../lib/routes/store-catalog.routes.js');

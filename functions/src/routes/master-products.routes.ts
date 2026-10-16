@@ -10,6 +10,7 @@ import { nowIso, normalizeText, numberValue } from '../lib/values.js';
 import { rows, row, createRow, patchRow, deleteRowsByIds } from '../repositories/firestore.repository.js';
 import { resolveProductBrand } from '../lib/brands.js';
 import { brandUses } from '../domain/brand-use.js';
+import { categoryMatchesBusinessType, isBusinessType } from '../domain/business-type.js';
 export const masterProductsRouter = Router();
 
 const validImageSources = ['external_url', 'ai_generated', 'manufacturer_authorized', 'store_authorized', 'licensed_stock', 'original', 'other'];
@@ -99,11 +100,14 @@ masterProductsRouter.get('/marcas', async (_req, res) => {
 });
 
 masterProductsRouter.get('/productos-maestro', async (req, res) => {
+  const businessType = req.query['tipoNegocio'];
+  if (businessType !== undefined && !isBusinessType(businessType)) return fail(res, 'BUSINESS_TYPE_INVALID', 'Selecciona un tipo de local válido.', 400);
   const q = normalizeText(req.query['query']).toLowerCase();
   const categoryId = normalizeText(req.query['categoriaId']);
   const subcategoryId = normalizeText(req.query['subcategoriaId']);
   const familyId = normalizeText(req.query['familiaId']);
   const data = (await rows(COLLECTIONS.masterProducts))
+    .filter(item => !businessType || categoryMatchesBusinessType(item.categoriaId, businessType))
     .filter((item) => item.estado !== 'inactivo')
     .filter((item) => !q || normalizeText(item.nombre).toLowerCase().includes(q) || normalizeText(item.marca).toLowerCase().includes(q) || normalizeText(item.codigoBarras).toLowerCase().includes(q))
     .filter((item) => !categoryId || item.categoriaId === categoryId)
@@ -114,6 +118,8 @@ masterProductsRouter.get('/productos-maestro', async (req, res) => {
 });
 
 const listMasterPage = async (req: Request, res: Response) => {
+  const businessType = req.query['tipoNegocio'];
+  if (businessType !== undefined && !isBusinessType(businessType)) return fail(res, 'BUSINESS_TYPE_INVALID', 'Selecciona un tipo de local válido.', 400);
   const q = normalizeText(req.query['query']).toLowerCase();
   const categoryId = normalizeText(req.query['categoriaId']);
   const subcategoryId = normalizeText(req.query['subcategoriaId']);
@@ -122,6 +128,7 @@ const listMasterPage = async (req: Request, res: Response) => {
   const page = Math.max(1, Math.floor(numberValue(req.query['page'], 1)));
   const size = Math.min(100, Math.max(1, Math.floor(numberValue(req.query['size'], 25))));
   const all = (await rows(COLLECTIONS.masterProducts))
+    .filter(item => !businessType || categoryMatchesBusinessType(item.categoriaId, businessType))
     .filter((item) => req.authRole === 'admin' || item.estado !== 'inactivo')
     .filter((item) => !excluded.has(item.id))
     .filter((item) => !q || normalizeText(item.nombre).toLowerCase().includes(q) || normalizeText(item.marca).toLowerCase().includes(q) || normalizeText(item.codigoBarras).toLowerCase().includes(q))

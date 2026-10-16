@@ -9,6 +9,7 @@ import { nowIso, normalizeText, numberValue } from '../lib/values.js';
 import { rows, row, createRow, patchRow } from '../repositories/firestore.repository.js';
 import { canAccessOwner, requireStoreWriteAccess } from '../lib/ownership.js';
 import { requireCurrentStoreAgreement } from '../services/store-agreement.service.js';
+import { categoryMatchesBusinessType } from '../domain/business-type.js';
 export const storeCatalogRouter = Router();
 
 const measurementUnits = ['kg', 'l', 'm', 'm2', 'm3', 'unidad'];
@@ -64,6 +65,8 @@ storeCatalogRouter.post('/ferreterias/:storeId/catalogo', requireAuth, requireRo
   const masterId = normalizeText(req.body?.productoMaestroId);
   const product = await row(COLLECTIONS.masterProducts, masterId);
   if (!product || product.estado === 'inactivo') return fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro indicado.', 404);
+  const store = await row(COLLECTIONS.stores, req.params.storeId);
+  if (!categoryMatchesBusinessType(product.categoriaId, store?.tipoNegocio)) return fail(res, 'STORE_PRODUCT_BUSINESS_TYPE_MISMATCH', 'Este producto no corresponde al tipo de negocio del local.', 400);
   const offerPayload = {
     condicion: normalizeOfferCondition(req.body?.condicion),
     ferreteriaId: req.params.storeId,

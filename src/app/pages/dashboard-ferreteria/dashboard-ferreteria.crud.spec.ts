@@ -13,7 +13,7 @@ describe('junkyard catalog user flow',()=>{
  let fixture:ComponentFixture<DashboardFerreteriaComponent>;
  let offers:any[];
  let api:any;
- const master={id:'radiator',nombre:'Radiador Mahindra KUV100 2016–2019',categoriaId:'auto',subcategoriaId:'motor',familiaId:'radiators',marca:'Mahindra',estado:'activo',compatibilidadVehiculos:[{marcaId:'mahindra',modeloId:'kuv',marcaNombre:'Mahindra',modeloNombre:'KUV100',anioDesde:2016,anioHasta:2019}]};
+ const master={id:'radiator',nombre:'Radiador Mahindra KUV100 2016–2019',categoriaId:'cat-repuestos-automotrices',subcategoriaId:'motor',familiaId:'radiators',marca:'Mahindra',estado:'activo',compatibilidadVehiculos:[{marcaId:'mahindra',modeloId:'kuv',marcaNombre:'Mahindra',modeloNombre:'KUV100',anioDesde:2016,anioHasta:2019}]};
  const root=()=>fixture.nativeElement as HTMLElement;
  const settle=async()=>{fixture.detectChanges();await fixture.whenStable();fixture.detectChanges();};
  const button=(text:string)=>{const match=Array.from(root().querySelectorAll<HTMLButtonElement>('button')).find(b=>b.textContent?.trim()===text);if(!match)throw Error('Missing button: '+text);return match;};
@@ -29,10 +29,11 @@ describe('junkyard catalog user flow',()=>{
   api={get:vi.fn(async(path:string)=>{
    if(path==='/store-onboarding/current')return {acceptanceRequired:false,canAccept:true};
    if(path==='/ferreterias/junkyard/catalogo')return offers.map(o=>({...o,productoMaestro:master}));
-   if(path==='/categorias')return [{id:'auto',nombre:'Repuestos automotrices'}];
-   if(path==='/subcategorias')return [{id:'motor',nombre:'Motor',categoriaId:'auto'}];
+   if(path==='/categorias')return [{id:'cat-repuestos-automotrices',nombre:'Repuestos automotrices'}];
+   if(path==='/subcategorias')return [{id:'motor',nombre:'Motor',categoriaId:'cat-repuestos-automotrices'}];
    if(path==='/familias')return [{id:'radiators',nombre:'Radiadores',subcategoriaId:'motor',permiteVehiculos:true}];
    if(path==='/productos-maestro')return [master];
+   if(path==='/productos-maestro/radiator')return master;
    if(path==='/productos-maestro/paginado')return {items:offers.length?[]:[master],page:1,size:25,total:offers.length?0:1,totalPages:1};
    if(path==='/busqueda')return [];
    throw Error('Unexpected GET: '+path);

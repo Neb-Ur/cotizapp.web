@@ -11,6 +11,7 @@ function fixture() {
  const api = {
   get: vi.fn(async (path: string) => {
    if (path === '/productos-maestro') return [master];
+   if (path === '/productos-maestro/master') return master;
    if (path === '/productos/detalle') return {productoMaestro:master,stores:[],atributosProducto:[{definicionAtributoId:'weight',etiqueta:'Peso',valorNumero:0},{definicionAtributoId:'waterproof',etiqueta:'Impermeable',valorBooleano:false}]};
    if (path === '/familias') return [{id:'fam',nombre:'Cemento',subcategoriaId:'sub'}];
    if (path === '/ferreterias/store/catalogo') return catalog;
@@ -37,7 +38,7 @@ describe('catalog import and loading regressions', () => {
   expect(result.report.rows[0].outcome).toBe('posible_match');
   expect(writes).toHaveLength(1);
   expect(writes[0].path).toContain('/solicitudes-creacion-producto');
-  expect(writes[0].body).toMatchObject({skuFerreteria:'LOCAL',cantidadReferencia:0,publicado:false});
+  expect(writes[0].body).toMatchObject({skuFerreteria:'LOCAL',cantidadReferencia:0,publicado:false,tipoSolicitud:'posible_match'});
  });
  it('links only an exact product and preserves imported identifiers', async () => {
   const { service, writes } = fixture();
@@ -155,4 +156,11 @@ describe('saved quotation prices',()=>{
   expect(service.getProjectComparisonStrategies([{productName:'Cemento',quantity:2}],'',undefined,undefined,undefined,[offer])[0].total).toBe(2000);
   expect(api.get).not.toHaveBeenCalled();
  });
+});
+
+it('requests only a paginated business catalog without downloading all public offers or masters',async()=>{
+ const api:any={get:vi.fn(async()=>({items:[master],page:1,size:25,total:1,totalPages:1}))};
+ const service=new FirebaseDataService(api,{currentUser:()=>({id:'owner',role:'ferreteria',businessType:'desarmaduria'})} as any);
+ await service.searchMasterCatalogProducts({query:'radiador',page:2});
+ expect(api.get).toHaveBeenCalledExactlyOnceWith('/productos-maestro/paginado',false,expect.objectContaining({tipoNegocio:'desarmaduria',query:'radiador',page:2}));
 });

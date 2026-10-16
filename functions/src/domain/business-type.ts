@@ -6,6 +6,10 @@ export function isBusinessType(value: unknown): value is BusinessType {
 export function normalizeBusinessType(value: unknown): BusinessType {
   return isBusinessType(value) ? value : 'ferreteria';
 }
+export function categoryMatchesBusinessType(categoryId: unknown, businessType: unknown): boolean {
+  const automotive = categoryId === 'cat-repuestos-automotrices';
+  return normalizeBusinessType(businessType) === 'ferreteria' ? !automotive : automotive;
+}
 export function businessTypeLabel(value: unknown): string {
   const labels: Record<BusinessType, string> = { ferreteria: 'Ferretería', repuestos: 'Tienda de repuestos', desarmaduria: 'Desarmaduría' };
   return labels[normalizeBusinessType(value)];
