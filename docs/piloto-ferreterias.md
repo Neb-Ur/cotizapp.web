@@ -96,3 +96,6 @@ Al crear un local, el administrador elige «Local de prueba»: por defecto «No,
 - La administración conserva todos los registros para poder editarlos. No se borran locales, productos ni cotizaciones históricas.
 
 La variable es configuración del servidor: cambiarla requiere desplegar la API. La caché pública cambia de política y la caché estática se separa por valor de la variable. Los archivos ya almacenados en el CDN de imágenes no se convierten en privados; lo que se retira es su inclusión en las galerías y ofertas públicas.
+
+
+Validación de esta entrega: 273 pruebas de frontend y 218 de backend aprobadas, más compilación de producción. Las pruebas de API alternan `true → false → true` y comprueban directorio, ofertas, catálogo estático, búsqueda paginada, fichas, autocompletado, sitemap y acceso administrativo. Playwright comprobó el formulario publicado en escritorio y móvil, creó un local temporal marcado como prueba y lo reclasificó como real desde «Editar local». Su visibilidad respetó la clasificación y el contrato; al terminar se eliminó la cuenta temporal. La configuración publicada se mantuvo en `PILOT_STORES_ENABLED=true`.

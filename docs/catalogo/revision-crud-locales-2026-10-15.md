@@ -55,3 +55,8 @@ Se conservan los productos, ofertas e historial existentes; esta corrección no 
 ## Fotos propias y estado — 16 de octubre
 
 Implementado y publicado el [flujo de condición y fotos propias](fotos-publicaciones-locales-2026-10-16.md). Verificado en producción con Poniente: alta con estado usado, dos fotos subidas desde el panel, atribución pública en móvil y escritorio, eliminación individual y eliminación de la publicación. Se retiraron los datos temporales y el catálogo conservó sus veinte productos originales.
+
+
+## Locales reales y de prueba — 16 de octubre
+
+El admin puede seleccionar «Local de prueba» al crear y editar locales; el listado identifica esta clasificación. `PILOT_STORES_ENABLED=true` incluye los locales de prueba además de los reales. Con `false` se retiran del catálogo público los locales de prueba y sus ofertas/fotos, además de los productos maestros y ofertas semilla marcados como prueba. El administrador conserva acceso a todos los registros. Véase el [comportamiento y validación del piloto](../piloto-ferreterias.md#clasificación-desde-administración--16-de-octubre-de-2026).
