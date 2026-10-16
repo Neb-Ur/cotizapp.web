@@ -53,7 +53,7 @@ test('API rejects malformed vehicle filters before accessing data', async () => 
 test('public search and offer detail retain the same selected vehicle', async t => {
   const snapshot=catalog();
   firestoreFixture(t,{cachePublico:{meta:{dirty:false,version:snapshot.version,updatedAt:snapshot.updatedAt,
-    policy:`data-modes-v5:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']},
+    policy:`data-modes-v6:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']},
     taxonomy:snapshot.taxonomy,products:{items:snapshot.products},offers:{items:snapshot.searchRows}}});
   const query={vehiculoMarcaId:'toyota',vehiculoModeloId:'corolla',vehiculoAnio:'2010'};
   const response=()=>({statusCode:200,set(){return this;},status(code){this.statusCode=code;return this;},json(body){this.body=body;return this;}});

@@ -1,3 +1,4 @@
+import { pilotStoresEnabled, publicRecordVisible } from '../services/pilot-stores.service.js';
 import { seoProductSlug } from '../domain/catalog-seo.js';
 import { FieldValue } from 'firebase-admin/firestore';
 import { db } from './firebase.js';
@@ -13,7 +14,7 @@ const sheets = new Map<string, { expires: number; request: Promise<any> }>();
 const slugOf = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 120);
 
 export async function getStaticCatalog(): Promise<any[][]> {
-  const mode = dataMode();
+  const mode = `${dataMode()}:pilot=${pilotStoresEnabled()}`;
   const revisionDoc = await db.collection(COLLECTIONS.publicCache).doc('catalog-revision').get();
   const revision = Number(revisionDoc.data()?.revision || 0);
   if (revisions.get(mode) !== revision) { catalogs.delete(mode); sheets.clear(); revisions.set(mode, revision); }
@@ -22,7 +23,7 @@ export async function getStaticCatalog(): Promise<any[][]> {
     const request = Promise.all([
       rows(COLLECTIONS.masterProducts), rows(COLLECTIONS.categories),
       rows(COLLECTIONS.subcategories), rows(COLLECTIONS.families), rows(COLLECTIONS.brands)
-    ]);
+    ]).then(([products,...taxonomy]) => [products.filter(publicRecordVisible),...taxonomy]);
     catalog = { expires: Date.now() + TTL, request };
     catalogs.set(mode, catalog);
     void request.catch(() => { if (catalogs.get(mode)?.request === request) catalogs.delete(mode); });
@@ -31,7 +32,7 @@ export async function getStaticCatalog(): Promise<any[][]> {
 }
 
 export async function getProductSheet(name: string, slug: string): Promise<any | null> {
-  const mode = dataMode();
+  const mode = `${dataMode()}:pilot=${pilotStoresEnabled()}`;
   const [products, categories, subcategories, families] = await getStaticCatalog();
   const product = products.find((item: any) => item.estado !== 'inactivo' && (slug
     ? seoProductSlug(item,products) === slug : String(item.nombre).trim().toLowerCase() === name));
@@ -71,4 +72,4 @@ export async function invalidateStaticCatalog(): Promise<void> {
   await db.collection(COLLECTIONS.publicCache).doc('catalog-revision').set({revision: FieldValue.increment(1)}, {merge: true});
 }
 
-export function staticCatalogRevision(): number { return revisions.get(dataMode()) || 0; }
+export function staticCatalogRevision(): number { return revisions.get(`${dataMode()}:pilot=${pilotStoresEnabled()}`) || 0; }

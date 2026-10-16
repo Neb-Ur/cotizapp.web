@@ -103,6 +103,7 @@ interface MasterProductDraft {
 }
 
 interface AdminUserModalDraft {
+  isTestStore: boolean;
   businessType: BusinessType;
   id: string;
   isNew: boolean;
@@ -1416,6 +1417,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
           role: this.userModalDraft.role,
           accountStatus: this.userModalDraft.accountStatus,
           businessType: this.userModalDraft.role === 'ferreteria' ? this.userModalDraft.businessType : undefined,
+          isTestStore: this.userModalDraft.role === 'ferreteria' ? this.userModalDraft.isTestStore : undefined,
           displayName: this.userModalDraft.displayName.trim(),
           phone: this.userModalDraft.phone.trim(),
           city: this.userModalDraft.city.trim(),
@@ -1617,6 +1619,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
           accountStatus: draft.accountStatus,
           businessName: draft.businessName.trim(),
           businessType: draft.businessType,
+          isTestStore: draft.isTestStore,
           rut: draft.rut.trim() || undefined,
           storeLatitude: draft.storeLatitude,
           storeLongitude: draft.storeLongitude as number
@@ -2169,6 +2172,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   private createEmptyUserModalDraft(): AdminUserModalDraft {
     return {
       id: '',
+      isTestStore: false,
       isNew: true,
       email: '',
       password: '',
@@ -2190,6 +2194,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   private mapUserToModalDraft(user: SessionUser): AdminUserModalDraft {
     return {
       id: user.id,
+      isTestStore: user.isTestStore === true,
       isNew: false,
       email: user.email,
       password: '',

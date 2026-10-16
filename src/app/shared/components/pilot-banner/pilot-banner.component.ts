@@ -12,7 +12,7 @@ import { PilotService } from '../../../core/services/pilot.service';
               <strong id="pilot-information-title">Estamos en etapa de prueba</strong>
               <button type="button" class="pilot-close" (click)="close()" aria-label="Cerrar información de prueba"><i class="pi pi-times" aria-hidden="true"></i></button>
             </div>
-            <p>Los locales actuales son ficticios y sus precios y stock son simulados. No realizan ventas ni tienen establecimientos para visitar.</p>
+            <p>El catálogo puede incluir locales de prueba, identificados como tales. Sus precios y stock son simulados: no realizan ventas ni tienen establecimientos para visitar.</p>
             <a href="/contacto">Danos tu opinión <i class="pi pi-arrow-up-right" aria-hidden="true"></i></a>
           </aside>
         }

@@ -18,6 +18,7 @@ adminUsersRouter.get('/admin/usuarios', requireAuth, requireRole('admin'), async
 adminUsersRouter.post('/admin/usuarios', requireAuth, requireRole('admin'), async (req, res) => {
   const role = req.body?.rol;
   if (req.body?.tipoNegocio !== undefined && (role !== 'ferreteria' || !isBusinessType(req.body.tipoNegocio))) return fail(res, 'BUSINESS_TYPE_INVALID', 'Selecciona un tipo de negocio válido para el local.', 400);
+  if (req.body?.esPrueba !== undefined && (role !== 'ferreteria' || typeof req.body.esPrueba !== 'boolean')) return fail(res, 'STORE_TEST_INVALID', 'La opción de local de prueba debe ser verdadera o falsa y solo aplica a locales.', 400);
   if (!validRole(role)) return fail(res, 'ADMIN_INVALID_ROLE', 'Rol invalido.', 400);
   if (!validStrongPassword(req.body?.password)) {
     return fail(
@@ -58,6 +59,7 @@ adminUsersRouter.post('/admin/usuarios', requireAuth, requireRole('admin'), asyn
     await createRow(COLLECTIONS.stores, {
       usuarioDuenoId: firebaseUser.uid,
       tipoNegocio: normalizeBusinessType(req.body?.tipoNegocio),
+      esPrueba: req.body?.esPrueba === true,
       nombreComercial: normalizeText(req.body?.nombreComercial) || normalizeText(req.body?.nombre),
       rut: normalizeText(req.body?.rut),
       latitud: storeLatitude,
@@ -77,9 +79,11 @@ adminUsersRouter.patch('/admin/usuarios/:id', requireAuth, requireRole('admin'),
   allowed.forEach((key) => { if (req.body?.[key] !== undefined) patch[key] = req.body[key]; });
   const stores = (await rows(COLLECTIONS.stores)).filter(store => store.usuarioDuenoId === req.params.id);
   if (req.body?.tipoNegocio !== undefined && (!stores[0] || (patch['rol'] || current.rol) !== 'ferreteria' || !isBusinessType(req.body.tipoNegocio))) return fail(res, 'BUSINESS_TYPE_INVALID', 'Selecciona un tipo de negocio válido para el local.', 400);
+  if (req.body?.esPrueba !== undefined && (!stores.length || (patch['rol'] || current.rol) !== 'ferreteria' || typeof req.body.esPrueba !== 'boolean')) return fail(res, 'STORE_TEST_INVALID', 'La opción de local de prueba debe ser verdadera o falsa y solo aplica a locales.', 400);
   const batch = db.batch();
   batch.set(db.collection(COLLECTIONS.users).doc(req.params.id), patch, { merge: true });
   if (req.body?.tipoNegocio !== undefined) batch.update(db.collection(COLLECTIONS.stores).doc(stores[0].id), { tipoNegocio: req.body.tipoNegocio });
+  if (req.body?.esPrueba !== undefined) stores.forEach(store => batch.update(db.collection(COLLECTIONS.stores).doc(store.id), { esPrueba: req.body.esPrueba }));
   await batch.commit();
   return ok(res, await authUserResponse(req.params.id));
 });

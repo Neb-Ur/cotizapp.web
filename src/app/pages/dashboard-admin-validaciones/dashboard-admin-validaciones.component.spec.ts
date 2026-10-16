@@ -54,3 +54,16 @@ it('opens metrics first, caches the view and refreshes only when explicitly requ
  component.metricsService.load.mockResolvedValue({today:3,days:[]});await component.refreshAll();
  expect(component.metrics.today).toBe(3);expect(component.metricsService.load).toHaveBeenCalledTimes(2);
 });
+
+
+it('creates a test store explicitly and preserves its classification when opening the editor',async()=>{
+ const {component}=fixture();
+ const created={id:'owner',role:'ferreteria',ferreteriaId:'s',email:'local@example.test',displayName:'Local',businessName:'Local',isTestStore:true};
+ component.authService={adminCreateUser:vi.fn(async()=>created)};
+ component.ensureUsersLoaded=vi.fn(async()=>undefined);component.inspectStoreCatalog=vi.fn(async()=>undefined);
+ component.openStoreCreate();expect(component.storeCreateDraft.isTestStore).toBe(false);
+ Object.assign(component.storeCreateDraft,{displayName:'Contacto',businessName:'Local',email:'local@example.test',password:'Test123!',city:'Santiago',commune:'Maipú',address:'Prueba',storeLatitude:-33.5,storeLongitude:-70.6,isTestStore:true});
+ await component.createStore();
+ expect(component.authService.adminCreateUser).toHaveBeenCalledWith(expect.objectContaining({role:'ferreteria',isTestStore:true}));
+ component.openUserEdit(created);expect(component.userModalDraft.isTestStore).toBe(true);
+});

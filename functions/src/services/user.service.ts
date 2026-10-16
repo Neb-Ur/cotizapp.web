@@ -11,7 +11,7 @@ export async function authUserResponse(userId: string): Promise<any | null> {
     ...user,
     ferreteriaId: store?.id,
     nombreComercial: store?.nombreComercial,
-    ...(store ? { tipoNegocio: normalizeBusinessType(store.tipoNegocio) } : {}),
+    ...(store ? { tipoNegocio: normalizeBusinessType(store.tipoNegocio), esPrueba: store.esPrueba === true } : {}),
     rut: store?.rut ?? user.rut,
     latitud: coordinateValue(store?.latitud, -90, 90),
     longitud: coordinateValue(store?.longitud, -180, 180),

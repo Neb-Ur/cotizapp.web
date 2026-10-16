@@ -49,6 +49,7 @@ interface ApiEnvelope<T> {
 }
 
 interface ApiAuthUser {
+  esPrueba?: boolean;
   tipoNegocio?: BusinessType;
   id: string;
   ferreteriaId?: string;
@@ -409,7 +410,7 @@ export class AuthService implements OnDestroy {
 
   async adminUpdateUser(
     userId: string,
-    partial: Partial<Pick<SessionUser, 'role' | 'accountStatus' | 'displayName' | 'phone' | 'city' | 'commune' | 'address' | 'businessType'>>
+    partial: Partial<Pick<SessionUser, 'role' | 'accountStatus' | 'displayName' | 'phone' | 'city' | 'commune' | 'address' | 'businessType' | 'isTestStore'>>
   ): Promise<SessionUser | null> {
     const token = this.requireToken();
     const payload: Record<string, unknown> = {};
@@ -421,6 +422,7 @@ export class AuthService implements OnDestroy {
     if (partial.commune !== undefined) payload['comuna'] = partial.commune;
     if (partial.address !== undefined) payload['direccion'] = partial.address;
     if (partial.businessType !== undefined) payload['tipoNegocio'] = partial.businessType;
+    if (partial.isTestStore !== undefined) payload['esPrueba'] = partial.isTestStore;
 
     try {
       const response = await firstValueFrom(
@@ -446,6 +448,7 @@ export class AuthService implements OnDestroy {
     address: string;
     accountStatus?: 'activo' | 'bloqueado' | 'pendiente';
     businessName?: string;
+    isTestStore?: boolean;
     businessType?: BusinessType;
     rut?: string;
     storeLatitude?: number | null;
@@ -464,6 +467,7 @@ export class AuthService implements OnDestroy {
         direccion: payload.address.trim(),
         estadoCuenta: payload.accountStatus,
         nombreComercial: payload.businessName?.trim() || undefined,
+        esPrueba: payload.role === 'ferreteria' ? payload.isTestStore === true : undefined,
         tipoNegocio: payload.role === 'ferreteria' ? normalizeBusinessType(payload.businessType) : undefined,
         rut: payload.rut?.trim() || undefined,
         latitud: payload.storeLatitude,
@@ -754,6 +758,7 @@ export class AuthService implements OnDestroy {
     return {
       id: user.id,
       ferreteriaId: user.ferreteriaId,
+      isTestStore: user.rol === 'ferreteria' ? user.esPrueba === true : undefined,
       storeAgreementStatus: user.contratoFerreteriaEstado,
       storeAgreementVersion: user.contratoFerreteriaVersion,
       storeAgreementAcceptedAt: user.contratoFerreteriaAceptadoEn,
@@ -800,6 +805,7 @@ export class AuthService implements OnDestroy {
       creadoEn: user.createdAt,
       nombreComercial: user.businessName,
       tipoNegocio: user.businessType,
+      esPrueba: user.isTestStore,
       rut: user.rut,
       latitud: user.storeLatitude,
       longitud: user.storeLongitude,

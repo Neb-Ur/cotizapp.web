@@ -4,7 +4,7 @@ import { normalizeOfferCondition } from '../domain/offer-condition.js';
 import { COLLECTIONS } from '../lib/collections.js';
 import { coordinateValue, inferMeasurementFromLabel, normalizeText, numberValue, pricePerMeasurement } from '../lib/values.js';
 import type { SearchRow } from '../models/domain.models.js';
-import { storeCanPublish } from './pilot-stores.service.js';
+import { storeCanPublish, publicRecordVisible } from './pilot-stores.service.js';
 export async function buildSearchRows(source?: any[][], asOf?:number): Promise<SearchRow[]> {
   const [offers, products, stores, users, categories, subcategories, families] = source || await Promise.all([
     rows(COLLECTIONS.storeProducts),
@@ -25,7 +25,7 @@ export async function buildSearchRows(source?: any[][], asOf?:number): Promise<S
   const familyById = new Map(families.map((item) => [item.id, item]));
 
   return offers
-    .filter((offer) => offer.activo !== false && offer.publicado !== false)
+    .filter((offer) => offer.activo !== false && offer.publicado !== false && publicRecordVisible(offer))
     .filter((offer) => !offer.vigenteDesde || new Date(offer.vigenteDesde).getTime() <= referenceTime)
     .filter((offer) => !offer.vigenteHasta || new Date(offer.vigenteHasta).getTime() > referenceTime)
     .map((offer): SearchRow | null => {
@@ -37,6 +37,7 @@ export async function buildSearchRows(source?: any[][], asOf?:number): Promise<S
         || !store
         || !owner
         || product.estado === 'inactivo'
+        || !publicRecordVisible(product)
         || !storeCanPublish(store)
         || owner.estadoCuenta !== 'activo'
       ) return null;

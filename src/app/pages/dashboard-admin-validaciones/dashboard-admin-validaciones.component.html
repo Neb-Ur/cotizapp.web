@@ -83,13 +83,14 @@
               <thead><tr><th>Local</th><th>Correo</th><th>Comuna</th><th>Estado</th><th>Contrato</th><th>Acciones</th></tr></thead>
               <tbody>
                 <tr *ngFor="let store of paginatedFerreteriaRows">
-                  <td>{{ store.businessName || store.displayName }}</td>
+                  <td>{{ store.businessName || store.displayName }}<small *ngIf="store.isTestStore"> · De prueba</small></td>
                   <td>{{ store.email }}</td>
                   <td>{{ store.commune || '-' }}</td>
                   <td>{{ statusLabel(userStatus(store)) }}</td>
                   <td>{{ store.storeAgreementStatus === 'vigente' ? 'Vigente' : (store.storeAgreementStatus || 'Pendiente') }}</td>
                   <td class="actions store-actions">
                     <button pButton type="button" icon="pi pi-check" [rounded]="true" [text]="true" severity="success" class="store-action-button" *ngIf="userStatus(store) !== 'activo'" (click)="activateStore(store)" aria-label="Activar local" title="Activar local"></button>
+                    <button pButton type="button" icon="pi pi-pencil" [rounded]="true" [text]="true" class="store-action-button" (click)="openUserEdit(store)" aria-label="Editar local" title="Editar local"></button>
                     <button pButton type="button" icon="pi pi-eye" [rounded]="true" [text]="true" severity="info" class="store-action-button" (click)="inspectStoreCatalog(store)" aria-label="Ver detalle" title="Ver detalle"></button>
                     <button pButton type="button" icon="pi pi-ban" [rounded]="true" [text]="true" severity="danger" class="store-action-button" *ngIf="userStatus(store) !== 'bloqueado'" (click)="quickBlock(store)" aria-label="Bloquear local" title="Bloquear local"></button>
                   </td>
@@ -130,6 +131,7 @@
           </div>
           <div class="request-detail-form store-create-form">
             <label>Tipo de negocio<select [(ngModel)]="storeCreateDraft.businessType"><option *ngFor="let type of businessTypes" [value]="type">{{ businessTypeLabel(type) }}</option></select></label>
+            <label>Local de prueba<select [(ngModel)]="storeCreateDraft.isTestStore"><option [ngValue]="false">No, es un local real</option><option [ngValue]="true">Sí, es un local de prueba</option></select><small>Los locales de prueba y sus ofertas solo son públicos cuando está habilitada la etapa de prueba.</small></label>
             <label>Nombre comercial<input type="text" [(ngModel)]="storeCreateDraft.businessName" /></label>
             <label>Nombre del contacto<input type="text" [(ngModel)]="storeCreateDraft.displayName" /></label>
             <label>RUT<input type="text" [(ngModel)]="storeCreateDraft.rut" /></label>
@@ -1496,6 +1498,7 @@
                 <option value="bloqueado">Bloqueado</option>
               </select>
             </label>
+            <label *ngIf="userModalDraft.role === 'ferreteria'">Local de prueba<select [(ngModel)]="userModalDraft.isTestStore" [disabled]="userModalReadonly"><option [ngValue]="false">No, es un local real</option><option [ngValue]="true">Sí, es un local de prueba</option></select><small>Sus ofertas solo serán públicas cuando la etapa de prueba esté habilitada.</small></label>
             <label *ngIf="userModalDraft.role === 'ferreteria'">Tipo de negocio<select [(ngModel)]="userModalDraft.businessType" [disabled]="userModalReadonly && !userModalDraft.isNew"><option *ngFor="let type of businessTypes" [value]="type">{{ businessTypeLabel(type) }}</option></select></label>
             <label *ngIf="userModalDraft.role === 'ferreteria'">
               Nombre comercial

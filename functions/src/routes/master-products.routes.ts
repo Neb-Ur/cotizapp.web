@@ -1,3 +1,4 @@
+import { publicRecordVisible } from '../services/pilot-stores.service.js';
 import {normalizeProductApplications,automotiveProductName,automotiveIdentity} from '../domain/product-vehicle.js';
 import { invalidateStaticCatalog } from '../lib/product-sheet-cache.js';
 import { markPublicCatalogDirty } from '../lib/public-catalog-cache.js';
@@ -108,7 +109,7 @@ masterProductsRouter.get('/productos-maestro', async (req, res) => {
   const familyId = normalizeText(req.query['familiaId']);
   const data = (await rows(COLLECTIONS.masterProducts))
     .filter(item => !businessType || categoryMatchesBusinessType(item.categoriaId, businessType))
-    .filter((item) => item.estado !== 'inactivo')
+    .filter((item) => item.estado !== 'inactivo' && publicRecordVisible(item))
     .filter((item) => !q || normalizeText(item.nombre).toLowerCase().includes(q) || normalizeText(item.marca).toLowerCase().includes(q) || normalizeText(item.codigoBarras).toLowerCase().includes(q))
     .filter((item) => !categoryId || item.categoriaId === categoryId)
     .filter((item) => !subcategoryId || item.subcategoriaId === subcategoryId)
@@ -129,7 +130,7 @@ const listMasterPage = async (req: Request, res: Response) => {
   const size = Math.min(100, Math.max(1, Math.floor(numberValue(req.query['size'], 25))));
   const all = (await rows(COLLECTIONS.masterProducts))
     .filter(item => !businessType || categoryMatchesBusinessType(item.categoriaId, businessType))
-    .filter((item) => req.authRole === 'admin' || item.estado !== 'inactivo')
+    .filter((item) => req.authRole === 'admin' || item.estado !== 'inactivo' && publicRecordVisible(item))
     .filter((item) => !excluded.has(item.id))
     .filter((item) => !q || normalizeText(item.nombre).toLowerCase().includes(q) || normalizeText(item.marca).toLowerCase().includes(q) || normalizeText(item.codigoBarras).toLowerCase().includes(q))
     .filter((item) => !categoryId || item.categoriaId === categoryId)
@@ -148,7 +149,7 @@ masterProductsRouter.get('/productos-maestro/paginado', listMasterPage);
 
 const masterDetail = async (req: Request, res: Response) => {
   const product = await row(COLLECTIONS.masterProducts, req.params.id);
-  if (!product || (product.estado === 'inactivo' && req.authRole !== 'admin')) return fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro.', 404);
+  if (!product || (req.authRole !== 'admin' && (product.estado === 'inactivo' || !publicRecordVisible(product)))) return fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro.', 404);
   const atributos = (await rows(COLLECTIONS.masterAttributes)).filter((item) => item.productoMaestroId === product.id);
   return ok(res, { ...product, atributos });
 };
