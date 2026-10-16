@@ -19,3 +19,5 @@ La reproducción en Chrome aislado confirmó la pérdida de sesión antes del ca
 279 pruebas de frontend y cinco pruebas de backend de onboarding aprobadas, más compilación de producción. Playwright abrió términos en una segunda pestaña móvil, volvió a la original y comprobó la recuperación ante una falla de actualización de sesión y una respuesta de guardado perdida. Las solicitudes de aceptación se interceptaron; el servidor de previsualización rechazaba además cualquier escritura al backend. No se enviaron nuevas declaraciones legales ni correos de verificación.
 
 Las pestañas que conservan el JavaScript anterior deben recargarse y, si ya perdieron la sesión, volver a iniciar sesión.
+
+La corrección se publicó en Hosting y en la plantilla web de la API. Ambos escenarios se repitieron en el sitio publicado con Chrome aislado y dos pestañas: la sesión se mantuvo y el formulario continuó sin duplicar la solicitud. También en esa comprobación se interceptaron todas las solicitudes de aceptación, utilizando una cuenta cuyo consentimiento ya había sido registrado por su titular.
