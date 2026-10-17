@@ -58,3 +58,11 @@ La consulta de red inicial encontró HTTPS operativo y redirección HTTP → HTT
 - [Metaetiquetas admitidas: Google ignora meta keywords](https://developers.google.com/search/docs/crawling-indexing/special-tags)
 
 La indexación y las primeras posiciones no se garantizan mediante cambios técnicos. También dependen de contenido útil, inventario real, competencia y señales externas. La mejora del peso HTML no equivale a una medición de Core Web Vitals.
+
+## Verificación de esta entrega
+
+Publicado en trovio.cl el 17 de octubre de 2026. HTML de portada sin comprimir: **6.858.021 → 224.159 bytes**, reducción aproximada de **97 %**, conservando cuatro tarjetas iniciales. Sitemap publicado: **992 URLs**, todas con el dominio nuevo. Se verificaron canonical, HTML y JSON-LD de una categoría y una ficha, respuesta 404 para un producto inexistente y CORS del dominio propio.
+
+Playwright en producción: móvil 390×844 y escritorio 1440×960, cuatro tarjetas, filtro de repuestos y apertura de sugerencias, sin desbordamiento horizontal ni errores JavaScript; la portada no solicitó el catálogo completo. Compilación con nueve rutas prerenderizadas. Pruebas: **289 frontend y 235 backend**, correctas.
+
+Esto no representa una puntuación de PageSpeed ni una auditoría de todos los Core Web Vitals. La verificación DNS, Search Console y la redirección completa del dominio antiguo siguen pendientes según las instrucciones anteriores.
