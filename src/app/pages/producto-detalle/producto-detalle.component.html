@@ -30,14 +30,19 @@
 
     <nav *ngIf="product.relatedCatalog?.length" class="related-catalog" aria-label="Explorar repuestos relacionados"><a *ngFor="let link of product.relatedCatalog" [routerLink]="link.path">{{link.name}}</a></nav>
 
+    <header class="product-heading">
+      <h1>{{ product.productName }}</h1>
+      <p class="brand">{{ product.brand }}</p>
+    </header>
+
     <section class="hero-grid">
       <div class="gallery-panel">
         <div class="main-image">
           <img [findiProductImage]="currentImageUrl" [externalImageUrl]="currentGalleryImage?.storeId ? '' : product.imageFallbackUrl" [alt]="product.productName + (currentGalleryImage?.storeName ? ' · Foto de ' + currentGalleryImage?.storeName : ' · Imagen de catálogo')" width="720" height="540" fetchpriority="high" decoding="async" />
-          <div class="photo-attribution" [class.photo-attribution--store]="currentGalleryImage?.storeId" aria-live="polite">
-            <strong>{{ currentGalleryImage?.storeName || 'Imagen de catálogo' }}</strong>
-            <span *ngIf="currentGalleryImage?.condition && currentGalleryImage?.condition !== 'sin_especificar'">{{ conditionLabel(currentGalleryImage?.condition) }}</span>
-          </div>
+        </div>
+        <div class="photo-attribution" aria-live="polite">
+          <strong>{{ currentGalleryImage?.storeName || 'Imagen de catálogo' }}</strong>
+          <span *ngIf="currentGalleryImage?.condition && currentGalleryImage?.condition !== 'sin_especificar'">{{ conditionLabel(currentGalleryImage?.condition) }}</span>
         </div>
         <div class="thumb-strip">
           <button
@@ -57,10 +62,6 @@
       </div>
 
       <aside class="purchase-panel">
-        <p class="brand">{{ product.brand }}</p>
-        <h1>{{ product.productName }}</h1>
-        <p class="sku">SKU {{ product.sku }}</p>
-        <p class="type">{{ product.productType }}</p>
         <div class="price-summary" *ngIf="displayStores.length > 0">
           <p class="price-range">{{ formatCurrency(visibleMinPrice) }} - {{ formatCurrency(visibleMaxPrice) }}</p>
           <app-info-panel title="Fuente de los precios" label="Información sobre la fuente de los precios">
@@ -88,23 +89,6 @@
           <p class="quick-stores-hint" *ngIf="nearbyEnabled && !offersLoading && !offersError">
             {{ displayedStoreCount }} local(es) · {{ displayStores.length }} publicación(es) dentro de {{ nearbyRadiusKm }} km.
           </p>
-
-          <section class="quotation-destination" *ngIf="canUseQuotations">
-            <div class="quotation-destination-heading"><h3>Tu cotización</h3><button type="button" class="new-quotation-button" [disabled]="!canCreateQuotation" [title]="canCreateQuotation ? 'Crear cotización' : quotationLimitMessage" (click)="openCreateQuotationModal()"><i class="pi pi-plus" aria-hidden="true"></i> Crear cotización</button></div>
-            <label class="quantity-field quotation-selector">
-              <span class="sr-only">Cotización seleccionada</span>
-              <select [ngModel]="selectedProjectId" (ngModelChange)="onProjectChange($event)" aria-label="Cotización seleccionada">
-                <option value="">Selecciona una cotización</option>
-                <option *ngFor="let project of projects" [value]="project.id">{{ project.name }}</option>
-              </select>
-            </label>
-            <button type="button" class="existing-account-link" [disabled]="!selectedProjectId" (click)="goToSelectedQuotation()">Ver cotización <i class="pi pi-arrow-right" aria-hidden="true"></i></button>
-          </section>
-
-          <label class="quantity-field">
-            Cantidad ({{ quantityLabel.toLowerCase() }})
-            <input type="number" min="1" [ngModel]="selectedQuantity" (ngModelChange)="onQuantityChange($event)" />
-          </label>
 
           <section class="distance-control" aria-label="Distancias a los locales">
             <button
@@ -188,6 +172,23 @@
             </li>
           </ul>
 
+          <section class="quotation-destination" *ngIf="canUseQuotations">
+            <div class="quotation-destination-heading"><h3>Tu cotización</h3><button type="button" class="new-quotation-button" [disabled]="!canCreateQuotation" [title]="canCreateQuotation ? 'Crear cotización' : quotationLimitMessage" (click)="openCreateQuotationModal()"><i class="pi pi-plus" aria-hidden="true"></i> Crear cotización</button></div>
+            <label class="quantity-field quotation-selector">
+              <span class="sr-only">Cotización seleccionada</span>
+              <select [ngModel]="selectedProjectId" (ngModelChange)="onProjectChange($event)" aria-label="Cotización seleccionada">
+                <option value="">Selecciona una cotización</option>
+                <option *ngFor="let project of projects" [value]="project.id">{{ project.name }}</option>
+              </select>
+            </label>
+            <button type="button" class="existing-account-link" [disabled]="!selectedProjectId" (click)="goToSelectedQuotation()">Ver cotización <i class="pi pi-arrow-right" aria-hidden="true"></i></button>
+          </section>
+
+          <label class="quantity-field">
+            Cantidad ({{ quantityLabel.toLowerCase() }})
+            <input type="number" min="1" [ngModel]="selectedQuantity" (ngModelChange)="onQuantityChange($event)" />
+          </label>
+
           <section class="selected-total" *ngIf="selectedStore as store" aria-live="polite">
             <div>
               <span>Local seleccionado</span>
@@ -211,103 +212,60 @@
     </section>
 
     <section class="product-information">
-      <nav class="tab-header" role="tablist" aria-label="Información del producto">
-        <button
-          type="button"
-          role="tab"
-          id="tab-description"
-          aria-controls="panel-description"
-          [attr.aria-selected]="activeTab === 'descripcion'"
-          [class.active]="activeTab === 'descripcion'"
-          (click)="setTab('descripcion')"
-        >Descripción</button>
-        <button
-          type="button"
-          role="tab"
-          id="tab-specifications"
-          aria-controls="panel-specifications"
-          [attr.aria-selected]="activeTab === 'ficha'"
-          [class.active]="activeTab === 'ficha'"
-          (click)="setTab('ficha')"
-        >Ficha técnica</button>
-        <button
-          type="button"
-          role="tab"
-          id="tab-additional"
-          aria-controls="panel-additional"
-          [attr.aria-selected]="activeTab === 'adicional'"
-          [class.active]="activeTab === 'adicional'"
-          (click)="setTab('adicional')"
-        >Información adicional</button>
-      </nav>
-
-      <div
-        class="tab-panel description-card"
-        *ngIf="activeTab === 'descripcion'"
-        id="panel-description"
-        role="tabpanel"
-        aria-labelledby="tab-description"
-      >
-        <h2>Descripción del producto</h2>
-        <p class="intro">{{ product.shortDescription }}</p>
-        <div class="description-block" *ngFor="let block of product.descriptionBlocks">
-          <h3 *ngIf="block.title">{{ block.title }}</h3>
-          <p>{{ block.text }}</p>
+      <details class="information-section" open>
+        <summary><h2>Descripción</h2></summary>
+        <div class="information-content description-content">
+          <p class="intro" *ngIf="product.shortDescription">{{ product.shortDescription }}</p>
+          <div class="description-block" *ngFor="let block of product.descriptionBlocks">
+            <h3 *ngIf="block.title && block.text">{{ block.title }}</h3>
+            <p *ngIf="block.text">{{ block.text }}</p>
+          </div>
+          <ng-container *ngIf="product.featureBullets.length > 0">
+            <h3>Características</h3>
+            <ul><li *ngFor="let feature of product.featureBullets">{{ feature }}</li></ul>
+          </ng-container>
+          <p class="tab-empty" *ngIf="!product.shortDescription && !product.descriptionBlocks.length && !product.featureBullets.length">La descripción de este producto se encuentra en preparación.</p>
         </div>
-        <ng-container *ngIf="product.featureBullets.length > 0">
-          <h3>Características</h3>
-          <ul><li *ngFor="let feature of product.featureBullets">{{ feature }}</li></ul>
-        </ng-container>
-      </div>
+      </details>
 
-      <div
-        class="tab-panel sheet-card"
-        *ngIf="activeTab === 'ficha'"
-        id="panel-specifications"
-        role="tabpanel"
-        aria-labelledby="tab-specifications"
-      >
-        <h2>Ficha técnica</h2>
-        <table class="sheet-table" *ngIf="product.technicalSheet.length > 0; else emptyTechnicalSheet">
-          <tbody>
-            <tr *ngFor="let row of product.technicalSheet">
-              <th>{{ row.label }}</th>
-              <td>{{ row.value }}</td>
-            </tr>
-          </tbody>
-        </table>
-        <ng-template #emptyTechnicalSheet>
-          <p class="tab-empty">La ficha técnica de este producto se encuentra en preparación.</p>
-        </ng-template>
-      </div>
+      <details class="information-section">
+        <summary><h2>Ficha técnica</h2></summary>
+        <div class="information-content">
+          <table class="sheet-table" *ngIf="product.technicalSheet.length > 0; else emptyTechnicalSheet">
+            <tbody>
+              <tr *ngFor="let row of product.technicalSheet">
+                <th>{{ row.label }}</th>
+                <td>{{ row.value }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <ng-template #emptyTechnicalSheet>
+            <p class="tab-empty">La ficha técnica de este producto se encuentra en preparación.</p>
+          </ng-template>
+        </div>
+      </details>
 
-      <div
-        class="tab-panel additional-card"
-        *ngIf="activeTab === 'adicional'"
-        id="panel-additional"
-        role="tabpanel"
-        aria-labelledby="tab-additional"
-      >
-        <h2>Información adicional</h2>
-        <dl class="additional-grid">
-          <div><dt>Marca</dt><dd>{{ product.brand }}</dd></div>
-          <div><dt>SKU referencial</dt><dd>{{ product.sku || 'No informado' }}</dd></div>
-          <div><dt>Familia</dt><dd>{{ product.familyName }}</dd></div>
-          <div><dt>Unidad de venta</dt><dd>{{ product.unitLabel }}</dd></div>
-        </dl>
+      <details class="information-section">
+        <summary><h2>Información adicional</h2></summary>
+        <div class="information-content">
+          <dl class="additional-grid">
+            <div><dt>Marca</dt><dd>{{ product.brand }}</dd></div>
+            <div><dt>SKU referencial</dt><dd>{{ product.sku || 'No informado' }}</dd></div>
+            <div><dt>Tipo de producto</dt><dd>{{ product.productType }}</dd></div>
+            <div><dt>Familia</dt><dd>{{ product.familyName }}</dd></div>
+            <div><dt>Unidad de venta</dt><dd>{{ product.unitLabel }}</dd></div>
+          </dl>
 
-        <section class="extra-sections" *ngIf="product.extraSections.length > 0">
-          <article class="extra-item" *ngFor="let section of product.extraSections">
-            <button type="button" class="extra-trigger" (click)="toggleExtraSection(section.id)">
-              <span>{{ section.title }}</span>
-              <span>{{ isExtraSectionOpen(section.id) ? '−' : '+' }}</span>
-            </button>
-            <div class="extra-content" *ngIf="isExtraSectionOpen(section.id)">
-              <ul><li *ngFor="let point of section.points">{{ point }}</li></ul>
-            </div>
-          </article>
-        </section>
-      </div>
+          <section class="extra-sections" *ngIf="product.extraSections.length > 0">
+            <details class="extra-item" *ngFor="let section of product.extraSections">
+              <summary>{{ section.title }}</summary>
+              <div class="extra-content">
+                <ul><li *ngFor="let point of section.points">{{ point }}</li></ul>
+              </div>
+            </details>
+          </section>
+        </div>
+      </details>
     </section>
   </article>
   }

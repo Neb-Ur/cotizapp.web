@@ -41,12 +41,7 @@
   }
 
   app-producto-detalle {
-    .detail-page { margin-block: 1.5rem 2.5rem; gap: 1.25rem; }
-    .detail-card { padding: 1.5rem; box-shadow: var(--shadow-sm); border-radius: var(--r-lg); }
     .hero-grid { gap: 1.5rem; }
-    .main-image { background: var(--ink-50); border-color: transparent; }
-    .purchase-panel { padding: 1.35rem; background: #fff; border-top: 3px solid var(--orange); }
-    .purchase-panel .brand { color: var(--orange-hover); font-size: 0.75rem; }
     .comparison-method { background: var(--ink-50); border-color: var(--border); }
     .price-range { font-size: 1.65rem; letter-spacing: -0.035em; }
   }
@@ -73,8 +68,6 @@
       :is(.content-header, .store-header) { padding: 1rem; }
     }
     app-producto-detalle {
-      .detail-page { margin-block: 0.75rem 1.5rem; }
-      .detail-card, .purchase-panel { padding: 1rem; }
       .hero-grid { gap: 1rem; }
     }
 

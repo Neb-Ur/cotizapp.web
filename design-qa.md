@@ -75,3 +75,20 @@ final result: blocked
 - Consola y comparación visual normalizada: pendientes del mismo bloqueo; no se declara una revisión visual aprobada.
 
 final result: blocked
+
+---
+
+# Ficha de producto continua: propuesta 3
+
+- Referencia aprobada: generated_images/exec-e8ab9767-ad66-4a55-97f5-e0f6cd42b72c.png, seleccionada en la conversación.
+- Alcance: fondo blanco continuo, título antes de la galería y marca secundaria; se retiran superficies, sombra, radios y franja naranja del contenedor y del resumen. También se retiran las reglas globales que volvían a introducir esas superficies.
+- Galería: imágenes originales y fotografías de ofertas conservadas. Autoría y condición aparecen bajo la imagen; se mantienen las miniaturas, avisos de imagen referencial y acceso a fotos por local.
+- Comparación: lista continua existente conservada. Cotización y cantidad pasan debajo de los locales, con selector de proyecto, creación y agregado de la oferta exacta. Resumen del total entre líneas, sin tarjeta.
+- Información: tres desplegables nativos details/summary con encabezados, foco visible e indicadores +/−. Descripción abierta inicialmente; ficha técnica e información adicional cerradas. Se conservan SKU, tipo, ficha real y secciones adicionales, sin inventar datos técnicos.
+- Responsive: una columna hasta 1140 px y dos columnas de galería/ofertas en escritorio; encabezado común antes de ambas. Márgenes móviles de 16 px; acciones de cotización pueden saltar de línea.
+- Pruebas del detalle: 20 aprobadas. Incluyen apertura/cierre de secciones, datos técnicos y SKU, título antes de la galería, autoría de fotos, selección de ofertas, disponibilidad y cotización.
+- Compilación de producción: aprobada; 9 rutas prerenderizadas.
+- Revisión renderizada, comparación visual normalizada y consola: pendientes. Persiste el bloqueo de política del navegador descrito en las revisiones anteriores; no se intentó eludirlo. No se declara fidelidad visual aprobada por inspección de código.
+- Publicación: pendiente del permiso secretmanager.secrets.get sobre FINDI_SQL_PASSWORD que bloqueó los despliegues anteriores. Este cambio no modifica IAM ni la conexión SQL.
+
+final result: blocked

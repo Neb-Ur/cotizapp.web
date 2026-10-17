@@ -67,7 +67,7 @@ describe('product detail loading',()=>{
   expect(fixture.nativeElement.querySelector('.purchase-panel')).toBeNull();
   resolvers[0](detail);await Promise.resolve();await Promise.resolve();fixture.detectChanges();
   expect(fixture.nativeElement.querySelector('.detail-loading')).toBeNull();
-  expect(fixture.nativeElement.querySelector('.purchase-panel h1').textContent).toContain('Abrazadera metálica');
+  expect(fixture.nativeElement.querySelector('.product-heading h1').textContent).toContain('Abrazadera metálica');
  });
  it('ignores an old request that finishes after the next product starts loading',async()=>{
   const {fixture,resolvers,params,component}=await setup();
@@ -222,7 +222,7 @@ it('opens offer information without selecting or expanding the offer row', async
  expect(document.querySelector('.cdk-overlay-container [role="dialog"]')).toBeNull();
 });
 
-it('mixes generic and seller photos, labels the owner over the image and never falls back to a generic image under a seller label',async()=>{
+it('mixes generic and seller photos, labels the image owner and never falls back to a generic image under a seller label',async()=>{
  const {fixture,resolvers,offerResolvers,component}=await setup();
  const generic={...detail,gallery:['https://generic.example/main.webp'],imageUrl:'https://generic.example/main.webp',imageFallbackUrl:'https://generic.example/fallback.webp',imageDisclosure:'Imagen genérica'};
  resolvers[0](generic);await fixture.whenStable();fixture.detectChanges();
@@ -262,5 +262,29 @@ describe('continuous offer comparison list',()=>{
   expect(fixture.nativeElement.querySelectorAll('.offer-list-heading').length).toBe(1);
   expect(Array.from(rows).every((row:any)=>!row.textContent.includes('Precio unitario'))).toBe(true);
   component.displayStores[0].stock=0;expect(component.selectedStore).toBeNull();expect(component.canShowAddToQuotation).toBe(false);
+ });
+});
+
+
+describe('continuous product information',()=>{
+ afterEach(()=>TestBed.resetTestingModule());
+ it('places the product title before the gallery and keeps technical data in native expandable sections',async()=>{
+  const {fixture,resolvers}=await setup();
+  resolvers[0]({...detail,shortDescription:'Abrazadera para fijaciones',technicalSheet:[{label:'Material',value:'Acero'}],sku:'AB-123',extraSections:[{id:'care',title:'Cuidados',points:['Mantener seco']}]});
+  await fixture.whenStable();fixture.detectChanges();
+  const root=fixture.nativeElement as HTMLElement;
+  expect(root.querySelectorAll('h1').length).toBe(1);
+  expect(root.querySelector('h1')!.compareDocumentPosition(root.querySelector('.gallery-panel')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  const sections=Array.from(root.querySelectorAll<HTMLDetailsElement>('.information-section'));
+  expect(sections.map(section=>section.open)).toEqual([true,false,false]);
+  expect(sections[0].textContent).toContain('Abrazadera para fijaciones');
+  sections[1].querySelector('summary')!.click();
+  expect(sections[1].open).toBe(true);expect(sections[1].textContent).toContain('Acero');
+  sections[2].querySelector('summary')!.click();
+  expect(sections[2].open).toBe(true);expect(sections[2].textContent).toContain('AB-123');
+  const extra=sections[2].querySelector<HTMLDetailsElement>('.extra-item')!;
+  extra.querySelector('summary')!.click();expect(extra.open).toBe(true);expect(extra.textContent).toContain('Mantener seco');
+  sections[0].querySelector('summary')!.click();expect(sections[0].open).toBe(false);
+  expect(root.querySelector('[role="tablist"]')).toBeNull();
  });
 });

@@ -49,7 +49,6 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   protected detail: ProductDetailView | null = null;
   protected isLoading = true;
   protected loadError = '';
-  protected activeTab: 'descripcion' | 'ficha' | 'adicional' = 'descripcion';
   protected selectedImageIndex = 0;
   protected selectedStoreName = '';
   protected selectedStoreId = '';
@@ -74,7 +73,6 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   protected locationLoading = false;
   protected locationError = '';
   protected storeSort: 'price' | 'distance' = 'price';
-  private openExtraSectionIds = new Set<string>();
   private readonly recordedViews = new Set<string>();
   private handledCreateQuotationIntent = false;
 
@@ -139,7 +137,6 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
         this.selectedProjectId = '';
         this.quoteFeedback = '';
         this.storeSort = 'price';
-        this.openExtraSectionIds.clear();
         this.loadProjects();
         this.displayStores = this.buildDisplayStores(this.detail?.stores || []);
 
@@ -422,22 +419,6 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
     void this.router.navigate([existingAccount ? '/login' : '/registro'], {
       queryParams: { returnUrl }
     });
-  }
-
-  protected setTab(tab: 'descripcion' | 'ficha' | 'adicional'): void {
-    this.activeTab = tab;
-  }
-
-  protected isExtraSectionOpen(sectionId: string): boolean {
-    return this.openExtraSectionIds.has(sectionId);
-  }
-
-  protected toggleExtraSection(sectionId: string): void {
-    if (this.openExtraSectionIds.has(sectionId)) {
-      this.openExtraSectionIds.delete(sectionId);
-    } else {
-      this.openExtraSectionIds.add(sectionId);
-    }
   }
 
   protected async addToQuotation(): Promise<void> {
