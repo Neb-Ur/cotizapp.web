@@ -20,7 +20,7 @@ Disponible para desarmadurías y locales de repuestos. Las ferreterías conserva
 - Al aprobar una solicitud, el admin vincula una identidad técnica validada y devuelve la pieza a borrador. El propietario revisa y publica; aprobar no crea automáticamente una oferta ni mezcla piezas de dos vehículos.
 - La ficha pública cuenta locales únicos y publicaciones por separado, ya que un mismo local puede ofrecer varias piezas del mismo maestro.
 - Desde un vehículo se abre la publicación exacta para editar precio, stock, condición, fotos o retirarla. Las publicaciones existentes no se sobrescriben al reintentar el lote.
-- Eliminar una publicación desvincula su pieza del vehículo. Eliminar un vehículo exige eliminar antes sus publicaciones; retira sus solicitudes pendientes y limpia sus fotos privadas.
+- Eliminar una publicación desvincula su pieza del vehículo. Eliminar un vehículo exige eliminar antes sus publicaciones; retira sus solicitudes pendientes y limpia las fotos de sus borradores y del vehículo.
 
 ## Datos y garantías
 
@@ -48,16 +48,18 @@ Base: `/ferreterias/:storeId/vehiculos-donantes`.
 - `POST /:vehicleId/publicar`: `piezaIds`, entre 1 y 10, devuelve resultado individual y vehículo actualizado.
 - `POST /:vehicleId/piezas/:itemId/fotos`: imagen binaria, hasta 8 MB, 12 fotos por pieza.
 - `DELETE /:vehicleId/piezas/:itemId/fotos/:photoId`.
-- `itemId=vehiculo`: fotos generales privadas.
+- `itemId=vehiculo`: fotos generales que se muestran solo en el inventario.
 - `DELETE /:vehicleId`: elimina borradores si no existen publicaciones asociadas.
 
 Las fotos de una pieza publicada se administran desde las rutas de fotos de la oferta existentes. Las imágenes se alojan en el CDN público de R2; las fotos generales no se listan públicamente, pero su URL puede compartirse desde el inventario.
 
 ## Validación
 
-Pruebas automatizadas: asistente, selección explícita de variante, guardado, reintentos, navegación por rubro, permisos, aislamiento de propietarios, lotes parciales, propuestas, transferencia de fotos, unicidad SQL y conservación de la carga habitual. Compilación de producción con prerender.
+Pruebas automatizadas: **287 frontend y 234 backend aprobadas**. Incluyen asistente, selección explícita de variante, guardado, reintentos, navegación por rubro, permisos, aislamiento de propietarios, lotes parciales, propuestas, transferencia de fotos, unicidad SQL y conservación de la carga habitual. Compilación de producción con nueve rutas prerenderizadas.
 
-La verificación de navegador y publicación se registra al cerrar la entrega.
+Playwright con el build final y la API real: recorrido completo aprobado en escritorio (1440 × 1000) y móvil (390 × 844). Se registraron dos donantes Mahindra KUV100 2018 sobre el mismo maestro, con dos y una fotos respectivamente. Se verificaron publicación, idempotencia, atribución de imágenes, ausencia del VIN en la ficha pública y edición del precio de una sola pieza sin modificar la otra. La prueba de aislamiento devolvió 403 al consultar otro local.
+
+El recorrido se repitió directamente en **https://cotizapp-d71c8.web.app** después del despliegue final y pasó en ambas resoluciones. La limpieza se verificó por SQL: cero vehículos y cero ofertas con los códigos temporales de QA. Se comprobaron ambos índices de unicidad y que el HTML publicado carga el bundle de la entrega. Los datos del catálogo existente se conservaron.
 
 ## Alcance posterior
 
