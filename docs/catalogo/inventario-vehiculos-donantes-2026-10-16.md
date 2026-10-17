@@ -7,7 +7,7 @@ Fecha: 16 de octubre de 2026 (Chile).
 Disponible para desarmadurías y locales de repuestos. Las ferreterías conservan la carga individual y Excel.
 
 - **Mis vehículos** en la navegación del panel y **Agregar por vehículo** en Mi catálogo.
-- Asistente de tres pasos: identificar vehículo, seleccionar piezas, revisar y publicar. Modal amplio en escritorio y pantalla completa en celular.
+- Asistente de tres pasos: identificar vehículo, seleccionar piezas, revisar y publicar. Modal amplio en escritorio y pantalla completa en celular. Se monta en un portal sobre el documento para que los efectos visuales del panel no desplacen su posición fija; el contenido tiene desplazamiento independiente.
 - Marca, modelo y año del catálogo vehicular; motor, patente, VIN, transmisión y código interno opcionales. La identidad del vehículo queda fija tras guardarlo.
 - Plantilla de más de 70 piezas organizada en ocho sistemas. Ninguna pieza viene seleccionada. Es posible añadir otras piezas, hasta 120 por vehículo.
 - Cada pieza seleccionada tiene precio, stock (inicial 1), condición (inicial Usado), producto maestro y fotografías opcionales.
@@ -18,6 +18,7 @@ Disponible para desarmadurías y locales de repuestos. Las ferreterías conserva
 - Las piezas completas con maestro activo compatible se publican. Las incompletas quedan como borrador. Las completas sin maestro generan una solicitud administrativa idempotente.
 - Si el local identifica una variante existente y publica mientras había una propuesta pendiente, la propuesta se cierra automáticamente con una nota; no permanece duplicada en la bandeja del admin.
 - Al aprobar una solicitud, el admin vincula una identidad técnica validada y devuelve la pieza a borrador. El propietario revisa y publica; aprobar no crea automáticamente una oferta ni mezcla piezas de dos vehículos.
+- La ficha pública cuenta locales únicos y publicaciones por separado, ya que un mismo local puede ofrecer varias piezas del mismo maestro.
 - Desde un vehículo se abre la publicación exacta para editar precio, stock, condición, fotos o retirarla. Las publicaciones existentes no se sobrescriben al reintentar el lote.
 - Eliminar una publicación desvincula su pieza del vehículo. Eliminar un vehículo exige eliminar antes sus publicaciones; retira sus solicitudes pendientes y limpia sus fotos privadas.
 

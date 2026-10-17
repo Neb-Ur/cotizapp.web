@@ -51,3 +51,10 @@ describe('UiModalComponent', () => {
     expect(closed).not.toHaveBeenCalled();
   });
 });
+
+it('renders fullscreen mobile wizards outside transformed panels and removes the portal on close',async()=>{
+ await TestBed.configureTestingModule({imports:[UiModalComponent]}).compileComponents();
+ const fixture=TestBed.createComponent(UiModalComponent);fixture.componentRef.setInput('fullscreenMobile',true);fixture.componentRef.setInput('open',true);fixture.detectChanges();
+ expect(document.body.querySelector('.trovio-modal-portal [role=dialog]')).toBeTruthy();expect(fixture.nativeElement.querySelector('.overlay')).toBeNull();
+ fixture.componentRef.setInput('open',false);fixture.detectChanges();expect(document.body.querySelector('.trovio-modal-portal')).toBeNull();fixture.destroy();
+});

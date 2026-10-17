@@ -64,6 +64,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   protected createQuotationError = '';
   protected isCreatingQuotation = false;
   protected displayStores: ProductStoreOfferRow[] = [];
+  protected get displayedStoreCount():number{return new Set(this.displayStores.map(store=>store.storeId||store.storeName)).size;}
   protected quoteFeedback = '';
   protected nearbyEnabled = false;
   protected nearbyRadiusKm = 10;

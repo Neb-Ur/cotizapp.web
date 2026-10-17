@@ -1,3 +1,4 @@
+import {DomPortal,DomPortalOutlet} from '@angular/cdk/portal';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import {
   Component,
@@ -36,6 +37,19 @@ export class UiModalComponent implements OnChanges, OnDestroy {
   @Output() closed = new EventEmitter<void>();
 
   @ViewChild('dialog') private dialog?: ElementRef<HTMLElement>;
+  private portalOutlet:DomPortalOutlet|null=null;
+  @ViewChild('overlay') set overlayElement(value:ElementRef<HTMLElement>|undefined){
+    if(!value){this.detachPortal();return;}
+    if(!this.fullscreenMobile||!this.document.defaultView)return;
+    this.detachPortal();
+    // A backdrop-filter or animation on a dashboard panel establishes a fixed
+    // positioning container. Render this wizard at body level instead.
+    const host=this.document.createElement('div');host.className='trovio-modal-portal';
+    this.document.body.appendChild(host);this.portalOutlet=new DomPortalOutlet(host);
+    this.portalOutlet.attach(new DomPortal(value));
+  }
+  private detachPortal(){this.portalOutlet?.dispose();this.portalOutlet=null;}
+
 
   protected readonly titleId = `ui-modal-title-${++modalId}`;
   private previouslyFocused: HTMLElement | null = null;
@@ -57,10 +71,12 @@ export class UiModalComponent implements OnChanges, OnDestroy {
       return;
     }
 
+    this.detachPortal();
     this.restorePageState();
   }
 
   ngOnDestroy(): void {
+    this.detachPortal();
     this.restorePageState();
   }
 
