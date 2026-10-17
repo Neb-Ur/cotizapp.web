@@ -13,6 +13,7 @@ const names = {
   masterProducts: 'productosMaestro',
   masterAttributes: 'atributosProductoMaestro',
   storeProducts: 'productosFerreteria',
+  donorVehicles: 'vehiculosDonantes',
   priceHistory: 'historialPrecios',
   storeAgreements: 'contratosFerreteria',
   projects: 'proyectos',

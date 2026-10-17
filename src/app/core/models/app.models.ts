@@ -468,6 +468,8 @@ export interface ProjectComparisonStrategy {
 }
 
 export interface CatalogProduct {
+  donorVehicleId?: string;
+  donorItemId?: string;
   businessScope?: import('../utils/business-type.util').ProductBusinessScope;
   offerPhotos?: OfferPhoto[];
   partName?: string;

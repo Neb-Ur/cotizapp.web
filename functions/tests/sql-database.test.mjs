@@ -8,7 +8,7 @@ import {replicateDocument} from '../lib/database/replication.js';
 import {useSqlDatabase} from '../lib/database/config.js';
 async function fixture(t,ready=true,includeCondition=true){
  const pg=new PGlite();
- for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql','013-store-reviews.sql','015-offer-condition.sql','016-store-business-type.sql','017-vehicle-reference-catalog.sql','018-offer-vehicle-applications.sql','019-product-vehicle-applications.sql'].filter(file=>includeCondition||file!=='015-offer-condition.sql'))await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
+ for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql','013-store-reviews.sql','015-offer-condition.sql','016-store-business-type.sql','017-vehicle-reference-catalog.sql','018-offer-vehicle-applications.sql','019-product-vehicle-applications.sql','020-donor-vehicles.sql'].filter(file=>includeCondition||file!=='015-offer-condition.sql'))await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
  const pool={connect:async()=>({query:pg.query.bind(pg),release(){}})};
  const db=new PostgresDatabase(pool,ready);
  t.after(()=>pg.close());
@@ -359,6 +359,7 @@ test('offer vehicle associations remain relational, atomic and independent of ol
  await db.collection('familias').doc('family').update({permiteVehiculos:true});
  await db.collection('marcas').doc('brand').update({usos:['fabricante','vehiculo']});
  await db.collection('marcas').doc('other').set({nombre:'Otra marca',nombreNormalizado:'otra marca',usos:['vehiculo']});
+ await db.collection('marcas').doc('brand').update({usos:['fabricante','vehiculo']});
  await db.collection('modelosVehiculo').doc('model').set({marcaId:'brand',nombre:'Modelo',nombreNormalizado:'modelo',activo:true});
  await db.collection('real_productosFerreteria').doc('offer').set({ferreteriaId:'store',productoMaestroId:'product',precio:1500,stock:2});
  const quote={ownerId:'master',name:'Cotización anterior',items:[{productName:'MDF negro 18 mm',quantity:1,productoMaestroId:'product',productoFerreteriaId:'offer'}],createdAt:'2026-10-08T12:00:00Z'};
@@ -501,4 +502,24 @@ test('product business scope persists across unrelated SQL updates and rejects i
  assert.equal((await pg.query("SELECT api_payload->>'ambitoComercial' AS scope FROM findi.products WHERE id='product'")).rows[0].scope,'ambos');
  await assert.rejects(ref.update({ambitoComercial:'todo'}),/PRODUCT_BUSINESS_SCOPE_INVALID/);
  assert.equal((await ref.get()).data().ambitoComercial,'ambos');
+});
+
+test('donor SQL permits separate sourced offers, keeps regular uniqueness and enforces vehicle ownership',async t=>{
+ const {db,pg}=await fixture(t);await catalog(db);
+ await db.collection('real_ferreterias').doc('store').update({tipoNegocio:'desarmaduria'});
+ await db.collection('marcas').doc('brand').update({usos:['fabricante','vehiculo']});
+ await db.collection('modelosVehiculo').doc('model').set({marcaId:'brand',nombre:'KUV100',nombreNormalizado:'kuv100',activo:true});
+ const donor={ferreteriaId:'store',marcaId:'brand',modeloId:'model',anio:2018,estado:'en_desarme',piezas:[],revision:1};
+ for(const id of ['donor-a','donor-b'])await db.collection('real_vehiculosDonantes').doc(id).set(donor);
+ const base={ferreteriaId:'store',productoMaestroId:'product',precio:30000,stock:1,condicion:'usado',activo:true,publicado:true};
+ for(const donorId of ['donor-a','donor-b'])await db.collection('real_productosFerreteria').doc('offer-'+donorId).set({...base,vehiculoDonanteId:donorId,piezaDonanteId:'radiator'});
+ await db.collection('real_productosFerreteria').doc('regular').set(base);
+ await assert.rejects(db.collection('real_productosFerreteria').doc('regular-duplicate').set(base),e=>e.code==='23505');
+ await assert.rejects(db.collection('real_productosFerreteria').doc('donor-duplicate').set({...base,vehiculoDonanteId:'donor-a',piezaDonanteId:'radiator'}),e=>e.code==='23505');
+ await db.collection('usuarios').doc('other-owner').set({rol:'ferreteria',nombre:'Other',correo:'other@example.test'});
+ await db.collection('real_ferreterias').doc('other-store').set({usuarioDuenoId:'other-owner',nombreComercial:'Other',tipoNegocio:'desarmaduria'});
+ await assert.rejects(db.collection('real_productosFerreteria').doc('stolen').set({...base,ferreteriaId:'other-store',vehiculoDonanteId:'donor-a',piezaDonanteId:'x'}),e=>e.code==='23503');
+ await assert.rejects(db.collection('real_vehiculosDonantes').doc('donor-a').delete(),e=>['23503','23001'].includes(e.code));
+ const result=(await pg.query('SELECT donor_vehicle_id,donor_item_id FROM findi.offers WHERE id=$1',['offer-donor-a'])).rows[0];assert.deepEqual(result,{donor_vehicle_id:'donor-a',donor_item_id:'radiator'});
+ assert.equal((await db.collection('real_productosFerreteria').get()).size,3);
 });

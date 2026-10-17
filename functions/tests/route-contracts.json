@@ -553,6 +553,48 @@
   },
   {
     "method": "get",
+    "path": "/ferreterias/:storeId/vehiculos-donantes",
+    "auth": true,
+    "middlewareCount": 4
+  },
+  {
+    "method": "put",
+    "path": "/ferreterias/:storeId/vehiculos-donantes/:vehicleId",
+    "auth": true,
+    "middlewareCount": 4
+  },
+  {
+    "method": "get",
+    "path": "/ferreterias/:storeId/vehiculos-donantes/:vehicleId/candidatos",
+    "auth": true,
+    "middlewareCount": 4
+  },
+  {
+    "method": "post",
+    "path": "/ferreterias/:storeId/vehiculos-donantes/:vehicleId/publicar",
+    "auth": true,
+    "middlewareCount": 4
+  },
+  {
+    "method": "post",
+    "path": "/ferreterias/:storeId/vehiculos-donantes/:vehicleId/piezas/:itemId/fotos",
+    "auth": true,
+    "middlewareCount": 5
+  },
+  {
+    "method": "delete",
+    "path": "/ferreterias/:storeId/vehiculos-donantes/:vehicleId/piezas/:itemId/fotos/:photoId",
+    "auth": true,
+    "middlewareCount": 4
+  },
+  {
+    "method": "delete",
+    "path": "/ferreterias/:storeId/vehiculos-donantes/:vehicleId",
+    "auth": true,
+    "middlewareCount": 4
+  },
+  {
+    "method": "get",
     "path": "/maestros/:ownerId/proyectos",
     "auth": true,
     "middlewareCount": 3

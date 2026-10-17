@@ -1,4 +1,4 @@
-<div class="overlay" *ngIf="open" (click)="onBackdropClick()">
+<div class="overlay" [class.overlay--fullscreen-mobile]="fullscreenMobile" *ngIf="open" (click)="onBackdropClick()">
   <section
     #dialog
     class="dialog"

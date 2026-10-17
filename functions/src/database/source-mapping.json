@@ -262,7 +262,9 @@
       "creadoEn": "offers.created_at",
       "actualizadoEn": "offers.updated_at",
       "asociacionesVehiculos": "offer_vehicle_applications ordered rows",
-      "fotosPublicacion": "offers.api_payload.fotosPublicacion (bounded owned gallery with CDN URLs and storage keys)"
+      "fotosPublicacion": "offers.api_payload.fotosPublicacion (bounded owned gallery with CDN URLs and storage keys)",
+      "vehiculoDonanteId": "offers.donor_vehicle_id",
+      "piezaDonanteId": "offers.donor_item_id"
     },
     "notes": "One offer per store/product. Zero prices and zero stock remain representable; public eligibility excludes zero prices and purchasing eligibility excludes zero stock. Invalid old VAT flags require audit, not blind conversion.",
     "sourceCollection": "real_productosFerreteria",
@@ -368,7 +370,9 @@
       "productoFerreteriaId": "product_requests.resulting_offer_id",
       "notasAdmin": "product_requests.admin_notes",
       "fechaCreacion": "product_requests.created_at",
-      "fechaResolucion": "product_requests.resolved_at"
+      "fechaResolucion": "product_requests.resolved_at",
+      "vehiculoDonanteId": "product_requests.api_payload.vehiculoDonanteId",
+      "piezaDonanteId": "product_requests.api_payload.piezaDonanteId"
     },
     "notes": "",
     "sourceCollection": "real_solicitudesCreacionProducto",
@@ -731,5 +735,32 @@
     "notes": "Vehicle model identity is independent of product_models and references a brand with vehicle use.",
     "sourceCollection": "modelosVehiculo",
     "idStrategy": "Preserve ID; normalized name unique within vehicle brand."
+  },
+  "donorVehicles": {
+    "tables": [
+      "donor_vehicles"
+    ],
+    "fields": {
+      "ferreteriaId": "donor_vehicles.store_id",
+      "marcaId": "donor_vehicles.brand_id",
+      "modeloId": "donor_vehicles.model_id",
+      "anio": "donor_vehicles.year",
+      "estado": "donor_vehicles.status",
+      "creadoEn": "donor_vehicles.created_at",
+      "actualizadoEn": "donor_vehicles.updated_at",
+      "piezas": "donor_vehicles.api_payload.piezas (private drafts, revision and server-owned links)",
+      "motor": "donor_vehicles.api_payload.motor",
+      "patente": "donor_vehicles.api_payload.patente",
+      "vin": "donor_vehicles.api_payload.vin",
+      "transmision": "donor_vehicles.api_payload.transmision",
+      "codigoInterno": "donor_vehicles.api_payload.codigoInterno",
+      "revision": "donor_vehicles.api_payload.revision",
+      "marcaNombre": "donor_vehicles.api_payload.marcaNombre",
+      "modeloNombre": "donor_vehicles.api_payload.modeloNombre",
+      "fotosVehiculo": "donor_vehicles.api_payload.fotosVehiculo"
+    },
+    "notes": "Private inventory. Never included in public catalog snapshots. Donor provenance does not establish fitment.",
+    "sourceCollection": "real_vehiculosDonantes",
+    "idStrategy": "Client UUID for safe retries; scoped ownership checked on every operation."
   }
 }

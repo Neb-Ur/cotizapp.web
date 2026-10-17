@@ -4,8 +4,8 @@ import {ApiClientService} from '../../../core/services/api-client.service';
 import {OfferPhoto} from '../../../core/models/app.models';
 @Component({selector:'app-offer-photo-manager',standalone:true,template:`
  <section aria-label="Fotos de esta publicación" class="offer-photos">
-  <h3>Fotos de esta publicación</h3>
-  <p>Sube fotos propias de la pieza. Los clientes las verán con el nombre de tu local. Se guardan al subirlas.</p>
+  <h3>{{heading}}</h3>
+  <p>{{description}}</p>
   <div class="photo-grid">
    @for(photo of photos;track photo.id){
     <figure><img [src]="photo.thumbnailUrl" alt="Foto de la pieza publicada por tu local" width="160" height="120" loading="lazy" />
@@ -24,12 +24,12 @@ import {OfferPhoto} from '../../../core/models/app.models';
  .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px;margin:12px 0}figure{margin:0;min-width:0}img{width:100%;height:100px;object-fit:contain;background:#fff;border-radius:8px}button{width:100%;min-height:40px;border:1px solid #cbd5df;background:white;border-radius:8px;color:#9f251f;cursor:pointer}button:disabled{opacity:.5;cursor:default}.photo-error{color:#a32222}
  `})
 export class OfferPhotoManagerComponent implements OnInit {
- @Input() storeId='';@Input() offerId='';@Input() photos:OfferPhoto[]=[];@Input() disabled=false;
+ @Input() heading='Fotos de esta publicación';@Input() description='Sube fotos propias de la pieza. Los clientes las verán con el nombre de tu local. Se guardan al subirlas.';@Input() endpoint='';@Input() storeId='';@Input() offerId='';@Input() photos:OfferPhoto[]=[];@Input() disabled=false;
  @Output() photosChange=new EventEmitter<OfferPhoto[]>();@Output() busyChange=new EventEmitter<boolean>();
  protected enabled=signal(false);protected busy=signal(false);protected error=signal('');protected progress=signal('');protected configMessage=signal('Comprobando carga de fotos…');
  constructor(private readonly api:ApiClientService){}
  async ngOnInit(){try{const config=await this.api.get<{imageStorage?:{enabled:boolean}}>('/config');this.enabled.set(config.imageStorage?.enabled===true);this.configMessage.set('La carga de fotos no está disponible en este momento.');}catch{this.configMessage.set('No pudimos comprobar la carga de fotos. Vuelve a abrir el producto para reintentar.');}}
- private path(){return `/ferreterias/${encodeURIComponent(this.storeId)}/catalogo/${encodeURIComponent(this.offerId)}/fotos`;}
+ private path(){return this.endpoint || `/ferreterias/${encodeURIComponent(this.storeId)}/catalogo/${encodeURIComponent(this.offerId)}/fotos`;}
  private setBusy(value:boolean){this.busy.set(value);this.busyChange.emit(value);}
  private message(error:unknown){return error instanceof HttpErrorResponse?error.error?.error?.message||'No se pudo guardar la foto. Intenta nuevamente.':error instanceof Error?error.message:'No se pudo guardar la foto.';}
  protected async upload(event:Event){

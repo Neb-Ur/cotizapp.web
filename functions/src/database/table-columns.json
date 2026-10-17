@@ -4742,5 +4742,93 @@
     "udt_name": "text",
     "is_nullable": "YES",
     "column_default": null
+  },
+  {
+    "table_name": "donor_vehicles",
+    "column_name": "id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "donor_vehicles",
+    "column_name": "store_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "donor_vehicles",
+    "column_name": "brand_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "donor_vehicles",
+    "column_name": "model_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "donor_vehicles",
+    "column_name": "year",
+    "data_type": "integer",
+    "udt_name": "int4",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "donor_vehicles",
+    "column_name": "status",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "donor_vehicles",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "donor_vehicles",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "udt_name": "timestamptz",
+    "is_nullable": "NO",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "donor_vehicles",
+    "column_name": "api_payload",
+    "data_type": "jsonb",
+    "udt_name": "jsonb",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "offers",
+    "column_name": "donor_vehicle_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "offers",
+    "column_name": "donor_item_id",
+    "data_type": "text",
+    "udt_name": "text",
+    "is_nullable": "YES",
+    "column_default": null
   }
 ]

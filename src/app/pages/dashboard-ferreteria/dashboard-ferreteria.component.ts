@@ -1,3 +1,4 @@
+import {DonorInventoryComponent} from '../../shared/components/donor-inventory/donor-inventory.component';
 import { OfferVehicleApplicationsComponent } from '../../shared/components/offer-vehicle-applications/offer-vehicle-applications.component';
 import { OfferPhotoManagerComponent } from '../../shared/components/offer-photo-manager/offer-photo-manager.component';
 import { OfferPhoto } from '../../core/models/app.models';
@@ -34,7 +35,7 @@ import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.c
 import { UiModalComponent } from '../../shared/components/ui-modal/ui-modal.component';
 import { StoreOnboardingComponent } from '../../shared/components/store-onboarding/store-onboarding.component';
 
-type FerreteriaSection = 'inicio' | 'catalogo' | 'cotizaciones' | 'perfil';
+type FerreteriaSection = 'inicio' | 'catalogo' | 'vehiculos' | 'cotizaciones' | 'perfil';
 type CatalogUploadMode = 'buscar' | 'archivo' | 'solicitud';
 
 interface FerreteriaSectionMeta {
@@ -53,7 +54,7 @@ interface MasterCatalogSelectionDraft {
 @Component({
   selector: 'app-dashboard-ferreteria',
   standalone: true,
-  imports: [OfferPhotoManagerComponent, OfferVehicleApplicationsComponent, StoreQuotationVerifierComponent, CommonModule, FormsModule, PaginatorModule, UiModalComponent, UiLoaderComponent, StoreOnboardingComponent],
+  imports: [DonorInventoryComponent, OfferPhotoManagerComponent, OfferVehicleApplicationsComponent, StoreQuotationVerifierComponent, CommonModule, FormsModule, PaginatorModule, UiModalComponent, UiLoaderComponent, StoreOnboardingComponent],
   templateUrl: './dashboard-ferreteria.component.html',
   styleUrl: './dashboard-ferreteria.component.scss'
 })
@@ -71,6 +72,10 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
     { id: 'perfil', label: 'Editar perfil', description: 'Actualiza los datos visibles y la ubicación de tu local.' }
   ];
 
+  protected get supportsDonors():boolean{return ['desarmaduria','repuestos'].includes(this.user?.businessType||'');}
+  protected get visibleSections():FerreteriaSectionMeta[]{return this.supportsDonors?[...this.sections.slice(0,2),{id:'vehiculos',label:'Mis vehículos',description:'Organiza el inventario y publica repuestos por vehículo donante.'},...this.sections.slice(2)]:this.sections;}
+  protected async editDonorOffer(id:string){this.setSection('catalogo');await this.ensureSectionData('catalogo',true);const product=this.catalog.find(p=>p.id===id);if(product)this.openCatalogEdit(product);}
+  protected donorCatalogChanged(){this.loadedSections.delete('catalogo');}
   protected currentSection: FerreteriaSection = 'inicio';
   protected catalogView: 'maintain' | 'add' = 'maintain';
   protected catalog: CatalogProduct[] = [];
@@ -181,7 +186,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
     this.syncProfileDraftFromUser();
     this.querySubscription = this.route.queryParamMap.subscribe(params => {
       const section = params.get('section');
-      const requested = section === 'catalogo' || section === 'perfil' || section === 'cotizaciones' ? section : 'inicio';
+      const requested = section === 'vehiculos' || section === 'catalogo' || section === 'perfil' || section === 'cotizaciones' ? section : 'inicio';
       const action = params.get('accion');
       const mode = action === 'archivo' ? 'archivo' : 'buscar';
       const view = requested === 'catalogo' && (action === 'agregar' || action === 'archivo') ? 'add' : 'maintain';
@@ -213,11 +218,11 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   }
 
   protected get currentSectionLabel(): string {
-    return this.sections.find((section) => section.id === this.currentSection)?.label || '';
+    return this.visibleSections.find((section) => section.id === this.currentSection)?.label || '';
   }
 
   protected get currentSectionDescription(): string {
-    return this.sections.find((section) => section.id === this.currentSection)?.description || '';
+    return this.visibleSections.find((section) => section.id === this.currentSection)?.description || '';
   }
 
   protected get catalogQuotaText(): string {
@@ -559,7 +564,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
         this.relationError = '';
         await this.loadMasterCatalog();
         if(selected.length===1){
-          const added=this.catalog.find(product=>this.masterProductId(product)===this.masterProductId(selected[0].product));
+          const added=this.catalog.find(product=>!product.donorVehicleId && this.masterProductId(product)===this.masterProductId(selected[0].product));
           if(added)this.openCatalogEdit(added);
         }
       } catch (error) {
@@ -844,7 +849,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
         categoryId: this.uploadCategoryId,
         subcategoryId: this.uploadSubcategoryId,
         familyId: this.uploadFamilyId,
-        excludeMasterProductIds: this.catalog.map((product) => product.masterProductId || product.id),
+        excludeMasterProductIds: this.catalog.filter(product=>!product.donorVehicleId).map((product) => product.masterProductId || product.id),
         page: this.masterPage,
         size: this.masterPageSize
       });

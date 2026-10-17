@@ -53,7 +53,7 @@ describe('junkyard catalog user flow',()=>{
  afterEach(()=>fixture?.destroy());
  it('adds an automotive variant, edits used condition and stock, hides it and deletes only the local offer',async()=>{
   expect(root().textContent).toContain('Aun no tienes productos');
-  button('Agregar productos').click();await settle();
+  button('Agregar producto individual').click();await settle();
   const row=root().querySelector('tbody tr')!;expect(row.textContent).toContain(master.nombre);
   const inputs=row.querySelectorAll<HTMLInputElement>('input');
   const condition=row.querySelector('select')!;condition.value='usado';condition.dispatchEvent(new Event('change',{bubbles:true}));

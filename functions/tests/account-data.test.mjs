@@ -62,3 +62,9 @@ test('exports only authored reviews and deletes them without deleting other maes
  assert.equal(counts.storeReviews,1);assert.equal(fixture.get('resenasFerreteria','own'),undefined);
  assert.ok(fixture.get('resenasFerreteria','other'));
 });
+test('private donor exports and deletion follow store ownership and leave another junkyard inventory intact',async t=>{
+ const f=firestoreFixture(t,{...seed,ferreterias:{own:{usuarioDuenoId:'owner'},other:{usuarioDuenoId:'other'}},vehiculosDonantes:{own:{ferreteriaId:'own',vin:'PRIVATE-VIN',piezas:[]},other:{ferreteriaId:'other',vin:'OTHER-VIN',piezas:[]}}});
+ t.mock.method(adminAuth,'getUser',async()=>({emailVerified:false}));
+ const exported=await exportAccountData('owner','');assert.deepEqual(exported.donorVehicles.map(v=>v.id),['own']);assert.equal(exported.donorVehicles[0].vin,'PRIVATE-VIN');
+ const counts=await deleteAccountData('owner','',false);assert.equal(counts.donorVehicles,1);assert.equal(f.get('vehiculosDonantes','own'),undefined);assert.ok(f.get('vehiculosDonantes','other'));
+});

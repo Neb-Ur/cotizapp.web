@@ -122,7 +122,7 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
         .finally(()=>{if(request===this.scopedSearchRequest){this.scopedSearchLoading=false;this.changeDetector.markForCheck();}});
     },250);
   }
-  protected readonly storeNavigation = [
+  private readonly baseStoreNavigation = [
     {label:'Dashboard',icon:'pi pi-chart-bar',section:'inicio'},
     {label:'Mi catálogo',icon:'pi pi-box',section:'catalogo'},
     {label:'Agregar productos',icon:'pi pi-plus',section:'catalogo',accion:'agregar'},
@@ -130,6 +130,10 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
     {label:'Cotizaciones',icon:'pi pi-file-check',section:'cotizaciones'},
     {label:'Mi perfil',icon:'pi pi-user',section:'perfil'}
   ];
+  private readonly donorStoreNavigation=[...this.baseStoreNavigation.slice(0,2),{label:'Mis vehículos',icon:'pi pi-car',section:'vehiculos'},...this.baseStoreNavigation.slice(2)];
+  protected get storeNavigation():Array<{label:string;icon:string;section:string;accion?:string}>{
+    return ['desarmaduria','repuestos'].includes(this.authService.currentUser()?.businessType||'')?this.donorStoreNavigation:this.baseStoreNavigation;
+  }
   protected get isFerreteria(): boolean { return this.authService.currentUser()?.role === 'ferreteria'; }
   protected get isStoreDashboard(): boolean {
     return this.isFerreteria && (this.router.url.startsWith('/dashboard/ferreteria') || this.router.url.startsWith('/cuenta/contrato-ferreteria'));

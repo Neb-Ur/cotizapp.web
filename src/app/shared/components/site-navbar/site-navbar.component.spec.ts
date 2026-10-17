@@ -179,3 +179,7 @@ it('preserves discovery and vehicle context while searching another part from th
  const navigate=vi.spyOn(router,'navigate').mockResolvedValue(true);component.submitSearch();
  expect(navigate).toHaveBeenCalledWith(['/buscar'],{queryParams:{rubro:'repuestos',vehiculoMarcaId:'mahindra',vehiculoModeloId:'kuv',vehiculoAnio:'2018',q:'radiador'}});
 });
+it('shows donor inventory only for junkyards and parts stores',async()=>{
+ const {fixture,router}=await setup();const auth=TestBed.inject(AuthService) as any;vi.spyOn(router,'url','get').mockReturnValue('/dashboard/ferreteria');auth.isLoggedIn=()=>true;
+ for(const businessType of ['desarmaduria','repuestos','ferreteria']){auth.currentUser=()=>({role:'ferreteria',businessType});fixture.detectChanges();const links=Array.from(fixture.nativeElement.querySelectorAll('.store-header-links a')) as HTMLAnchorElement[];expect(links.some(a=>a.textContent?.includes('Mis vehículos'))).toBe(businessType!=='ferreteria');}
+});

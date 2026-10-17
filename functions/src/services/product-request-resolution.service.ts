@@ -1,3 +1,4 @@
+import {matchesDonor} from '../domain/donor-vehicle.js';
 import { db } from '../lib/firebase.js';
 import { COLLECTIONS } from '../lib/collections.js';
 import { normalizeText, numberValue, nowIso } from '../lib/values.js';
@@ -17,6 +18,22 @@ export async function resolveProductRequest(id: string, action: 'aprobar' | 'rec
       && !(action === 'aprobar' && current['estado'] === 'aprobada' && current['productoMaestroSugeridoId'] === masterId)) {
       throw new ProductRequestError('SOLICITUD_ALREADY_RESOLVED', 'La solicitud ya fue resuelta.', 409);
     }
+    // Donor requests resolve a technical identity only. The local reviews and publishes later.
+    if(current['vehiculoDonanteId']){
+      const donorRef=db.collection(COLLECTIONS.donorVehicles).doc(String(current['vehiculoDonanteId']));
+      const donorSnapshot=await tx.get(donorRef),donor=donorSnapshot.data();
+      if(!donor||donor['ferreteriaId']!==current['ferreteriaId'])throw new ProductRequestError('DONOR_NOT_FOUND','Vehículo de origen no encontrado.',404);
+      const pieces=structuredClone(donor['piezas']||[]),part=pieces.find((p:any)=>p.id===current['piezaDonanteId']);
+      if(!part||part.ofertaId)throw new ProductRequestError('DONOR_PART_RESOLVED','La pieza ya fue publicada o no está disponible.',409);
+      if(action==='aprobar'){
+        if(!masterId)throw new ProductRequestError('PRODUCTO_MAESTRO_REQUIRED','Selecciona un producto maestro.',400);
+        const [master,store]=await Promise.all([tx.get(db.collection(COLLECTIONS.masterProducts).doc(masterId)),tx.get(db.collection(COLLECTIONS.stores).doc(String(current['ferreteriaId'])))]);
+        if(!master.exists||master.data()?.['estado']==='inactivo'||!productMatchesBusinessType(master.data()||{},store.data()?.['tipoNegocio'])||!matchesDonor(master.data(),donor))throw new ProductRequestError('DONOR_MASTER_INVALID','Verifica la compatibilidad técnica del maestro con el vehículo.',400);
+        part.productoMaestroId=masterId;part.estado='borrador';part.error='Variante validada. Revisa y publica desde Mis vehículos.';
+      }else{part.estado='borrador';part.error=note||'Solicitud rechazada. Revisa la variante de la pieza.';}
+      const timestamp=nowIso(),patch={estado:action==='aprobar'?'aprobada':'rechazada',usuarioAdminId:adminId,productoMaestroSugeridoId:action==='aprobar'?masterId:null,productoFerreteriaId:null,notasAdmin:note,fechaResolucion:timestamp};
+      tx.update(donorRef,{piezas:pieces,revision:Number(donor['revision']||0)+1,actualizadoEn:timestamp});tx.update(requestRef,patch);return {id,...current,...patch};
+    }
     const timestamp = nowIso();
     let offerId: string | null = null;
     if (action === 'aprobar') {
@@ -30,7 +47,8 @@ export async function resolveProductRequest(id: string, action: 'aprobar' | 'rec
       if (!master.exists || master.data()?.['estado'] === 'inactivo') throw new ProductRequestError('PRODUCTO_MAESTRO_NOT_FOUND', 'El producto maestro no está disponible.', 400);
       if (!store.exists) throw new ProductRequestError('FERRETERIA_NOT_FOUND', 'La ferretería ya no existe.', 404);
       if (!productMatchesBusinessType(master.data() || {}, store.data()?.['tipoNegocio'])) throw new ProductRequestError('STORE_PRODUCT_BUSINESS_TYPE_MISMATCH', 'El producto no corresponde al tipo de negocio del local.', 400);
-      if (offers.empty) {
+      const regularOffers=offers.docs.filter(doc=>!doc.data()?.['vehiculoDonanteId']);
+      if (!regularOffers.length) {
         const offerRef = db.collection(COLLECTIONS.storeProducts).doc();
         const offer = {
           ferreteriaId: current['ferreteriaId'], productoMaestroId: masterId,
@@ -55,7 +73,7 @@ export async function resolveProductRequest(id: string, action: 'aprobar' | 'rec
         offerId = offerRef.id;
       } else {
         // Approving a request must never overwrite an already maintained offer.
-        offerId = offers.docs[0].id;
+        offerId = regularOffers[0].id;
       }
     }
     const patch = {

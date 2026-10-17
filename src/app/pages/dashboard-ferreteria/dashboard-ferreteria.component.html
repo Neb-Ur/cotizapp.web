@@ -35,6 +35,8 @@
       <p class="flush-copy">Puedes preparar tu catálogo, pero tus precios no participan en el comparador hasta que Trovio active la cuenta.</p>
     </article>
 
+    <article class="panel" *ngIf="onboardingReady && supportsDonors && currentSection === 'vehiculos'"><app-donor-inventory [storeId]="user?.ferreteriaId || ''" (editOffer)="editDonorOffer($event)" (changed)="donorCatalogChanged()" /></article>
+
     <article class="panel" *ngIf="onboardingReady && currentSection === 'cotizaciones'"><app-store-quotation-verifier [storeId]="user?.ferreteriaId || ''" /></article>
 
     <article class="panel panel--loading" *ngIf="isInitialLoading || isSectionLoading">
@@ -79,7 +81,8 @@
         </div>
         <div class="form-actions">
           <button type="button" class="secondary" (click)="goToExcelImport()">Actualizar por Excel</button>
-          <button type="button" (click)="openAddProducts('buscar')">Agregar productos</button>
+          <button type="button" class="secondary" *ngIf="supportsDonors" (click)="setSection('vehiculos')">Agregar por vehículo</button>
+          <button type="button" (click)="openAddProducts('buscar')">Agregar producto individual</button>
         </div>
       </div>
 

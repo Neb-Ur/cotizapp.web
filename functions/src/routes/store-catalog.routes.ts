@@ -96,7 +96,7 @@ storeCatalogRouter.post('/ferreterias/:storeId/catalogo', requireAuth, requireRo
     const store = await tx.get(storeRef);
     const existing = await tx.get(db.collection(COLLECTIONS.storeProducts)
       .where('ferreteriaId', '==', req.params.storeId).where('productoMaestroId', '==', masterId));
-    if (!store.exists || !existing.empty) return null;
+    if (!store.exists || existing.docs.some(doc=>!doc.data()?.['vehiculoDonanteId'])) return null;
     const ref = db.collection(COLLECTIONS.storeProducts).doc();
     tx.create(ref, offerPayload);
     tx.update(storeRef, { catalogoActualizadoEn: nowIso() });
@@ -196,7 +196,16 @@ storeCatalogRouter.delete('/ferreterias/:storeId/catalogo/:offerId', requireAuth
     snapshotAnterior: offerEvidence(existing),
     snapshotNuevo: null
   });
-  await db.collection(COLLECTIONS.storeProducts).doc(req.params.offerId).delete();
+  await db.runTransaction(async tx=>{
+    const offerRef=db.collection(COLLECTIONS.storeProducts).doc(req.params.offerId);
+    const current=await tx.get(offerRef);
+    if(!current.exists)return;
+    if(existing.vehiculoDonanteId){
+      const donorRef=db.collection(COLLECTIONS.donorVehicles).doc(existing.vehiculoDonanteId),donor=await tx.get(donorRef);
+      if(donor.exists){const data=donor.data()!;tx.update(donorRef,{piezas:(data['piezas']||[]).map((p:any)=>p.id===existing.piezaDonanteId?{...p,ofertaId:null,estado:'borrador',seleccionada:false,fotosPublicacion:[]}:p),revision:Number(data['revision']||0)+1,actualizadoEn:nowIso()});}
+    }
+    tx.delete(offerRef);
+  });
   const cleanup=await Promise.allSettled((existing.fotosPublicacion||[]).map((photo:any)=>deleteOfferImageFiles(photo)));
   if(cleanup.some(result=>result.status==='rejected'))console.error('OFFER_PHOTOS_DELETE_CLEANUP_FAILED');
   return ok(res, { deleted: true });

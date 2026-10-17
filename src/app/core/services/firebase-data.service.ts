@@ -821,7 +821,7 @@ export class FirebaseDataService {
   }): Promise<{ catalog: CatalogProduct[]; wasUpdate: boolean }> {
     await this.ensureCatalogLoaded(ownerId, true);
     const catalog = this.getCatalog(ownerId);
-    const current = catalog.find((item) => (item.masterProductId || item.id) === masterProductId);
+    const current = catalog.find((item) => !item.donorVehicleId && (item.masterProductId || item.id) === masterProductId);
 
     if (current) {
       const updated = await this.upsertCatalog(ownerId, {
@@ -863,7 +863,7 @@ export class FirebaseDataService {
       }
 
       await this.ensureCatalogLoaded(ownerId, true);
-      const synced = this.getCatalog(ownerId).find((item) => (item.masterProductId || item.id) === masterProductId);
+      const synced = this.getCatalog(ownerId).find((item) => !item.donorVehicleId && (item.masterProductId || item.id) === masterProductId);
       if (!synced) {
         throw error;
       }
@@ -1036,7 +1036,7 @@ export class FirebaseDataService {
       }
 
       try {
-        const catalog = this.getCatalog(ownerId);
+        const catalog = this.getCatalog(ownerId).filter(item=>mode==='update'||!item.donorVehicleId);
         const normalizedSku = this.normalizeBarcode(parsed.sku);
         const normalizedBarcode = this.normalizeBarcode(parsed.barcode);
         const generatedSku = /^imp\d+$/i.test(normalizedSku);
@@ -1080,6 +1080,10 @@ export class FirebaseDataService {
             continue;
           }
 
+          if(existingCatalogProduct.donorVehicleId && !skuMatches.length && !barcodeMatches.length){
+            reportRows.push(failedRow('Las piezas de vehículos donantes se actualizan por SKU o código de barras único.'));
+            continue;
+          }
           const priceChanged = existingCatalogProduct.price !== parsed.price;
           const stockChanged = existingCatalogProduct.stock !== parsed.stock;
 
@@ -2255,6 +2259,8 @@ export class FirebaseDataService {
     const master = row.productoMaestro || {};
 
     const item: CatalogProduct = {
+      donorVehicleId: row.vehiculoDonanteId || undefined,
+      donorItemId: row.piezaDonanteId || undefined,
       offerPhotos: Array.isArray(row.fotosPublicacion) ? row.fotosPublicacion.map((photo:any)=>({id:photo.id,url:photo.url,thumbnailUrl:photo.thumbnailUrl})) : [],
       id: row.id,
       vehicleApplicationsEditable: row.vehiculosEditables === true,

@@ -1,3 +1,4 @@
+import {donorVehiclesRouter} from './donor-vehicles.routes.js';
 import { offerVehiclesRouter } from './offer-vehicles.routes.js';
 import { offerPhotosRouter } from './offer-photos.routes.js';
 import { storeDirectoryRouter } from './store-directory.routes.js';
@@ -42,6 +43,7 @@ mvpRouter.use(masterProductsRouter);
 mvpRouter.use(searchRouter);
 mvpRouter.use(storeDirectoryRouter);
 mvpRouter.use(storeCatalogRouter);
+mvpRouter.use(donorVehiclesRouter);
 mvpRouter.use(projectsRouter);
 mvpRouter.use(storeQuotationsRouter);
 mvpRouter.use(productRequestsRouter);

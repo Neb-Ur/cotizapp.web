@@ -25,6 +25,7 @@ const pageLocks = new WeakMap<Document, number>();
 })
 export class UiModalComponent implements OnChanges, OnDestroy {
   @Input() open = false;
+  @Input() fullscreenMobile = false;
   @Input() title = 'Detalle';
   @Input() eyebrow = '';
   @Input() size: 'sm' | 'md' | 'lg' = 'md';

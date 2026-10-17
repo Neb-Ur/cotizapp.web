@@ -6,7 +6,7 @@ export function firestoreFixture(t, seed = {}) {
   const data = new Map(Object.entries(seed).map(([name, docs]) => [collectionForMode(name), new Map(Object.entries(docs))]));
   let sequence = 0;
   const table = name => { if (!data.has(name)) data.set(name, new Map()); return data.get(name); };
-  const snapshot = ref => ({ id: ref.id, exists: table(ref.name).has(ref.id), data: () => structuredClone(table(ref.name).get(ref.id)) });
+  const snapshot = ref => ({ id: ref.id, ref: typeof ref.update === 'function' ? ref : collection(ref.name).doc(ref.id), exists: table(ref.name).has(ref.id), data: () => structuredClone(table(ref.name).get(ref.id)) });
   const collection = (name, filters = []) => ({
     name,
     doc(id = `generated-${++sequence}`) {
@@ -35,7 +35,8 @@ export function firestoreFixture(t, seed = {}) {
       get: async ref => { if (writing) throw new Error('Transaction read after write'); return ref.get(); },
       create: (ref, value) => { writing = true; operations.push(async () => { if (table(ref.name).has(ref.id)) throw new Error('Already exists'); await ref.set(value); }); },
       set: (ref, value, options) => { writing = true; operations.push(() => ref.set(value, options)); },
-      update: (ref, value) => { writing = true; operations.push(() => ref.update(value)); }
+      update: (ref, value) => { writing = true; operations.push(() => ref.update(value)); },
+      delete: ref => { writing = true; operations.push(() => ref.delete()); }
     });
     for (const operation of operations) await operation();
     return result;
