@@ -136,15 +136,20 @@
             <small *ngIf="!nearbyLocation">Autoriza tu ubicación para ordenar por distancia.</small>
           </div>
 
+          <p class="offer-pilot-notice" *ngIf="hasPilotOffers">Incluye ofertas de prueba</p>
+          <div class="offer-list-heading" *ngIf="displayStores.length"><span>Local y stock</span><span>Precio por unidad</span></div>
           <ul [attr.aria-label]="storeSort === 'distance' ? 'Locales ordenados por distancia' : 'Locales ordenados por precio'">
             <li
               *ngFor="let store of displayStores"
-              [class.selected]="storeSelectionId(store) === selectedStoreId && (store.offerId || '') === selectedOfferId"
+              [class.unavailable]="!isStoreAvailable(store)"
+              [class.selected]="isStoreAvailable(store) && storeSelectionId(store) === selectedStoreId && (store.offerId || '') === selectedOfferId"
               (click)="selectStore(store.storeName, storeSelectionId(store), store.offerId)"
             >
               <div class="store-select">
                 <input
                   type="radio"
+                  [disabled]="!isStoreAvailable(store)"
+                  (click)="$event.stopPropagation()"
                   name="store-selection"
                   [attr.aria-label]="'Seleccionar oferta de ' + store.storeName"
                   [value]="store.offerId || storeSelectionId(store)"
@@ -155,11 +160,14 @@
                   <p class="store-name">
                     {{ store.storeName }}
                   </p>
-                  <p class="store-stock"><span *ngIf="store.condition && store.condition !== 'sin_especificar'">{{ conditionLabel(store.condition) }} · </span>Stock: {{ store.stock }}</p>
+                  <p class="store-stock"><span *ngIf="store.condition && store.condition !== 'sin_especificar'">{{ conditionLabel(store.condition) }} · </span><ng-container *ngIf="store.stock > 0; else outOfStock">Stock: {{ store.stock }}</ng-container><ng-template #outOfStock>Agotado</ng-template></p>
                   <button type="button" class="store-photo-link" *ngIf="hasStorePhotos(store)" (click)="showStorePhotos(store,$event)">Ver fotos de este local</button>
 
                 </div>
               </div>
+              <div class="store-price-block"><strong>{{ formatCurrency(store.price) }}</strong></div>
+              <div class="store-actions">
+                <app-store-whatsapp [phone]="store.whatsappPhone" [storeName]="store.storeName" [productName]="product.productName" [productPath]="product.seoPath" [pilot]="store.pilot === true" />
                   <app-info-panel class="offer-information" [title]="store.storeName" [label]="'Información de la oferta de ' + store.storeName">
                     <p class="offer-validity">
                       Oferta vigente desde {{ store.validFrom | date:'dd/MM/yyyy' }}
@@ -176,10 +184,6 @@
                       >Reportar precio incorrecto</a>
                     </p>
                   </app-info-panel>
-              <div class="store-price-block">
-                <span>Precio unitario</span>
-                <strong>{{ formatCurrency(store.price) }}</strong>
-                <app-store-whatsapp [phone]="store.whatsappPhone" [storeName]="store.storeName" [productName]="product.productName" [productPath]="product.seoPath" [pilot]="store.pilot === true" />
               </div>
             </li>
           </ul>

@@ -237,3 +237,30 @@ it('mixes generic and seller photos, labels the owner over the image and never f
  expect(fixture.nativeElement.querySelector('.gallery-panel').textContent).not.toContain('Imagen genérica');
  fixture.destroy();
 });
+
+describe('continuous offer comparison list',()=>{
+ afterEach(()=>TestBed.resetTestingModule());
+ it('keeps sold-out offers last for both price and distance sorting',async()=>{
+  const {component}=await setup();
+  const offers=[{storeId:'empty',storeName:'Agotado',price:10,stock:0,latitude:0,longitude:0},{storeId:'far',storeName:'Disponible lejos',price:200,stock:3,latitude:0,longitude:1},{storeId:'near',storeName:'Disponible cerca',price:100,stock:2,latitude:0,longitude:.1}];
+  expect(component.buildDisplayStores(offers).map((s:any)=>s.storeId)).toEqual(['near','far','empty']);
+  component.nearbyLocation={latitude:0,longitude:0};component.storeSort='distance';
+  expect(component.buildDisplayStores(offers).map((s:any)=>s.storeId)).toEqual(['near','far','empty']);
+ });
+ it('labels exhausted stock and disables quotation selection while retaining offer information',async()=>{
+  const {fixture,resolvers,offerResolvers,component,api}=await setup();Object.assign(api,{recordOfferEvent:vi.fn()});
+  resolvers[0](detail);await Promise.resolve();
+  offerResolvers[0]({...detail,stores:[{storeId:'empty',offerId:'e',storeName:'Agotado',price:100,stock:0},{storeId:'available',offerId:'a',storeName:'Disponible',price:200,stock:2}]});
+  await Promise.resolve();await Promise.resolve();fixture.detectChanges();
+  await fixture.whenStable();fixture.detectChanges();
+  const rows=fixture.nativeElement.querySelectorAll('.quick-stores li');
+  expect(rows[0].textContent).toContain('Disponible');expect(rows[1].textContent).toContain('Agotado');
+  expect(rows[1].textContent).not.toContain('Stock: 0');expect(rows[1].querySelector('input').disabled).toBe(true);
+  expect(rows[1].querySelector('app-info-panel button').disabled).toBe(false);
+  rows[1].click();expect(component.selectedStore).toBeNull();
+  rows[0].click();expect(component.selectedOfferId).toBe('a');
+  expect(fixture.nativeElement.querySelectorAll('.offer-list-heading').length).toBe(1);
+  expect(Array.from(rows).every((row:any)=>!row.textContent.includes('Precio unitario'))).toBe(true);
+  component.displayStores[0].stock=0;expect(component.selectedStore).toBeNull();expect(component.canShowAddToQuotation).toBe(false);
+ });
+});

@@ -64,6 +64,8 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   protected createQuotationError = '';
   protected isCreatingQuotation = false;
   protected displayStores: ProductStoreOfferRow[] = [];
+  protected get hasPilotOffers():boolean { return this.displayStores.some(store=>store.pilot === true); }
+  protected isStoreAvailable(store:ProductStoreOfferRow):boolean { return store.stock > 0 && store.price > 0; }
   protected get displayedStoreCount():number{return new Set(this.displayStores.map(store=>store.storeId||store.storeName)).size;}
   protected quoteFeedback = '';
   protected nearbyEnabled = false;
@@ -191,7 +193,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
       this.selectedImageIndex=Math.min(this.selectedImageIndex,Math.max(0,this.galleryImages.length-1));
       this.displayStores = this.buildDisplayStores(detail.stores);
       this.seoService.updateProduct(detail);
-      const matches = this.displayStores.filter(store => (requestedStoreId
+      const matches = this.displayStores.filter(store => this.isStoreAvailable(store) && (requestedStoreId
         ? this.storeSelectionId(store) === requestedStoreId : store.storeName === requestedStore)
         && (!requestedOfferId || store.offerId === requestedOfferId));
       if (matches.length === 1) {
@@ -261,7 +263,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   }
 
   protected get selectedStore(): ProductStoreOfferRow | null {
-    return this.displayStores.find((store) => this.storeSelectionId(store) === this.selectedStoreId
+    return this.displayStores.find((store) => this.isStoreAvailable(store) && this.storeSelectionId(store) === this.selectedStoreId
       && (!this.selectedOfferId || store.offerId === this.selectedOfferId)) || null;
   }
 
@@ -297,6 +299,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   }
 
   protected selectStore(storeName: string, storeId: string, offerId = ''): void {
+    if (!this.displayStores.some(store=>this.isStoreAvailable(store) && this.storeSelectionId(store)===storeId && (!offerId || store.offerId===offerId))) return;
     this.selectedStoreName = storeName;
     this.selectedStoreId = storeId;
     this.selectedOfferId = offerId;
@@ -502,6 +505,8 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
       .filter((store) => !this.nearbyEnabled
         || (store.distanceKm !== undefined && store.distanceKm <= this.nearbyRadiusKm))
       .sort((left, right) => {
+        const availability = Number(this.isStoreAvailable(right)) - Number(this.isStoreAvailable(left));
+        if (availability) return availability;
         if (this.storeSort === 'distance') {
           const leftDistance = left.distanceKm ?? Number.POSITIVE_INFINITY;
           const rightDistance = right.distanceKm ?? Number.POSITIVE_INFINITY;

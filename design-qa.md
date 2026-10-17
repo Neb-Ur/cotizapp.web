@@ -59,3 +59,19 @@ El recorrido se repitió contra producción en navegador aislado: elegir Repuest
 - Publicación: el despliegue anterior sigue bloqueado por secretmanager.secrets.get sobre FINDI_SQL_PASSWORD; este cambio no modifica IAM ni la conexión SQL.
 
 final result: blocked
+
+---
+
+# Lista de ofertas: propuesta 1
+
+- Referencia aprobada: /workspace/scratch/6e3a2b6594fe/generated_images/exec-1354ff47-0d24-43f2-8f93-0c416309d2b2.png.
+- Alcance implementado: filas continuas, separadores finos, precio alineado, encabezado de unidad único y acciones WhatsApp/información de 44 px. No se sustituyen fotos, tipografía, logo ni contenido real de los locales.
+- Stock: las ofertas agotadas quedan al final tanto por precio como por distancia. El radio y la selección para cotizar se bloquean sin ocultar la información de la oferta.
+- Responsive: a 380 px o menos las acciones pasan debajo del precio para conservar espacio para el nombre del local. El listado utiliza el scroll de la página.
+- Compilación de producción: aprobada; 9 rutas prerenderizadas.
+- Pruebas funcionales del detalle: 19 aprobadas, incluidas ordenación por disponibilidad, radio agotado deshabilitado, panel informativo accesible y conservación de la oferta exacta para cotizar.
+- Captura de implementación y comparación visual: pendientes. La revisión local continúa bloqueada por la política del navegador registrada arriba; no se intentó eludir esa restricción.
+- Tipografía y activos: se reutilizan los componentes actuales. Ritmo, colores y contenido se ajustaron al alcance aprobado, pero su fidelidad renderizada no está verificada sin captura.
+- Consola y comparación visual normalizada: pendientes del mismo bloqueo; no se declara una revisión visual aprobada.
+
+final result: blocked
