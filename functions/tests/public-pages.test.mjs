@@ -9,7 +9,7 @@ function response() {return {statusCode:200,headers:{},set(k,v){this.headers[k]=
 function handler(path){return publicPagesRouter.stack.find(layer=>layer.route?.path===path).route.stack.at(-1).handle;}
 test('legacy product routes preserve quotation parameters and product metadata uses the product image',async t=>{
  const updatedAt=new Date().toISOString();
- firestoreFixture(t,{productosMaestro:{master:product},categorias:{},subcategorias:{},familias:{},atributosProductoMaestro:{},definicionesAtributoFamilia:{},cachePublico:{meta:{dirty:false,policy:`data-modes-v7:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,version:'fixture',updatedAt,taxonomyDocId:'taxonomy',offerDocIds:['offers'],productDocIds:['products']},taxonomy:{categories:[],subcategories:[],families:[]},offers:{items:[{productoMaestroId:'master',storePilot:true,price:100,stock:1}]},products:{items:[product]}}});
+ firestoreFixture(t,{productosMaestro:{master:product},categorias:{},subcategorias:{},familias:{},atributosProductoMaestro:{},definicionesAtributoFamilia:{},cachePublico:{meta:{dirty:false,policy:`data-modes-v8:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,version:'fixture',updatedAt,taxonomyDocId:'taxonomy',offerDocIds:['offers'],productDocIds:['products']},taxonomy:{categories:[],subcategories:[],families:[]},offers:{items:[{productoMaestroId:'master',storePilot:true,price:100,stock:1},{productoMaestroId:'master',offerPilot:true,price:50,stock:1}]},products:{items:[product]}}});
  const res=response();
  await handler('/producto')({path:'/producto',originalUrl:'/producto?product=Cemento+gris+25+kg&ferreteriaId=south&cantidad=3&crearCotizacion=1'},res,error=>{throw error;});
  assert.equal(res.statusCode,302);

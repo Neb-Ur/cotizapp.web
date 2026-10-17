@@ -74,6 +74,7 @@ export async function buildSearchRows(source?: any[][], asOf?:number): Promise<S
         storePhone: normalizeText(store.telefonoContactoPublico || owner.telefono),
         storeWhatsappPhone: normalizeText(store.telefonoContactoPublico),
         storePilot: store.esPrueba === true,
+        offerPilot: offer.esPrueba === true,
         price,
         priceUpdatedAt: normalizeText(offer.actualizadoEn || offer.creadoEn),
         includesVat: true as boolean,

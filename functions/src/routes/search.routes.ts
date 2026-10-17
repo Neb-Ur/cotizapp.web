@@ -163,7 +163,7 @@ searchRouter.get('/productos/detalle', async (req, res) => {
     email: item.storeEmail,
     phone: item.storePhone,
     whatsappPhone: item.storeWhatsappPhone || '',
-    pilot: item.storePilot === true,
+    pilot: item.storePilot === true || item.offerPilot === true,
     price: item.price,
     priceUpdatedAt: item.priceUpdatedAt,
     includesVat: item.includesVat,

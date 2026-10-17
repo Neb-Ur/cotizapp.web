@@ -40,7 +40,7 @@ publicPagesRouter.get('/productos/:slug', async (req, res, next) => {
     const landings = catalogLandings(await getStaticCatalog());
     const related = landings.filter(p => p.products.some(item=>item.id===product.id));
     const snapshot = await getPublicCatalogSnapshot();
-    const offers = snapshot.searchRows.filter(row => row.productoMaestroId === product.id && !row.storePilot && Number(row.price)>0 && Number(row.stock)>0);
+    const offers = snapshot.searchRows.filter(row => row.productoMaestroId === product.id && !row.storePilot && !row.offerPilot && Number(row.price)>0 && Number(row.stock)>0);
     const schema = { '@context':'https://schema.org', '@graph':[
       {'@type':'Product', name:product.nombre, description, url:`${SITE_URL}${req.path}`,
         ...(brandIdentity(product.marca) ? {brand:{'@type':'Brand',name:product.marca}} : {}),
