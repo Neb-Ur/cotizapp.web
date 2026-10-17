@@ -215,19 +215,9 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.catalogError = '';
 
     try {
-      const initialLoad = this.dataService.refreshPublicCatalogSection();
       this.syncCatalogView();
-      void this.dataService.getHomeCatalogPreview().then(preview=>{
-        this.preview=preview;
-        this.syncCatalogView();
-        if(this.featuredProducts().length)this.catalogLoading.set(false);
-      }).catch(()=>undefined);
-      await initialLoad;
+      this.preview = await this.dataService.getHomeCatalogPreview();
       this.syncCatalogView();
-
-      void this.dataService.refreshPublicCatalogEnhancements()
-        .then(() => this.syncCatalogView())
-        .catch(() => undefined);
     } catch {
       this.catalogError = 'No fue posible cargar los productos disponibles.';
     } finally {

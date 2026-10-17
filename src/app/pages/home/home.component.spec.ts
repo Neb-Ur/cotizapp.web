@@ -15,18 +15,16 @@ describe('Home catalog loading',()=>{
   expect(fixture.nativeElement.querySelector('.product-skeletons')).toBeNull();
   finish();await fixture.whenStable();expect(fixture.nativeElement.querySelector('.product-skeletons')).toBeNull();
  });
- it('replaces the initial skeleton after async data without a user interaction',async()=>{
-  let available=false;let finish!:()=>void;
-  TestBed.configureTestingModule({imports:[HomeComponent],providers:[provideRouter([]),{provide:FirebaseDataService,useValue:{refreshPublicCatalogSection:()=>new Promise<void>(resolve=>finish=()=>{available=true;resolve();}),refreshPublicCatalogEnhancements:async()=>{},getHomeCatalogPreview:async()=>({products:[],categories:[]}),getPopularProductRows:()=>available?[product]:[],getCategoryOptions:()=>[],formatCurrency:()=>''}}]});
-  const fixture=TestBed.createComponent(HomeComponent);fixture.autoDetectChanges();expect(fixture.nativeElement.querySelector('.product-skeletons')).not.toBeNull();
-  finish();await fixture.whenStable();expect(fixture.nativeElement.querySelector('.product-skeletons')).toBeNull();expect(fixture.nativeElement.querySelectorAll('.home-product-card').length).toBe(1);
- });
- it('shows the small home preview while the full catalog is still downloading',async()=>{
-  let finish!:()=>void;
-  TestBed.configureTestingModule({imports:[HomeComponent],providers:[provideRouter([]),{provide:FirebaseDataService,useValue:{refreshPublicCatalogSection:()=>new Promise<void>(resolve=>finish=resolve),refreshPublicCatalogEnhancements:async()=>{},getHomeCatalogPreview:async()=>({products:[product],categories:[]}),getPopularProductRows:()=>[],getCategoryOptions:()=>[],formatCurrency:()=>''}}]});
-  const fixture=TestBed.createComponent(HomeComponent);fixture.autoDetectChanges();await fixture.whenStable();
-  expect(fixture.nativeElement.querySelector('.product-skeletons')).toBeNull();expect(fixture.nativeElement.querySelectorAll('.home-product-card').length).toBe(1);
-  finish();await fixture.whenStable();
+ it('loads only the small preview and never downloads the entire catalog',async()=>{
+  let finish!: (value:any)=>void;
+  const data={refreshPublicCatalogSection:vi.fn(),refreshPublicCatalogEnhancements:vi.fn(),getHomeCatalogPreview:vi.fn(()=>new Promise(resolve=>finish=resolve)),getPopularProductRows:()=>[],getCategoryOptions:()=>[],formatCurrency:()=>''};
+  TestBed.configureTestingModule({imports:[HomeComponent],providers:[provideRouter([]),{provide:FirebaseDataService,useValue:data}]});
+  const fixture=TestBed.createComponent(HomeComponent);fixture.autoDetectChanges();
+  expect(fixture.nativeElement.querySelector('.product-skeletons')).not.toBeNull();
+  finish({products:[product],categories:[]});await fixture.whenStable();
+  expect(fixture.nativeElement.querySelectorAll('.home-product-card').length).toBe(1);
+  expect(fixture.nativeElement.querySelector('.product-skeletons')).toBeNull();
+  expect(data.refreshPublicCatalogSection).not.toHaveBeenCalled();expect(data.refreshPublicCatalogEnhancements).not.toHaveBeenCalled();
  });
 });
 

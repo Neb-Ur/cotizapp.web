@@ -7,7 +7,7 @@ import { SeoService } from '../../core/services/seo.service';
 import { CatalogSearchComponent } from '../catalog-search/catalog-search.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 export interface CatalogLandingView {
-  path: string; name: string; title: string; description: string; count: number;
+  index?: boolean; path: string; name: string; title: string; description: string; count: number;
   filters: Record<string,string>; related: {path:string;name:string}[];
 }
 @Component({

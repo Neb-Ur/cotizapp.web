@@ -23,6 +23,8 @@ const configuredOrigins = (process.env['ALLOWED_ORIGINS'] || '')
   .map((origin) => origin.trim())
   .filter(Boolean);
 const allowedOrigins = new Set([
+  'https://trovio.cl',
+  'https://www.trovio.cl',
   'https://cotizapp-d71c8.web.app',
   'https://cotizapp-d71c8.firebaseapp.com',
   'http://localhost:4200',

@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { brandIdentity } from './brand-identity.js';
-export const SITE_URL = 'https://cotizapp-d71c8.web.app';
+export const SITE_URL = 'https://trovio.cl';
 export const seoSlug = (value: unknown) => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 120);
 export function seoProductSlug(product:any, products:any[]):string {
   const slug=seoSlug(product.nombre);
@@ -17,7 +17,7 @@ export function productSeoSlugIndex(products:any[]):Map<string,string> {
 }
 export interface CatalogLanding {
   path: string; name: string; title: string; description: string;
-  filters: Record<string, string>; products: any[];
+  filters: Record<string, string>; products: any[]; index: boolean;
 }
 export function catalogLandings([allProducts, categories, subcategories, families, brands]: any[][]): CatalogLanding[] {
   const products = allProducts.filter(p => p.estado !== 'inactivo');
@@ -31,7 +31,7 @@ export function catalogLandings([allProducts, categories, subcategories, familie
     const description = kind === 'marcas'
       ? `Explora productos ${name} en Trovio: características, formatos y ofertas de locales de Chile cuando estén disponibles.`
       : `Encuentra ${name.toLowerCase()} en Trovio. Revisa características, marcas y formatos y compara ofertas de locales de Chile cuando estén disponibles.`;
-    result.push({path: uniquePath, name, title: `${name}: productos y precios en Chile | Trovio`, description, filters, products:items});
+    result.push({path: uniquePath, name, title: `${name}: productos y precios en Chile | Trovio`, description, filters, products:items, index:items.some(p=>p.esPrueba !== true)});
   }
   for (const category of categories) add('categorias', category.nombre, {categoria:category.id}, products.filter(p=>p.categoriaId===category.id));
   for (const family of families) {

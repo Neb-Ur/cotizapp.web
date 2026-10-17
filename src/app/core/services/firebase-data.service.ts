@@ -1640,6 +1640,7 @@ export class FirebaseDataService {
       }));
 
       return {
+        isTestProduct: master.esPrueba === true,
         storePhotos: Array.isArray(raw.storePhotos) ? raw.storePhotos : [],
         vehicleCompatibility: master.compatibilidadVehiculos || [],
         compatibilityReference: master.compatibilidadReferencial === true,

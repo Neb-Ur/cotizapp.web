@@ -49,7 +49,7 @@ test('switching pilot visibility filters directory, offers, static search, detai
    const detail=response();await handler(masterProductsRouter,'/productos-maestro/:id')({params:{id:'pilot'}},detail);assert.equal(detail.statusCode,enabled?200:404);
    const search=response();await handler(searchRouter,'/busqueda')({query:{vista:'productos',query:'Pieza de prueba'}},search);assert.equal(search.body.data.total,enabled?1:0);
    const index=response();await handler(publicCatalogRouter,'/catalogo-busqueda')({query:{}},index);assert.equal(index.body.data.products.length,enabled?2:1);
-   const sitemap=response();await handler(publicCatalogRouter,'/sitemap.xml')({},sitemap);assert.equal(sitemap.body.includes('/productos/pieza-de-prueba'),enabled);
+   const sitemap=response();await handler(publicCatalogRouter,'/sitemap.xml')({},sitemap);assert.equal(sitemap.body.includes('/productos/pieza-de-prueba'),false);
    const admin=response();await handler(masterProductsRouter,'/admin/productos-maestro/paginado')({query:{},authRole:'admin'},admin);assert.equal(admin.body.data.total,2);
   }
  }finally{if(before===undefined)delete process.env.PILOT_STORES_ENABLED;else process.env.PILOT_STORES_ENABLED=before;}

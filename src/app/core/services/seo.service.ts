@@ -12,11 +12,11 @@ interface SeoPage {
   index?: boolean;
 }
 
-const SITE_URL = 'https://cotizapp-d71c8.web.app';
+const SITE_URL = 'https://trovio.cl';
 const STRUCTURED_DATA_ID = 'cotizapp-page-structured-data';
 const DEFAULT_PAGE: SeoPage = {
-  title: 'Trovio | Encuentra productos y compara precios',
-  description: 'Encuentra productos, compara precios y disponibilidad entre locales y crea tu cotización.'
+  title: 'Repuestos, herramientas y materiales en Chile | Trovio',
+  description: 'Compara repuestos automotrices, herramientas y materiales en Chile. Busca por marca, modelo y año, consulta disponibilidad y cotiza con locales.'
 };
 
 const PAGE_SEO: Record<string, SeoPage> = {
@@ -100,9 +100,10 @@ export class SeoService {
     const path = product.seoPath || productPath(product.productName);
     const description = this.productDescription(product);
     const image = this.validImage(product.imageUrl) ? product.imageUrl : undefined;
+    const realOffers = product.stores.filter(store => !store.pilot && store.price > 0 && store.stock > 0);
     const page: SeoPage = {
       title: `${product.productName}: precios en locales | Trovio`,
-      index: true,
+      index: product.isTestProduct !== true,
       description
     };
 
@@ -117,12 +118,12 @@ export class SeoService {
         sku: product.sku || undefined,
         brand: product.brand && !['por especificar','sin marca','generico','sin especificar'].includes(product.brand.toLowerCase()) ? { '@type': 'Brand', name: product.brand } : undefined,
         category: [product.categoryName, product.subcategoryName, product.familyName].filter(Boolean).join(' > '),
-        offers: product.stores.length > 0 ? {
+        offers: !product.isTestProduct && realOffers.length > 0 ? {
           '@type': 'AggregateOffer',
           priceCurrency: 'CLP',
-          lowPrice: Math.min(...product.stores.map((store) => store.price)),
-          highPrice: Math.max(...product.stores.map((store) => store.price)),
-          offerCount: product.stores.length,
+          lowPrice: Math.min(...realOffers.map((store) => store.price)),
+          highPrice: Math.max(...realOffers.map((store) => store.price)),
+          offerCount: realOffers.length,
           url: `${SITE_URL}${path}`
         } : undefined
       }, {
@@ -136,8 +137,8 @@ export class SeoService {
     });
   }
 
-  updateCollection(page: {title:string;description:string;path:string;name:string}): void {
-    this.applyPage({...page,index:true},page.path);
+  updateCollection(page: {title:string;description:string;path:string;name:string;index?:boolean}): void {
+    this.applyPage({...page,index:page.index !== false},page.path);
     this.setStructuredData({'@context':'https://schema.org','@graph':[
       {'@type':'CollectionPage',name:page.name,description:page.description,url:`${SITE_URL}${page.path}`},
       {'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Inicio',item:SITE_URL},{'@type':'ListItem',position:2,name:page.name,item:`${SITE_URL}${page.path}`}]}]});

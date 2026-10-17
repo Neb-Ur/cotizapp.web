@@ -1,4 +1,4 @@
-export const EMAIL_SITE_URL = 'https://cotizapp-d71c8.web.app';
+export const EMAIL_SITE_URL = 'https://trovio.cl';
 
 export interface EmailContent {
   subject: string;

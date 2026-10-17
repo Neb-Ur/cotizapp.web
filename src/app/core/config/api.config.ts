@@ -1,6 +1,6 @@
 const DEFAULT_API_BASE_URL = '/api';
 // Node SSR cannot resolve a relative browser URL through the development proxy.
-const SERVER_API_BASE_URL = 'https://cotizapp-d71c8.web.app/api';
+const SERVER_API_BASE_URL = 'https://trovio.cl/api';
 
 declare global {
   interface Window {

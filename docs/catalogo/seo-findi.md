@@ -1,4 +1,4 @@
-# SEO de Findi
+# SEO de Trovio
 
 El catálogo base se indexa aunque todavía no tenga ofertas de ferreterías. El sitemap incluye productos activos y páginas no vacías de categorías, familias y marcas; excluye fichas inactivas y marcas genéricas. No se inventan fechas de modificación, precios ni valoraciones.
 
@@ -10,7 +10,7 @@ Las páginas privadas y de autenticación mantienen noindex. Las rutas inexisten
 
 ## Operación pendiente fuera del código
 
-Verificar la propiedad del dominio en Google Search Console y enviar `https://cotizapp-d71c8.web.app/sitemap.xml`. Revisar cobertura de indexación, consultas y Core Web Vitals con datos reales. Si se adopta un dominio propio, actualizar SITE_URL en frontend/backend/index/robots y redirigir permanentemente el dominio anterior. No hay credenciales de Search Console configuradas en este proyecto; no se ha enviado el sitemap desde esta implementación.
+Verificar la propiedad del dominio en Google Search Console y enviar `https://trovio.cl/sitemap.xml`. Revisar cobertura de indexación, consultas y Core Web Vitals con datos reales. El dominio canónico es trovio.cl. El seguimiento de la migración y las tareas de DNS/Search Console se detallan en [SEO de trovio.cl](seo-trovio-2026-10-17.md). No hay credenciales de Search Console configuradas en este proyecto; no se ha enviado el sitemap desde esta implementación.
 
 Agregar descripciones técnicas originales y comprobables desde el admin, y fotos con derechos de uso cuando estén disponibles. El marcado Product sin ofertas ni reseñas puede ser indexado como contenido, pero no reúne por sí solo todos los requisitos de un resultado enriquecido con precio. No se prometen posiciones ni plazos de indexación.
 

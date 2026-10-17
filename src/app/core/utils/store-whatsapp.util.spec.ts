@@ -6,7 +6,7 @@ it('normalizes authorized numbers and includes product, local, canonical link an
   expect(url.pathname).toBe('/56991036780');
   const text=url.searchParams.get('text')!;
   expect(text).toContain('Desarmaduría & Taller');expect(text).toContain('mensaje de prueba');expect(text).toContain('Foco Mahindra KUV 100 2016–2020');
-  expect(text).toContain('https://cotizapp-d71c8.web.app/productos/foco-kuv');expect(text).not.toContain('foo=bar');
+  expect(text).toContain('https://trovio.cl/productos/foco-kuv');expect(text).not.toContain('foo=bar');
  }
 });
 it('uses a generic draft without invented product names and rejects invalid phones',()=>{
@@ -16,5 +16,5 @@ it('uses a generic draft without invented product names and rejects invalid phon
 });
 it('ignores external product links',()=>{
  const url=new URL(storeWhatsappUrl('+56991036780','Local','Foco','https://example.invalid')!);
- expect(url.searchParams.get('text')).toContain('https://cotizapp-d71c8.web.app/productos/');
+ expect(url.searchParams.get('text')).toContain('https://trovio.cl/productos/');
 });

@@ -9,7 +9,7 @@ import { getPublicCatalogMetadata, getPublicCatalogSnapshot } from '../lib/publi
 
 export const publicCatalogRouter = Router();
 
-const SITE_URL = 'https://cotizapp-d71c8.web.app';
+const SITE_URL = 'https://trovio.cl';
 const STATIC_SITEMAP_PATHS = [
   '',
   '/buscar',
@@ -43,9 +43,9 @@ function xmlText(value: string): string {
 
 publicCatalogRouter.get('/sitemap.xml', async (_req, res) => {
   const catalog = await getStaticCatalog();
-  const productPaths = catalog[0].filter(p => p.estado !== 'inactivo')
+  const productPaths = catalog[0].filter(p => p.estado !== 'inactivo' && p.esPrueba !== true)
     .map(p => `/productos/${seoProductSlug(p,catalog[0])}`).filter(path => path !== '/productos/');
-  const paths = [...new Set([...STATIC_SITEMAP_PATHS, ...productPaths, ...catalogLandings(catalog).map(p=>p.path)])];
+  const paths = [...new Set([...STATIC_SITEMAP_PATHS, ...productPaths, ...catalogLandings(catalog).filter(p=>p.index).map(p=>p.path)])];
   const urls = paths.map((path) => [
     '  <url>',
     `    <loc>${xmlText(`${SITE_URL}${path}`)}</loc>`,

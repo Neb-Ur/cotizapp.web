@@ -6,7 +6,7 @@ import { publicCatalogRouter } from '../lib/routes/public-catalog.routes.js';
 import { publicPagesRouter } from '../lib/routes/public-pages.routes.js';
 import { firestoreFixture } from './helpers/firestore-fixture.mjs';
 const brand=brandIdentity('Stanley');
-const products=[{id:'tool',nombre:'Destornillador Stanley',categoriaId:'c',subcategoriaId:'s',familiaId:'f',marcaId:brand.id,marca:'Stanley'},{id:'off',nombre:'Inactivo',estado:'inactivo',familiaId:'f'}];
+const products=[{id:'tool',nombre:'Destornillador Stanley',categoriaId:'c',subcategoriaId:'s',familiaId:'f',marcaId:brand.id,marca:'Stanley'},{id:'demo',nombre:'Producto ficticio',esPrueba:true,categoriaId:'demo-category'},{id:'off',nombre:'Inactivo',estado:'inactivo',familiaId:'f'}];
 const catalog=[products,[{id:'c',nombre:'Herramientas'}],[{id:'s',nombre:'Manuales',categoriaId:'c'}],[{id:'f',nombre:'Destornilladores',subcategoriaId:'s'},{id:'empty',nombre:'Vacía'}],[brand,{id:'generic',nombre:'Por especificar'}]];
 function response(){return {statusCode:200,headers:{},set(k,v){this.headers[k]=v;return this;},status(n){this.statusCode=n;return this;},type(){return this;},send(body){this.body=body;return this;},json(body){this.body=body;return this;}};}
 function handler(router,path){return router.stack.find(l=>JSON.stringify(l.route?.path)===JSON.stringify(path)).route.stack.at(-1).handle;}
@@ -18,9 +18,9 @@ test('landing pages include only published products and useful families/brands',
 });
 test('sitemap includes base products with no offers; collection HTML has crawlable links, canonical and real missing-page status',async t=>{
  firestoreFixture(t,{productosMaestro:Object.fromEntries(products.map(p=>[p.id,p])),categorias:{c:catalog[1][0]},subcategorias:{s:catalog[2][0]},familias:{f:catalog[3][0],empty:catalog[3][1]},marcas:{[brand.id]:brand},cachePublico:{'catalog-revision':{revision:99}}});
- const map=response();await handler(publicCatalogRouter,'/sitemap.xml')({},map);assert.match(map.body,/\/productos\/destornillador-stanley/);assert.match(map.body,/\/familias\/destornilladores/);assert.match(map.body,/\/marcas\/stanley/);assert.doesNotMatch(map.body,/inactivo|vacia|<lastmod>/);
+ const map=response();await handler(publicCatalogRouter,'/sitemap.xml')({},map);assert.match(map.body,/\/productos\/destornillador-stanley/);assert.match(map.body,/\/familias\/destornilladores/);assert.match(map.body,/\/marcas\/stanley/);assert.doesNotMatch(map.body,/inactivo|vacia|producto-ficticio|<lastmod>/);
  const h=handler(publicPagesRouter,['/:kind(categorias|familias|marcas)/:slug']);
- const page=response();await h({path:'/familias/destornilladores'},page,e=>{throw e;});assert.equal(page.statusCode,200);assert.match(page.body,/<h1>Destornilladores<\/h1>/);assert.match(page.body,/href="\/productos\/destornillador-stanley"/);assert.match(page.body,/CollectionPage/);assert.match(page.body,/rel="canonical" href="https:\/\/cotizapp-d71c8.web.app\/familias\/destornilladores"/);
+ const page=response();await h({path:'/familias/destornilladores'},page,e=>{throw e;});assert.equal(page.statusCode,200);assert.match(page.body,/<h1>Destornilladores<\/h1>/);assert.match(page.body,/href="\/productos\/destornillador-stanley"/);assert.match(page.body,/CollectionPage/);assert.match(page.body,/rel="canonical" href="https:\/\/trovio.cl\/familias\/destornilladores"/);
  const missing=response();await h({path:'/familias/vacia'},missing,e=>{throw e;});assert.equal(missing.statusCode,404);assert.equal(missing.headers['X-Robots-Tag'],'noindex');
 });
 
@@ -40,4 +40,9 @@ test('batch search slugs preserve the canonical identity of duplicate product na
  const slugs=productSeoSlugIndex(products);
  for(const product of products.filter(p=>p.estado!=='inactivo'))assert.equal(slugs.get(product.id),seoProductSlug(product,products));
  assert.equal(slugs.has('hidden'),false);
+});
+
+test('collections with only test products are discoverable in pilot UI but not indexable',()=>{
+ const pages=catalogLandings([[{id:'demo',nombre:'Pieza demo',categoriaId:'c',esPrueba:true}],catalog[1],[],[],[]]);
+ assert.equal(pages.length,1);assert.equal(pages[0].index,false);
 });

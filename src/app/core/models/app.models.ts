@@ -356,6 +356,7 @@ export interface ProductGalleryPhoto {
 }
 
 export interface ProductDetailView {
+  isTestProduct?: boolean;
   storePhotos?: ProductGalleryPhoto[];
   vehicleCompatibility?: import('../services/vehicle-catalog.service').VehicleApplication[];
   compatibilityReference?: boolean;

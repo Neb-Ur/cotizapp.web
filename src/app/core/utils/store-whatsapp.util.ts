@@ -13,7 +13,7 @@ export function storeWhatsappUrl(phone: string | undefined, storeName: string, p
     ? `${greeting} Quisiera saber si tienen disponible el producto «${product}». ¿Me pueden confirmar el precio y cómo comprarlo?`
     : `${greeting} Quisiera consultar por la disponibilidad de un producto. ¿Me pueden ayudar?`;
   if (product) {
-    const canonical = new URL('/productos/' + productSlug(product), 'https://cotizapp-d71c8.web.app');
+    const canonical = new URL('/productos/' + productSlug(product), 'https://trovio.cl');
     if (productPath.startsWith('/productos/')) canonical.pathname = productPath.split(/[?#]/)[0];
     message += '\n' + canonical.href;
   }
