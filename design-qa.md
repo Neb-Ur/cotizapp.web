@@ -42,3 +42,20 @@ Checklist final: composición comparada; ajustes P2 recapturados; imágenes e ic
 Hosting y API publicados. Se comprobó que la portada entrega el bundle compilado y probado. La API devuelve rubros disjuntos: 782 materiales, 174 herramientas y 170 repuestos, sumando los 1.126 maestros activos. Se conservan 4.038 ofertas. Radiador KUV100 para 2018 selecciona 2016–2019 y para 2021 selecciona 2020–2023; un rubro desconocido devuelve 400.
 
 El recorrido se repitió contra producción en navegador aislado: elegir Repuestos/Mahindra/KUV100/2018, escribir «radiador», comprobar la sugerencia y navegar a resultados manteniendo los filtros. Campo móvil visible, sin errores JavaScript. [Captura de producción](docs/diseno/portada-busqueda/mobile-produccion.png). Smoke de catálogo, HTML inicial de producto, canonical, JSON-LD, noindex privado y 404 real aprobado.
+
+---
+
+# Footer Trovio: revisión del cambio aprobado
+
+- Referencia: generated_images/exec-6ac9fd81-ad98-4952-9bd3-574a4fd6e041.png (imagen aprobada en la conversación).
+- Alcance: footer existente; fondo #e6edf3 de borde a borde, sin margen exterior, borde, radio ni sombra. Se conserva el contenido, logo, tipografía y navegación actuales.
+- Móvil: dos columnas existentes, padding interno de 16 px y espacio inferior para los controles flotantes.
+- Escritorio: contenido centrado hasta 1240 px, fondo extendido al ancho de la página.
+- Compilación: npm run build aprobado; 9 rutas prerenderizadas.
+- Captura de implementación: no obtenida. La vista previa de 390 px no logró cargar y el navegador rechazó la siguiente observación por su política de URL/protocolo. No se intentó eludir el bloqueo.
+- Comparación visual de tipografía, ritmo, colores, activos y contenido: pendiente de una captura renderizada válida; no se declara fidelidad visual verificada por inspección de código.
+- Interacciones: enlaces y configuración de cookies conservados sin modificaciones; no se verificaron en la vista previa bloqueada.
+- Consola del navegador: no verificada por el mismo bloqueo.
+- Publicación: el despliegue anterior sigue bloqueado por secretmanager.secrets.get sobre FINDI_SQL_PASSWORD; este cambio no modifica IAM ni la conexión SQL.
+
+final result: blocked
