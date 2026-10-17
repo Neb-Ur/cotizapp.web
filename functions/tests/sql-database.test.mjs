@@ -8,7 +8,7 @@ import {replicateDocument} from '../lib/database/replication.js';
 import {useSqlDatabase} from '../lib/database/config.js';
 async function fixture(t,ready=true,includeCondition=true){
  const pg=new PGlite();
- for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql','013-store-reviews.sql','015-offer-condition.sql','016-store-business-type.sql','017-vehicle-reference-catalog.sql','018-offer-vehicle-applications.sql','019-product-vehicle-applications.sql','020-donor-vehicles.sql'].filter(file=>includeCondition||file!=='015-offer-condition.sql'))await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
+ for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql','013-store-reviews.sql','015-offer-condition.sql','016-store-business-type.sql','017-vehicle-reference-catalog.sql','018-offer-vehicle-applications.sql','019-product-vehicle-applications.sql','020-donor-vehicles.sql','021-donor-trigger-search-path.sql'].filter(file=>includeCondition||file!=='015-offer-condition.sql'))await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
  const pool={connect:async()=>({query:pg.query.bind(pg),release(){}})};
  const db=new PostgresDatabase(pool,ready);
  t.after(()=>pg.close());
@@ -511,6 +511,7 @@ test('donor SQL permits separate sourced offers, keeps regular uniqueness and en
  await db.collection('modelosVehiculo').doc('model').set({marcaId:'brand',nombre:'KUV100',nombreNormalizado:'kuv100',activo:true});
  const donor={ferreteriaId:'store',marcaId:'brand',modeloId:'model',anio:2018,estado:'en_desarme',piezas:[],revision:1};
  for(const id of ['donor-a','donor-b'])await db.collection('real_vehiculosDonantes').doc(id).set(donor);
+ await pg.query('SET search_path=public,pg_catalog'); // Match the runtime connection instead of the migration session.
  const base={ferreteriaId:'store',productoMaestroId:'product',precio:30000,stock:1,condicion:'usado',activo:true,publicado:true};
  for(const donorId of ['donor-a','donor-b'])await db.collection('real_productosFerreteria').doc('offer-'+donorId).set({...base,vehiculoDonanteId:donorId,piezaDonanteId:'radiator'});
  await db.collection('real_productosFerreteria').doc('regular').set(base);

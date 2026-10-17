@@ -27,7 +27,7 @@
     <label>VIN (privado, opcional)<input [(ngModel)]="v.vin" maxlength="40" /></label>
     <label>Transmisión (opcional)<input [(ngModel)]="v.transmision" maxlength="60" placeholder="Ej.: Manual" /></label>
    </div></fieldset>
-   @if(v.revision){<app-offer-photo-manager [storeId]="storeId" offerId="vehiculo" [endpoint]="vehiclePhotoPath()" [photos]="v.fotosVehiculo || []" heading="Fotos generales del vehículo (opcionales)" description="Son privadas para organizar tu inventario. No se mostrarán como fotos de una pieza." (photosChange)="vehiclePhotos($event)" (busyChange)="photoBusy($event)" />}
+   @if(v.revision){<app-offer-photo-manager [storeId]="storeId" offerId="vehiculo" [disabled]="busy()" [endpoint]="vehiclePhotoPath()" [photos]="v.fotosVehiculo || []" heading="Fotos generales del vehículo (opcionales)" description="Para organizar tu inventario. No se muestran en las fichas de repuestos." (photosChange)="vehiclePhotos($event)" (busyChange)="photoBusy($event)" />}
    <small>La marca, modelo y año quedan fijos al guardar. Patente y VIN solo son visibles en el inventario privado del local.</small>
   }
   @if(step()===2){
@@ -52,7 +52,7 @@
          </fieldset>
          <small>Confirma la pieza, motor y variante. El año del vehículo donante por sí solo no demuestra compatibilidad.</small>
          <button type="button" class="secondary" (click)="photos(p)" [disabled]="busy()">{{photoPart()===p.id ? 'Ocultar fotos' : 'Agregar fotos opcionales'}} · {{p.fotosPublicacion.length}}</button>
-         @if(photoPart()===p.id){<app-offer-photo-manager [storeId]="storeId" [offerId]="p.id" [endpoint]="photoPath(p)" [photos]="p.fotosPublicacion" (photosChange)="onPhotos(p,$event)" (busyChange)="photoBusy($event)" />}
+         @if(photoPart()===p.id){<app-offer-photo-manager [storeId]="storeId" [offerId]="p.id" [disabled]="busy()" [endpoint]="photoPath(p)" [photos]="p.fotosPublicacion" (photosChange)="onPhotos(p,$event)" (busyChange)="photoBusy($event)" />}
          @if(p.error){<p class="hint">{{p.error}}</p>}
         }
        }

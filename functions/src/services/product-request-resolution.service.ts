@@ -20,6 +20,7 @@ export async function resolveProductRequest(id: string, action: 'aprobar' | 'rec
     }
     // Donor requests resolve a technical identity only. The local reviews and publishes later.
     if(current['vehiculoDonanteId']){
+      if(action==='aprobar'&&current['estado']==='aprobada'&&current['productoMaestroSugeridoId']===masterId)return {id,...current};
       const donorRef=db.collection(COLLECTIONS.donorVehicles).doc(String(current['vehiculoDonanteId']));
       const donorSnapshot=await tx.get(donorRef),donor=donorSnapshot.data();
       if(!donor||donor['ferreteriaId']!==current['ferreteriaId'])throw new ProductRequestError('DONOR_NOT_FOUND','Vehículo de origen no encontrado.',404);

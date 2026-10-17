@@ -67,3 +67,9 @@ test('deleting a sourced offer releases its draft and vehicle deletion is blocke
  await saveDonor('junk',second,draft({piezas:[part({productoMaestroId:null})]}),'owner',false);await publishDonorPart('junk',second,'radiador','owner',false);
  const removed=response();await remove({...req,params:{storeId:'junk',vehicleId:second}},removed);assert.equal(removed.statusCode,200);assert.equal(f.get('vehiculosDonantes',second),undefined);assert.equal(f.get('solicitudesCreacionProducto',donorRequestId(second,'radiador')).estado,'rechazada');
 });
+test('matching a pending draft to an existing master closes the obsolete proposal, and approved donor resolutions are retry-safe after publication',async t=>{
+ const f=firestoreFixture(t,seed());await saveDonor('junk',id,draft({piezas:[part({productoMaestroId:null})]}),'owner',false);await publishDonorPart('junk',id,'radiador','owner',false);
+ const pending=f.get('vehiculosDonantes',id);pending.piezas[0].productoMaestroId='radiator';await saveDonor('junk',id,pending,'owner',false);await publishDonorPart('junk',id,'radiador','owner',false);
+ assert.equal(f.get('solicitudesCreacionProducto',donorRequestId(id,'radiador')).estado,'rechazada');assert.match(f.get('solicitudesCreacionProducto',donorRequestId(id,'radiador')).notasAdmin,/cerrada automáticamente/);
+ await saveDonor('junk',second,draft({piezas:[part({productoMaestroId:null})]}),'owner',false);await publishDonorPart('junk',second,'radiador','owner',false);const requestId=donorRequestId(second,'radiador');await resolveProductRequest(requestId,'aprobar','radiator','admin','OK');await publishDonorPart('junk',second,'radiador','owner',false);await resolveProductRequest(requestId,'aprobar','radiator','admin','retry');assert.equal(f.rows('productosFerreteria').length,2);
+});

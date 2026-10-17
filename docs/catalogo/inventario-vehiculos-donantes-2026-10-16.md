@@ -13,16 +13,17 @@ Disponible para desarmadurías y locales de repuestos. Las ferreterías conserva
 - Cada pieza seleccionada tiene precio, stock (inicial 1), condición (inicial Usado), producto maestro y fotografías opcionales.
 - Las coincidencias se presentan como sugerencias, que el local debe confirmar. No se asigna automáticamente una variante técnica por conocer el vehículo de origen.
 - **Guardar borrador** conserva el avance. **Guardar y elegir piezas / revisar** también guarda. Cerrar sin guardar no conserva las últimas ediciones de los campos.
-- Las fotos se guardan al subirlas. Las fotos generales del vehículo son privadas; las fotos de las piezas se transfieren a la publicación correspondiente y aparecen en la galería pública existente con el nombre del local.
+- Las fotos se guardan al subirlas. Las fotos generales del vehículo no aparecen en el catálogo público; las fotos de las piezas se transfieren a la publicación correspondiente y aparecen en la galería pública existente con el nombre del local.
 - La publicación procesa grupos de diez piezas. Cada pieza se confirma en su propia transacción. Un error no revierte las demás; los identificadores estables permiten reintentar sin duplicar.
 - Las piezas completas con maestro activo compatible se publican. Las incompletas quedan como borrador. Las completas sin maestro generan una solicitud administrativa idempotente.
+- Si el local identifica una variante existente y publica mientras había una propuesta pendiente, la propuesta se cierra automáticamente con una nota; no permanece duplicada en la bandeja del admin.
 - Al aprobar una solicitud, el admin vincula una identidad técnica validada y devuelve la pieza a borrador. El propietario revisa y publica; aprobar no crea automáticamente una oferta ni mezcla piezas de dos vehículos.
 - Desde un vehículo se abre la publicación exacta para editar precio, stock, condición, fotos o retirarla. Las publicaciones existentes no se sobrescriben al reintentar el lote.
 - Eliminar una publicación desvincula su pieza del vehículo. Eliminar un vehículo exige eliminar antes sus publicaciones; retira sus solicitudes pendientes y limpia sus fotos privadas.
 
 ## Datos y garantías
 
-Migración: `sql/findi/020-donor-vehicles.sql`, aplicada en Cloud SQL mediante el registro existente de migraciones.
+Migraciones: `sql/findi/020-donor-vehicles.sql` y `021-donor-trigger-search-path.sql`, aplicadas en Cloud SQL mediante el registro existente de migraciones.
 
 - `findi.donor_vehicles`: vehículo privado, propietario a través de `store_id`, referencias de marca/modelo, año, estado, revisión y borradores en `api_payload`.
 - `offers.donor_vehicle_id` / `donor_item_id`: procedencia de una publicación. FK compuesta impide vincular un vehículo de otro local; un trigger restringe estas publicaciones a desarmadurías/repuestos.
@@ -49,7 +50,7 @@ Base: `/ferreterias/:storeId/vehiculos-donantes`.
 - `itemId=vehiculo`: fotos generales privadas.
 - `DELETE /:vehicleId`: elimina borradores si no existen publicaciones asociadas.
 
-Las fotos de una pieza publicada se administran desde las rutas de fotos de la oferta existentes.
+Las fotos de una pieza publicada se administran desde las rutas de fotos de la oferta existentes. Las imágenes se alojan en el CDN público de R2; las fotos generales no se listan públicamente, pero su URL puede compartirse desde el inventario.
 
 ## Validación
 

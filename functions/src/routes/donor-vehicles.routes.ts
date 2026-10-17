@@ -55,7 +55,7 @@ donorVehiclesRouter.post(base+'/:vehicleId/publicar',requireAuth,requireRole('fe
  // Sequential commits avoid burst pressure on SQL. Failed pieces remain retryable.
  for(const part of selected){
   try{results.push(await publishDonorPart(req.params.storeId,req.params.vehicleId,part.id,req.authUserId!,req.authRole==='admin'));}
-  catch(error){if(error instanceof DonorError&&error.status===403)throw error;results.push({id:part.id,estado:'fallida',error:'No se pudo guardar esta pieza. Reintenta; las demás conservan su avance.'});console.error('DONOR_PART_PUBLISH_FAILED',error instanceof DonorError?error.code:'WRITE_FAILED');}
+  catch(error){if(error instanceof DonorError&&error.status===403)throw error;results.push({id:part.id,estado:'fallida',error:'No se pudo guardar esta pieza. Reintenta; las demás conservan su avance.'});console.error('DONOR_PART_PUBLISH_FAILED',{code:error instanceof DonorError?error.code:(error as any)?.code||'WRITE_FAILED',constraint:(error as any)?.constraint||null,message:error instanceof Error?error.message.slice(0,300):'Unknown write failure'});}
  }
  return ok(res,{results,vehicle:(await inventory(req.params.storeId)).find(v=>v.id===req.params.vehicleId)});
 }));
