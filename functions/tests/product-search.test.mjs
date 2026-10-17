@@ -134,3 +134,15 @@ test('discovery areas partition the master catalog before pagination and interse
 test('product search rejects unknown or repeated discovery area parameters',async()=>{
  for(const rubro of ['cualquier-cosa',['repuestos']]){const res=response();await handler({query:{vista:'productos',rubro}},res);assert.equal(res.statusCode,400);}
 });
+
+test('automotive SEO filters keep the visible product list consistent with real vehicle landing pages',()=>{
+ const snapshot=catalog(3);snapshot.searchRows=[];
+ const application={marcaId:'hyundai',modeloId:'accent',anioDesde:2015,anioHasta:2018};
+ snapshot.products.forEach(p=>{p.compatibilidadVehiculos=[application];p.categoriaId='cat-repuestos-automotrices';});
+ snapshot.products[1].esPrueba=true;snapshot.products[2].compatibilidadReferencial=true;
+ const vehicle={vehicleBrandId:'hyundai',vehicleModelId:'accent'};
+ assert.equal(paginateProductSearch(snapshot,{...defaults,...vehicle}).total,3);
+ const real=paginateProductSearch(snapshot,{...defaults,...vehicle,seoOnly:true});
+ assert.equal(real.total,1);assert.equal(real.items[0].productoMaestroId,'p0');
+ assert.equal(paginateProductSearch(snapshot,{...defaults,seoOnly:true}).total,2);
+});

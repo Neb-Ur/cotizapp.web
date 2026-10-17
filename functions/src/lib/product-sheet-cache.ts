@@ -1,5 +1,5 @@
 import { pilotStoresEnabled, publicRecordVisible } from '../services/pilot-stores.service.js';
-import { seoProductSlug } from '../domain/catalog-seo.js';
+import { catalogLandings, relatedCatalogLandings, seoProductSlug } from '../domain/catalog-seo.js';
 import { FieldValue } from 'firebase-admin/firestore';
 import { db } from './firebase.js';
 import { COLLECTIONS } from './collections.js';
@@ -33,7 +33,8 @@ export async function getStaticCatalog(): Promise<any[][]> {
 
 export async function getProductSheet(name: string, slug: string): Promise<any | null> {
   const mode = `${dataMode()}:pilot=${pilotStoresEnabled()}`;
-  const [products, categories, subcategories, families] = await getStaticCatalog();
+  const catalog = await getStaticCatalog();
+  const [products, categories, subcategories, families] = catalog;
   const product = products.find((item: any) => item.estado !== 'inactivo' && (slug
     ? seoProductSlug(item,products) === slug : String(item.nombre).trim().toLowerCase() === name));
   if (!product) return null;
@@ -50,6 +51,7 @@ export async function getProductSheet(name: string, slug: string): Promise<any |
       const fields = ['esPrueba', 'id', 'nombre', 'categoriaId', 'subcategoriaId', 'familiaId', 'marca', 'marcaId', 'tipoProducto',
         'unidadVenta', 'presentacion', 'descripcionCorta', 'descripcionLarga', 'imagenPrincipalUrl', 'imagenStorageUrl', 'imagenMiniaturaUrl', 'imagenExternaUrl', 'galeriaJson', 'origenImagen', 'imagenReferencial', 'catalogoNivel', 'caracteristicasDestacadas','nombrePieza','detalleVariante','compatibilidadVehiculos','compatibilidadReferencial'];
       return {
+        relatedCatalog: relatedCatalogLandings(catalogLandings(catalog),[product]).map(({path,name})=>({path,name})),
         productoMaestro: {...Object.fromEntries(fields.filter(field => product[field] !== undefined).map(field => [field, product[field]])),seoPath:`/productos/${seoProductSlug(product,products)}`},
         categoryName: categories.find((item: any) => item.id === product.categoriaId)?.nombre || 'Sin categoria',
         subcategoryName: subcategories.find((item: any) => item.id === product.subcategoriaId)?.nombre || 'Sin subcategoria',

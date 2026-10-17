@@ -21,3 +21,15 @@ test('legacy product routes preserve quotation parameters and product metadata u
  assert.match(page.body,/<meta property="og:image" content="https:\/\/example.test\/cemento.webp">/);
  assert.match(page.body,/<link rel="canonical" href="https:\/\/trovio.cl\/productos\/cemento-gris-25-kg">/);
 });
+
+test('initial product HTML exposes real price, stock, condition and explicit fitment without pilot offers',async t=>{
+ const part={...product,id:'radiator-real',nombre:'Radiador Hyundai Accent',categoriaId:'cat-repuestos-automotrices',compatibilidadVehiculos:[{marcaId:'hyundai',modeloId:'accent',marcaNombre:'Hyundai',modeloNombre:'Accent',anioDesde:2015,anioHasta:2018}]};
+ const updatedAt=new Date().toISOString();
+ const offer={productoMaestroId:part.id,storeId:'local-real',storeName:'Local real',price:25000,stock:1,condition:'usado',storeCommune:'Santiago'};
+ firestoreFixture(t,{productosMaestro:{[part.id]:part},categorias:{},subcategorias:{},familias:{},atributosProductoMaestro:{},definicionesAtributoFamilia:{},cachePublico:{'catalog-revision':{revision:802},meta:{dirty:false,policy:`data-modes-v8:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,version:'real-offer-fixture',updatedAt,taxonomyDocId:'taxonomy',offerDocIds:['offers'],productDocIds:['products']},taxonomy:{categories:[],subcategories:[],families:[]},offers:{items:[offer,{...offer,storeName:'Local simulado',storePilot:true,price:1},{...offer,storeName:'Local agotado',stock:0,price:3}]},products:{items:[part]}}});
+ const page=response();await handler('/productos/:slug')({path:'/productos/radiador-hyundai-accent',params:{slug:'radiador-hyundai-accent'}},page,e=>{throw e;});
+ assert.equal(page.statusCode,200);assert.match(page.body,/\$25\.000/);assert.match(page.body,/Stock: 1 · Estado: Usado/);assert.match(page.body,/Hyundai Accent · 2015–2018/);assert.match(page.body,/href="\/vehiculos\/hyundai-accent"/);
+ assert.doesNotMatch(page.body,/Local simulado|Local agotado/);
+ const schema=JSON.parse(page.body.match(/<script[^>]*type="application\/ld\+json">(.*?)<\/script>/s)[1]);
+ assert.equal(schema['@graph'][0].offers.lowPrice,25000);assert.equal(schema['@graph'][0].offers.offers[0].itemCondition,'https://schema.org/UsedCondition');
+});

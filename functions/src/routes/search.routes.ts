@@ -1,7 +1,7 @@
 import { parseVehicleSearch, matchesVehicle, type VehicleSearch } from '../domain/vehicle-search.js';
-import { seoProductSlug } from '../domain/catalog-seo.js';
+import { catalogLandings, relatedCatalogLandings, seoProductSlug } from '../domain/catalog-seo.js';
 import { Router } from 'express';
-import { getProductSheet } from '../lib/product-sheet-cache.js';
+import { getProductSheet, getStaticCatalog } from '../lib/product-sheet-cache.js';
 import { db } from '../lib/firebase.js';
 import { fail, ok } from '../lib/http.js';
 import { getPublicCatalogSnapshot } from '../lib/public-catalog-cache.js';
@@ -38,6 +38,7 @@ searchRouter.get('/busqueda', async (req, res) => {
     }
     const result = paginateProductSearch(await getPublicCatalogSnapshot(), {
       ...vehicle,
+      seoOnly:req.query['catalogoReal'] === '1',
       area: area ? area as ProductSearchOptions['area'] : undefined,
       query: normalizeText(req.query['query']),
       categoryId: normalizeText(req.query['categoriaId']),
@@ -190,6 +191,7 @@ searchRouter.get('/productos/detalle', async (req, res) => {
   });
   return ok(res, {
     storePhotos,
+    relatedCatalog:relatedCatalogLandings(catalogLandings(await getStaticCatalog()),[product]).map(({path,name})=>({path,name})),
     productoMaestro: {...product,seoPath:`/productos/${seoProductSlug(product,snapshot.products)}`},
     categoryName: snapshot.taxonomy.categories.find(item => item.id === product.categoriaId)?.nombre || 'Sin categoria',
     subcategoryName: snapshot.taxonomy.subcategories.find(item => item.id === product.subcategoriaId)?.nombre || 'Sin subcategoria',

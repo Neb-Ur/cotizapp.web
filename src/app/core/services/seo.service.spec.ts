@@ -27,3 +27,16 @@ describe('public SEO identity and real offers', () => {
     expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toContain('noindex');
   });
 });
+
+describe('vehicle compatibility structured data',()=>{
+ afterEach(()=>document.getElementById('cotizapp-page-structured-data')?.remove());
+ it('keeps explicit fitment and used condition while excluding simulated fitment',()=>{
+  TestBed.configureTestingModule({providers:[provideRouter([])]});const seo=TestBed.inject(SeoService);
+  const product:any={productName:'Radiador Accent',seoPath:'/productos/radiador-accent',imageUrl:'',brand:'Hyundai',vehicleCompatibility:[{marcaNombre:'Hyundai',modeloNombre:'Accent',anioDesde:2015,anioHasta:2018}],stores:[{storeId:'local',storeName:'Local real',price:25000,stock:1,condition:'usado'}]};
+  seo.updateProduct(product);let schema=JSON.parse(document.getElementById('cotizapp-page-structured-data')!.textContent!)['@graph'][0];
+  expect(schema.additionalProperty[0].value).toContain('Hyundai Accent 2015–2018');
+  expect(schema.offers.offers[0]).toMatchObject({price:25000,itemCondition:'https://schema.org/UsedCondition',seller:{name:'Local real'}});
+  seo.updateProduct({...product,compatibilityReference:true});schema=JSON.parse(document.getElementById('cotizapp-page-structured-data')!.textContent!)['@graph'][0];
+  expect(schema.additionalProperty).toBeUndefined();
+ });
+});

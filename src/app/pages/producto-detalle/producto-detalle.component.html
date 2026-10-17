@@ -28,6 +28,8 @@
       </ol>
     </nav>
 
+    <nav *ngIf="product.relatedCatalog?.length" class="related-catalog" aria-label="Explorar repuestos relacionados"><a *ngFor="let link of product.relatedCatalog" [routerLink]="link.path">{{link.name}}</a></nav>
+
     <section class="hero-grid">
       <div class="gallery-panel">
         <div class="main-image">
@@ -75,7 +77,7 @@
         <section class="quick-stores">
           <section *ngIf="product.vehicleCompatibility?.length" aria-label="Compatibilidad del producto">
             <h3>Compatibilidad del producto maestro</h3>
-            <p *ngFor="let a of product.vehicleCompatibility">{{a.marcaNombre}} {{a.modeloNombre}} · {{a.anioDesde}}–{{a.anioHasta}}</p>
+            <p *ngFor="let a of product.vehicleCompatibility">{{a.marcaNombre}} {{a.modeloNombre}}<span *ngIf="a.anioDesde !== null"> · {{a.anioDesde}}–{{a.anioHasta}}</span><span *ngIf="a.anioDesde === null"> · Año sin especificar</span></p>
             <p *ngIf="product.compatibilityReference">Compatibilidad simulada para pruebas; no acredita ajuste real de la pieza.</p>
           </section>
           <h3>Precios por local</h3>

@@ -31,7 +31,7 @@ export class CatalogLandingComponent implements OnInit,OnDestroy {
   protected async load():Promise<void> {
     const request=++this.request;this.loading=true;this.error='';this.missing=false;this.landing=undefined;this.cdr.markForCheck();
     try {
-      const kind=this.route.snapshot.data['catalogKind'];const slug=this.route.snapshot.paramMap.get('slug');
+      const kind=this.route.snapshot.data['catalogKind'];const slug=this.route.snapshot.paramMap.get('slug') || this.route.snapshot.data['catalogSlug'];
       const landing=await this.api.get<CatalogLandingView>(`/catalogo-seo/${kind}/${encodeURIComponent(slug || '')}`);
       if(request!==this.request)return;
       this.landing=landing;this.seo.updateCollection(landing);

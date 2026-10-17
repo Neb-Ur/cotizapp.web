@@ -191,7 +191,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     void this.router.navigateByUrl(product.seoPath || productPath(product.productName));
   }
 
-  protected categoryPath(name:string):string {return `/categorias/${productSlug(name)}`;}
+  protected categoryPath(name:string):string {return /repuestos.*automotr/i.test(name) ? '/repuestos' : `/categorias/${productSlug(name)}`;}
   protected openCategory(category: HomeCategory): void {
     void this.router.navigateByUrl(this.categoryPath(category.name));
   }

@@ -6,6 +6,7 @@ import type { ProjectProximity } from '../models/domain.models.js';
 import { coordinateValue, geographicDistanceKm } from '../lib/values.js';
 
 export type ProductSearchOptions = VehicleSearch & {
+  seoOnly?: boolean;
   area?: 'materiales' | 'herramientas' | 'repuestos';
   query?: string;
   categoryId?: string;
@@ -48,6 +49,7 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
 
   for (const product of snapshot.products) {
     if (product.estado === 'inactivo') continue;
+    if (options.seoOnly && (product.esPrueba === true || hasVehicleFilter(options) && product.compatibilidadReferencial === true)) continue;
     const area = product.categoriaId === 'cat-repuestos-automotrices' ? 'repuestos'
       : product.categoriaId === 'cat-herramientas-y-consumibles' ? 'herramientas' : 'materiales';
     if (options.area && area !== options.area) continue;

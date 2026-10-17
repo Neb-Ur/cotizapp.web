@@ -146,6 +146,13 @@
         }
       },
       {
+        "source": "/@(repuestos|marcas-vehiculos|vehiculos){,/**}",
+        "function": {
+          "functionId": "api",
+          "region": "southamerica-west1"
+        }
+      },
+      {
         "source": "/categorias/**",
         "function": {
           "functionId": "api",

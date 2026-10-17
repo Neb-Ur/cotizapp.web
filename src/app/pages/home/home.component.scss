@@ -660,3 +660,7 @@
   .catalog-section .section-heading p { margin-top: 2px; }
   .catalog-section .section-heading > a { min-height: 24px; }
 }
+
+.automotive-catalog-link { width: min(var(--home-max), calc(100% - 2rem)); margin: 0 auto; padding: .75rem 0; font-size: .95rem; }
+.automotive-catalog-link a { color: var(--orange-hover); text-decoration: none; }
+.automotive-catalog-link a:hover { text-decoration: underline; }

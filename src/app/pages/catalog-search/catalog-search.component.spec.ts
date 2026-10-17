@@ -190,3 +190,20 @@ describe('vehicle filters', () => {
   rendered.destroy();TestBed.resetTestingModule();
  });
 });
+
+describe('automotive SEO landing defaults',()=>{
+ it('requests the real model catalog on initial navigation without returning to generic search',async()=>{
+  const {component,api}=fixture();component.router.navigate=vi.fn();
+  component.route={queryParamMap:of(convertToParamMap({}))};
+  component.landing={path:'/vehiculos/hyundai-accent',filters:{rubro:'repuestos',categoria:'cat-repuestos-automotrices',vehiculoMarcaId:'hyundai',vehiculoModeloId:'accent'}};
+  component.startCatalog();await component.loadCatalog();
+  expect(api.searchProductPage).toHaveBeenCalledWith(expect.objectContaining({seoOnly:true,area:'repuestos',categoryId:'cat-repuestos-automotrices',vehicleBrandId:'hyundai',vehicleModelId:'accent'}),1,20,'relevance',undefined);
+  expect(component.router.navigate).not.toHaveBeenCalled();component.ngOnDestroy();
+ });
+ it('returns to search when changing the model that defines a landing',()=>{
+  const {component}=fixture();component.router.navigate=vi.fn();component.searchReady=true;
+  component.landing={path:'/vehiculos/hyundai-accent',filters:{rubro:'repuestos',vehiculoMarcaId:'hyundai',vehiculoModeloId:'accent'}};
+  component.selectedArea='repuestos';component.selectedVehicleBrandId='hyundai';component.selectedVehicleModelId='elantra';component.refreshProductRows();
+  expect(component.router.navigate).toHaveBeenCalledWith(['/buscar'],expect.objectContaining({queryParams:expect.objectContaining({vehiculoModeloId:'elantra'})}));
+ });
+});

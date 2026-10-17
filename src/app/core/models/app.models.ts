@@ -213,6 +213,7 @@ export interface SearchRow {
 }
 
 export interface SearchFilters {
+  seoOnly?: boolean;
   area?: 'materiales' | 'herramientas' | 'repuestos';
   vehicleBrandId?: string;
   vehicleModelId?: string;
@@ -356,6 +357,7 @@ export interface ProductGalleryPhoto {
 }
 
 export interface ProductDetailView {
+  relatedCatalog?: {path:string;name:string}[];
   isTestProduct?: boolean;
   storePhotos?: ProductGalleryPhoto[];
   vehicleCompatibility?: import('../services/vehicle-catalog.service').VehicleApplication[];

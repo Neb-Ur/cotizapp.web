@@ -1069,3 +1069,6 @@ td {
 .thumb-strip button {position:relative;min-height:64px;}
 .thumb-source {position:absolute;bottom:0;left:0;right:0;padding:3px 4px;background:rgba(15,45,74,.9);color:white;font-size:.58rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .store-photo-link {background:transparent;border:0;color:#0f5179;text-decoration:underline;font:inherit;font-size:.8rem;padding:6px 0;cursor:pointer;}
+
+.related-catalog { display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin: .75rem 0 1rem; font-size: .875rem; }
+.related-catalog a { color: var(--orange-hover); }

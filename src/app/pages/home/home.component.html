@@ -3,7 +3,7 @@
     <div class="discovery-grid">
       <div class="discovery-copy">
         <h1 id="home-title">¿Qué estás buscando?</h1>
-        <p>Compara repuestos automotrices, herramientas y materiales en Chile.</p>
+        <p>Compara repuestos de autos, herramientas y materiales en Chile.</p>
       </div>
       <div class="discovery-areas" role="group" aria-label="Tipo de producto">
         <button type="button" *ngFor="let option of areas" [class.selected]="(area || '') === option.id"
@@ -58,6 +58,8 @@
       <a class="discovery-quotation" routerLink="/cotizaciones/nueva">Crear una cotización <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
     </div>
   </section>
+
+  <p class="automotive-catalog-link"><a routerLink="/repuestos">Explorar repuestos de autos por marca y modelo <i class="pi pi-arrow-right" aria-hidden="true"></i></a></p>
 
   <section class="catalog-section" aria-labelledby="featured-products-title">
     <div class="section-heading">

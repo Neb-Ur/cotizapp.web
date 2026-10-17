@@ -237,6 +237,7 @@ export class FirebaseDataService {
     try {
       return await this.apiClient.get<ProductSearchPage>('/busqueda', false, {
         vehiculoMarcaId: filters.vehicleBrandId, vehiculoModeloId: filters.vehicleModelId, vehiculoAnio: filters.vehicleYear,
+        catalogoReal: filters.seoOnly ? '1' : undefined,
         vista: 'productos', rubro: filters.area, query: filters.query, marca: filters.brand, marcaId: filters.brandId,
         categoriaId: filters.categoryId, subcategoriaId: filters.subcategoryId, familiaId: filters.familyId,
         ferreteriaId: filters.storeId, page, size, sort, latitude: proximity?.latitude, longitude: proximity?.longitude, radiusKm: proximity?.radiusKm
@@ -1640,6 +1641,7 @@ export class FirebaseDataService {
       }));
 
       return {
+        relatedCatalog: Array.isArray(raw.relatedCatalog) ? raw.relatedCatalog : [],
         isTestProduct: master.esPrueba === true,
         storePhotos: Array.isArray(raw.storePhotos) ? raw.storePhotos : [],
         vehicleCompatibility: master.compatibilidadVehiculos || [],

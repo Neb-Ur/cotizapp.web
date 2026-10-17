@@ -15,8 +15,8 @@ interface SeoPage {
 const SITE_URL = 'https://trovio.cl';
 const STRUCTURED_DATA_ID = 'cotizapp-page-structured-data';
 const DEFAULT_PAGE: SeoPage = {
-  title: 'Repuestos, herramientas y materiales en Chile | Trovio',
-  description: 'Compara repuestos automotrices, herramientas y materiales en Chile. Busca por marca, modelo y año, consulta disponibilidad y cotiza con locales.'
+  title: 'Repuestos de autos, herramientas y materiales en Chile | Trovio',
+  description: 'Compara repuestos de autos, herramientas y materiales en Chile. Busca por marca, modelo y año, consulta disponibilidad y cotiza con locales.'
 };
 
 const PAGE_SEO: Record<string, SeoPage> = {
@@ -117,6 +117,7 @@ export class SeoService {
         description,
         sku: product.sku || undefined,
         brand: product.brand && !['por especificar','sin marca','generico','sin especificar'].includes(product.brand.toLowerCase()) ? { '@type': 'Brand', name: product.brand } : undefined,
+        ...(!product.compatibilityReference && !product.isTestProduct && product.vehicleCompatibility?.length ? {additionalProperty:product.vehicleCompatibility.filter(a=>a.marcaNombre && a.modeloNombre).map(a=>({'@type':'PropertyValue',name:'Compatibilidad registrada',value:`${a.marcaNombre} ${a.modeloNombre}${a.anioDesde !== null ? ` ${a.anioDesde}–${a.anioHasta}` : ' · Año sin especificar'}`}))} : {}),
         category: [product.categoryName, product.subcategoryName, product.familyName].filter(Boolean).join(' > '),
         offers: !product.isTestProduct && realOffers.length > 0 ? {
           '@type': 'AggregateOffer',
@@ -124,6 +125,7 @@ export class SeoService {
           lowPrice: Math.min(...realOffers.map((store) => store.price)),
           highPrice: Math.max(...realOffers.map((store) => store.price)),
           offerCount: realOffers.length,
+          offers: realOffers.map(store=>({'@type':'Offer',priceCurrency:'CLP',price:store.price,availability:'https://schema.org/InStock',url:`${SITE_URL}${path}`,seller:store.storeName ? {'@type':'Organization',name:store.storeName,...(store.storeId ? {url:`${SITE_URL}/ferreterias/${encodeURIComponent(store.storeId)}`} : {})} : undefined,itemCondition:({nuevo:'https://schema.org/NewCondition',usado:'https://schema.org/UsedCondition',reacondicionado:'https://schema.org/RefurbishedCondition',para_reparar:'https://schema.org/DamagedCondition'} as Record<string,string>)[store.condition || '']})),
           url: `${SITE_URL}${path}`
         } : undefined
       }, {
@@ -137,7 +139,10 @@ export class SeoService {
     });
   }
 
+  private collections = new Map<string,{title:string;description:string;path:string;name:string;index?:boolean}>();
+
   updateCollection(page: {title:string;description:string;path:string;name:string;index?:boolean}): void {
+    this.collections.set(page.path,page);
     this.applyPage({...page,index:page.index !== false},page.path);
     this.setStructuredData({'@context':'https://schema.org','@graph':[
       {'@type':'CollectionPage',name:page.name,description:page.description,url:`${SITE_URL}${page.path}`},
@@ -154,6 +159,8 @@ export class SeoService {
 
   private updateRoute(url: string): void {
     const path = url.split('?')[0].split('#')[0] || '/';
+    const collection=this.collections.get(path);
+    if(collection){this.updateCollection(collection);return;}
     const isPrivate = path.startsWith('/dashboard/') || path.startsWith('/cuenta/') || path.startsWith('/recuperar-clave');
     const isProduct = path.startsWith('/productos/');
     const page = PAGE_SEO[path]
@@ -211,8 +218,9 @@ export class SeoService {
 
   private productDescription(product: ProductDetailView): string {
     const source = product.shortDescription || product.description || product.productType;
-    const comparison = product.stores.length ? `Compara precios de ${product.productName} en ${product.stores.length} local${product.stores.length === 1 ? '' : 'es'} de Chile.` : `Consulta las características de ${product.productName} y las ofertas de locales de Chile cuando estén disponibles.`;
-    const text = source?.trim() ? `${source.trim()} ${comparison}` : comparison;
+    const count = new Set(product.stores.filter(store=>!store.pilot && store.price>0 && store.stock>0).map(store=>store.storeId || store.storeName)).size;
+    const comparison = count ? `Compara precios de ${product.productName} en ${count} local${count === 1 ? '' : 'es'} de Chile.` : `Consulta las características de ${product.productName} y las ofertas de locales de Chile cuando estén disponibles.`;
+    const text = source?.trim() ? `${source.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim()} ${comparison}` : comparison;
     return text.length > 160 ? `${text.slice(0, 157).trimEnd()}...` : text;
   }
 

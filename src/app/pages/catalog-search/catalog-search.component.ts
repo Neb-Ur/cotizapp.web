@@ -144,9 +144,10 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
       const requestedStoreName = params.get('ferreteria') || '';
       const requestedBrand = params.get('marca') || this.landing?.filters['marca'] || '';
       const requestedBrandId = params.get('marcaId') || this.landing?.filters['marcaId'] || '';
-      const requestedArea = ['materiales','herramientas','repuestos'].includes(params.get('rubro') || '') ? params.get('rubro') as SearchFilters['area'] : undefined;
-      const requestedVehicleBrand = params.get('vehiculoMarcaId') || '';
-      const requestedVehicleModel = params.get('vehiculoModeloId') || '';
+      const area = params.get('rubro') || this.landing?.filters['rubro'] || '';
+      const requestedArea = ['materiales','herramientas','repuestos'].includes(area) ? area as SearchFilters['area'] : undefined;
+      const requestedVehicleBrand = params.get('vehiculoMarcaId') || this.landing?.filters['vehiculoMarcaId'] || '';
+      const requestedVehicleModel = params.get('vehiculoModeloId') || this.landing?.filters['vehiculoModeloId'] || '';
       const requestedVehicleYear = params.get('vehiculoAnio') || '';
       const requestedCategory = params.get('categoria') || this.landing?.filters['categoria'] || '';
       const requestedSubcategory = params.get('subcategoria') || this.landing?.filters['subcategoria'] || '';
@@ -560,7 +561,7 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
 
   private refreshProductRows(syncUrl = false): void {
     if (this.landing && this.searchReady) {
-      const selected: Record<string, string> = {familia:this.selectedFamilyId,categoria:this.selectedCategoryId,subcategoria:this.selectedSubcategoryId,marca:this.selectedBrand,marcaId:this.selectedBrandId};
+      const selected: Record<string, string> = {rubro:this.selectedArea || '',vehiculoMarcaId:this.selectedVehicleBrandId,vehiculoModeloId:this.selectedVehicleModelId,familia:this.selectedFamilyId,categoria:this.selectedCategoryId,subcategoria:this.selectedSubcategoryId,marca:this.selectedBrand,marcaId:this.selectedBrandId};
       if (Object.entries(this.landing.filters).some(([key, value]) => value && selected[key] !== value)) {
         void this.router.navigate(['/buscar'], {queryParams:{...selected,rubro:this.selectedArea || undefined,q:this.tableProductSearch || undefined,vehiculoMarcaId:this.selectedVehicleBrandId || undefined,vehiculoModeloId:this.selectedVehicleModelId || undefined,vehiculoAnio:this.selectedVehicleYear || undefined,ferreteriaId:this.selectedStoreId || undefined,ferreteria:this.selectedStoreName || undefined,projectTarget:this.projectTarget || undefined}});
         return;
@@ -586,6 +587,7 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
     this.catalogError = '';
     try {
       const result = await this.apiService.searchProductPage({
+        ...(this.landing && /^\/(repuestos|vehiculos|marcas-vehiculos)(\/|$)/.test(this.landing.path) ? {seoOnly:this.landing.index !== false} : {}),
         area: this.selectedArea,
         query: this.tableProductSearch.trim(),
         categoryId: this.selectedCategoryId,

@@ -1,6 +1,6 @@
 import {homeCatalog} from '../domain/home-catalog.js';
 import { Router } from 'express';
-import { catalogLandings, seoSlug, seoProductSlug, productSeoSlugIndex } from '../domain/catalog-seo.js';
+import { catalogLandings, relatedCatalogLandings, seoSlug, seoProductSlug, productSeoSlugIndex } from '../domain/catalog-seo.js';
 import { createHash } from 'node:crypto';
 import { brandIdentity } from '../domain/brand-identity.js';
 import { brandUses } from '../domain/brand-use.js';
@@ -45,7 +45,8 @@ publicCatalogRouter.get('/sitemap.xml', async (_req, res) => {
   const catalog = await getStaticCatalog();
   const productPaths = catalog[0].filter(p => p.estado !== 'inactivo' && p.esPrueba !== true)
     .map(p => `/productos/${seoProductSlug(p,catalog[0])}`).filter(path => path !== '/productos/');
-  const paths = [...new Set([...STATIC_SITEMAP_PATHS, ...productPaths, ...catalogLandings(catalog).filter(p=>p.index).map(p=>p.path)])];
+  const landings = catalogLandings(catalog);
+  const paths = [...new Set([...STATIC_SITEMAP_PATHS, ...productPaths, ...landings.filter(p=>p.index && !(p.path.startsWith('/categorias/') && p.filters.categoria==='cat-repuestos-automotrices' && landings.some(page=>page.path==='/repuestos'))).map(p=>p.path)])];
   const urls = paths.map((path) => [
     '  <url>',
     `    <loc>${xmlText(`${SITE_URL}${path}`)}</loc>`,
@@ -120,9 +121,9 @@ publicCatalogRouter.get('/catalogo-busqueda', async (req, res) => {
 publicCatalogRouter.get('/catalogo-seo/:kind/:slug', async (req, res, next) => {
   try {
     const pages = catalogLandings(await getStaticCatalog());
-    const landing = pages.find(page => page.path === `/${req.params.kind}/${req.params.slug}`);
+    const landing = pages.find(page => page.path === (req.params.kind === 'repuestos' && req.params.slug === 'inicio' ? '/repuestos' : `/${req.params.kind}/${req.params.slug}`));
     if (!landing) return res.status(404).json({ok:false,error:{code:'NOT_FOUND',message:'Esta sección no existe.'}});
-    const related = pages.filter(page => page.path !== landing.path && page.products.some(p=>landing.products.some(item=>item.id===p.id)))
+    const related = relatedCatalogLandings(pages,landing.products,landing.path)
       .map(({path,name})=>({path,name}));
     res.set('Cache-Control','public, max-age=0, s-maxage=30, must-revalidate');
     const {products,...metadata} = landing;

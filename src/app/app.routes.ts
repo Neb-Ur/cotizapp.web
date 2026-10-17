@@ -58,6 +58,10 @@ export const routes: Routes = [
     canActivate: [authGuard, legalAcceptanceGuard, roleGuard],
     data: { role: 'ferreteria' }
   },
+      { path: 'repuestos', loadComponent: () => import('./pages/catalog-landing/catalog-landing.component').then(m=>m.CatalogLandingComponent), data: { catalogKind:'repuestos', catalogSlug:'inicio' } },
+      { path: 'marcas-vehiculos/:slug', loadComponent: () => import('./pages/catalog-landing/catalog-landing.component').then(m=>m.CatalogLandingComponent), data: { catalogKind:'marcas-vehiculos' } },
+      { path: 'vehiculos/:slug', loadComponent: () => import('./pages/catalog-landing/catalog-landing.component').then(m=>m.CatalogLandingComponent), data: { catalogKind:'vehiculos' } },
+      { path: 'categorias/repuestos-automotrices', redirectTo:'/repuestos', pathMatch:'full' },
       { path: 'categorias/:slug', loadComponent: () => import('./pages/catalog-landing/catalog-landing.component').then(m=>m.CatalogLandingComponent), data: { catalogKind:'categorias' } },
       { path: 'familias/:slug', loadComponent: () => import('./pages/catalog-landing/catalog-landing.component').then(m=>m.CatalogLandingComponent), data: { catalogKind:'familias' } },
       { path: 'marcas/:slug', loadComponent: () => import('./pages/catalog-landing/catalog-landing.component').then(m=>m.CatalogLandingComponent), data: { catalogKind:'marcas' } },
