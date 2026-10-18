@@ -27,10 +27,11 @@ describe('cookie consent buttons', () => {
     return { fixture, service: TestBed.inject(CookieConsentService) };
   }
 
-  it('does not render inactive privacy buttons on the server', async () => {
+  it('renders the initial privacy notice on the server for hydration and event replay', async () => {
     const { fixture, service } = await setup('server');
     expect(service.ready()).toBe(false);
-    expect(fixture.nativeElement.querySelector('.cookie-banner')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.cookie-banner')).not.toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('.cookie-banner__actions button').length).toBe(3);
   });
 
   it.each([1, 2])('closes the banner immediately for choice %s when saving fails', async choice => {

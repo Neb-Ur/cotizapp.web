@@ -73,9 +73,9 @@
 
     @if (featuredProducts().length > 0) {
     <div class="home-product-grid">
-      <a class="home-product-card" *ngFor="let product of featuredProducts() | slice:0:4" [href]="product.seoPath || productUrl(product.productName)" (click)="openProductCard($event, product)">
+      <a class="home-product-card" *ngFor="let product of featuredProducts() | slice:0:4; let i = index" [href]="product.seoPath || productUrl(product.productName)" (click)="openProductCard($event, product)">
         <span class="home-product-image">
-          <img [findiProductImage]="product.imageUrl" [fullImageUrl]="product.fullImageUrl" [externalImageUrl]="product.imageFallbackUrl" [alt]="product.productName" width="360" height="240" loading="lazy" decoding="async" />
+          <img [findiProductImage]="product.imageUrl" [fullImageUrl]="product.fullImageUrl" [externalImageUrl]="product.imageFallbackUrl" [alt]="product.productName" width="360" height="240" [attr.loading]="i === 0 ? 'eager' : 'lazy'" [attr.fetchpriority]="i === 0 ? 'high' : 'auto'" decoding="async" />
         </span>
         <span class="home-product-meta">{{ product.homeGroupLabel || product.productType }} · {{ product.brand === 'Por especificar' ? 'Producto base' : product.brand }}</span>
         <span class="home-product-name">{{ product.productName }}</span>
@@ -150,6 +150,6 @@
       <i class="pi pi-shop" aria-hidden="true"></i>
       <div><strong>¿Tienes un local?</strong><span>Publica tu catálogo y conecta con técnicos y maestros.</span></div>
     </div>
-    <a class="btn btn-secondary" [href]="storeAccessWhatsappUrl" target="_blank" rel="noopener noreferrer" aria-label="Solicitar acceso para mi local por WhatsApp">Solicitar acceso por WhatsApp</a>
+    <a class="btn btn-secondary" [href]="storeAccessWhatsappUrl" target="_blank" rel="noopener noreferrer" aria-label="Solicitar acceso por WhatsApp para mi local">Solicitar acceso por WhatsApp</a>
   </section>
 </main>
