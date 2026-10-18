@@ -1,5 +1,5 @@
 import { getApp, getApps, initializeApp, type FirebaseApp, type FirebaseOptions } from 'firebase/app';
-import { getAuth, initializeAuth, browserLocalPersistence, browserSessionPersistence, indexedDBLocalPersistence, browserPopupRedirectResolver, type Auth } from 'firebase/auth';
+import { initializeAuth, browserLocalPersistence, browserSessionPersistence, indexedDBLocalPersistence, type Auth } from 'firebase/auth';
 
 const DEFAULT_FIREBASE_CONFIG: FirebaseOptions = {
   apiKey: 'AIzaSyAA4Rf0vlYVR-8F7KVnMO00n2xxrUzGo7k',
@@ -63,14 +63,15 @@ export async function getFirebaseApp(): Promise<FirebaseApp> {
 
 export async function getFirebaseAuthInstance(): Promise<Auth> {
   if (!authPromise) authPromise = getFirebaseApp().then(app => {
-    if (typeof window === 'undefined') return getAuth(app);
+    if (typeof window === 'undefined') return initializeAuth(app);
     // Match the localStorage persistence selected by login/register. Firebase's
     // default IndexedDB-first order migrates and removes that key in a new tab,
     // which signs out tabs still listening to localStorage. Retain IndexedDB as
     // a legacy fallback while keeping every new tab on the same preference.
     return initializeAuth(app, {
-      persistence: [browserLocalPersistence, browserSessionPersistence, indexedDBLocalPersistence],
-      popupRedirectResolver: browserPopupRedirectResolver
+      // Current flows use email/password; popup/redirect initialization would
+      // preload an unused cross-origin iframe on mobile browsers.
+      persistence: [browserLocalPersistence, browserSessionPersistence, indexedDBLocalPersistence]
     });
   });
   return authPromise;

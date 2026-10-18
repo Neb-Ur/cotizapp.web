@@ -659,3 +659,6 @@
   .navbar--home .brand { justify-content: flex-start; }
 }
 .navbar--home { background: #fff; }
+
+.taxonomy-status { padding: 0.75rem; margin: 0; color: var(--ink-700); font-size: 0.85rem; }
+.taxonomy-status button { color: var(--ink-900); text-decoration: underline; }

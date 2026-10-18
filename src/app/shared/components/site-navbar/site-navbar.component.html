@@ -34,6 +34,9 @@
           </div>
           <a routerLink="/buscar" (click)="closeTaxonomy()">Ver todos los productos</a>
         </header>
+
+        <p class="taxonomy-status" *ngIf="taxonomyLoading" role="status">Cargando categorías…</p>
+        <p class="taxonomy-status" *ngIf="taxonomyError" role="alert">{{ taxonomyError }} <button type="button" (click)="preloadTaxonomy()">Reintentar</button></p>
         <div class="taxonomy-browser">
           <nav class="taxonomy-category-list" aria-label="Categorías">
             <button
@@ -170,6 +173,8 @@
       </button>
 
       <div class="drawer-category-list" *ngIf="categoriesOpen">
+        <p class="taxonomy-status" *ngIf="taxonomyLoading" role="status">Cargando categorías…</p>
+        <p class="taxonomy-status" *ngIf="taxonomyError" role="alert">{{ taxonomyError }} <button type="button" (click)="preloadTaxonomy()">Reintentar</button></p>
         <section class="drawer-category" *ngFor="let category of categories">
           <button type="button" (click)="toggleMobileCategory(category.id)" [attr.aria-expanded]="expandedMobileCategoryId === category.id">
             <span class="category-menu-label"><i [class]="categoryIcon(category)" aria-hidden="true"></i>{{ category.name }}</span>

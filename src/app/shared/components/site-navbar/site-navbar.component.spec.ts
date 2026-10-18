@@ -7,7 +7,7 @@ import { SiteNavbarComponent } from './site-navbar.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { FirebaseDataService } from '../../../core/services/firebase-data.service';
 
-async function setup() {
+async function setup(url = '/buscar') {
   const data = { refreshSearchTaxonomy:vi.fn(async()=>{}), acceptCatalogSearchVersion:vi.fn(), getCategoryOptions:()=>[], getSubcategoryOptions:()=>[], getFamilyOptions:()=>[], searchProductPage:vi.fn() };
   const index={ready:signal(true),version:signal('v1'),loading:signal(false),error:signal(''),ensureReady:vi.fn(async()=>{}),search:vi.fn(()=>[] as any[])};
   await TestBed.configureTestingModule({ imports:[SiteNavbarComponent], providers:[provideRouter([]),
@@ -15,7 +15,7 @@ async function setup() {
     {provide:CatalogSearchIndexService,useValue:index},
     {provide:AuthService,useValue:{isLoggedIn:()=>false,currentUser:()=>null,dashboardRouteForUser:()=>'/dashboard',logout:vi.fn()}}
   ] }).compileComponents();
-  vi.spyOn(TestBed.inject(Router),'url','get').mockReturnValue('/buscar');
+  vi.spyOn(TestBed.inject(Router),'url','get').mockReturnValue(url);
   const fixture=TestBed.createComponent(SiteNavbarComponent);
   fixture.detectChanges();
   return {fixture,component:fixture.componentInstance as any,router:TestBed.inject(Router),data,index};
@@ -182,4 +182,26 @@ it('preserves discovery and vehicle context while searching another part from th
 it('shows donor inventory only for junkyards and parts stores',async()=>{
  const {fixture,router}=await setup();const auth=TestBed.inject(AuthService) as any;vi.spyOn(router,'url','get').mockReturnValue('/dashboard/ferreteria');auth.isLoggedIn=()=>true;
  for(const businessType of ['desarmaduria','repuestos','ferreteria']){auth.currentUser=()=>({role:'ferreteria',businessType});fixture.detectChanges();const links=Array.from(fixture.nativeElement.querySelectorAll('.store-header-links a')) as HTMLAnchorElement[];expect(links.some(a=>a.textContent?.includes('Mis vehículos'))).toBe(businessType!=='ferreteria');}
+});
+
+describe('home navigation loading',()=>{
+ afterEach(()=>{TestBed.resetTestingModule();vi.restoreAllMocks();});
+it('does not download the unused header search index on home and loads categories when opened',async()=>{
+ const {fixture,component,data,index}=await setup('/');await fixture.whenStable();
+ expect(index.ensureReady).not.toHaveBeenCalled();expect(data.refreshSearchTaxonomy).not.toHaveBeenCalled();
+ component.toggleMenu();await fixture.whenStable();
+ expect(data.refreshSearchTaxonomy).toHaveBeenCalledOnce();expect(index.ensureReady).not.toHaveBeenCalled();
+ fixture.destroy();
+});
+
+it('lets users retry an on-demand category request that failed',async()=>{
+ const {fixture,component,data}=await setup('/');await fixture.whenStable();
+ data.refreshSearchTaxonomy.mockRejectedValueOnce(new Error('Network'));
+ component.toggleTaxonomy(new MouseEvent('click'));await component.taxonomyLoad;await fixture.whenStable();fixture.detectChanges();
+ expect(fixture.nativeElement.textContent).toContain('No pudimos cargar las categorías.');
+ const retry=Array.from(fixture.nativeElement.querySelectorAll('button')).find((b:any)=>b.textContent.trim()==='Reintentar') as HTMLButtonElement;
+ retry.click();await component.taxonomyLoad;await fixture.whenStable();fixture.detectChanges();expect(component.taxonomyError).toBe('');expect(component.taxonomyLoading).toBe(false);expect(data.refreshSearchTaxonomy).toHaveBeenLastCalledWith(true);
+ fixture.destroy();
+});
+
 });

@@ -40,6 +40,9 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
   }
   protected get hasScopedSearch():boolean {return Object.values(this.scopedSearchFilters).some(value=>value!==undefined);}
 
+  protected taxonomyLoading = false;
+  protected taxonomyError = '';
+  private taxonomyLoad?: Promise<void>;
   protected searchOpen = false;
   protected activeSuggestion = -1;
   protected searchPanelTop = 70;
@@ -81,7 +84,7 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
       window.visualViewport?.addEventListener('resize', this.positionSearchPanel);
       window.visualViewport?.addEventListener('scroll', this.positionSearchPanel);
     });
-    afterNextRender(()=>{if (!this.isStoreDashboard) {void this.searchIndex.ensureReady();this.preloadTaxonomy();}});
+    afterNextRender(()=>{if (!this.isStoreDashboard && !this.isHomePage) {void this.searchIndex.ensureReady();this.preloadTaxonomy();}});
     effect(()=>{const version=this.searchIndex.version();this.dataService.acceptCatalogSearchVersion(version);this.searchIndex.ready();this.updateSuggestions();});
   }
 
@@ -89,7 +92,7 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
     this.syncSearchFromRoute();
     this.navigationSubscription = this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
-        if(!this.isStoreDashboard) this.preloadTaxonomy();
+        if(!this.isStoreDashboard && !this.isHomePage) {void this.searchIndex.ensureReady();this.preloadTaxonomy();}
         this.closeSearch();
         this.closeMenu();
         this.closeTaxonomy();
@@ -232,7 +235,19 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
     if (typeof window !== 'undefined' && window.innerWidth > 1000 && !this.isMaestro) this.closeMenu();
   }
 
-  private preloadTaxonomy():void {void this.dataService.refreshSearchTaxonomy().catch(()=>undefined).finally(()=>this.changeDetector.markForCheck());}
+  protected preloadTaxonomy(): void {
+    if (this.taxonomyLoad) return;
+    const retry = !!this.taxonomyError;
+    this.taxonomyLoading = true;
+    this.taxonomyError = '';
+    this.taxonomyLoad = this.dataService.refreshSearchTaxonomy(retry)
+      .catch(() => { this.taxonomyError = 'No pudimos cargar las categorías.'; })
+      .finally(() => {
+        this.taxonomyLoad = undefined;
+        this.taxonomyLoading = false;
+        this.changeDetector.markForCheck();
+      });
+  }
 
   protected get categories(): TaxonomyOption[] {
     return this.dataService.getCategoryOptions(false);
@@ -263,6 +278,7 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
   protected toggleMenu(): void {
     this.closeSearch();
     this.taxonomyOpen = false;
+    if (!this.menuOpen) this.preloadTaxonomy();
     this.setMenuOpen(!this.menuOpen);
   }
 
@@ -272,12 +288,14 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
 
   protected toggleCategories(): void {
     this.categoriesOpen = !this.categoriesOpen;
+    if (this.categoriesOpen) this.preloadTaxonomy();
   }
 
   protected toggleTaxonomy(event: MouseEvent): void {
     this.closeSearch();
     event.stopPropagation();
     this.taxonomyOpen = !this.taxonomyOpen;
+    if (this.taxonomyOpen) this.preloadTaxonomy();
     if (this.taxonomyOpen && !this.activeDesktopCategoryId) {
       this.activeDesktopCategoryId = this.categories[0]?.id || '';
     }
