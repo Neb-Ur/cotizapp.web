@@ -11,6 +11,7 @@ function createComponent(projects: Array<Record<string, unknown>> = []) {
     loadError: () => '',
     refreshMaestroProjectsSection: vi.fn(async () => undefined),
     getProjects: vi.fn(() => projects),
+    deleteProject: vi.fn(async () => undefined),
     formatCurrency: (value: number) => `$${value}`
   };
   const route = { queryParamMap: of(convertToParamMap({})) };
@@ -27,6 +28,36 @@ function createComponent(projects: Array<Record<string, unknown>> = []) {
 }
 
 describe('DashboardMaestroComponent', () => {
+  it('preserves a quotation until its deletion is explicitly confirmed', async () => {
+    const { component, apiService } = createComponent();
+    component['projects'] = [{id:'p1', name:'Cocina'}] as never;
+    component['deleteProject']('p1');
+    expect(apiService.deleteProject).not.toHaveBeenCalled();
+    expect(component['quotationToDelete']?.name).toBe('Cocina');
+    component['closeDeleteQuotation']();
+    expect(component['quotationToDelete']).toBeNull();
+    component['deleteProject']('p1');
+    await component['confirmDeleteQuotation']();
+    expect(apiService.deleteProject).toHaveBeenCalledExactlyOnceWith('maestro-1', 'p1');
+    expect(component['quotationToDelete']).toBeNull();
+  });
+
+  it('keeps a failed deletion recoverable and ignores double confirmation', async () => {
+    const { component, apiService } = createComponent();
+    component['projects'] = [{id:'p1', name:'Cocina'}] as never;
+    let rejectDelete!: (error: Error) => void;
+    apiService.deleteProject.mockImplementationOnce(() => new Promise((_resolve, reject) => {rejectDelete = reject;}));
+    component['deleteProject']('p1');
+    const request = component['confirmDeleteQuotation']();
+    await component['confirmDeleteQuotation']();
+    component['closeDeleteQuotation']();
+    expect(component['quotationToDelete']?.id).toBe('p1');
+    expect(apiService.deleteProject).toHaveBeenCalledTimes(1);
+    rejectDelete(new Error('Conexión interrumpida')); await request;
+    expect(component['deletionError']).toContain('Conexión interrumpida');
+    expect(component['deletingQuotation']).toBe(false);
+    expect(component['quotationToDelete']?.id).toBe('p1');
+  });
   it('blocks a new quotation when the maestro already has 2 saved quotations', () => {
     const { component, router } = createComponent();
     component['projects'] = [{ id: 'p1' }, { id: 'p2' }] as never;

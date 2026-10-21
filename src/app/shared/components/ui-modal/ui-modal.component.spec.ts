@@ -39,6 +39,17 @@ describe('UiModalComponent', () => {
     expect(closed).toHaveBeenCalledTimes(1);
   });
 
+  it('keeps Shift+Tab inside from the initial dialog focus', () => {
+    document.body.append(fixture.nativeElement);
+    const dialog = fixture.nativeElement.querySelector('[role="dialog"]') as HTMLElement;
+    dialog.focus();
+    const event = new KeyboardEvent('keydown', {key:'Tab', shiftKey:true, bubbles:true, cancelable:true});
+    dialog.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(true);
+    expect(document.activeElement).toBe(dialog.querySelector('.close-button'));
+    fixture.nativeElement.remove();
+  });
+
   it('does not close while the parent operation is locked', () => {
     const closed = vi.fn();
     component.closeDisabled = true;

@@ -10,7 +10,7 @@
     [attr.aria-labelledby]="titleId"
     tabindex="-1"
     (click)="$event.stopPropagation()"
-    (keydown.tab)="trapFocus($event)"
+    (keydown)="trapFocus($event)"
   >
     <header class="dialog-header">
       <div>

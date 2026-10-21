@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { ModalSurfaceDirective } from '../../directives/modal-surface.directive';
 
 export interface DashboardMenuSection {
   id: string;
@@ -10,7 +11,7 @@ export interface DashboardMenuSection {
 @Component({
   selector: 'app-dashboard-menu',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ModalSurfaceDirective],
   templateUrl: './dashboard-menu.component.html',
   styleUrl: './dashboard-menu.component.scss'
 })

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -9,6 +9,7 @@ import { FirebaseDataService } from '../../core/services/firebase-data.service';
 import { WriteFeedbackService } from '../../core/services/write-feedback.service';
 import { shareQuotationPdf } from '../../core/utils/quotation-pdf.util';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
+import { UiModalComponent } from '../../shared/components/ui-modal/ui-modal.component';
 import { CatalogSearchComponent } from '../catalog-search/catalog-search.component';
 
 type MaestroSection = 'inicio' | 'buscar' | 'cotizaciones' | 'historial' | 'perfil';
@@ -28,7 +29,7 @@ interface MaestroProfileDraft {
 @Component({
   selector: 'app-dashboard-maestro',
   standalone: true,
-  imports: [CommonModule, FormsModule, UiLoaderComponent, CatalogSearchComponent],
+  imports: [CommonModule, FormsModule, UiLoaderComponent, UiModalComponent, CatalogSearchComponent],
   templateUrl: './dashboard-maestro.component.html',
   styleUrls: ['./dashboard-maestro.component.scss', './dashboard-maestro-quotations.scss']
 })
@@ -55,6 +56,10 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
   protected profileSaved = false;
   protected profileError = '';
   protected quotationNotice = '';
+  protected quotationToDelete: ProjectSummary | null = null;
+  protected deletingQuotation = false;
+  protected deletionError = '';
+  @ViewChild('pageTitle') private pageTitle?: ElementRef<HTMLElement>;
 
   protected isInitialLoading = true;
   protected isSectionLoading = false;
@@ -170,15 +175,37 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
     }
   }
 
-  protected async deleteProject(projectId: string): Promise<void> {
-    await this.writeFeedback.run('dashboard-maestro:deleteProject', async () => {
-      if (!this.user) return;
-      await this.apiService.deleteProject(this.user.id, projectId);
+  protected deleteProject(projectId: string): void {
+    if (this.deletingQuotation) return;
+    this.deletionError = '';
+    this.quotationToDelete = this.projects.find(project => project.id === projectId) || null;
+  }
+
+  protected closeDeleteQuotation(): void {
+    if (!this.deletingQuotation) this.quotationToDelete = null;
+  }
+
+  protected async confirmDeleteQuotation(): Promise<void> {
+    if (!this.user || !this.quotationToDelete || this.deletingQuotation) return;
+    const projectId = this.quotationToDelete.id;
+    this.deletingQuotation = true;
+    this.deletionError = '';
+    try {
+      await this.writeFeedback.run('dashboard-maestro:deleteProject', async () => {
+        await this.apiService.deleteProject(this.user!.id, projectId);
+      });
+      this.quotationToDelete = null;
+      this.quotationNotice = 'Cotización eliminada.';
       this.loadedSections.delete('inicio');
       this.loadedSections.delete('cotizaciones');
       this.loadedSections.delete('historial');
       await this.ensureSectionData(this.currentSection, true);
-    });
+      setTimeout(() => this.pageTitle?.nativeElement.focus());
+    } catch (error) {
+      this.deletionError = error instanceof Error ? error.message : 'No pudimos eliminar la cotización. Vuelve a intentarlo.';
+    } finally {
+      this.deletingQuotation = false;
+    }
   }
 
   protected async saveProfile(): Promise<void> {

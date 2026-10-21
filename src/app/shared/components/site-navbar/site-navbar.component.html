@@ -3,6 +3,7 @@
   class="nav-overlay"
   *ngIf="menuOpen"
   (click)="closeMenu()"
+  tabindex="-1"
   aria-label="Cerrar menu"
 ></button>
 
@@ -133,7 +134,7 @@
   </button>
 </header>
 
-<aside #mobileDrawer tabindex="-1" id="mobile-navigation" role="dialog" [attr.aria-modal]="menuOpen ? true : null" [attr.inert]="menuOpen ? null : ''" (keydown.tab)="trapMenuFocus($event)" class="mobile-drawer" [class.open]="menuOpen" [attr.aria-hidden]="!menuOpen" aria-label="Menu principal">
+<aside #mobileDrawer tabindex="-1" id="mobile-navigation" role="dialog" [attr.aria-modal]="menuOpen ? true : null" [attr.inert]="menuOpen ? null : ''" (keydown)="trapMenuFocus($event)" class="mobile-drawer" [class.open]="menuOpen" [attr.aria-hidden]="!menuOpen" aria-label="Menu principal">
   <div class="drawer-header">
     <a class="drawer-brand" routerLink="/" (click)="closeMenu()"><app-brand-mark /> <strong>Trovio</strong></a>
     <button type="button" class="drawer-close" (click)="closeMenu()" aria-label="Cerrar menu"><fa-icon [icon]="faClose" /></button>

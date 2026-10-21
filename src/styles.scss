@@ -95,8 +95,13 @@
   --info-50: #e8f1ff;
 }
 
-body.modal-open {
+body.modal-open,
+body.surface-open {
   overflow: hidden;
+}
+
+body:is(.surface-open, .navigation-open, .modal-open) :is(.help-widget, .pilot-widget, .cookie-banner) {
+  visibility: hidden;
 }
 
 *, *::before, *::after {
@@ -479,6 +484,21 @@ textarea:focus {
   color: var(--danger-700);
   font-size: var(--text-sm);
   font-weight: 650;
+}
+
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+@media (max-width: 640px) {
+  .dialog-actions > button {
+    flex: 1 1 100%;
+    white-space: normal;
+  }
 }
 
 .form-success {

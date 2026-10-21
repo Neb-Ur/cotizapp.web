@@ -1,4 +1,5 @@
 import { CATEGORY_ICONS, categoryIcon } from '../../../core/utils/category-icon.util';
+import { trapDialogFocus } from '../../utils/dialog-focus.util';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CatalogSearchIndexService } from '../../../core/services/catalog-search-index.service';
@@ -215,15 +216,7 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
   }
 
   protected trapMenuFocus(event: Event): void {
-    const keyboardEvent = event as KeyboardEvent;
-    const elements = Array.from(this.mobileDrawer?.nativeElement.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled])') || []);
-    const first = elements[0]; const last = elements.at(-1);
-    if (!first || !last) return;
-    if (keyboardEvent.shiftKey && (document.activeElement === first || document.activeElement === this.mobileDrawer?.nativeElement)) {
-      event.preventDefault(); last.focus();
-    } else if (!keyboardEvent.shiftKey && document.activeElement === last) {
-      event.preventDefault(); first.focus();
-    }
+    if (this.mobileDrawer) trapDialogFocus(this.mobileDrawer.nativeElement, event as KeyboardEvent);
   }
 
   @HostListener('window:scroll')
@@ -351,6 +344,7 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
       setTimeout(() => { if (this.menuOpen) this.mobileDrawer?.nativeElement.focus(); });
       this.previousBodyOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
+      document.body.classList.add('navigation-open');
       return;
     }
 
@@ -362,5 +356,6 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
   private restoreBodyScroll(): void {
     if (typeof document === 'undefined') return;
     document.body.style.overflow = this.previousBodyOverflow;
+    document.body.classList.remove('navigation-open');
   }
 }

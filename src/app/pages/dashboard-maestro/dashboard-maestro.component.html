@@ -8,7 +8,7 @@
       <div class="title-row">
 
         <div>
-          <h1>{{ currentSectionLabel }}</h1>
+          <h1 #pageTitle tabindex="-1">{{ currentSectionLabel }}</h1>
           <p>{{ currentSectionDescription }}</p>
         </div>
       </div>
@@ -125,3 +125,11 @@
     </article>
   </section>
 </main>
+<app-ui-modal [open]="!!quotationToDelete" title="¿Eliminar cotización?" size="sm" tone="danger" [closeDisabled]="deletingQuotation" (closed)="closeDeleteQuotation()">
+  <p>Se eliminará “{{ quotationToDelete?.name }}” y sus productos. Esta acción no se puede deshacer.</p>
+  <p *ngIf="deletionError" class="form-error" role="alert">{{ deletionError }}</p>
+  <div class="dialog-actions">
+    <button type="button" class="btn btn-outline" [disabled]="deletingQuotation" (click)="closeDeleteQuotation()">Conservar cotización</button>
+    <button type="button" class="btn btn-danger" [disabled]="deletingQuotation" (click)="confirmDeleteQuotation()">{{ deletingQuotation ? 'Eliminando…' : 'Eliminar cotización' }}</button>
+  </div>
+</app-ui-modal>

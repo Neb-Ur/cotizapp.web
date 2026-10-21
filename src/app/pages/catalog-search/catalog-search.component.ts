@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -20,12 +20,13 @@ import {
 } from '../../core/utils/location.util';
 import { productPath } from '../../core/utils/product-url.util';
 import { ProductImageDirective } from '../../shared/directives/product-image.directive';
+import { ModalSurfaceDirective } from '../../shared/directives/modal-surface.directive';
 import type { CatalogLandingView } from '../catalog-landing/catalog-landing.component';
 
 @Component({
   selector: 'app-catalog-search',
   standalone: true,
-  imports: [ProductImageDirective, CommonModule, RouterLink, FormsModule, FontAwesomeModule, PaginatorModule],
+  imports: [ProductImageDirective, CommonModule, RouterLink, FormsModule, FontAwesomeModule, PaginatorModule, ModalSurfaceDirective],
   templateUrl: './catalog-search.component.html',
   styleUrls: ['./catalog-search.component.scss']
 })
@@ -82,6 +83,7 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
   protected nearbyError = '';
   protected isLocatingNearby = false;
   protected filtersPanelOpen = false;
+  protected isMobileFilters = false;
   protected nearbyPanelOpen = false;
   protected productSort = 'relevance';
 
@@ -111,6 +113,7 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.syncFiltersViewport();
     // Embedded views are created during a render; start signal writes after it.
     if (this.landing) {
       queueMicrotask(() => { if (!this.destroyed) this.startCatalog(); });
@@ -318,6 +321,12 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
 
   protected toggleFiltersPanel(): void {
     this.filtersPanelOpen = !this.filtersPanelOpen;
+  }
+
+  @HostListener('window:resize')
+  protected syncFiltersViewport(): void {
+    this.isMobileFilters = typeof window !== 'undefined' && window.innerWidth <= 900;
+    if (!this.isMobileFilters) this.filtersPanelOpen = false;
   }
 
   protected async toggleNearbySearch(): Promise<void> {

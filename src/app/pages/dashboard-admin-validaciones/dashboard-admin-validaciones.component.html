@@ -30,7 +30,9 @@
           class="menu-toggle menu-icon"
           *ngIf="isMobileViewport"
           (click)="toggleMobileMenu()"
-          aria-label="Abrir o cerrar menu"
+          [attr.aria-label]="isMobileMenuVisible ? 'Cerrar menú del panel' : 'Abrir menú del panel'"
+          [attr.aria-expanded]="isMobileMenuVisible"
+          aria-controls="dashboard-navigation"
         >
           <span></span>
           <span></span>

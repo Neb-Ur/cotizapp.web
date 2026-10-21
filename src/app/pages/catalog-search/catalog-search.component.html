@@ -81,7 +81,11 @@
         <p class="nearby-error" *ngIf="nearbyError">{{ nearbyError }}</p>
       </section>
 
-      <aside id="catalog-filters-panel" class="filters-section" [class.filters-section--open]="filtersPanelOpen" aria-label="Filtros del catalogo">
+      <button *ngIf="isMobileFilters && filtersPanelOpen" type="button" class="filters-backdrop" tabindex="-1" aria-label="Cerrar filtros" (click)="filtersPanelOpen = false"></button>
+      <aside id="catalog-filters-panel" class="filters-section" [class.filters-section--open]="filtersPanelOpen"
+        tabindex="-1" [appModalSurface]="isMobileFilters && filtersPanelOpen" (surfaceClosed)="filtersPanelOpen = false"
+        [attr.role]="isMobileFilters ? 'dialog' : null" [attr.aria-modal]="isMobileFilters && filtersPanelOpen ? 'true' : null"
+        [attr.inert]="isMobileFilters && !filtersPanelOpen ? '' : null" aria-label="Filtros del catálogo">
         <div class="filters-heading">
           <div>
             <span>Acotar por</span>

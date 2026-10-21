@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 import { CatalogSearchComponent } from './catalog-search.component';
 import { AuthService } from '../../core/services/auth.service';
 import { FirebaseDataService } from '../../core/services/firebase-data.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { convertToParamMap } from '@angular/router';
 import { of, Subject } from 'rxjs';
@@ -206,4 +206,46 @@ describe('automotive SEO landing defaults',()=>{
   component.selectedArea='repuestos';component.selectedVehicleBrandId='hyundai';component.selectedVehicleModelId='elantra';component.refreshProductRows();
   expect(component.router.navigate).toHaveBeenCalledWith(['/buscar'],expect.objectContaining({queryParams:expect.objectContaining({vehiculoModeloId:'elantra'})}));
  });
+});
+
+describe('mobile catalog filter surface', () => {
+  afterEach(() => { TestBed.resetTestingModule(); vi.unstubAllGlobals(); });
+  it('opens, traps reverse Tab, closes on Escape/backdrop and releases on desktop resize', async () => {
+    vi.stubGlobal('innerWidth', 390);
+    const {api} = fixture();
+    api.searchProductPage.mockResolvedValue({items:[],total:0,page:1,size:20} as any);
+    await TestBed.configureTestingModule({imports:[CatalogSearchComponent], providers:[provideRouter([]),
+      {provide:AuthService,useValue:{currentUser:()=>null}}, {provide:FirebaseDataService,useValue:api},
+      {provide:ActivatedRoute,useValue:{queryParamMap:of(convertToParamMap({}))}},
+      {provide:StoreDirectoryService,useValue:{list:async()=>({storeOptions:[]})}},
+      {provide:VehicleCatalogService,useValue:{publicCatalog:async()=>({brands:[],models:[]})}}
+    ]}).compileComponents();
+    const rendered = TestBed.createComponent(CatalogSearchComponent);
+    document.body.append(rendered.nativeElement);
+    rendered.detectChanges(); await rendered.whenStable(); rendered.detectChanges();
+    const trigger = rendered.nativeElement.querySelector('.filters-disclosure') as HTMLButtonElement;
+    const panel = rendered.nativeElement.querySelector('.filters-section') as HTMLElement;
+    expect(panel.hasAttribute('inert')).toBe(true);
+    trigger.focus(); trigger.click(); rendered.detectChanges(); await rendered.whenStable();
+    expect(panel.getAttribute('aria-modal')).toBe('true');
+    expect(document.activeElement).toBe(panel);
+    expect(document.body.classList.contains('surface-open')).toBe(true);
+    const reverse = new KeyboardEvent('keydown', {key:'Tab',shiftKey:true,bubbles:true,cancelable:true});
+    panel.dispatchEvent(reverse);
+    expect(reverse.defaultPrevented).toBe(true);
+    expect(panel.contains(document.activeElement)).toBe(true);
+    expect(document.activeElement).not.toBe(panel);
+    document.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape',bubbles:true})); rendered.detectChanges();
+    expect(panel.hasAttribute('inert')).toBe(true);
+    expect(document.activeElement).toBe(trigger);
+    trigger.click(); rendered.detectChanges(); await rendered.whenStable();
+    rendered.nativeElement.querySelector('.filters-backdrop').click(); rendered.detectChanges();
+    expect(panel.hasAttribute('inert')).toBe(true);
+    trigger.click(); rendered.detectChanges(); await rendered.whenStable();
+    vi.stubGlobal('innerWidth', 1200); window.dispatchEvent(new Event('resize')); rendered.detectChanges();
+    expect(panel.getAttribute('aria-modal')).toBeNull();
+    expect(panel.hasAttribute('inert')).toBe(false);
+    expect(document.body.classList.contains('surface-open')).toBe(false);
+    rendered.destroy(); rendered.nativeElement.remove();
+  });
 });

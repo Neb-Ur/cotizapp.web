@@ -1,5 +1,6 @@
 import {DomPortal,DomPortalOutlet} from '@angular/cdk/portal';
 import { CommonModule, DOCUMENT } from '@angular/common';
+import { trapDialogFocus } from '../../utils/dialog-focus.util';
 import {
   Component,
   ElementRef,
@@ -90,25 +91,7 @@ export class UiModalComponent implements OnChanges, OnDestroy {
   }
 
   protected trapFocus(event: Event): void {
-    const keyboardEvent = event as KeyboardEvent;
-    const focusable = Array.from(this.dialog?.nativeElement.querySelectorAll<HTMLElement>(
-      'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-    ) || []);
-    if (focusable.length === 0) {
-      event.preventDefault();
-      this.dialog?.nativeElement.focus();
-      return;
-    }
-
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (keyboardEvent.shiftKey && this.document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!keyboardEvent.shiftKey && this.document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
+    if (this.dialog) trapDialogFocus(this.dialog.nativeElement, event as KeyboardEvent);
   }
 
   protected close(): void {

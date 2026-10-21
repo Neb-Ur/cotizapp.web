@@ -3,11 +3,21 @@
   class="mobile-overlay"
   *ngIf="isMobileViewport && isMobileOpen"
   (click)="closeMenu()"
+  tabindex="-1"
   aria-label="Cerrar menu"
 ></button>
 
 <aside
+  id="dashboard-navigation"
   class="sidebar"
+  tabindex="-1"
+  [appModalSurface]="isMobileViewport && isMobileOpen"
+  (surfaceClosed)="closeMenu()"
+  [attr.role]="isMobileViewport ? 'dialog' : null"
+  [attr.aria-modal]="isMobileViewport && isMobileOpen ? 'true' : null"
+  [attr.aria-hidden]="isMobileViewport && !isMobileOpen ? 'true' : null"
+  [attr.inert]="isMobileViewport && !isMobileOpen ? '' : null"
+  [attr.aria-label]="title"
   [class.mobile-drawer]="isMobileViewport"
   [class.mobile-open]="isMobileViewport && isMobileOpen"
 >
@@ -32,11 +42,12 @@
     </button>
   </div>
 
-  <nav>
+  <nav aria-label="Secciones del panel">
     <button
       *ngFor="let section of sections"
       type="button"
       [class.active]="activeSection === section.id"
+      [attr.aria-current]="activeSection === section.id ? 'page' : null"
       (click)="selectSection(section.id)"
     >
       {{ section.label }}

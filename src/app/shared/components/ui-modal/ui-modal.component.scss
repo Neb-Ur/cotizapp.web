@@ -14,6 +14,8 @@
 }
 
 .dialog {
+  display: flex;
+  flex-direction: column;
   width: min(560px, 100%);
   max-height: min(760px, calc(100dvh - 2rem));
   border-radius: var(--r-lg);
@@ -33,6 +35,7 @@
 }
 
 .dialog-header {
+  flex-shrink: 0;
   padding: 1.15rem 1.25rem 0.9rem;
   display: flex;
   justify-content: space-between;
@@ -84,9 +87,10 @@ h2 {
 }
 
 .content {
-  max-height: calc(100dvh - 8rem);
+  min-height: 0;
   padding: 1.15rem 1.25rem 1.25rem;
   overflow: auto;
+  overscroll-behavior: contain;
 }
 
 @media (max-width: 640px) {
@@ -106,6 +110,10 @@ h2 {
   .dialog-header,
   .content {
     padding-inline: var(--space-4);
+  }
+
+  .content {
+    padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
   }
 }
 

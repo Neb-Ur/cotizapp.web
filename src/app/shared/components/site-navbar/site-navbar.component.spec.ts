@@ -148,6 +148,22 @@ describe('header navigation and search',()=>{
     document.body.style.overflow='hidden';fixture.destroy();
     expect(document.body.style.overflow).toBe('hidden');document.body.style.overflow='';
   });
+
+  it('keeps Shift+Tab in the open drawer and hides floating controls only while open', async () => {
+    const {fixture, component} = await setup('/');
+    document.body.append(fixture.nativeElement);
+    component.toggleMenu(); fixture.detectChanges(); await fixture.whenStable();
+    const drawer = fixture.nativeElement.querySelector('.mobile-drawer') as HTMLElement;
+    drawer.focus();
+    const event = new KeyboardEvent('keydown', {key:'Tab', shiftKey:true, bubbles:true, cancelable:true});
+    drawer.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(true);
+    expect(drawer.contains(document.activeElement)).toBe(true);
+    expect(document.activeElement).not.toBe(drawer);
+    expect(document.body.classList.contains('navigation-open')).toBe(true);
+    fixture.destroy(); fixture.nativeElement.remove();
+    expect(document.body.classList.contains('navigation-open')).toBe(false);
+  });
 });
 
 it('replaces public search with store navigation in the dashboard and restores Home with a return button',async()=>{
