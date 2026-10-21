@@ -35,7 +35,7 @@ El inventario de Computer Use no expuso navegadores y crear una pestaña `iab` d
 
 Quedan pendientes capturas actuales y ciclos visuales a 360/390/768/1040/1050/1440 px; teclado móvil real; estados con datos largos, vacíos y errores; sesiones de maestro/local/admin; verificación de desbordamiento y superposición; Lighthouse posterior a los cambios. Se requiere evidencia renderizada antes de dar por terminada la petición de pulido visual completo.
 
-Los cambios son locales. No se desplegó ni se modificaron cuentas o datos comerciales.
+La implementación se realizó inicialmente en local. El despliegue posterior se registra a continuación; no se modificaron cuentas o datos comerciales.
 
 ## Validación final de código
 
@@ -45,3 +45,15 @@ Los cambios son locales. No se desplegó ni se modificaron cuentas o datos comer
 - `git diff --check` aprobado. Vista de desarrollo local responde HTTP 200 en el puerto 5011.
 - Árbitro, última ronda: sin regresiones P1/P2 nuevas identificadas por inspección de código; no certifica la experiencia renderizada.
 - Logs: `/tmp/trovio-polish-tests-20261021.log` y `/tmp/trovio-polish-build-20261021.log`.
+
+## Publicación autorizada
+
+El 21 de octubre de 2026, por instrucción del usuario «sube y despliega», se subió `c250190` a `origin/main` y se publicó Firebase Hosting y la función `api` en `cotizapp-d71c8`. La API incluye la plantilla web actualizada para que las páginas de productos y categorías entreguen la misma versión de la aplicación. No se modificó su lógica de negocio.
+
+- Hosting conservó 679 bundles anteriores; hay 747 bundles versionados disponibles para las pestañas abiertas.
+- Compilación de Functions aprobada; 240 pruebas de backend aprobadas.
+- Verificación de versión: inicio, búsqueda, cotizaciones, panel administrativo y repuestos sirven los bundles actuales, tanto en `https://trovio.cl` como en `https://cotizapp-d71c8.web.app`.
+- Pruebas de humo de producción aprobadas: 1.126 productos, 4.038 ofertas; consistencia catálogo/detalle, HTML inicial de producto, canonical, JSON-LD, sitemap, noindex privado y respuestas 404 reales (`/tmp/trovio-polish-smoke-20261021.log`).
+- Integridad: SHA-256 de JS/CSS publicados coincide con los archivos compilados localmente en ambos dominios.
+- Logs: `/tmp/trovio-polish-deploy-20261021.log`, `/tmp/trovio-polish-api-deploy-20261021.log`, `/tmp/trovio-polish-release-check-20261021.log`, `/tmp/trovio-polish-functions-tests-20261021.log`.
+- La revisión visual renderizada y de tecnología asistiva sigue pendiente; el despliegue y las comprobaciones HTTP no la sustituyen.
