@@ -28,7 +28,7 @@ La compatibilidad del buscador legado de ofertas se conserva: no se reemplaza su
 
 Pruebas de inicialización paralela/deduplicada, carga antes de resultado vacío, respuestas antiguas, caché local bloqueada/tardía, uso de versión local rápida, invalidación del índice y trabajo lineal de nombres. Playwright local con API demorada, viewports 1440×1024 y 390×844: sin falso cero, productos visibles antes que la taxonomía, sin desbordamiento ni errores JavaScript. Capturas en `output/catalogo-carga`.
 
-Cambios locales; sin commit ni despliegue en este turno.
+Cambios publicados en producción el 2026-10-23, commit `743fe3f`. Ver recibo en `despliegue-rendimiento-sesiones-2026-10-23.md`.
 
 Resultado: 32 pruebas frontend y 33 backend correctas; compilación de producción correcta con 9 rutas prerenderizadas. `git diff --check` correcto. La revisión adversarial verificó la invalidación del índice y detectó el error residual de red tras caché local tardía, corregido y cubierto por regresión.
 
