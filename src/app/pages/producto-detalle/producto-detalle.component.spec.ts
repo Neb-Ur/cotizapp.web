@@ -288,3 +288,14 @@ describe('continuous product information',()=>{
   expect(root.querySelector('[role="tablist"]')).toBeNull();
  });
 });
+
+it('selects the originating guest quotation in the detail without adding an item',async()=>{
+ localStorage.clear();
+ const {component,vehicleParams,resolvers}=await setup();
+ const quote=component.guestQuotations.create('Cotización de origen');
+ vehicleParams.next(convertToParamMap({projectTarget:`local:${quote.id}`}));
+ resolvers[1](detail);await Promise.resolve();await Promise.resolve();
+ expect(component.selectedProjectId).toBe(quote.id);
+ expect(component.guestQuotations.get(quote.id).items).toHaveLength(0);
+ TestBed.resetTestingModule();localStorage.clear();
+});

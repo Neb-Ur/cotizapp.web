@@ -1,3 +1,4 @@
+import { WorkspaceShellComponent } from './shared/components/workspace-shell/workspace-shell.component';
 import { isPlatformServer } from '@angular/common';
 import {VisitAnalyticsService} from './core/services/visit-analytics.service';
 import { PilotBannerComponent } from './shared/components/pilot-banner/pilot-banner.component';
@@ -16,7 +17,7 @@ export const APP_SSR_READY = makeStateKey<boolean>('trovio-app-ssr-ready');
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [PilotBannerComponent, RouterOutlet, SiteFooterComponent, HelpWidgetComponent, CookieConsentComponent],
+  imports: [WorkspaceShellComponent, PilotBannerComponent, RouterOutlet, SiteFooterComponent, HelpWidgetComponent, CookieConsentComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

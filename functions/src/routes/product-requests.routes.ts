@@ -1,3 +1,6 @@
+import { publishProposedProduct } from '../services/proposed-product.service.js';
+import { invalidateStaticCatalog } from '../lib/product-sheet-cache.js';
+import { markPublicCatalogDirty } from '../lib/public-catalog-cache.js';
 import { ProductRequestError, resolveProductRequest } from '../services/product-request-resolution.service.js';
 import { Router } from 'express';
 import { requireAuth, requireRole } from '../lib/auth.js';
@@ -12,24 +15,19 @@ export const productRequestsRouter = Router();
 productRequestsRouter.post('/ferreterias/:storeId/solicitudes-creacion-producto', requireAuth, requireRole('ferreteria', 'admin'), async (req, res) => {
   if (!(await requireStoreWriteAccess(req, res, req.params.storeId))) return;
   if (!(await requireCurrentStoreAgreement(req, res, req.params.storeId))) return;
-  const created = await createRow(COLLECTIONS.productRequests, {
-    ferreteriaId: req.params.storeId,
-    usuarioSolicitanteId: req.authUserId,
-    usuarioAdminId: null,
-    nombreProducto: normalizeText(req.body?.nombreProducto),
-    codigoBarras: normalizeText(req.body?.codigoBarras),
-    skuFerreteria: normalizeText(req.body?.skuFerreteria),
-    publicado: req.body?.publicado !== false,
-    cantidadReferencia: Math.max(0, Math.floor(numberValue(req.body?.cantidadReferencia, 1))),
-    precioReferencia: Math.max(0, numberValue(req.body?.precioReferencia)),
-    estado: 'pendiente',
-    tipoSolicitud: req.body?.tipoSolicitud === 'posible_match' ? 'posible_match' : 'nuevo_producto',
-    productoMaestroSugeridoId: null,
-    notasAdmin: '',
-    fechaCreacion: nowIso(),
-    fechaResolucion: null
-  });
-  return ok(res, created, 201);
+  try {
+    const created = await publishProposedProduct(req.params.storeId, req.authUserId!, {
+      name: normalizeText(req.body?.nombreProducto), area: req.body?.rubro, published: req.body?.publicado !== false,
+      barcode: normalizeText(req.body?.codigoBarras), sku: normalizeText(req.body?.skuFerreteria),
+      price: numberValue(req.body?.precioReferencia), stock: numberValue(req.body?.cantidadReferencia),
+      categoryId: normalizeText(req.body?.categoriaId), subcategoryId: normalizeText(req.body?.subcategoriaId), familyId: normalizeText(req.body?.familiaId)
+    });
+    await Promise.all([invalidateStaticCatalog(), markPublicCatalogDirty()]);
+    return ok(res, created, 201);
+  } catch(error) {
+    if(error instanceof ProductRequestError) return fail(res,error.code,error.message,error.status);
+    throw error;
+  }
 });
 
 productRequestsRouter.get('/solicitudes-creacion-producto', requireAuth, requireRole('admin'), async (req, res) => {
@@ -46,8 +44,10 @@ productRequestsRouter.post('/solicitudes-creacion-producto/:id/resolver', requir
   const action = req.body?.accion;
   if (!['aprobar', 'rechazar'].includes(action)) return fail(res, 'SOLICITUD_INVALID_PAYLOAD', 'Accion invalida.', 400);
   try {
-    return ok(res, await resolveProductRequest(req.params.id, action,
-      normalizeText(req.body?.productoMaestroSugeridoId), req.authUserId!, normalizeText(req.body?.notaAdmin)));
+    const result = await resolveProductRequest(req.params.id, action,
+      normalizeText(req.body?.productoMaestroSugeridoId), req.authUserId!, normalizeText(req.body?.notaAdmin));
+    await Promise.all([invalidateStaticCatalog(),markPublicCatalogDirty()]);
+    return ok(res,result);
   } catch (error) {
     if (error instanceof ProductRequestError) return fail(res, error.code, error.message, error.status);
     throw error;

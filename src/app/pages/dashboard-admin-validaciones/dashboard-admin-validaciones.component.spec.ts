@@ -78,3 +78,9 @@ it('keeps an explicit business scope when changing a new product category',()=>{
  component.masterDetailDraft.categoryId='cat-repuestos-automotrices';component.onDraftCategoryChange();expect(component.masterDetailDraft.businessScope).toBe('desarmaduria');
  component.masterBusinessScopeTouched=true;component.masterDetailDraft.businessScope='ambos';component.masterDetailDraft.categoryId='construction';component.onDraftCategoryChange();expect(component.masterDetailDraft.businessScope).toBe('ambos');
 });
+
+it('restores the summary on Back to an admin URL without a section',()=>{
+ const {component}=fixture();component.router={url:'/dashboard/admin/validaciones',navigate:vi.fn()};component.ensureSectionData=vi.fn();
+ component.currentSection='ferreterias';component.syncSectionFromUrl();expect(component.currentSection).toBe('inicio');
+ component.router.url='/dashboard/admin/validaciones?section=productos#ficha';component.syncSectionFromUrl();expect(component.currentSection).toBe('productos');
+});

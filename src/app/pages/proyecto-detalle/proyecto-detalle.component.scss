@@ -80,8 +80,11 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 .quotation-content:not(:has(.same-store-card)) .editor-panel { grid-column: 1 / -1; }
 .quotation-validity, .quotation-nearby-card { margin: .5rem 0; padding: .65rem; background: var(--ink-50); border-radius: 8px; font-size: .8rem; }
 .quotation-validity p { margin: .4rem 0; }
-.verification-code, .quotation-nearby-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: .5rem 0; }
-.verification-code strong { overflow-wrap: anywhere; min-width: 0; }
+.quotation-nearby-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: .5rem 0; }
+.verification-code { grid-column: 1 / -1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; padding: .75rem 1rem; background: var(--orange-muted); border: 1px solid var(--border-med); border-radius: 12px; }
+.verification-code div { display: grid; gap: .25rem; min-width: 0; }
+.verification-code span { font-size: .8rem; color: var(--ink-700); }
+.verification-code strong { overflow-wrap: anywhere; min-width: 0; color: var(--ink-900); font-size: 1rem; user-select: all; }
 .quotation-nearby-copy { display: grid; gap: .25rem; }
 .quotation-nearby-actions label { max-width: 120px; }
 .whatsapp-share { border-top: 1px solid var(--border-soft); margin-top: .75rem; padding-top: .65rem; }

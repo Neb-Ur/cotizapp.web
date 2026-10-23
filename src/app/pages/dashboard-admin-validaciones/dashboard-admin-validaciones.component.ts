@@ -1,3 +1,4 @@
+import { allowedProductAreas, productAreaLabel, type ProductArea } from '../../core/utils/business-type.util';
 import {ProductVehicleFieldsComponent} from '../../shared/components/product-vehicle-fields/product-vehicle-fields.component';
 import {VehicleApplication} from '../../core/services/vehicle-catalog.service';
 import { UiModalComponent } from '../../shared/components/ui-modal/ui-modal.component';
@@ -11,9 +12,10 @@ import { WriteFeedbackService } from '../../core/services/write-feedback.service
 import { CATEGORY_ICONS, categoryIcon } from '../../core/utils/category-icon.util';
 import { PasswordFieldComponent } from '../../shared/components/password-field/password-field.component';
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { Router, NavigationEnd } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { CheckboxModule } from 'primeng/checkbox';
@@ -59,7 +61,6 @@ import { IntellectualPropertyService } from '../../core/services/intellectual-pr
 import { CATALOG_IMPORT_TEMPLATE, catalogFileToCsv, catalogImportTemplateFileName, downloadCatalogImportTemplate } from '../../core/utils/catalog-import.util';
 import { CHILE_CITY_OPTIONS, communesForCity } from '../../core/utils/chile-locations.util';
 import { getCurrentBrowserLocation, hasValidCoordinates } from '../../core/utils/location.util';
-import { DashboardMenuComponent } from '../../shared/components/dashboard-menu/dashboard-menu.component';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 
 type AdminSection = 'inicio' | 'ferreterias' | 'productos' | 'solicitudes' | 'contacto' | 'precios' | 'propiedad' | 'privacidad' | 'gobierno' | 'usuarios';
@@ -167,7 +168,6 @@ interface AdminSectionMeta {
     PasswordFieldComponent,
     CommonModule,
     FormsModule,
-    DashboardMenuComponent,
     ButtonModule,
     CardModule,
     CheckboxModule,
@@ -184,7 +184,7 @@ interface AdminSectionMeta {
   templateUrl: './dashboard-admin-validaciones.component.html',
   styleUrl: './dashboard-admin-validaciones.component.scss'
 })
-export class DashboardAdminValidacionesComponent implements OnInit {
+export class DashboardAdminValidacionesComponent implements OnInit, OnDestroy {
   protected readonly businessTypes = BUSINESS_TYPES;
   protected readonly productBusinessScopes = PRODUCT_BUSINESS_SCOPES;
   protected readonly productBusinessScopeLabel = productBusinessScopeLabel;
@@ -333,6 +333,9 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   protected userSearch = '';
 
   protected onboardingStoreOwnerId = '';
+  protected onboardingProductArea: ProductArea | '' = '';
+  protected readonly productAreaLabel = productAreaLabel;
+  protected get onboardingProductAreaOptions() { return allowedProductAreas(this.onboardingFerreterias.find(user=>user.id===this.onboardingStoreOwnerId)?.businessType); }
   protected onboardingCsvContent = CATALOG_IMPORT_TEMPLATE;
   protected onboardingFileName = '';
   protected onboardingLoading = false;
@@ -404,7 +407,16 @@ export class DashboardAdminValidacionesComponent implements OnInit {
   private detailRequest = 0;
   protected brandOptions:Array<{id:string;name:string}>=[];
 
+  private sectionNavigation?: Subscription;
+  private syncSectionFromUrl(): void {
+    const requested=new URLSearchParams((this.router.url || '').split('?')[1]?.split('#')[0] || '').get('section') as AdminSection;
+    const section=this.sections.some(item=>item.id===requested)?requested:'inicio';
+    if(section!==this.currentSection)this.setSection(section);
+  }
+  ngOnDestroy(): void { this.sectionNavigation?.unsubscribe(); }
   ngOnInit(): void {
+    this.syncSectionFromUrl();
+    this.sectionNavigation=this.router.events?.subscribe(event=>{if(event instanceof NavigationEnd)this.syncSectionFromUrl();});
     this.syncViewportState();
     void this.initializeDashboard();
   }
@@ -710,6 +722,8 @@ export class DashboardAdminValidacionesComponent implements OnInit {
 
   protected setSection(section: AdminSection): void {
     this.currentSection = section;
+    const current=new URLSearchParams((this.router.url || '').split('?')[1] || '').get('section') || 'inicio';
+    if(current!==section) void this.router.navigate(['/dashboard/admin/validaciones'],{queryParams:{section}});
     if (section === 'ferreterias') {
       this.closeStoreCatalog();
     }
@@ -1688,6 +1702,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
     this.selectedStoreCatalogSearch = '';
     this.selectedStoreCatalogPage = 1;
     this.onboardingStoreOwnerId = store.id;
+    this.onboardingProductArea = '';
     this.resetOnboardingCatalogTemplate();
     this.ferreteriaView = 'detail';
     this.selectedStoreCatalogLoading = true;
@@ -1826,6 +1841,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
         this.onboardingError = 'Selecciona una ferreteria.';
         return;
       }
+      if (!this.onboardingProductArea || !this.onboardingProductAreaOptions.includes(this.onboardingProductArea)) { this.onboardingError = 'Selecciona el tipo de producto del archivo.'; return; }
       if (!this.onboardingCsvContent.trim()) {
         this.onboardingError = 'Carga un archivo o pega los datos del catalogo.';
         return;
@@ -1841,6 +1857,7 @@ export class DashboardAdminValidacionesComponent implements OnInit {
           store.businessName || store.displayName,
           this.onboardingCsvContent,
           {
+            area: this.onboardingProductArea,
             categoryId: '',
             subcategoryId: '',
             familyId: '',

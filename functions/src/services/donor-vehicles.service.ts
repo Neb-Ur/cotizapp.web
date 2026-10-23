@@ -1,6 +1,7 @@
+import { prepareProposedProduct } from './proposed-product.service.js';
 import {db} from '../lib/firebase.js';
 import {COLLECTIONS} from '../lib/collections.js';
-import {DonorError,donorStore,donorOfferId,donorRequestId,text,validateDonorIdentity,normalizeDonorParts,validDonorPrice,matchesDonor} from '../domain/donor-vehicle.js';
+import {DonorError,donorStore,donorOfferId,donorRequestId,text,validateDonorIdentity,normalizeDonorParts,validDonorPrice,matchesDonorPart} from '../domain/donor-vehicle.js';
 import {productMatchesBusinessType} from '../domain/business-type.js';
 import {publicOfferPhotos,type OfferPhoto,MAX_OFFER_PHOTOS} from '../domain/offer-photo.js';
 import {uploadProductImage,deleteOfferImageFiles,ImageStorageError} from './image-storage.service.js';
@@ -18,8 +19,9 @@ export async function saveDonor(storeId:string,id:string,input:any,actorId:strin
   if(!brand.exists||!model.exists||model.data()?.['marcaId']!==input.marcaId||model.data()?.['activo']===false)throw new DonorError('DONOR_MODEL_INVALID','Selecciona un modelo activo de la marca.');
   if(previous&&(previous['marcaId']!==input.marcaId||previous['modeloId']!==input.modeloId||previous['anio']!==input.anio))throw new DonorError('DONOR_IDENTITY_LOCKED','El vehículo registrado conserva su marca, modelo y año.',409);
   if(previous&&input.revision!==previous['revision'])throw new DonorError('DONOR_REVISION_CONFLICT','El inventario cambió en otra pestaña. Vuelve a abrirlo antes de guardar.',409);
+  if(previous && (previous['piezas']||[]).some((p:any)=>p.ofertaId) && text(previous['motor'])!==text(input.motor))throw new DonorError('DONOR_ENGINE_LOCKED','El motor se conserva porque ya hay piezas publicadas de este vehículo.',409);
   const now=new Date().toISOString();
-  const value={ferreteriaId:storeId,marcaId:input.marcaId,modeloId:input.modeloId,marcaNombre:brand.data()?.['nombre'],modeloNombre:model.data()?.['nombre'],anio:input.anio,motor:text(input.motor),patente:text(input.patente,20),vin:text(input.vin,40),transmision:text(input.transmision,60),codigoInterno:text(input.codigoInterno,60),estado:['disponible','en_desarme','agotado'].includes(input.estado)?input.estado:'en_desarme',piezas:normalizeDonorParts(input.piezas,previous?.['piezas']||[]),fotosVehiculo:previous?.['fotosVehiculo']||[],revision:Number(previous?.['revision']||0)+1,creadoEn:previous?.['creadoEn']||now,actualizadoEn:now};
+  const value={pasoActual:[1,2,3].includes(input.pasoActual)?input.pasoActual:previous?.['pasoActual']||2,ferreteriaId:storeId,marcaId:input.marcaId,modeloId:input.modeloId,marcaNombre:brand.data()?.['nombre'],modeloNombre:model.data()?.['nombre'],anio:input.anio,motor:text(input.motor),patente:text(input.patente,20),vin:text(input.vin,40),transmision:text(input.transmision,60),codigoInterno:text(input.codigoInterno,60),estado:['disponible','en_desarme','agotado'].includes(input.estado)?input.estado:'en_desarme',piezas:normalizeDonorParts(input.piezas,previous?.['piezas']||[]),fotosVehiculo:previous?.['fotosVehiculo']||[],revision:Number(previous?.['revision']||0)+1,creadoEn:previous?.['creadoEn']||now,actualizadoEn:now};
   tx.set(ref,value);return {id,...value};
  });
 }
@@ -41,11 +43,22 @@ export async function publishDonorPart(storeId:string,vehicleId:string,itemId:st
    part.estado='borrador';part.error='Completa precio mayor a cero, stock y estado de la pieza.';
   }else if(!part.productoMaestroId){
    const requestId=donorRequestId(vehicleId,itemId),requestRef=db.collection(COLLECTIONS.productRequests).doc(requestId),request=await tx.get(requestRef);
-   if(!request.exists)tx.create(requestRef,{ferreteriaId:storeId,usuarioSolicitanteId:actorId,nombreProducto:`${part.nombre} ${donor['marcaNombre']} ${donor['modeloNombre']} ${donor['anio']}${donor['motor']?' · Motor '+donor['motor']:''}`,tipoSolicitud:'nuevo_producto',estado:'pendiente',publicado:false,cantidadReferencia:part.stock,precioReferencia:part.precio,vehiculoDonanteId:vehicleId,piezaDonanteId:itemId,fechaCreacion:now,fechaResolucion:null,notasAdmin:'Vehículo de origen informado por el local. Verificar variante y compatibilidad técnica antes de vincular.'});
-   part.solicitudId=requestId;part.estado='pendiente_revision';part.error=request.data()?.['estado']==='rechazada'?'Solicitud rechazada. Revisa la variante y selecciona un maestro válido.':'Pendiente de identificar y validar la variante en el catálogo maestro.';
+   if(request.data()?.['estado']==='rechazada') {
+    part.estado='borrador';part.error='La propuesta fue rechazada. Corrige la pieza y selecciona un producto del catálogo.';
+   } else {
+    const name=`${part.nombre} ${donor['marcaNombre']} ${donor['modeloNombre']} ${donor['anio']}${donor['motor']?' · Motor '+donor['motor']:''}`;
+    const plan=await prepareProposedProduct(tx,store.data(),{name,area:'repuestos',price:part.precio,stock:part.stock},{...donor,partName:part.nombre,system:part.sistema});
+    const offer={ferreteriaId:storeId,productoMaestroId:plan.master.id,vehiculoDonanteId:vehicleId,piezaDonanteId:itemId,skuFerreteria:`${text(donor['codigoInterno'],30)||vehicleId.slice(0,8)}-${itemId.slice(-16)}`,precio:part.precio,stock:part.stock,condicion:part.condicion,incluyeIva:true,activo:true,publicado:true,fotosPublicacion:part.fotosPublicacion||[],creadoEn:now,actualizadoEn:now,vigenteDesde:now};
+    plan.write();
+    tx.create(offerRef,offer);
+    tx.set(requestRef,{...(request.data()||{}),ferreteriaId:storeId,usuarioSolicitanteId:actorId,nombreProducto:name,tipoSolicitud:'nuevo_producto',estado:'pendiente',publicado:true,publicacionProvisional:true,productoMaestroSugeridoId:plan.master.id,productoFerreteriaId:offerId,cantidadReferencia:part.stock,precioReferencia:part.precio,vehiculoDonanteId:vehicleId,piezaDonanteId:itemId,fechaCreacion:now,fechaResolucion:null,notasAdmin:'Publicado por el local. Validar pieza, taxonomía y compatibilidad declarada con el vehículo.'});
+    tx.update(storeRef,{catalogoActualizadoEn:now});
+    tx.create(db.collection(COLLECTIONS.priceHistory).doc(),{ferreteriaId:storeId,productoFerreteriaId:offerId,productoMaestroId:plan.master.id,actorId,action:'donor_proposed',precioNuevo:part.precio,ocurridoEn:now,source:'ferreteria',snapshotNuevo:offer});
+    part.productoMaestroId=plan.master.id;part.solicitudId=requestId;part.ofertaId=offerId;part.estado='publicada';part.error='Publicada; pendiente de validación de Trovio.';part.fotosPublicacion=[];
+   }
   }else{
    const master=await tx.get(db.collection(COLLECTIONS.masterProducts).doc(part.productoMaestroId));
-   if(!master.exists||master.data()?.['estado']==='inactivo'||!productMatchesBusinessType(master.data()||{},store.data()?.['tipoNegocio'])||!matchesDonor(master.data(),donor)){
+   if(!master.exists||master.data()?.['estado']==='inactivo'||!productMatchesBusinessType(master.data()||{},store.data()?.['tipoNegocio'])||!matchesDonorPart(master.data(),donor,part)){
     part.estado='borrador';part.error='El producto maestro no está activo o no tiene compatibilidad registrada para este vehículo.';
    }else{
     const offer={ferreteriaId:storeId,productoMaestroId:part.productoMaestroId,vehiculoDonanteId:vehicleId,piezaDonanteId:itemId,skuFerreteria:`${text(donor['codigoInterno'],30)||vehicleId.slice(0,8)}-${itemId.slice(-16)}`,precio:part.precio,stock:part.stock,condicion:part.condicion,incluyeIva:true,activo:true,publicado:true,fotosPublicacion:part.fotosPublicacion||[],creadoEn:now,actualizadoEn:now,vigenteDesde:now};

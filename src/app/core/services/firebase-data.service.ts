@@ -1,5 +1,5 @@
 import { normalizeOfferCondition } from '../utils/offer-condition.util';
-import { normalizeBusinessType, productMatchesBusinessType, normalizeProductBusinessScope, type BusinessType } from '../utils/business-type.util';
+import { productArea, isProductArea, allowedProductAreas, type ProductArea, normalizeBusinessType, productMatchesBusinessType, normalizeProductBusinessScope, type BusinessType } from '../utils/business-type.util';
 import { StoreDailyAnalytics } from '../models/app.models';
 import { DataModeService } from './data-mode.service';
 import { findExactMasterMatch } from '../utils/catalog-match.util';
@@ -495,6 +495,7 @@ export class FirebaseDataService {
   }
 
   async searchMasterCatalogProducts(payload: {
+    area?: ProductArea;
     storeId?: string;
     query?: string;
     categoryId?: string;
@@ -515,6 +516,7 @@ export class FirebaseDataService {
     const storeId = payload.storeId || (user?.role === 'ferreteria' ? user.ferreteriaId : undefined);
     if (user?.role === 'ferreteria' && !storeId) throw new Error('No se encontró el local de tu sesión. Vuelve a iniciar sesión.');
     const raw = await this.apiClient.get<PaginatedMasterCatalogApi>(storeId ? `/ferreterias/${storeId}/productos-disponibles` : '/productos-maestro/paginado', !!storeId, {
+      rubro: payload.area,
       query: payload.query?.trim() || undefined,
       categoriaId: payload.categoryId || undefined,
       subcategoriaId: payload.subcategoryId || undefined,
@@ -921,6 +923,8 @@ export class FirebaseDataService {
     sku?: string;
     isPublished?: boolean;
     possibleMatch?: boolean;
+    area?: ProductArea;
+    categoryId?: string; subcategoryId?: string; familyId?: string;
   }): Promise<{ id: string; type: CatalogValidationType }> {
     const ferreteriaId = await this.resolveFerreteriaId(ownerId);
 
@@ -931,6 +935,7 @@ export class FirebaseDataService {
     });
 
     const created = await this.apiClient.post<{ id: string }>(`/ferreterias/${ferreteriaId}/solicitudes-creacion-producto`, {
+      rubro: draft.area, categoriaId: draft.categoryId, subcategoriaId: draft.subcategoryId, familiaId: draft.familyId,
       nombreProducto: draft.name.trim(),
       codigoBarras: draft.barcode.trim(),
       skuFerreteria: draft.sku || '',
@@ -968,6 +973,7 @@ export class FirebaseDataService {
       unitLabel: string;
       isPublished: boolean;
       mode?: 'initial' | 'update';
+      area?: ProductArea;
     }
   ): Promise<{ catalog: CatalogProduct[]; report: CatalogImportReport }> {
     const mode = options.mode || 'initial';
@@ -980,36 +986,50 @@ export class FirebaseDataService {
     const importMasters = rawMasters.map(product => this.mapMasterProduct(product, 0));
 
     const parsedRows = await this.parseCatalogCsv(csvContent);
+    if (options.area) {
+      const user = this.authService.currentUser();
+      if(user?.role === 'ferreteria' && !allowedProductAreas(user.businessType).includes(options.area)) throw new Error('Selecciona un tipo permitido para tu local.');
+      const known = [...this.getCatalog(ownerId), ...importMasters];
+      for(const parsed of parsedRows) {
+        const declared = parsed.area?.trim().toLowerCase();
+        const aliases: Record<string,string> = {material:'materiales',herramienta:'herramientas',repuesto:'repuestos'};
+        if(declared && (aliases[declared] || declared) !== options.area) throw new Error('El archivo contiene otro tipo de producto. Usa un archivo separado para materiales, herramientas o repuestos. No se aplicó ningún cambio.');
+        const matches = known.filter(p => (parsed.barcode && p.barcode === parsed.barcode) || (parsed.sku && p.sku === parsed.sku) || p.name.trim().toLowerCase()===parsed.name.trim().toLowerCase());
+        if(matches.some(p=>p.donorVehicleId) && ![0,1].includes(parsed.stock)) throw new Error('Las piezas de vehículos admiten stock 0 o 1. Corrige el archivo antes de importar. No se aplicó ningún cambio.');
+        if(matches.some(p=>productArea({categoriaId:p.categoryId,ambitoComercial:p.businessScope})!==options.area)) throw new Error('El archivo mezcla tipos de producto del catálogo. Separa los tipos antes de importar. No se aplicó ningún cambio.');
+      }
+    }
     const reportRows: CatalogImportRowResult[] = [];
 
     const duplicateLineNumbers = new Set<number>();
-    if (mode === 'update') {
-      const identifierLines = new Map<string, number[]>();
+    const identifierLines = new Map<string, number[]>();
 
-      for (const parsed of parsedRows.filter((row) => row.valid)) {
-        const identifiers: string[] = [];
-        const normalizedSku = this.normalizeBarcode(parsed.sku);
-        const normalizedBarcode = this.normalizeBarcode(parsed.barcode);
-        const generatedSku = /^imp\d+$/i.test(normalizedSku);
+    for (const parsed of parsedRows.filter((row) => row.valid)) {
+      const identifiers: string[] = [];
+      const normalizedSku = this.normalizeBarcode(parsed.sku);
+      const normalizedBarcode = this.normalizeBarcode(parsed.barcode);
+      const generatedSku = /^imp\d+$/i.test(normalizedSku);
 
-        if (normalizedSku && !generatedSku) identifiers.push(`sku:${normalizedSku}`);
-        if (normalizedBarcode) identifiers.push(`barcode:${normalizedBarcode}`);
-        if (identifiers.length === 0 && parsed.name.trim()) {
-          identifiers.push(`name:${parsed.name.trim().toLowerCase()}`);
-        }
-
-        for (const identifier of identifiers) {
-          const lines = identifierLines.get(identifier) || [];
-          lines.push(parsed.lineNumber);
-          identifierLines.set(identifier, lines);
-        }
+      if (normalizedSku && !generatedSku) identifiers.push(`sku:${normalizedSku}`);
+      if (normalizedBarcode) identifiers.push(`barcode:${normalizedBarcode}`);
+      if (identifiers.length === 0 && parsed.name.trim()) {
+        identifiers.push(`name:${parsed.name.trim().toLowerCase()}`);
       }
 
-      for (const lines of identifierLines.values()) {
-        if (lines.length > 1) {
-          lines.forEach((line) => duplicateLineNumbers.add(line));
-        }
+      for (const identifier of identifiers) {
+        const lines = identifierLines.get(identifier) || [];
+        lines.push(parsed.lineNumber);
+        identifierLines.set(identifier, lines);
       }
+    }
+
+    for (const lines of identifierLines.values()) {
+      if (lines.length > 1) {
+        lines.forEach((line) => duplicateLineNumbers.add(line));
+      }
+    }
+    if (mode === 'initial' && duplicateLineNumbers.size > 0) {
+      throw new Error('El archivo contiene productos repetidos por SKU, código de barras o nombre. Corrige las filas repetidas antes de importar. No se aplicó ningún cambio.');
     }
 
     for (const parsed of parsedRows) {
@@ -1037,7 +1057,7 @@ export class FirebaseDataService {
       }
 
       try {
-        const catalog = this.getCatalog(ownerId).filter(item=>mode==='update'||!item.donorVehicleId);
+        const catalog = this.getCatalog(ownerId);
         const normalizedSku = this.normalizeBarcode(parsed.sku);
         const normalizedBarcode = this.normalizeBarcode(parsed.barcode);
         const generatedSku = /^imp\d+$/i.test(normalizedSku);
@@ -1135,7 +1155,7 @@ export class FirebaseDataService {
           continue;
         }
         const existingCatalogProduct = skuMatches[0] || barcodeMatches[0]
-          || findExactMasterMatch(catalog, parsed.name, parsed.barcode);
+          || findExactMasterMatch(catalog.filter(item=>!item.donorVehicleId), parsed.name, parsed.barcode);
 
         if (existingCatalogProduct) {
           await this.upsertCatalog(ownerId, {
@@ -1161,6 +1181,7 @@ export class FirebaseDataService {
           continue;
         }
 
+        if(catalog.some(item=>item.donorVehicleId && item.name.trim().toLowerCase()===parsed.name.trim().toLowerCase())) { reportRows.push(failedRow('Para actualizar una pieza de vehículo conserva su SKU o código de barras único.')); continue; }
         const suggestions = this.suggestMatches(parsed.name, importMasters);
         const firstMatch = findExactMasterMatch(importMasters, parsed.name, parsed.barcode);
         if (!firstMatch) {
@@ -1172,6 +1193,7 @@ export class FirebaseDataService {
             price: parsed.price,
             sku: parsed.sku,
             isPublished: options.isPublished,
+            area: options.area, categoryId: options.categoryId, subcategoryId: options.subcategoryId, familyId: options.familyId,
             possibleMatch: suggestions.length > 0
           });
 
@@ -1183,8 +1205,8 @@ export class FirebaseDataService {
             barcode: parsed.barcode,
             price: parsed.price,
             stock: parsed.stock,
-            outcome: suggestions.length ? 'posible_match' : 'nuevo_validacion',
-            message: suggestions.length ? 'Coincidencia ambigua enviada a revisión antes de publicar.' : 'Enviado a revision de catalogo maestro.',
+            outcome: 'subido',
+            message: 'Publicado y enviado a validación posterior de Trovio.',
             suggestions,
             validationRequestId: created.id
           });
@@ -1227,7 +1249,7 @@ export class FirebaseDataService {
       uploadedCount: reportRows.filter((row) => row.outcome === 'subido').length,
       noChangeCount: reportRows.filter((row) => row.outcome === 'sin_cambios').length,
       failedCount: reportRows.filter((row) => row.outcome === 'fallido').length,
-      pendingNewCount: reportRows.filter((row) => row.outcome === 'nuevo_validacion').length,
+      pendingNewCount: reportRows.filter((row) => !!row.validationRequestId).length,
       possibleMatchCount: reportRows.filter((row) => row.outcome === 'posible_match').length,
       rows: reportRows
     };
@@ -2562,6 +2584,7 @@ export class FirebaseDataService {
   }
 
   private async parseCatalogCsv(content: string): Promise<Array<{
+    area?: string;
     lineNumber: number;
     rawLine: string;
     name: string;

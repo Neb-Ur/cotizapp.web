@@ -54,6 +54,7 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard/ferreteria',
+    canDeactivate: [(component: {canLeave:()=>Promise<boolean>|boolean})=>component.canLeave()],
     loadComponent: () => import('./pages/dashboard-ferreteria/dashboard-ferreteria.component').then((module) => module.DashboardFerreteriaComponent),
     canActivate: [authGuard, legalAcceptanceGuard, roleGuard],
     data: { role: 'ferreteria' }

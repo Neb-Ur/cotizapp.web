@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpContextToken, HttpInterceptorFn } from '@angular/common/http';
 import { finalize } from 'rxjs';
+export const BACKGROUND_WRITE = new HttpContextToken<boolean>(()=>false);
 @Injectable({providedIn: 'root'})
 export class WriteFeedbackService {
   readonly pending = signal(0);
@@ -13,6 +14,7 @@ export class WriteFeedbackService {
   }
 }
 export const writeFeedbackInterceptor: HttpInterceptorFn = (request, next) => {
+  if (request.context.get(BACKGROUND_WRITE)) return next(request);
   if ((request.url.includes('/metricas/') || request.url.includes('/analytics/visit')) || !['POST', 'PATCH', 'PUT', 'DELETE'].includes(request.method)) return next(request);
   const feedback = inject(WriteFeedbackService);
   feedback.pending.update(count => count + 1);

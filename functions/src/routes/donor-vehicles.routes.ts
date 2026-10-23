@@ -1,3 +1,5 @@
+import { invalidateStaticCatalog } from '../lib/product-sheet-cache.js';
+import { markPublicCatalogDirty } from '../lib/public-catalog-cache.js';
 import {Router,raw,type Request,type Response,type NextFunction} from 'express';
 import {requireAuth,requireRole} from '../lib/auth.js';
 import {requireStoreWriteAccess} from '../lib/ownership.js';
@@ -6,7 +8,7 @@ import {COLLECTIONS} from '../lib/collections.js';
 import {db} from '../lib/firebase.js';
 import {row,rows} from '../repositories/firestore.repository.js';
 import {ok,fail} from '../lib/http.js';
-import {DonorError,donorStore,donorTemplate,matchesDonor,samePart} from '../domain/donor-vehicle.js';
+import {DonorError,donorStore,donorTemplate,matchesDonor,matchesDonorPart,samePart} from '../domain/donor-vehicle.js';
 import {donorView,saveDonor,publishDonorPart,changeDonorPhotos,uploadDonorPhoto} from '../services/donor-vehicles.service.js';
 import {ImageStorageError,IMAGE_CONTENT_TYPES,MAX_IMAGE_BYTES,deleteOfferImageFiles} from '../services/image-storage.service.js';
 import {publicOfferPhotos,MAX_OFFER_PHOTOS,type OfferPhoto} from '../domain/offer-photo.js';
@@ -43,7 +45,7 @@ donorVehiclesRouter.put(base+'/:vehicleId',requireAuth,requireRole('ferreteria',
 donorVehiclesRouter.get(base+'/:vehicleId/candidatos',requireAuth,requireRole('ferreteria','admin'),access,guarded(async(req,res)=>{
  const donor=await row(COLLECTIONS.donorVehicles,req.params.vehicleId),store=await row(COLLECTIONS.stores,req.params.storeId);
  const products=(await rows(COLLECTIONS.masterProducts)).filter(p=>p.estado!=='inactivo'&&productMatchesBusinessType(p,store?.tipoNegocio)&&matchesDonor(p,donor));
- return ok(res,{items:products.map(p=>({id:p.id,nombre:p.nombre,nombrePieza:p.nombrePieza||'',detalleVariante:p.detalleVariante||'',sugeridaPara:(donor?.piezas||[]).filter((part:any)=>samePart(part.nombre,p.nombrePieza)).map((part:any)=>part.id)}))});
+ return ok(res,{items:products.map(p=>({id:p.id,nombre:p.nombre,nombrePieza:p.nombrePieza||'',detalleVariante:p.detalleVariante||'',sugeridaPara:(donor?.piezas||[]).filter((part:any)=>samePart(part.nombre,p.nombrePieza) && matchesDonorPart(p,donor,part)).map((part:any)=>part.id)}))});
 }));
 donorVehiclesRouter.post(base+'/:vehicleId/publicar',requireAuth,requireRole('ferreteria','admin'),access,guarded(async(req,res)=>{
  const donor=await row(COLLECTIONS.donorVehicles,req.params.vehicleId);const results=[];
@@ -57,6 +59,7 @@ donorVehiclesRouter.post(base+'/:vehicleId/publicar',requireAuth,requireRole('fe
   try{results.push(await publishDonorPart(req.params.storeId,req.params.vehicleId,part.id,req.authUserId!,req.authRole==='admin'));}
   catch(error){if(error instanceof DonorError&&error.status===403)throw error;results.push({id:part.id,estado:'fallida',error:'No se pudo guardar esta pieza. Reintenta; las demás conservan su avance.'});console.error('DONOR_PART_PUBLISH_FAILED',{code:error instanceof DonorError?error.code:(error as any)?.code||'WRITE_FAILED',constraint:(error as any)?.constraint||null,message:error instanceof Error?error.message.slice(0,300):'Unknown write failure'});}
  }
+ await Promise.all([invalidateStaticCatalog(),markPublicCatalogDirty()]);
  return ok(res,{results,vehicle:(await inventory(req.params.storeId)).find(v=>v.id===req.params.vehicleId)});
 }));
 const photoPath=base+'/:vehicleId/piezas/:itemId/fotos';

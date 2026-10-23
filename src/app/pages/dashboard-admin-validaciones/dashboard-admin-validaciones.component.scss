@@ -1124,3 +1124,6 @@ td {
     justify-content: center;
   }
 }
+
+/* The shared workspace owns navigation and available width. */
+.dashboard-admin { width: 100%; margin: 0; display: block; }

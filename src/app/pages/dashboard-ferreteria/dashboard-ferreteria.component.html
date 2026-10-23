@@ -4,7 +4,7 @@
     <p>{{ dataLoadError }}</p>
     <button type="button" (click)="retryDataLoad()">Reintentar carga</button>
   </div>
-  <header class="store-header">
+  <header class="store-header" *ngIf="!donorEditing">
     <div class="store-photo" aria-hidden="true">
       <svg viewBox="0 0 24 24" focusable="false">
         <path d="M3 9.2 5.1 4h13.8L21 9.2V11a3 3 0 0 1-1 2.2V21h-7v-6h-2v6H4v-7.8A3 3 0 0 1 3 11V9.2Zm3.5-3.1L5.3 9h13.4l-1.2-2.9h-11ZM6 14v5h3v-6h6v6h3v-5.1a3 3 0 0 1-2.5-1.1 3 3 0 0 1-5 0A3 3 0 0 1 6 14Z" />
@@ -35,7 +35,7 @@
       <p class="flush-copy">Puedes preparar tu catálogo, pero tus precios no participan en el comparador hasta que Trovio active la cuenta.</p>
     </article>
 
-    <article class="panel" *ngIf="onboardingReady && supportsDonors && currentSection === 'vehiculos'"><app-donor-inventory [storeId]="user?.ferreteriaId || ''" (editOffer)="editDonorOffer($event)" (changed)="donorCatalogChanged()" /></article>
+    <article class="panel" *ngIf="onboardingReady && supportsDonors && currentSection === 'vehiculos'"><app-donor-inventory (editingChange)="donorEditing=$event" [storeId]="user?.ferreteriaId || ''" (editOffer)="editDonorOffer($event)" (changed)="donorCatalogChanged()" /></article>
 
     <article class="panel" *ngIf="onboardingReady && currentSection === 'cotizaciones'"><app-store-quotation-verifier [storeId]="user?.ferreteriaId || ''" /></article>
 
@@ -99,7 +99,7 @@
           <thead><tr><th>Producto</th><th>SKU</th><th>Precio</th><th>Stock</th><th>Estado</th><th>Fotos</th><th>Publicado</th><th>Actualizado</th><th>Acciones</th></tr></thead>
           <tbody>
             <tr *ngFor="let product of paginatedCatalog">
-              <td>{{ product.name }}<small class="helper-text"> · {{ productBusinessScopeLabel(product.businessScope, product.categoryId) }}</small></td>
+              <td>{{ product.name }}<small class="helper-text"> · {{ productTypeLabel(product) }}</small></td>
               <td>{{ product.sku || '-' }}</td>
               <td>{{ formatCurrency(product.price) }}</td>
               <td>{{ product.stock }}</td>
@@ -164,13 +164,20 @@
       </div>
       <p>Si prefieres, puedes enviarnos tu lista y Trovio realiza la carga inicial.</p>
 
+      <label>Tipo de producto
+        <select [ngModel]="selectedProductArea" (ngModelChange)="onProductAreaChange($event)">
+          <option value="">Selecciona el tipo de producto</option>
+          <option *ngFor="let area of productAreaOptions" [value]="area">{{ productAreaLabel(area) }}</option>
+        </select>
+      </label>
+      <p class="helper-text">{{ catalogScopeDescription }}</p>
       <div class="upload-mode-toggle">
         <button type="button" [class.active]="uploadMode === 'buscar'" (click)="setUploadMode('buscar')">Agregar individual</button>
         <button type="button" [class.active]="uploadMode === 'archivo'" (click)="setUploadMode('archivo')">Excel / CSV</button>
         <button type="button" [class.active]="uploadMode === 'solicitud'" (click)="setUploadMode('solicitud')">Producto no existe</button>
       </div>
 
-      <section *ngIf="uploadMode === 'buscar'" class="upload-search-card">
+      <section *ngIf="uploadMode === 'buscar' && selectedProductArea" class="upload-search-card">
         <p class="helper-text">{{ catalogScopeDescription }}</p>
         <div class="catalog-filters-grid">
           <label>Categoría
@@ -207,7 +214,7 @@
             <tbody>
               <tr *ngFor="let product of masterRows">
                 <td><input type="checkbox" [checked]="masterSelectionDrafts[product.masterProductId || product.id]?.selected" (change)="toggleMasterSelection(product, $any($event.target).checked)" /></td>
-                <td>{{ product.name }}<small class="helper-text"> · {{ productBusinessScopeLabel(product.businessScope, product.categoryId) }}</small></td>
+                <td>{{ product.name }}<small class="helper-text"> · {{ productTypeLabel(product) }}</small></td>
                 <td>{{ product.brand }}</td>
                 <td><select [ngModel]="masterSelectionCondition(product)" (ngModelChange)="updateMasterSelectionCondition(product, $event)" [attr.aria-label]="'Estado de ' + product.name"><option *ngFor="let condition of conditionOptions" [value]="condition">{{ conditionLabel(condition) }}</option></select></td>
                 <td><input type="number" min="1" [ngModel]="masterSelectionPrice(product)" (ngModelChange)="updateMasterSelectionPrice(product, $event)" /></td>
@@ -232,9 +239,9 @@
         <button type="button" (click)="saveSelectedMasterProducts()" [disabled]="selectedMasterProducts.length === 0">Agregar seleccionados</button>
       </section>
 
-      <section *ngIf="uploadMode === 'archivo'" class="upload-search-card">
-        <h3>Actualizar masivamente por Excel</h3>
-        <p>Descarga tu catálogo actual, cambia precio y stock en la hoja Productos y vuelve a subir el mismo archivo. Mantén nombre, SKU y código de barras para que Trovio identifique correctamente cada producto.</p>
+      <section *ngIf="uploadMode === 'archivo' && selectedProductArea" class="upload-search-card">
+        <h3>Cargar {{ productAreaLabel($any(selectedProductArea)) | lowercase }} por Excel</h3>
+        <p>Carga un archivo solo del tipo seleccionado. Puedes actualizar precio y stock, vincular productos existentes o publicar productos nuevos, que Trovio validará después. Conserva SKU y código de barras; si agregas la columna «rubro», todas sus filas deben coincidir con el tipo seleccionado.</p>
         <div class="form-actions">
           <button type="button" class="secondary" (click)="downloadCatalogTemplate()">Descargar mi catálogo Excel</button>
         </div>
@@ -244,13 +251,13 @@
         <p *ngIf="csvError" class="error-text">{{ csvError }}</p>
         <p *ngIf="csvNotice" class="saved">{{ csvNotice }}</p>
         <div class="form-actions">
-          <button type="button" (click)="importCatalogFile()" [disabled]="isReadingCatalogFile || !csvContent.trim()">Aplicar actualización masiva</button>
+          <button type="button" (click)="importCatalogFile()" [disabled]="isReadingCatalogFile || !csvContent.trim()">Procesar archivo</button>
           <button type="button" class="ghost" (click)="resetCatalogImportTemplate()">Ver ejemplo</button>
         </div>
       </section>
 
-      <section *ngIf="uploadMode === 'solicitud'" class="upload-search-card">
-        <h3>Solicitar producto nuevo</h3>
+      <section *ngIf="uploadMode === 'solicitud' && selectedProductArea" class="upload-search-card">
+        <h3>Crear producto nuevo</h3><p>Se publicará en tu catálogo y Trovio revisará después su ficha y clasificación.</p>
         <div class="form-grid">
           <label>Nombre<input [(ngModel)]="requestDraft.name" /></label>
           <label>Código de barras<input [(ngModel)]="requestDraft.barcode" /></label>
@@ -259,7 +266,7 @@
         </div>
         <p *ngIf="requestError" class="error-text">{{ requestError }}</p>
         <p *ngIf="requestNotice" class="saved">{{ requestNotice }}</p>
-        <button type="button" (click)="submitProductRequest()">Enviar solicitud</button>
+        <button type="button" (click)="submitProductRequest()">Crear y publicar producto</button>
       </section>
     </article>
 

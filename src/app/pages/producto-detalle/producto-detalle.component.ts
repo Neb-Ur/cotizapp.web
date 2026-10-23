@@ -75,6 +75,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   protected storeSort: 'price' | 'distance' = 'price';
   private readonly recordedViews = new Set<string>();
   private handledCreateQuotationIntent = false;
+  private requestedProjectId = '';
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -92,6 +93,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.routeSubscription = combineLatest([this.route.paramMap, this.route.queryParamMap]).subscribe(async ([routeParams, params]) => {
       this.vehicleFilters = {vehicleBrandId:params.get('vehiculoMarcaId') || undefined, vehicleModelId:params.get('vehiculoModeloId') || undefined, vehicleYear:params.get('vehiculoAnio') ? Number(params.get('vehiculoAnio')) : undefined};
+      this.requestedProjectId = (params.get('projectTarget') || '').replace(/^local:/, '');
       const generation = ++this.loadGeneration;
       this.requestedStoreName = params.get('ferreteria') || '';
       this.requestedStoreId = params.get('ferreteriaId');
@@ -147,6 +149,13 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
 
         if (detail && isPlatformBrowser(this.platformId)) {
           void this.refreshOffers(detail, generation, params.get('ferreteria') || '', params.get('ferreteriaId'));
+        }
+
+        if (detail && this.requestedProjectId === 'nuevo' && !this.handledCreateQuotationIntent) {
+          this.handledCreateQuotationIntent = true;
+          this.openCreateQuotationModal();
+          this.newQuotationName = params.get('draftName') || '';
+          this.newQuotationAddress = params.get('draftAddress') || '';
         }
 
         if (
@@ -502,7 +511,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
     this.projects = currentUser ? this.apiService.getProjects(currentUser.id) : this.guestQuotations.all();
     {
       const ownerId = currentUser?.id || 'guest';
-      const candidate = this.selectedProjectId || this.quotationSelection.read(ownerId);
+      const candidate = this.selectedProjectId || this.requestedProjectId || this.quotationSelection.read(ownerId);
       this.selectedProjectId = this.projects.some(project => project.id === candidate) ? candidate : '';
       if (this.projects.length && candidate && !this.selectedProjectId) this.quotationSelection.select(ownerId, '');
     }

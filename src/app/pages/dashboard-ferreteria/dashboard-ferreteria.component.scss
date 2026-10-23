@@ -578,3 +578,9 @@ textarea {
     min-height: auto;
   }
 }
+
+.dashboard { width: 100%; margin: 0; }
+.store-header { border: 0; border-radius: 0; border-bottom: 1px solid var(--border-soft); background: transparent; box-shadow: none; backdrop-filter: none; padding: 0 0 1rem; margin-bottom: 1rem; }
+.content { min-height: 0; }
+.panel { min-height: 0; box-shadow: none; }
+.store-header::before { display: none; }

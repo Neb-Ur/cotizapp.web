@@ -164,7 +164,7 @@
       </div>
 
       <p class="project-pick-context" *ngIf="isPickingProductForProject">
-        Selecciona un producto para agregarlo a tu cotización.
+        Abre un producto, elige el local y la cantidad en su ficha, y agrégalo a tu cotización.
       </p>
 
       <div class="results-heading">
@@ -182,7 +182,7 @@
           *ngFor="let row of paginatedProductRows"
           [href]="productUrl(row.productName, row.seoPath)"
           (click)="selectProductCard($event, row.productName, row.seoPath)"
-          [attr.aria-label]="(isPickingProductForProject ? 'Agregar ' : 'Ver precios de ') + row.productName"
+          [attr.aria-label]="'Ver precios de ' + row.productName"
         >
           <div class="product-main">
             <div class="product-image-slot">

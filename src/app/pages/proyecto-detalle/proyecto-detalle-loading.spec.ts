@@ -27,17 +27,26 @@ async function setup() {
 
 describe('quotation detail loading',()=>{
  afterEach(()=>TestBed.resetTestingModule());
- it('retains the added product when cleaning the URL without reloading saved data',async()=>{
+ it('shows the code outside information panels even for an empty quotation',async()=>{
+  const {fixture,finishes,api,component}=await setup();
+  const code='TRV-AAAA-BBBB-CCCC-DDDD';
+  api.getProjectById.mockReturnValueOnce({id:'existing',name:'Obra',items:[],verificationCode:code} as any);
+  finishes[0]();await vi.waitFor(()=>expect(component.isLoading).toBe(false));await fixture.whenStable();fixture.detectChanges();
+  const card=fixture.nativeElement.querySelector('.verification-code');
+  expect(card.textContent).toContain(code);
+  expect(card.textContent).toContain('Copiar código');
+  expect(card.closest('app-info-panel')).toBeNull();
+  expect(fixture.nativeElement.querySelectorAll('.verification-code').length).toBe(1);
+  expect(fixture.nativeElement.textContent).toContain('Aún no hay productos');
+ });
+ it('routes legacy addProduct links to detail without changing the quotation',async()=>{
   const {fixture,finishes,queryParams,navigate,api,component}=await setup();
   finishes[0]();await fixture.whenStable();
-  navigate.mockImplementation(()=>{
-   queryParams.next(convertToParamMap({}));
-   return Promise.resolve(true);
-  });
   queryParams.next(convertToParamMap({addProduct:'Cemento'}));
   finishes[1]();await fixture.whenStable();
-  expect(component.projectItems).toEqual([{productName:'Cemento',quantity:1}]);
-  expect(component.hasUnsavedChanges).toBe(true);
+  expect(component.projectItems).toEqual([]);
+  expect(component.hasUnsavedChanges).toBe(false);
+  expect(navigate).toHaveBeenCalledWith(['/productos/cemento'],{queryParams:{projectTarget:'existing',draftName:null,draftAddress:null}});
   expect(api.refreshMaestroData).toHaveBeenCalledTimes(2);
   expect(component.isLoading).toBe(false);
  });

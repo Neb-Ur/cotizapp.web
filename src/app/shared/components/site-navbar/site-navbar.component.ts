@@ -108,7 +108,12 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
     return this.searchOpen && suggestion ? this.optionId(suggestion) : null;
   }
   protected optionId(item:CatalogSuggestion):string { return `header-option-${item.kind}-${encodeURIComponent(item.id)}`; }
-  protected suggestionParams(item:CatalogSuggestion):Record<string,string>|undefined { return item.path ? undefined : item.queryParams; }
+  protected suggestionParams(item:CatalogSuggestion):Record<string,string>|undefined {
+    const source=this.router.parseUrl(this.router.url).queryParams;
+    const context=Object.fromEntries(['projectTarget','draftName','draftAddress','ferreteriaId','ferreteria','vehiculoMarcaId','vehiculoModeloId','vehiculoAnio'].filter(key=>source[key]).map(key=>[key,source[key]]));
+    const params={...context,...(item.path?{}:item.queryParams)};
+    return Object.keys(params).length?params:undefined;
+  }
   protected suggestionUrl(item:CatalogSuggestion):string { return item.path || (item.kind==='product'?productPath(item.name):'/buscar'); }
 
   protected updateSuggestions():void {
@@ -194,7 +199,7 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
   }
   protected chooseSuggestion(item:CatalogSuggestion):void {
     this.closeSearch();this.closeMenu();this.closeTaxonomy();
-    if(item.kind==='product') void this.router.navigateByUrl(item.path || productPath(item.name));
+    if(item.kind==='product') { const params=this.suggestionParams(item); const query=params?new URLSearchParams(params).toString():''; void this.router.navigateByUrl((item.path || productPath(item.name))+(query?'?'+query:'')); }
     else if(item.path) void this.router.navigateByUrl(item.path);
     else void this.router.navigate(['/buscar'],{queryParams:item.queryParams});
   }

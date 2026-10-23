@@ -1,3 +1,4 @@
+import {storeCatalogRouter} from '../lib/routes/store-catalog.routes.js';
 import test from 'node:test';import assert from 'node:assert/strict';
 import {firestoreFixture} from './helpers/firestore-fixture.mjs';
 import {saveDonor,publishDonorPart,changeDonorPhotos,donorView} from '../lib/services/donor-vehicles.service.js';
@@ -22,14 +23,14 @@ test('two identical donor vehicles produce separate offers, same-piece retries p
  const offer=f.get('productosFerreteria',a);assert.equal(offer.vehiculoDonanteId,id);assert.equal(offer.stock,1);assert.equal(offer.asociacionesVehiculos,undefined);assert.equal(offer.patente,undefined);
  await publishDonorPart('junk',id,'radiador','owner',false);assert.equal(f.rows('productosFerreteria').length,2);assert.equal(f.rows('historialPrecios').length,2);
 });
-test('partial batches retain invalid drafts, create a single proposal for unknown variants, and do not infer compatibility from donor year',async t=>{
+test('partial batches retain invalid drafts and publish unknown pieces once with provisional review',async t=>{
  const f=firestoreFixture(t,seed());await saveDonor('junk',id,draft({piezas:[part(),part({id:'incomplete',precio:0}),part({id:'unknown',productoMaestroId:null}),part({id:'out-of-year',productoMaestroId:'late'}),part({id:'generic',productoMaestroId:'generic'})]}),'owner',false);
  for(const p of ['radiador','incomplete','unknown','out-of-year','generic'])await publishDonorPart('junk',id,p,'owner',false);
- assert.equal(f.rows('productosFerreteria').length,1);assert.equal(f.rows('solicitudesCreacionProducto').length,1);assert.equal(f.get('vehiculosDonantes',id).piezas.find(p=>p.id==='incomplete').estado,'borrador');
+ assert.equal(f.rows('productosFerreteria').length,2);assert.equal(f.rows('solicitudesCreacionProducto').length,1);assert.equal(f.get('vehiculosDonantes',id).piezas.find(p=>p.id==='incomplete').estado,'borrador');
  await publishDonorPart('junk',id,'unknown','owner',false);assert.equal(f.rows('solicitudesCreacionProducto').length,1);
- const proposal=f.get('solicitudesCreacionProducto',donorRequestId(id,'unknown'));assert.equal(proposal.publicado,false);assert.match(proposal.nombreProducto,/Mahindra KUV100 2018/);
+ const proposal=f.get('solicitudesCreacionProducto',donorRequestId(id,'unknown'));assert.equal(proposal.publicado,true);assert.equal(proposal.publicacionProvisional,true);assert.match(proposal.nombreProducto,/Mahindra KUV100 2018/);
  await assert.rejects(resolveProductRequest(donorRequestId(id,'unknown'),'aprobar','late','admin',''),e=>e.code==='DONOR_MASTER_INVALID');
- await resolveProductRequest(donorRequestId(id,'unknown'),'aprobar','radiator','admin','Identidad verificada');assert.equal(f.rows('productosFerreteria').length,1);
+ await resolveProductRequest(donorRequestId(id,'unknown'),'aprobar','radiator','admin','Identidad verificada');assert.equal(f.rows('productosFerreteria').length,2);
  assert.equal((await publishDonorPart('junk',id,'unknown','owner',false)).estado,'publicada');assert.equal(f.rows('productosFerreteria').length,2);
 });
 test('draft photos retain server ownership, transfer to the exact offer and cannot be modified via the draft after publication',async t=>{
@@ -65,11 +66,51 @@ test('deleting a sourced offer releases its draft and vehicle deletion is blocke
  const req={params:{storeId:'junk',vehicleId:id},authUserId:'owner',authRole:'ferreteria'};const blocked=response();await remove(req,blocked);assert.equal(blocked.statusCode,409);
  // Pending proposals are retired if an unneeded donor is removed.
  await saveDonor('junk',second,draft({piezas:[part({productoMaestroId:null})]}),'owner',false);await publishDonorPart('junk',second,'radiador','owner',false);
+ const deleteOffer=storeCatalogRouter.stack.find(l=>l.route?.path==='/ferreterias/:storeId/catalogo/:offerId'&&l.route.methods.delete).route.stack.at(-1).handle;
+ await deleteOffer({...req,params:{storeId:'junk',offerId:donorOfferId(second,'radiador')}},response());
  const removed=response();await remove({...req,params:{storeId:'junk',vehicleId:second}},removed);assert.equal(removed.statusCode,200);assert.equal(f.get('vehiculosDonantes',second),undefined);assert.equal(f.get('solicitudesCreacionProducto',donorRequestId(second,'radiador')).estado,'rechazada');
 });
-test('matching a pending draft to an existing master closes the obsolete proposal, and approved donor resolutions are retry-safe after publication',async t=>{
+test('published provisional pieces stay locked to local edits while admin remapping is atomic and retry-safe',async t=>{
  const f=firestoreFixture(t,seed());await saveDonor('junk',id,draft({piezas:[part({productoMaestroId:null})]}),'owner',false);await publishDonorPart('junk',id,'radiador','owner',false);
- const pending=f.get('vehiculosDonantes',id);pending.piezas[0].productoMaestroId='radiator';await saveDonor('junk',id,pending,'owner',false);await publishDonorPart('junk',id,'radiador','owner',false);
- assert.equal(f.get('solicitudesCreacionProducto',donorRequestId(id,'radiador')).estado,'rechazada');assert.match(f.get('solicitudesCreacionProducto',donorRequestId(id,'radiador')).notasAdmin,/cerrada automáticamente/);
- await saveDonor('junk',second,draft({piezas:[part({productoMaestroId:null})]}),'owner',false);await publishDonorPart('junk',second,'radiador','owner',false);const requestId=donorRequestId(second,'radiador');await resolveProductRequest(requestId,'aprobar','radiator','admin','OK');await publishDonorPart('junk',second,'radiador','owner',false);await resolveProductRequest(requestId,'aprobar','radiator','admin','retry');assert.equal(f.rows('productosFerreteria').length,2);
+ const pending=f.get('vehiculosDonantes',id);pending.piezas[0].productoMaestroId='radiator';
+ await assert.rejects(saveDonor('junk',id,pending,'owner',false),e=>e.code==='DONOR_MASTER_LOCKED');
+ const requestId=donorRequestId(id,'radiador');
+ await assert.rejects(resolveProductRequest(requestId,'aprobar','late','admin',''),e=>e.code==='DONOR_MASTER_INVALID');
+ await resolveProductRequest(requestId,'aprobar','radiator','admin','OK');
+ assert.equal(f.get('vehiculosDonantes',id).piezas[0].productoMaestroId,'radiator');
+ assert.equal(f.get('productosFerreteria',donorOfferId(id,'radiador')).productoMaestroId,'radiator');
+ await publishDonorPart('junk',id,'radiador','owner',false);await resolveProductRequest(requestId,'aprobar','radiator','admin','retry');
+ assert.equal(f.rows('productosFerreteria').length,1);
+});
+
+test('test donor families remain stable for new years and do not accumulate test prefixes',async t=>{
+ const input=seed();input.ferreterias.junk.esPrueba=true;
+ const f=firestoreFixture(t,input);
+ for(const [vehicle,year] of [[id,2018],[second,2019]]) {
+  await saveDonor('junk',vehicle,draft({anio:year,piezas:[part({nombre:'Neumático',productoMaestroId:null})]}),'owner',false);
+  assert.equal((await publishDonorPart('junk',vehicle,'radiador','owner',false)).estado,'publicada');
+ }
+ const masters=f.rows('productosMaestro').filter(p=>p.nombrePieza==='Neumático');
+ assert.equal(masters.length,2);assert.equal(masters[0].familiaId,masters[1].familiaId);
+ assert.equal(masters[0].familiaId.includes('prueba-prueba-'),false);
+});
+
+test('donor stock is constrained to individual units and engine identity locks after publishing',async t=>{
+ const f=firestoreFixture(t,seed());
+ await assert.rejects(saveDonor('junk',id,draft({piezas:[part({stock:2})]}),'owner',false),e=>e.code==='DONOR_STOCK_INVALID');
+ const saved=await saveDonor('junk',id,draft({pasoActual:3}),'owner',false);assert.equal(saved.pasoActual,3);
+ await publishDonorPart('junk',id,'radiador','owner',false);
+ const current=f.get('vehiculosDonantes',id);
+ await assert.rejects(saveDonor('junk',id,{...current,motor:'2.0'},'owner',false),e=>e.code==='DONOR_ENGINE_LOCKED');
+ assert.equal(f.get('vehiculosDonantes',id).motor,'1.2');
+ const unavailable=await saveDonor('junk',id,{...current,piezas:current.piezas.map(p=>({...p,stock:0}))},'owner',false);
+ assert.equal(unavailable.piezas[0].stock,0);
+});
+
+test('vehicle year compatibility cannot link a different component or engine variant',async t=>{
+ const input=seed();input.productosMaestro.wrongPiece={...input.productosMaestro.radiator,nombrePieza:'Culata'};input.productosMaestro.wrongEngine={...input.productosMaestro.radiator,nombrePieza:'Radiador',detalleVariante:'2.0'};
+ const f=firestoreFixture(t,input);
+ await saveDonor('junk',id,draft({piezas:[part({id:'piece',productoMaestroId:'wrongPiece'}),part({id:'engine',productoMaestroId:'wrongEngine'})]}),'owner',false);
+ for(const piece of ['piece','engine'])assert.equal((await publishDonorPart('junk',id,piece,'owner',false)).estado,'borrador');
+ assert.equal(f.rows('productosFerreteria').length,0);
 });

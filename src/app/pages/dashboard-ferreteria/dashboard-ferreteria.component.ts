@@ -1,3 +1,4 @@
+import { allowedProductAreas, productArea, productAreaLabel, type ProductArea } from '../../core/utils/business-type.util';
 import {DonorInventoryComponent} from '../../shared/components/donor-inventory/donor-inventory.component';
 import { OfferVehicleApplicationsComponent } from '../../shared/components/offer-vehicle-applications/offer-vehicle-applications.component';
 import { OfferPhotoManagerComponent } from '../../shared/components/offer-photo-manager/offer-photo-manager.component';
@@ -9,7 +10,7 @@ import { StoreDailyAnalytics } from '../../core/models/app.models';
 import { Subscription } from 'rxjs';
 import { WriteFeedbackService } from '../../core/services/write-feedback.service';
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, HostListener, OnInit, OnDestroy, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
@@ -74,7 +75,9 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
 
   protected get supportsDonors():boolean{return ['desarmaduria','repuestos'].includes(this.user?.businessType||'');}
   protected get visibleSections():FerreteriaSectionMeta[]{return this.supportsDonors?[...this.sections.slice(0,2),{id:'vehiculos',label:'Mis vehículos',description:'Organiza el inventario y publica repuestos por vehículo donante.'},...this.sections.slice(2)]:this.sections;}
-  protected async editDonorOffer(id:string){this.setSection('catalogo');await this.ensureSectionData('catalogo',true);const product=this.catalog.find(p=>p.id===id);if(product)this.openCatalogEdit(product);}
+  protected async editDonorOffer(id:string){await this.setSection('catalogo');await this.ensureSectionData('catalogo',true);const product=this.catalog.find(p=>p.id===id);if(product)this.openCatalogEdit(product);}
+  @ViewChild(DonorInventoryComponent) private donorInventory?:DonorInventoryComponent;
+  public canLeave():Promise<boolean>|boolean{return this.donorInventory?.prepareToLeave() ?? true;}
   protected donorCatalogChanged(){this.loadedSections.delete('catalogo');}
   protected currentSection: FerreteriaSection = 'inicio';
   protected catalogView: 'maintain' | 'add' = 'maintain';
@@ -110,6 +113,16 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   protected catalogDeleting = false;
 
   protected uploadMode: CatalogUploadMode = 'buscar';
+  protected selectedProductArea: ProductArea | '' = '';
+  protected readonly productAreaLabel = productAreaLabel;
+  protected get productAreaOptions() { return allowedProductAreas(this.user?.businessType); }
+  protected onProductAreaChange(area: ProductArea | ''): void {
+    this.masterSearchGeneration++; this.masterLoading = false;
+    this.selectedProductArea = this.productAreaOptions.includes(area as ProductArea) ? area : '';
+    this.uploadCategoryId = ''; this.uploadSubcategoryId = ''; this.uploadFamilyId = '';
+    this.masterSelectionDrafts = {}; this.masterRows = []; this.masterCategoryIds = null; this.masterPage = 1;
+    if (this.selectedProductArea && this.uploadMode === 'buscar') void this.loadMasterCatalog();
+  }
   protected masterProductQuery = '';
   protected uploadCategoryId = '';
   protected uploadSubcategoryId = '';
@@ -180,17 +193,25 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   protected dailyReport: StoreDailyAnalytics | null = null;
   protected dashboardError = '';
   private querySubscription?: Subscription;
+  private sectionNavigation=0;
+  protected donorEditing=false;
   protected onboardingReady = false;
   ngOnInit(): void {
     this.syncViewportState();
     this.syncProfileDraftFromUser();
-    this.querySubscription = this.route.queryParamMap.subscribe(params => {
+    this.querySubscription = this.route.queryParamMap.subscribe(async params => {
+      const navigation=++this.sectionNavigation;
       const section = params.get('section');
       const requested = section === 'vehiculos' || section === 'catalogo' || section === 'perfil' || section === 'cotizaciones' ? section : 'inicio';
       const action = params.get('accion');
       const mode = action === 'archivo' ? 'archivo' : 'buscar';
       const view = requested === 'catalogo' && (action === 'agregar' || action === 'archivo') ? 'add' : 'maintain';
       const changed = this.currentSection !== requested || this.catalogView !== view || this.uploadMode !== mode;
+      if(this.currentSection==='vehiculos' && requested!=='vehiculos' && this.donorInventory){
+        const saved=await this.donorInventory.prepareToLeave();
+        if(navigation!==this.sectionNavigation)return;
+        if(!saved){void this.router.navigate([], {relativeTo:this.route,queryParams:{section:'vehiculos'},replaceUrl:true});return;}
+      }
       this.currentSection = requested; this.catalogView = view; this.uploadMode = mode;
       if (this.onboardingReady && changed) void this.ensureSectionData(requested, view === 'add');
     });
@@ -258,13 +279,14 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
 
   protected masterCategoryIds: string[] | null = null;
   protected readonly productBusinessScopeLabel = productBusinessScopeLabel;
+  protected productTypeLabel(product:CatalogProduct):string { return productAreaLabel(productArea({categoriaId:product.categoryId,ambitoComercial:product.businessScope})); }
   protected get categoryOptions(): TaxonomyOption[] {
-    return this.apiService.getCategoryOptions().filter(option => this.masterCategoryIds ? this.masterCategoryIds.includes(option.id) : categoryMatchesBusinessType(option.id, this.user?.businessType));
+    return this.apiService.getCategoryOptions().filter(option => categoryMatchesBusinessType(option.id, this.user?.businessType) && (!this.selectedProductArea || productArea({categoriaId:option.id})===this.selectedProductArea));
   }
   protected get catalogScopeDescription(): string {
     return normalizeBusinessType(this.user?.businessType) === 'ferreteria'
-      ? 'Mostramos productos clasificados como Ferretería o Ambos.'
-      : 'Mostramos productos clasificados como Desarmaduría o Ambos.';
+      ? 'Puedes agregar materiales y herramientas. Selecciona un solo tipo por carga.'
+      : 'Puedes agregar herramientas y repuestos. Al agregar por vehículo, todas las piezas son repuestos.';
   }
 
   protected get subcategoryOptions(): TaxonomyOption[] {
@@ -284,7 +306,8 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
       .filter((item): item is { product: CatalogProduct; price: number; stock: number; condition: OfferCondition } => !!item);
   }
 
-  protected setSection(section: FerreteriaSection): void {
+  protected async setSection(section: FerreteriaSection): Promise<void> {
+    if(this.currentSection==='vehiculos' && section!=='vehiculos' && this.donorInventory && !await this.donorInventory.prepareToLeave())return;
     this.currentSection = section;
     if (section === 'catalogo') {
       this.catalogView = 'maintain';
@@ -607,7 +630,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
       const storeName = this.user?.businessName || this.user?.displayName || 'ferreteria';
       await downloadCatalogImportTemplate(
         catalogImportTemplateFileName(storeName),
-        this.catalog.map((product) => ({
+        this.catalog.filter(product => !this.selectedProductArea || productArea({categoriaId:product.categoryId,ambitoComercial:product.businessScope})===this.selectedProductArea).map((product) => ({
           name: product.name,
           sku: product.sku,
           price: product.price,
@@ -634,6 +657,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   protected async importCatalogFile(): Promise<void> {
     await this.writeFeedback.run('dashboard-ferreteria:importCatalogFile', async () => {
       if (!this.user || !this.csvContent.trim()) return;
+      if (!this.selectedProductArea) { this.csvError = 'Selecciona el tipo de producto antes de subir el archivo.'; return; }
       this.csvError = '';
       this.csvNotice = '';
 
@@ -649,7 +673,8 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
             brand: 'Sin marca',
             unitLabel: 'Unidad',
             isPublished: true,
-            mode: 'update'
+            mode: 'initial',
+            area: this.selectedProductArea
           }
         );
         this.catalog = response.catalog;
@@ -668,6 +693,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
 
   protected async submitProductRequest(): Promise<void> {
     if (!this.user) return;
+    if (!this.selectedProductArea) { this.requestError = 'Selecciona Material, Herramienta o Repuesto según tu local.'; return; }
     const name = this.requestDraft.name.trim();
     const price = Math.round(Number(this.requestDraft.price) || 0);
     if (name.length < 3 || price <= 0) {
@@ -680,13 +706,16 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
         this.user.id,
         this.user.businessName || this.user.displayName,
         {
-          name,
+          name, area: this.selectedProductArea, categoryId: this.uploadCategoryId, subcategoryId: this.uploadSubcategoryId, familyId: this.uploadFamilyId,
           barcode: this.requestDraft.barcode.trim(),
           quantity: Math.max(1, Math.floor(Number(this.requestDraft.quantity) || 1)),
           price
         }
       );
-      this.requestNotice = 'Solicitud enviada a Trovio para revision.';
+      await this.apiService.refreshFerreteriaCatalogSection(this.user.id, true);
+      this.catalog = this.apiService.getCatalog(this.user.id);
+      this.refreshSummary();
+      this.requestNotice = 'Producto publicado y enviado a Trovio para validación posterior.';
       this.requestError = '';
       this.requestDraft = { name: '', barcode: '', quantity: 1, price: 0 };
     } catch (error) {
@@ -839,12 +868,13 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   }
 
   private async loadMasterCatalog(): Promise<void> {
-    if (!this.user) return;
+    if (!this.user || !this.selectedProductArea) return;
     const generation = ++this.masterSearchGeneration;
     this.masterLoading = true;
     this.relationError = '';
     try {
       const result = await this.apiService.searchMasterCatalogProducts({
+        area: this.selectedProductArea,
         query: this.masterProductQuery,
         categoryId: this.uploadCategoryId,
         subcategoryId: this.uploadSubcategoryId,

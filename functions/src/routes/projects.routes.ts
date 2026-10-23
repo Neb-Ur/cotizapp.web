@@ -9,7 +9,28 @@ import { nowIso, normalizeText, normalizeProjectProximity } from '../lib/values.
 import { rows, row, createRow, patchRow } from '../repositories/firestore.repository.js';
 import { canAccessOwner } from '../lib/ownership.js';
 import { normalizeItems, optimizeItems, projectView, captureProjectPricing } from '../services/quotation.service.js';
+import { captureQuotationPricing } from '../domain/quotation-validity.js';
 export const projectsRouter = Router();
+
+// Backfill legacy quotations once, using the latest stored content and preserving saved prices.
+async function ensureProjectVerification(project: any, offers?: Awaited<ReturnType<typeof buildSearchRows>>): Promise<any | null> {
+  if (project.verificationCode) return project;
+  const searchRows = offers ?? await buildSearchRows();
+  return db.runTransaction(async tx => {
+    const ref = db.collection(COLLECTIONS.projects).doc(project.id);
+    const snapshot = await tx.get(ref);
+    const latest = snapshot.data();
+    if (!snapshot.exists || latest?.ownerId !== project.ownerId) return null;
+    if (latest.verificationCode) return { ...latest, id: ref.id };
+    const pricing = captureQuotationPricing(latest, latest, searchRows);
+    const code = newVerificationCode();
+    const patch = { ...pricing, verificationCode: code };
+    const updated = { ...latest, ...patch, id: ref.id };
+    tx.update(ref, patch);
+    tx.create(db.collection(COLLECTIONS.quotationVerifications).doc(code), verificationSnapshot(updated, code));
+    return updated;
+  });
+}
 
 projectsRouter.get('/maestros/:ownerId/proyectos', requireAuth, requireRole('maestro', 'admin'), async (req, res) => {
   if (!canAccessOwner(req, req.params.ownerId)) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para estas cotizaciones.', 403);
@@ -17,7 +38,8 @@ projectsRouter.get('/maestros/:ownerId/proyectos', requireAuth, requireRole('mae
   const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any))
     .sort((a, b) => normalizeText(b.createdAt).localeCompare(normalizeText(a.createdAt)));
   const offers = await buildSearchRows();
-  const data = await Promise.all(projects.map(project => projectView(project, offers)));
+  const verifiedProjects = await Promise.all(projects.map(project => ensureProjectVerification(project, offers)));
+  const data = await Promise.all(verifiedProjects.filter(Boolean).map(project => projectView(project, offers)));
   return ok(res, data);
 });
 
@@ -58,8 +80,10 @@ projectsRouter.post('/maestros/:ownerId/proyectos', requireAuth, requireRole('ma
 
 projectsRouter.get('/maestros/:ownerId/proyectos/:projectId', requireAuth, requireRole('maestro', 'admin'), async (req, res) => {
   if (!canAccessOwner(req, req.params.ownerId)) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para esta cotizacion.', 403);
-  const project = await row(COLLECTIONS.projects, req.params.projectId);
+  let project = await row(COLLECTIONS.projects, req.params.projectId);
   if (!project || project.ownerId !== req.params.ownerId) return fail(res, 'PROYECTO_NOT_FOUND', 'No existe la cotizacion indicada.', 404);
+  project = await ensureProjectVerification(project);
+  if (!project) return fail(res, 'PROYECTO_NOT_FOUND', 'No existe la cotizacion indicada.', 404);
   return ok(res, await projectView(project));
 });
 

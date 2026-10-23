@@ -26,6 +26,7 @@ it('keeps the latest master search when an earlier response arrives late',async(
  const {component,api}=fixture();let firstResolve:any;
  api.searchMasterCatalogProducts=vi.fn().mockImplementationOnce(()=>new Promise(resolve=>firstResolve=resolve))
   .mockResolvedValueOnce({items:[{id:'kuv',name:'Radiador Mahindra KUV100 2016–2019'}],total:1,totalPages:1,page:1});
+ component.selectedProductArea='repuestos';
  component.masterProductQuery='radiador';const first=component.loadMasterCatalog();
  component.masterProductQuery='radiador kuv';await component.loadMasterCatalog();
  firstResolve({items:[{id:'other',name:'Radiador de otro vehículo'}],total:1,totalPages:1,page:1});await first;

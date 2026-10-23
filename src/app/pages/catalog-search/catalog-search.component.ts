@@ -504,35 +504,20 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
     const click = event as MouseEvent;
     if (click.ctrlKey || click.metaKey || click.shiftKey || click.altKey || (click.button !== undefined && click.button !== 0)) return;
     event.preventDefault();
-    if (this.isPickingProductForProject) this.addProductToProject(productName);
-    else void this.router.navigateByUrl(this.productUrl(productName, seoPath));
+    void this.router.navigateByUrl(this.productUrl(productName, seoPath));
   }
 
   protected productUrl(productName: string, seoPath?: string): string {
     const path = seoPath || productPath(productName);
     const params = new URLSearchParams();
+    if (this.projectTarget) params.set('projectTarget', this.projectTarget);
+    if (this.draftProjectName) params.set('draftName', this.draftProjectName);
+    if (this.draftProjectAddress) params.set('draftAddress', this.draftProjectAddress);
     if (this.selectedStoreId) { params.set('ferreteriaId',this.selectedStoreId); params.set('ferreteria',this.selectedStoreName); }
     if (this.selectedVehicleBrandId) params.set('vehiculoMarcaId',this.selectedVehicleBrandId);
     if (this.selectedVehicleModelId) params.set('vehiculoModeloId',this.selectedVehicleModelId);
     if (this.selectedVehicleYear && !this.vehicleYearError) params.set('vehiculoAnio',this.selectedVehicleYear);
     return params.size ? `${path}?${params}` : path;
-  }
-
-  protected addProductToProject(productName: string): void {
-    if (!this.projectTarget) return;
-
-    const localTarget = this.projectTarget.startsWith('local:') ? this.projectTarget.slice(6) : '';
-    const commands = localTarget ? (localTarget === 'nuevo' ? ['/cotizaciones/nueva'] : ['/cotizaciones/local', localTarget])
-      : this.projectTarget === 'nuevo' ? (this.user ? ['/dashboard/maestro/cotizaciones/nuevo'] : ['/cotizaciones/nueva'])
-      : (this.user ? ['/dashboard/maestro/cotizaciones', this.projectTarget] : ['/cotizaciones/local', this.projectTarget]);
-
-    this.router.navigate(commands, {
-      queryParams: {
-        addProduct: productName,
-        draftName: (this.projectTarget === 'nuevo' || localTarget === 'nuevo') ? this.draftProjectName : null,
-        draftAddress: (this.projectTarget === 'nuevo' || localTarget === 'nuevo') ? this.draftProjectAddress : null
-      }
-    });
   }
 
   protected formatCurrency(value: number): string {

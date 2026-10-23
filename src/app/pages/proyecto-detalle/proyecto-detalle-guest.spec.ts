@@ -28,6 +28,22 @@ describe('guest quotation and PDF account requirement', () => {
     component.projectItems[0].quantity=4;component.persistDraftIfNeeded();expect(new GuestQuotationService().get(saved.id)?.items[0].quantity).toBe(4);
     expect(downloadQuotationPdf).not.toHaveBeenCalled();
   });
+  it('keeps the server code immediately after creating an empty account quotation',async()=>{
+    const {component,api}=setup({id:'maestro',role:'maestro'},false);
+    component.projectName='Nueva obra';component.projectItems=[];
+    await component.saveProject(false,false);
+    expect(api.saveProject).toHaveBeenCalledOnce();
+    expect(component.isNewProject).toBe(false);
+    expect(component.verificationCode).toBe('code');
+  });
+  it('saves the originating quotation before searching and never sends an automatic product addition',async()=>{
+    const {component,guest,navigate}=setup();
+    component.projectName='Cocina';component.projectItems=[{productName:'Cemento',quantity:3}];
+    await component.goToSearchForProduct();
+    const saved=guest.all()[0];
+    expect(saved.items[0].quantity).toBe(3);
+    expect(navigate).toHaveBeenCalledExactlyOnceWith(['/buscar'],{queryParams:{projectTarget:`local:${saved.id}`,draftName:null,draftAddress:null}});
+  });
   it('requires an account only on PDF download and preserves the quotation for the auth return',async()=>{
     const {component,guest,navigate}=setup();const quote=guest.create('Cocina','Dirección',[{productName:'Cemento',quantity:3,productoFerreteriaId:'o'}]);
     await component.loadQuotation(quote.id);await component.exportQuotation();

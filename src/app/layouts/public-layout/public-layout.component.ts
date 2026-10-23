@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { WorkspaceNavigationService } from '../../core/services/workspace-navigation.service';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SiteNavbarComponent } from '../../shared/components/site-navbar/site-navbar.component';
 
@@ -9,4 +10,4 @@ import { SiteNavbarComponent } from '../../shared/components/site-navbar/site-na
   templateUrl: './public-layout.component.html',
   styleUrl: './public-layout.component.scss'
 })
-export class PublicLayoutComponent {}
+export class PublicLayoutComponent { protected readonly workspace=inject(WorkspaceNavigationService); }

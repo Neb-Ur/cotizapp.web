@@ -29,14 +29,15 @@ function fixture() {
   })
  };
  const service = new FirebaseDataService(api as unknown as ApiClientService, {currentUser:()=>({id:'user',ferreteriaId:'store'})} as unknown as AuthService);
- return { service, api, writes, failProjects: (value: boolean) => projectFailure = value };
+ return { service, api, writes, catalog, failProjects: (value: boolean) => projectFailure = value };
 }
 const options = {categoryId:'cat',subcategoryId:'sub',familyId:'fam',brand:'Marca',unitLabel:'Unidad',isPublished:false};
 describe('catalog import and loading regressions', () => {
- it('sends a fuzzy match to review with SKU, stock and publication choice intact', async () => {
+ it('publishes a proposed product and preserves identifiers for subsequent review', async () => {
   const { service, writes } = fixture();
   const result = await service.importCatalogBatch('user','Local','nombre,sku,precio,stock,codigo_barras\nCemento gris,LOCAL,1500,0,',options);
-  expect(result.report.rows[0].outcome).toBe('posible_match');
+  expect(result.report.rows[0].outcome).toBe('subido');
+  expect(result.report.pendingNewCount).toBe(1);
   expect(writes).toHaveLength(1);
   expect(writes[0].path).toContain('/solicitudes-creacion-producto');
   expect(writes[0].body).toMatchObject({skuFerreteria:'LOCAL',cantidadReferencia:0,publicado:false,tipoSolicitud:'posible_match'});
@@ -170,4 +171,37 @@ it('requests only a paginated business catalog without downloading all public of
 it('never falls back to the global catalog when a store session lacks its store id',async()=>{
  const api:any={get:vi.fn()};const service=new FirebaseDataService(api,{currentUser:()=>({id:'owner',role:'ferreteria'})} as any);
  await expect(service.searchMasterCatalogProducts({})).rejects.toThrow('No se encontró el local');expect(api.get).not.toHaveBeenCalled();
+});
+
+it('rejects mixed declared Excel types before applying the first valid row',async()=>{
+ const {service,writes}=fixture();
+ await expect(service.importCatalogBatch('user','Local','nombre,sku,precio,stock,rubro\nCemento gris 25 kg,A,1500,2,material\nTaladro,B,25000,1,herramienta',{...options,area:'materiales'})).rejects.toThrow('archivo separado');
+ expect(writes).toHaveLength(0);
+});
+it('rejects a known product of another type even if the Excel declaration lies',async()=>{
+ const {service,writes}=fixture();
+ await expect(service.importCatalogBatch('user','Local','nombre,sku,precio,stock,rubro\nCemento gris 25 kg,A,1500,2,herramienta',{...options,area:'herramientas'})).rejects.toThrow('mezcla tipos');
+ expect(writes).toHaveLength(0);
+});
+
+it('reimports a donor SKU by updating the exact offer without creating a regular duplicate',async()=>{
+ const {service,catalog,writes}=fixture();
+ catalog.push({id:'donor-offer',productoMaestroId:'master',productoMaestro:master,vehiculoDonanteId:'car',piezaDonanteId:'piece',skuFerreteria:'CAR-1',precio:1000,stock:1,publicado:true});
+ const update=vi.spyOn(service,'upsertCatalog').mockResolvedValue([]);
+ await service.importCatalogBatch('user','Local','nombre,sku,precio,stock\nCemento gris 25 kg,CAR-1,2000,1',{...options,area:'materiales'});
+ expect(update).toHaveBeenCalledExactlyOnceWith('user',expect.objectContaining({id:'donor-offer',donorVehicleId:'car',price:2000,stock:1}));
+ expect(writes).toHaveLength(0);
+});
+
+it('rejects repeated SKUs in an initial Excel before publishing either product',async()=>{
+ const {service,writes}=fixture();
+ await expect(service.importCatalogBatch('user','Local','nombre,sku,precio,stock\nPerno largo,REPETIDO,1000,2\nTuerca M8,REPETIDO,2000,4',{...options,area:'materiales'})).rejects.toThrow('repetid');
+ expect(writes).toHaveLength(0);
+});
+
+it('rejects stock greater than one for a donor offer before importing the file',async()=>{
+ const {service,catalog,writes}=fixture();
+ catalog.push({id:'donor-offer',productoMaestroId:'master',productoMaestro:master,vehiculoDonanteId:'car',piezaDonanteId:'piece',skuFerreteria:'CAR-1',precio:1000,stock:1,publicado:true});
+ await expect(service.importCatalogBatch('user','Local','nombre,sku,precio,stock\nCemento gris 25 kg,CAR-1,2000,3',{...options,area:'materiales'})).rejects.toThrow('stock 0 o 1');
+ expect(writes).toHaveLength(0);
 });

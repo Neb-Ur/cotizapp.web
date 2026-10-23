@@ -221,3 +221,13 @@ it('lets users retry an on-demand category request that failed',async()=>{
 });
 
 });
+
+it('opens search suggestions in the detail with the quotation context instead of adding quantity one',async()=>{
+ const {component,router}=await setup('/buscar?projectTarget=quote-1&draftName=Obra&vehiculoAnio=2018');
+ const navigate=vi.spyOn(router,'navigateByUrl').mockResolvedValue(true);
+ component.chooseSuggestion({kind:'product',id:'radiador',name:'Radiador'});
+ const destination=navigate.mock.calls[0][0] as string;
+ expect(destination).toContain('/productos/radiador?');
+ const params=new URL(destination,'https://test.local').searchParams;
+ expect(params.get('projectTarget')).toBe('quote-1');expect(params.get('draftName')).toBe('Obra');expect(params.has('addProduct')).toBe(false);
+});

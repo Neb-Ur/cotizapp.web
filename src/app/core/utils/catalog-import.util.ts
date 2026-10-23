@@ -1,6 +1,7 @@
 export interface ParsedCatalogImportRow {
   lineNumber: number;
   rawLine: string;
+  area?: string;
   name: string;
   sku: string;
   price: number;
@@ -15,6 +16,7 @@ const HEADER_ALIASES = {
   sku: ['sku', 'codigo', 'código', 'cod', 'codigo producto', 'código producto'],
   price: ['precio', 'precio venta', 'precio_venta', 'valor', 'venta', 'precio unitario'],
   stock: ['stock', 'existencia', 'existencias', 'cantidad', 'disponible'],
+  area: ['rubro', 'tipo', 'tipo producto', 'tipo de producto'],
   barcode: ['codigo barras', 'código barras', 'codigo de barras', 'código de barras', 'barcode', 'ean', 'ean13']
 } as const;
 
@@ -195,11 +197,12 @@ export async function parseCatalogImportContent(content: string): Promise<Parsed
   const headerMap = resolveHeaderMap(rows[0]);
   const hasHeader = headerMap.name >= 0 && headerMap.price >= 0;
   const dataRows = hasHeader ? rows.slice(1) : rows;
-  const fallbackMap = { name: 0, sku: 1, price: 2, stock: 3, barcode: 4 };
+  const fallbackMap = { name: 0, sku: 1, price: 2, stock: 3, barcode: 4, area: -1 };
   const map = hasHeader ? headerMap : fallbackMap;
 
   return dataRows.map((row, index) => {
     const sourceLine = index + (hasHeader ? 2 : 1);
+    const area = cell(row, map.area);
     const name = cell(row, map.name);
     const sku = cell(row, map.sku) || `IMP-${String(sourceLine).padStart(4, '0')}`;
     const rawPrice = cell(row, map.price);
@@ -237,6 +240,7 @@ export async function parseCatalogImportContent(content: string): Promise<Parsed
     return {
       lineNumber: sourceLine,
       rawLine: row.join(' | '),
+      area,
       name,
       sku,
       price,
@@ -247,9 +251,10 @@ export async function parseCatalogImportContent(content: string): Promise<Parsed
   });
 }
 
-function resolveHeaderMap(row: string[]): { name: number; sku: number; price: number; stock: number; barcode: number } {
+function resolveHeaderMap(row: string[]): { name: number; sku: number; price: number; stock: number; barcode: number; area: number } {
   const normalized = row.map(normalizeHeader);
   return {
+    area: findAlias(normalized, HEADER_ALIASES.area),
     name: findAlias(normalized, HEADER_ALIASES.name),
     sku: findAlias(normalized, HEADER_ALIASES.sku),
     price: findAlias(normalized, HEADER_ALIASES.price),

@@ -1,3 +1,4 @@
+import { productPath } from '../../core/utils/product-url.util';
 import { offerConditionLabel } from '../../core/utils/offer-condition.util';
 import { GuestQuotationService } from '../../core/services/guest-quotation.service';
 import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
@@ -122,9 +123,8 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       await this.loadProject(incomingId, draftName, draftAddress);
       if (generation !== this.loadGeneration) return;
       if (addProduct.trim()) {
-        this.projectItems = [...this.projectItems, { productName: addProduct.trim(), quantity: 1 }];
-        this.saveNotice = `Producto agregado: ${addProduct}.`;
-        this.persistDraftIfNeeded(); this.clearAddProductQueryParams();
+        const projectTarget = `${this.isLocalQuotation ? 'local:' : ''}${this.isNewProject ? 'nuevo' : this.projectId}`;
+        void this.router.navigate([productPath(addProduct.trim())], {queryParams:{projectTarget,draftName:this.isNewProject?this.projectName:null,draftAddress:this.isNewProject?this.projectAddress:null}});
       }
       if (this.user && this.route.snapshot?.queryParamMap?.get('descargar') === '1' && !this.handledDownloadIntent) {
         this.handledDownloadIntent = true;
@@ -248,7 +248,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
     return this.getRowUnitPrice(item) * quantity;
   }
 
-  protected async saveProject(renewPrices = false): Promise<void> {
+  protected async saveProject(renewPrices = false, navigateAfterSave = true): Promise<void> {
     await this.writeFeedback.run('proyecto-detalle:saveProject', async () => {
       if (this.isSaving) return;
       this.isSaving = true;
@@ -268,7 +268,8 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
         if (this.isNewProject) {
           const created = this.guestQuotations.create(data.name, data.address, data.items);
           this.guestQuotations.update(created.id, data); this.clearDraft();
-          void this.router.navigate(['/cotizaciones/local', created.id]);
+          this.projectId = created.id; this.isNewProject = false; this.savedFingerprint = this.quotationFingerprint();
+          if (navigateAfterSave) void this.router.navigate(['/cotizaciones/local', created.id]);
         } else { this.guestQuotations.update(this.projectId, data); this.savedFingerprint = this.quotationFingerprint(); }
         this.saveNotice = 'Cotización guardada en este navegador.';
         return;
@@ -298,7 +299,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
           this.verificationCode = created.verificationCode || ''; this.validUntil = created.validUntil || '';
           this.pricesCapturedAt = created.pricesCapturedAt || ''; this.pricingOffers = created.pricingOffers;
           this.savedFingerprint = this.quotationFingerprint();
-          this.router.navigate(['/dashboard/maestro/cotizaciones', created.id]);
+          if (navigateAfterSave) this.router.navigate(['/dashboard/maestro/cotizaciones', created.id]);
         } catch (error) {
           this.saveNotice = error instanceof Error
             ? error.message
@@ -338,9 +339,10 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
 
   protected async goToSearchForProduct(): Promise<void> {
     if (this.isSaving) return;
-    if (!this.isNewProject && this.hasUnsavedChanges) {
-      await this.saveProject();
-      if (this.hasUnsavedChanges) return;
+    if (this.isNewProject || this.hasUnsavedChanges) {
+      if (!this.projectName.trim()) this.projectName = 'Mi cotización';
+      await this.saveProject(false, false);
+      if (this.isNewProject || this.hasUnsavedChanges) return;
     }
     const projectTarget = this.isLocalQuotation ? `local:${this.isNewProject ? 'nuevo' : this.projectId}` : (this.isNewProject ? 'nuevo' : this.projectId);
     this.persistDraftIfNeeded();

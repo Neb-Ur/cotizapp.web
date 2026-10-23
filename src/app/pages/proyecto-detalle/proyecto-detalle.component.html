@@ -17,6 +17,10 @@
     <section class="detail-card" role="alert"><p>{{ loadError }}</p><button type="button" (click)="retryLoad()">Reintentar</button></section>
   } @else {
   <article class="detail-card quotation-content">
+    <section class="verification-code" *ngIf="verificationCode" aria-label="Código de cotización">
+      <div><span>Código de cotización</span><strong>{{ verificationCode }}</strong></div>
+      <button type="button" class="secondary" (click)="copyVerificationCode()"><i class="pi pi-copy" aria-hidden="true"></i> Copiar código</button>
+    </section>
     <article class="summary">
         <div class="summary-heading">
           <h2>Resumen</h2>
@@ -119,7 +123,6 @@
           <p *ngIf="validUntil">Generada el {{ pricesCapturedAt | date:'dd/MM/yyyy HH:mm' }} · Válida hasta: {{ validUntil | date:'dd/MM/yyyy HH:mm' }}.</p>
           <p *ngIf="quotationExpired">La vigencia ha terminado. Consulta los precios y el stock actuales con el local.</p>
           <p *ngIf="!validUntil">Al guardarla en tu cuenta para descargar, obtendrás el código de verificación.</p>
-          <div class="verification-code" *ngIf="verificationCode"><span>Código de cotización</span><strong>{{ verificationCode }}</strong><button type="button" class="secondary" (click)="copyVerificationCode()">Copiar código</button></div>
           <button *ngIf="!isNewProject" type="button" class="secondary" (click)="saveProject(true)" [disabled]="isSaving">{{ isSaving ? 'Guardando…' : 'Actualizar precios actuales' }}</button>
           <p *ngIf="hasUnsavedChanges">Guarda los cambios para obtener un código actualizado antes de descargar o enviar.</p>
         </section>

@@ -35,3 +35,11 @@ test('hardware stores cannot add automotive masters and request approvals obey t
  await assert.rejects(resolveProductRequest('request','aprobar','radiator','admin',''),e=>e.code==='STORE_PRODUCT_BUSINESS_TYPE_MISMATCH');
  assert.equal(fixture.rows('productosFerreteria').length,0);assert.equal(fixture.get('solicitudesCreacionProducto','request').estado,'pendiente');
 });
+
+test('a sourced vehicle offer rejects stock above one through direct catalog maintenance',async t=>{
+ const input=seed();input.productosFerreteria={sourced:{ferreteriaId:'store',productoMaestroId:'radiator',vehiculoDonanteId:'vehicle',piezaDonanteId:'radiator',stock:1,precio:10000,publicado:true}};
+ const fixture=firestoreFixture(t,input),patch=handler(storeCatalogRouter,'/ferreterias/:storeId/catalogo/:offerId','patch');
+ const req={authUserId:'owner',authRole:'ferreteria',params:{storeId:'store',offerId:'sourced'},body:{stock:2}};
+ const denied=response();await patch(req,denied);assert.equal(denied.statusCode,400);assert.equal(denied.body.error.code,'DONOR_STOCK_INVALID');assert.equal(fixture.get('productosFerreteria','sourced').stock,1);
+ const sold=response();await patch({...req,body:{stock:0}},sold);assert.equal(sold.statusCode,200);assert.equal(fixture.get('productosFerreteria','sourced').stock,0);
+});

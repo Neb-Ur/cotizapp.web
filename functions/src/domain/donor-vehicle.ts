@@ -8,7 +8,7 @@ export const DONOR_SYSTEMS:Record<string,string[]>={
  'Transmisión':['Caja de cambios','Embrague','Volante de motor','Semieje izquierdo','Semieje derecho','Palanca de cambios','Diferencial'],
  'Iluminación':['Foco delantero izquierdo','Foco delantero derecho','Neblinero izquierdo','Neblinero derecho','Foco trasero izquierdo','Foco trasero derecho','Tercera luz de freno'],
  'Carrocería':['Capó','Parachoques delantero','Parachoques trasero','Tapabarro izquierdo','Tapabarro derecho','Puerta delantera izquierda','Puerta delantera derecha','Puerta trasera izquierda','Puerta trasera derecha','Portalón','Espejo lateral izquierdo','Espejo lateral derecho','Parrilla frontal'],
- 'Suspensión y dirección':['Amortiguador delantero izquierdo','Amortiguador delantero derecho','Amortiguador trasero','Bandeja de suspensión','Cremallera de dirección','Bomba de dirección','Maza de rueda','Llanta'],
+ 'Suspensión y dirección':['Amortiguador delantero izquierdo','Amortiguador delantero derecho','Amortiguador trasero','Bandeja de suspensión','Cremallera de dirección','Bomba de dirección','Maza de rueda','Llanta','Neumático'],
  'Frenos':['Disco de freno delantero','Cáliper izquierdo','Cáliper derecho','Bomba de freno','Servofreno','Módulo ABS'],
  'Interior':['Asiento delantero izquierdo','Asiento delantero derecho','Asiento trasero','Tablero','Volante','Panel de puerta','Cinturón de seguridad','Radio'],
  'Electrónica':['ECU','Panel de instrumentos','Alternador regulador','Sensor de oxígeno','Sensor de cigüeñal','Motor de limpiaparabrisas','Alzavidrio izquierdo','Alzavidrio derecho','Comando de luces']
@@ -27,14 +27,23 @@ export function normalizeDonorParts(input:unknown,previous:any[]=[]):any[]{
  const ids=new Set<string>();
  const result=input.map((p:any)=>{
   if(!p||!/^[-a-zA-Z0-9_]{1,80}$/.test(p.id)||ids.has(p.id)||!text(p.nombre)||!isOfferCondition(p.condicion))throw new DonorError('DONOR_PART_INVALID','Revisa el nombre, identificador y estado de las piezas.');
+  if(p.stock!==null && p.stock!==undefined && (!Number.isSafeInteger(p.stock) || p.stock<0 || p.stock>1))throw new DonorError('DONOR_STOCK_INVALID','Cada pieza de un vehículo admite una unidad. Usa 0 cuando ya no esté disponible.');
   ids.add(p.id);const before=previous.find(b=>b.id===p.id);
   const master=text(p.productoMaestroId)||null;
   if(before?.ofertaId&&before.productoMaestroId!==master)throw new DonorError('DONOR_MASTER_LOCKED','Una pieza publicada conserva su producto maestro. Elimina la publicación antes de cambiarlo.',409);
-  return {id:p.id,nombre:text(p.nombre),sistema:text(p.sistema)||'Otros',seleccionada:p.seleccionada===true,precio:typeof p.precio==='number'&&Number.isFinite(p.precio)&&p.precio>=0?p.precio:null,stock:Number.isSafeInteger(p.stock)&&p.stock>=0?p.stock:null,condicion:p.condicion,productoMaestroId:master,ofertaId:before?.ofertaId||null,solicitudId:before?.solicitudId||null,fotosPublicacion:before?.fotosPublicacion||[],error:before?.error||'',estado:before?.estado||'borrador'};
+  return {id:p.id,nombre:text(p.nombre),sistema:text(p.sistema)||'Otros',seleccionada:p.seleccionada===true,precio:typeof p.precio==='number'&&Number.isFinite(p.precio)&&p.precio>=0?p.precio:null,stock:p.stock===0?0:1,condicion:p.condicion,productoMaestroId:master,ofertaId:before?.ofertaId||null,solicitudId:before?.solicitudId||null,fotosPublicacion:before?.fotosPublicacion||[],error:before?.error||'',estado:before?.estado||'borrador'};
  });
  for(const before of previous)if(!ids.has(before.id))result.push({...before,seleccionada:false});
  if(result.length>120)throw new DonorError('DONOR_PARTS_INVALID','Se alcanzó el máximo de 120 piezas.');
  return result;
 }
-export const validDonorPrice=(p:any)=>typeof p.precio==='number'&&Number.isFinite(p.precio)&&p.precio>0&&Number.isSafeInteger(p.stock)&&p.stock>0&&isOfferCondition(p.condicion)&&p.condicion!=='sin_especificar';
-export const matchesDonor=(master:any,donor:any)=>Array.isArray(master?.compatibilidadVehiculos)&&master.compatibilidadVehiculos.some((a:any)=>a.marcaId===donor.marcaId&&a.modeloId===donor.modeloId&&Number.isInteger(a.anioDesde)&&Number.isInteger(a.anioHasta)&&a.anioDesde<=donor.anio&&a.anioHasta>=donor.anio);
+export const validDonorPrice=(p:any)=>typeof p.precio==='number'&&Number.isFinite(p.precio)&&p.precio>0&&p.stock===1&&isOfferCondition(p.condicion)&&p.condicion!=='sin_especificar';
+export const matchesDonor=(master:any,donor:any)=>!!donor&&Array.isArray(master?.compatibilidadVehiculos)&&master.compatibilidadVehiculos.some((a:any)=>a.marcaId===donor.marcaId&&a.modeloId===donor.modeloId&&Number.isInteger(a.anioDesde)&&Number.isInteger(a.anioHasta)&&a.anioDesde<=donor.anio&&a.anioHasta>=donor.anio);
+
+// Model/year compatibility cannot turn a different component into this piece.
+export function matchesDonorPart(master:any,donor:any,part:any):boolean {
+ if(!matchesDonor(master,donor))return false;
+ if(master.nombrePieza && !samePart(master.nombrePieza,part.nombre))return false;
+ const variant=text(master.detalleVariante).replace(/^motor\s+/i,'');
+ return !variant || !text(donor.motor) || samePart(variant,text(donor.motor).replace(/^motor\s+/i,''));
+}

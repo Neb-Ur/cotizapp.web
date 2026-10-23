@@ -3,21 +3,6 @@
     <p>{{ dataLoadError }}</p>
     <button type="button" (click)="retryDataLoad()">Reintentar carga</button>
   </div>
-  <app-dashboard-menu
-    title="Panel Admin"
-    [userName]="currentUser?.displayName || 'Administrador'"
-    [sections]="sections"
-    [activeSection]="currentSection"
-    [isMobileViewport]="isMobileViewport"
-    [isMobileOpen]="isMobileMenuVisible"
-    extraActionLabel="Actualizar datos"
-    extraActionClass="ghost"
-    (sectionSelected)="setSection($any($event))"
-    (menuClosed)="closeMobileMenu()"
-    (logoutRequested)="logout()"
-    (extraActionRequested)="refreshAll()"
-  />
-
   <section class="content">
     <article class="content-header">
       <div class="title-row">
@@ -25,19 +10,7 @@
           <h1>{{ currentSectionLabel }}</h1>
           <p>{{ currentSectionDescription }}</p>
         </div>
-        <button
-          type="button"
-          class="menu-toggle menu-icon"
-          *ngIf="isMobileViewport"
-          (click)="toggleMobileMenu()"
-          [attr.aria-label]="isMobileMenuVisible ? 'Cerrar menú del panel' : 'Abrir menú del panel'"
-          [attr.aria-expanded]="isMobileMenuVisible"
-          aria-controls="dashboard-navigation"
-        >
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
+        <button type="button" class="secondary" (click)="refreshAll()">Actualizar datos</button>
       </div>
 
       <p class="saved" *ngIf="notice">{{ notice }}</p>
@@ -252,6 +225,7 @@
                         <span>{{ onboardingFileName ? 'Cambiar archivo' : 'Seleccionar archivo' }}</span>
                         <input type="file" accept=".xlsx,.xls,.csv,.txt" (change)="onOnboardingCatalogFileSelected($event)" />
                       </label>
+                      <label>Tipo de producto<select [(ngModel)]="onboardingProductArea"><option value="">Selecciona un tipo</option><option *ngFor="let area of onboardingProductAreaOptions" [value]="area">{{ productAreaLabel(area) }}</option></select></label>
                       <button type="button" *ngIf="onboardingFileName" (click)="importInitialCatalog()" [disabled]="onboardingLoading">
                         {{ onboardingLoading ? 'Procesando...' : 'Subir catálogo' }}
                       </button>

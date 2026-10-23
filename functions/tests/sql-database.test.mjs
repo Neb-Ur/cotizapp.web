@@ -524,3 +524,29 @@ test('donor SQL permits separate sourced offers, keeps regular uniqueness and en
  const result=(await pg.query('SELECT donor_vehicle_id,donor_item_id FROM findi.offers WHERE id=$1',['offer-donor-a'])).rows[0];assert.deepEqual(result,{donor_vehicle_id:'donor-a',donor_item_id:'radiator'});
  assert.equal((await db.collection('real_productosFerreteria').get()).size,3);
 });
+
+test('SQL publishes proposed tools and donor tires atomically with taxonomy, review and retry protection', async t=>{
+ const {db,pg}=await fixture(t);await catalog(db);
+ const firebase=await import('../lib/lib/firebase.js');for(const method of ['collection','runTransaction','batch'])t.mock.method(firebase.db,method,db[method].bind(db));
+ const {publishProposedProduct}=await import('../lib/services/proposed-product.service.js');
+ const {saveDonor,publishDonorPart}=await import('../lib/services/donor-vehicles.service.js');
+ const result=await publishProposedProduct('store','store-owner',{name:'Taladro nuevo SQL',area:'herramientas',price:25000,stock:3});
+ assert.equal((await db.collection('real_productosFerreteria').doc(result.productoFerreteriaId).get()).data().publicado,true);
+ assert.equal((await db.collection('real_solicitudesCreacionProducto').doc(result.id).get()).data().estado,'pendiente');
+ await publishProposedProduct('store','store-owner',{name:'Taladro nuevo SQL',area:'herramientas',price:100,stock:1});
+ assert.equal((await db.collection('real_productosFerreteria').doc(result.productoFerreteriaId).get()).data().precio,25000);
+ await db.collection('usuarios').doc('junk-owner').set({rol:'ferreteria',nombre:'Junk',correo:'junk@example.test',estadoCuenta:'activo'});
+ await db.collection('real_ferreterias').doc('junk').set({usuarioDuenoId:'junk-owner',nombreComercial:'Junk',estado:'activo',tipoNegocio:'desarmaduria'});
+ await db.collection('marcas').doc('vehicle-brand').set({nombre:'Marca V',usos:['vehiculo']});
+ await db.collection('modelosVehiculo').doc('vehicle-model').set({nombre:'Modelo V',nombreNormalizado:'modelo v',marcaId:'vehicle-brand',activo:true});
+ const vehicleId='11111111-1111-4111-8111-111111111111';
+ await saveDonor('junk',vehicleId,{marcaId:'vehicle-brand',modeloId:'vehicle-model',anio:2018,motor:'1.2',piezas:[{id:'tire',nombre:'Neumático',sistema:'Suspensión y dirección',seleccionada:true,precio:20000,stock:1,condicion:'usado',productoMaestroId:null}]},'junk-owner',false);
+ const publication=await publishDonorPart('junk',vehicleId,'tire','junk-owner',false);assert.equal(publication.estado,'publicada');
+ const offer=(await db.collection('real_productosFerreteria').doc(publication.ofertaId).get()).data();
+ const master=(await db.collection('productosMaestro').doc(offer.productoMaestroId).get()).data();
+ const family=(await db.collection('familias').doc(master.familiaId).get()).data();
+ assert.equal(master.categoriaId,'cat-repuestos-automotrices');assert.equal(family.nombre,'Neumático');assert.equal(family.permiteVehiculos,true);assert.equal(master.validacionPendiente,true);
+ const before=(await pg.query('SELECT count(*)::int n FROM findi.offers')).rows[0].n;
+ await publishDonorPart('junk',vehicleId,'tire','junk-owner',false);
+ assert.equal((await pg.query('SELECT count(*)::int n FROM findi.offers')).rows[0].n,before);
+});

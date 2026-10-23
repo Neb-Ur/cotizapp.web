@@ -1,0 +1,27 @@
+@if (navigation.active()) {
+  <header class="workspace-header">
+    <div class="workspace-brand-group">
+      <button type="button" class="menu-toggle" (click)="menuOpen.set(!menuOpen())" aria-controls="workspace-navigation" [attr.aria-expanded]="menuOpen()" [attr.aria-label]="menuOpen() ? 'Cerrar menú del panel' : 'Abrir menú del panel'"><i class="pi pi-bars" aria-hidden="true"></i></button>
+      <a class="workspace-brand" routerLink="/" aria-label="Trovio · Ir al inicio"><app-brand-mark /><span>trovio</span></a>
+    </div>
+    <div class="workspace-header-actions"><a routerLink="/"><i class="pi pi-home" aria-hidden="true"></i> Ir a inicio</a><button type="button" (click)="logout()">Salir</button></div>
+  </header>
+}
+<div [class.workspace-layout]="navigation.active()">
+  @if (navigation.active()) {
+    @if (mobile() && menuOpen()) {<button type="button" class="workspace-overlay" aria-label="Cerrar menú" tabindex="-1" (click)="menuOpen.set(false)"></button>}
+    <aside id="workspace-navigation" class="workspace-sidebar" [class.is-open]="menuOpen()" tabindex="-1"
+      [appModalSurface]="mobile() && menuOpen()" (surfaceClosed)="menuOpen.set(false)"
+      [attr.role]="mobile() ? 'dialog' : null" [attr.aria-modal]="mobile() && menuOpen() ? true : null"
+      [attr.inert]="mobile() && !menuOpen() ? '' : null" [attr.aria-hidden]="mobile() && !menuOpen() ? true : null" aria-label="Menú del panel">
+      <div class="workspace-identity"><span>{{ navigation.admin() ? 'Administración' : 'Mi local' }}</span><strong>{{ auth.currentUser()?.businessName || auth.currentUser()?.displayName || 'Mi panel' }}</strong><button type="button" class="sidebar-close" aria-label="Cerrar menú" (click)="menuOpen.set(false)"><i class="pi pi-times" aria-hidden="true"></i></button></div>
+      <nav aria-label="Secciones del panel">
+        @for(item of navigation.links(); track item.section + (item.accion || '')) {
+          <a [routerLink]="navigation.base()" [queryParams]="{section:item.section,accion:item.accion}" [class.active]="navigation.isActive(item)" [attr.aria-current]="navigation.isActive(item)?'page':null"><i [class]="item.icon" aria-hidden="true"></i><span>{{ item.label }}</span></a>
+        }
+      </nav>
+      <a class="password-link" routerLink="/cuenta/cambiar-contrasena"><i class="pi pi-key" aria-hidden="true"></i> Cambiar contraseña</a>
+    </aside>
+  }
+  <div [class.workspace-content]="navigation.active()"><ng-content /></div>
+</div>

@@ -1,3 +1,4 @@
+import { productArea, isProductArea, allowedProductAreas } from '../domain/business-type.js';
 import { publicRecordVisible } from '../services/pilot-stores.service.js';
 import {normalizeProductApplications,automotiveProductName,automotiveIdentity} from '../domain/product-vehicle.js';
 import { invalidateStaticCatalog } from '../lib/product-sheet-cache.js';
@@ -120,25 +121,30 @@ masterProductsRouter.get('/productos-maestro', async (req, res) => {
 
 const listMasterPage = async (req: Request, res: Response) => {
   let businessType = req.query['tipoNegocio'];
+  let testStore = false;
   if (req.params?.storeId) {
     const store = await row(COLLECTIONS.stores, req.params?.storeId);
     if (!store) return fail(res, 'FERRETERIA_NOT_FOUND', 'No existe el local.', 404);
     if (req.authRole !== 'admin' && store.usuarioDuenoId !== req.authUserId) return fail(res, 'AUTH_FORBIDDEN', 'No puedes consultar el catálogo de otro local.', 403);
     businessType = normalizeBusinessType(store.tipoNegocio);
+    testStore = store.esPrueba === true;
   }
   if (businessType !== undefined && !isBusinessType(businessType)) return fail(res, 'BUSINESS_TYPE_INVALID', 'Selecciona un tipo de local válido.', 400);
   const q = normalizeText(req.query['query']).toLowerCase();
   const categoryId = normalizeText(req.query['categoriaId']);
   const subcategoryId = normalizeText(req.query['subcategoriaId']);
   const familyId = normalizeText(req.query['familiaId']);
+  const area = normalizeText(req.query['rubro']);
+  if (area && (!isProductArea(area) || (businessType && !allowedProductAreas(businessType).includes(area)))) return fail(res, 'PRODUCT_AREA_INVALID', 'Selecciona un tipo de producto permitido para el local.', 400);
   const excluded = new Set(normalizeText(req.query['excludeProductoMaestroIds']).split(',').filter(Boolean));
   const page = Math.max(1, Math.floor(numberValue(req.query['page'], 1)));
   const size = Math.min(100, Math.max(1, Math.floor(numberValue(req.query['size'], 25))));
   const eligible = (await rows(COLLECTIONS.masterProducts))
     .filter(item => !businessType || productMatchesBusinessType(item, businessType))
-    .filter((item) => req.authRole === 'admin' || item.estado !== 'inactivo' && (!!req.params?.storeId || publicRecordVisible(item)));
-  const categoryIds = [...new Set(eligible.map(item => item.categoriaId))];
-  const all = eligible
+    .filter((item) => req.params?.storeId ? item.estado !== 'inactivo' && (testStore || item.esPrueba !== true) : req.authRole === 'admin' || item.estado !== 'inactivo' && publicRecordVisible(item));
+  const scoped = eligible.filter(item => !area || productArea(item) === area);
+  const categoryIds = [...new Set(scoped.map(item => item.categoriaId))];
+  const all = scoped
     .filter((item) => !excluded.has(item.id))
     .filter((item) => !q || normalizeText(item.nombre).toLowerCase().includes(q) || normalizeText(item.marca).toLowerCase().includes(q) || normalizeText(item.codigoBarras).toLowerCase().includes(q))
     .filter((item) => !categoryId || item.categoriaId === categoryId)

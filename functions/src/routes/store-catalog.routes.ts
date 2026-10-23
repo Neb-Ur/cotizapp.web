@@ -68,6 +68,7 @@ storeCatalogRouter.post('/ferreterias/:storeId/catalogo', requireAuth, requireRo
   const product = await row(COLLECTIONS.masterProducts, masterId);
   if (!product || product.estado === 'inactivo') return fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro indicado.', 404);
   const store = await row(COLLECTIONS.stores, req.params.storeId);
+  if (store?.esPrueba !== true && product.esPrueba === true) return fail(res, 'TEST_PRODUCT_NOT_ALLOWED', 'Un local real no puede publicar productos simulados.', 400);
   if (!productMatchesBusinessType(product, store?.tipoNegocio)) return fail(res, 'STORE_PRODUCT_BUSINESS_TYPE_MISMATCH', 'Este producto no corresponde al tipo de negocio del local.', 400);
   const offerPayload = {
     condicion: normalizeOfferCondition(req.body?.condicion),
@@ -125,6 +126,7 @@ storeCatalogRouter.patch('/ferreterias/:storeId/catalogo/:offerId', requireAuth,
   if (!(await requireCurrentStoreAgreement(req, res, req.params.storeId))) return;
   const existing = await row(COLLECTIONS.storeProducts, req.params.offerId);
   if (!existing || existing.ferreteriaId !== req.params.storeId) return fail(res, 'CATALOGO_NOT_FOUND', 'Producto de ferreteria no encontrado.', 404);
+  if (existing.vehiculoDonanteId && req.body?.stock !== undefined && ![0,1].includes(Number(req.body.stock))) return fail(res, 'DONOR_STOCK_INVALID', 'Cada pieza de un vehículo admite stock 0 o 1.', 400);
   const store = await row(COLLECTIONS.stores, req.params.storeId);
   const master = await row(COLLECTIONS.masterProducts, existing.productoMaestroId);
   if (req.authRole !== 'admin' && master && !productMatchesBusinessType(master, store?.tipoNegocio)) return fail(res, 'STORE_PRODUCT_BUSINESS_TYPE_MISMATCH', 'Este producto no corresponde a la clasificación del local.', 400);

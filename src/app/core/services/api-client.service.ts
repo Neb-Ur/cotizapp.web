@@ -1,5 +1,6 @@
 import { DataModeService } from './data-mode.service';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { BACKGROUND_WRITE } from './write-feedback.service';
+import { HttpClient, HttpHeaders, HttpParams, HttpContext } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from './auth.service';
@@ -70,9 +71,10 @@ export class ApiClientService {
     return response.data;
   }
 
-  async put<T>(path: string, body: unknown, requireAuth = false): Promise<T> {
+  async put<T>(path: string, body: unknown, requireAuth = false, options?: {background?: boolean}): Promise<T> {
     const response = await firstValueFrom(
       this.http.put<ApiEnvelope<T>>(`${this.apiBaseUrl}${path}`, body, {
+        context: new HttpContext().set(BACKGROUND_WRITE, options?.background === true),
         headers: this.headers(requireAuth)
       })
     );
