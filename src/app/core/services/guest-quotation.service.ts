@@ -8,6 +8,7 @@ const STORAGE_KEY = 'trovio-guest-quotations:v1';
 export class GuestQuotationService {
   private quotes: GuestQuotation[] = [];
   private restored = false;
+  private restoredRaw: string | null = null;
   storageWarning = '';
   all(): GuestQuotation[] { this.restore(true); return structuredClone(this.quotes); }
   get(id: string): GuestQuotation | null { return this.all().find(quote => quote.id === id) || null; }
@@ -43,10 +44,13 @@ export class GuestQuotationService {
     this.restored = true;
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw === null && this.storageWarning && this.quotes.length) return;
+      if (this.storageWarning && raw === this.restoredRaw) return;
       const value = JSON.parse(raw || '[]');
-      if (Array.isArray(value)) this.quotes = value.filter(quote => quote && typeof quote.id === 'string' && typeof quote.name === 'string' && Array.isArray(quote.items)
-        && quote.items.every((item: ProjectItem) => typeof item.productName === 'string' && Number.isSafeInteger(item.quantity) && item.quantity > 0));
+      if (Array.isArray(value)) {
+        this.quotes = value.filter(quote => quote && typeof quote.id === 'string' && typeof quote.name === 'string' && Array.isArray(quote.items)
+          && quote.items.every((item: ProjectItem | null) => item !== null && typeof item === 'object' && typeof item.productName === 'string' && Number.isSafeInteger(item.quantity) && item.quantity > 0));
+        this.restoredRaw = raw;
+      }
     } catch { /* A missing local draft must not block the catalog. */ }
   }
   private persist(): void {

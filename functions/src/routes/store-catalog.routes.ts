@@ -6,7 +6,7 @@ import { requireAuth, requireRole } from '../lib/auth.js';
 import { fail, ok } from '../lib/http.js';
 import { COLLECTIONS } from '../lib/collections.js';
 import { nowIso, normalizeText, numberValue } from '../lib/values.js';
-import { rows, row, createRow, patchRow } from '../repositories/firestore.repository.js';
+import { rows, row, createRow } from '../repositories/firestore.repository.js';
 import { canAccessOwner, requireStoreWriteAccess } from '../lib/ownership.js';
 import { requireCurrentStoreAgreement } from '../services/store-agreement.service.js';
 import { productMatchesBusinessType } from '../domain/business-type.js';
@@ -157,7 +157,26 @@ storeCatalogRouter.patch('/ferreterias/:storeId/catalogo/:offerId', requireAuth,
   if (req.authRole === 'admin' && req.body?.patrocinado !== undefined) {
     patch['patrocinado'] = req.body.patrocinado === true;
   }
-  const updated = await patchRow(COLLECTIONS.storeProducts, req.params.offerId, patch);
+  const result = await db.runTransaction(async tx => {
+    const ref = db.collection(COLLECTIONS.storeProducts).doc(req.params.offerId);
+    const [offer, store] = await Promise.all([
+      tx.get(ref), tx.get(db.collection(COLLECTIONS.stores).doc(req.params.storeId))
+    ]);
+    const current = offer.data();
+    if (!current || current['ferreteriaId'] !== req.params.storeId) return { error: 'CATALOGO_NOT_FOUND', status: 404 } as const;
+    if (!store.exists || req.authRole !== 'admin' && store.data()?.['usuarioDuenoId'] !== req.authUserId) return { error: 'AUTH_FORBIDDEN', status: 403 } as const;
+    if (req.authRole !== 'admin'
+      && (current['propiedadIntelectualEstadoAnterior'] || ['retiro_preventivo', 'retiro_definitivo'].includes(current['propiedadIntelectualEstado']))
+      && ['activo', 'publicado'].some(key => patch[key] !== undefined && patch[key] !== false)) {
+      return { error: 'OFFER_MODERATION_RESTRICTED', status: 403 } as const;
+    }
+    tx.update(ref, patch);
+    return { data: { ...current, ...patch, id: ref.id } };
+  });
+  if (result.error) return fail(res, result.error, result.error === 'OFFER_MODERATION_RESTRICTED'
+    ? 'Solo un administrador puede restablecer una publicación retirada.'
+    : 'No puedes modificar esta publicación.', result.status);
+  const updated = result.data;
   await createRow(COLLECTIONS.priceHistory, {
     ferreteriaId: req.params.storeId,
     productoFerreteriaId: req.params.offerId,

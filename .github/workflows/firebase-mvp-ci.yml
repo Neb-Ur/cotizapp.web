@@ -22,8 +22,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: cotizapp-${{ github.ref }}-${{ github.event_name }}
-  cancel-in-progress: true
+  group: cotizapp-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   NODE_VERSION: '22'
@@ -49,11 +49,17 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci --no-audit --no-fund
 
+      - name: Test deployment scripts
+        run: npm run test:scripts
+
       - name: Run frontend tests
         run: npm test -- --watch=false
 
       - name: Build Angular production bundle
         run: npm run build
+
+      - name: Smoke test compiled SSR
+        run: npm run test:ssr
 
       - name: Setup Node for Functions
         uses: actions/setup-node@v4
@@ -85,14 +91,15 @@ jobs:
             else
               echo "- Requested action: validate"
             fi
-            echo "- Push behavior: validate + deploy to QA"
-            echo "- QA deploy: automatic on push to main; manual publish also available"
+            echo "- Push behavior: validate + deploy to production"
+            echo "- Production deploy: automatic on push to main; manual publish also available"
           } >> "$GITHUB_STEP_SUMMARY"
 
   deploy:
     name: Deploy Firebase production
     if: >-
       needs.ci.result == 'success' &&
+      github.ref == 'refs/heads/main' &&
       (
         github.event_name == 'push' ||
         (github.event_name == 'workflow_dispatch' && inputs.action == 'publish')
@@ -103,9 +110,6 @@ jobs:
     environment:
       name: production
       url: https://cotizapp-d71c8.web.app
-
-    env:
-      FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON || secrets.FIREBASE_SERVICE_ACCOUNT_COTIZAPP_D71C8 }}
 
     steps:
       - name: Checkout
@@ -134,6 +138,8 @@ jobs:
           path: dist/cotizacion-web/browser
 
       - name: Configure Firebase authentication
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON || secrets.FIREBASE_SERVICE_ACCOUNT_COTIZAPP_D71C8 }}
         shell: bash
         run: |
           set -euo pipefail
@@ -172,7 +178,7 @@ jobs:
             echo "Standard push: deploying Functions and Hosting. Firestore rules/indexes are unchanged."
           fi
 
-          npm exec --yes --package=firebase-tools@15.32.1 -- npm run deploy -- \
+          npm exec --yes --package=firebase-tools@15.32.1 -- firebase deploy \
             --only "$DEPLOY_TARGETS" \
             --project "$FIREBASE_PROJECT_ID" \
             --non-interactive

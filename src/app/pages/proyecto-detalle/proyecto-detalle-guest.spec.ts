@@ -65,4 +65,16 @@ describe('guest quotation and PDF account requirement', () => {
     await component.loadQuotation('nuevo');expect(downloadQuotationPdf).not.toHaveBeenCalled();
     expect(new GuestQuotationService().get(quote.id)).not.toBeNull();expect(component.saveNotice).toContain('Límite');
   });
+  it('does not overwrite or remove a previous guest import after opening an unrelated new quotation', async () => {
+    const {component,guest,api}=setup({id:'maestro',role:'maestro'},false);
+    const quote=guest.create('Invitada','Dirección',[{productName:'Cemento',quantity:3}]);
+    component.importedGuestId=quote.id;
+    await component.loadProject('nuevo');
+    component.projectName='Otra obra';component.projectItems=[{productName:'Clavos',quantity:1}];
+    component.persistDraftIfNeeded();
+    expect(guest.get(quote.id)?.name).toBe('Invitada');
+    await component.saveProject(false,false);
+    expect(api.saveProject).toHaveBeenCalledOnce();
+    expect(guest.get(quote.id)?.items).toEqual(quote.items);
+  });
 });

@@ -123,13 +123,14 @@ projectsRouter.post('/maestros/:ownerId/proyectos/:projectId/items', requireAuth
   if (!canAccessOwner(req, req.params.ownerId)) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para esta cotizacion.', 403);
   const project = await row(COLLECTIONS.projects, req.params.projectId);
   if (!project || project.ownerId !== req.params.ownerId) return fail(res, 'PROYECTO_NOT_FOUND', 'No existe la cotizacion indicada.', 404);
+  const offers = await buildSearchRows();
   const updated = await db.runTransaction(async tx => {
     const ref = db.collection(COLLECTIONS.projects).doc(req.params.projectId);
     const latest = await tx.get(ref);
     if (!latest.exists || latest.data()?.['ownerId'] !== req.params.ownerId) return null;
     const data = latest.data()!;
     const patch = { items: [...normalizeItems(data['items']), ...normalizeItems([req.body])], updatedAt: nowIso() };
-    Object.assign(patch, await captureProjectPricing({...data, ...patch}, data));
+    Object.assign(patch, captureQuotationPricing({...data, ...patch}, data, offers));
     const code=newVerificationCode();
     Object.assign(patch,{verificationCode:code});
     tx.update(ref, patch);

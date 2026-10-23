@@ -351,6 +351,7 @@ export class AuthService implements OnDestroy {
   }
 
   async verifiedUser(): Promise<SessionUser | null> {
+    if (typeof window === 'undefined') return null;
     await this.sessionReadyPromise;
     if (this.sessionClosed) return null;
     this.readSharedActivity();
@@ -493,6 +494,7 @@ export class AuthService implements OnDestroy {
   }
 
   private async getAuth(): Promise<Auth> {
+    if (typeof window === 'undefined') throw new Error('La autenticacion solo esta disponible en el navegador.');
     if (!this.firebaseAuth) this.firebaseAuth = await getFirebaseAuthInstance();
     this.firebaseAuth.languageCode = 'es';
     return this.firebaseAuth;

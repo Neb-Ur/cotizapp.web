@@ -143,6 +143,108 @@ test('automotive seed persists normalized year ranges and filters the same produ
  assert.equal(paginateProductSearch(snapshot,{...options,vehicleYear:2013}).total,0);
  assert.equal(paginateProductSearch(snapshot,{...options,vehicleYear:2018,storeId:'seed-auto-store-desarmaduria'}).total,0);
 });
+test('HTTP quotation lifecycle enforces roles and ownership while persisting frozen and renewed SQL prices',async context=>{
+ const {db,pg}=await fixture(context);await catalog(db);
+ const express=(await import('express')).default;
+ const firebase=await import('../lib/lib/firebase.js');
+ const {projectsRouter}=await import('../lib/routes/projects.routes.js');
+ const {storeCatalogRouter}=await import('../lib/routes/store-catalog.routes.js');
+ const {searchRouter}=await import('../lib/routes/search.routes.js');
+ const {CURRENT_TERMS_VERSION,CURRENT_PRIVACY_VERSION,CURRENT_STORE_AGREEMENT_VERSION,STORE_AGREEMENT_PROVIDER}=await import('../lib/lib/legal.js');
+ const {storeAgreementDocumentHash}=await import('../lib/services/store-agreement.service.js');
+ const legal={terminosVersion:CURRENT_TERMS_VERSION,privacidadVersion:CURRENT_PRIVACY_VERSION,mayoriaEdadDeclarada:true};
+ await db.collection('usuarios').doc('master').update(legal);
+ await db.collection('usuarios').doc('store-owner').update(legal);
+ await db.collection('usuarios').doc('other-master').set({...legal,rol:'maestro',nombre:'Other',correo:'other@example.test',estadoCuenta:'activo'});
+ const documentHash=storeAgreementDocumentHash();
+ await db.collection('real_contratosFerreteria').doc('agreement').set({ferreteriaId:'store',usuarioFirmanteId:'store-owner',version:CURRENT_STORE_AGREEMENT_VERSION,documentHash,estado:'vigente',proveedor:STORE_AGREEMENT_PROVIDER,ferreteria:{nombreComercial:'Local'},firmante:{nombre:'Local'},declaraciones:{aceptacionIntegra:true},evidencia:{source:'store_onboarding'},aceptadoEn:new Date().toISOString()});
+ await db.collection('real_ferreterias').doc('store').update({contratoEstado:'vigente',contratoVersion:CURRENT_STORE_AGREEMENT_VERSION,contratoDocumentHash:documentHash});
+ await db.collection('real_productosFerreteria').doc('offer').set({ferreteriaId:'store',productoMaestroId:'product',precio:1500,stock:20,incluyeIva:true,activo:true,publicado:true});
+ for(const method of ['collection','runTransaction','batch'])context.mock.method(firebase.db,method,db[method].bind(db));
+ context.mock.method(firebase.adminAuth,'verifyIdToken',async token=>{
+  const uid={master:'master',other:'other-master',store:'store-owner'}[token];
+  if(!uid)throw new Error('Invalid test token');
+  return {uid};
+ });
+ const app=express();app.use(express.json());app.use('/api',projectsRouter,storeCatalogRouter,searchRouter);
+ const server=app.listen(0,'127.0.0.1');
+ context.after(()=>new Promise(resolve=>{server.close(resolve);server.closeIdleConnections();}));
+ await new Promise(resolve=>server.once('listening',resolve));
+ const origin=`http://127.0.0.1:${server.address().port}/api`;
+ const request=async(method,path,token,body)=>{
+  const response=await fetch(origin+path,{method,headers:{'Content-Type':'application/json',...(token?{Authorization:`Bearer ${token}`}:{})},...(body?{body:JSON.stringify(body)}:{})});
+  return {status:response.status,body:await response.json()};
+ };
+ const path='/maestros/master/proyectos';
+ const item={productName:'MDF negro 18 mm',productoMaestroId:'product',storeId:'store',productoFerreteriaId:'offer',quantity:2};
+ const input={nombre:'HTTP obra',items:[item]};
+ const searchPath='/busqueda?vista=productos&ferreteriaId=store';
+ const initialSearch=await request('GET',searchPath);
+ assert.equal(initialSearch.status,200,JSON.stringify(initialSearch.body));
+ assert.equal(initialSearch.body.data.items[0].minPrice,1500);
+ const slug=initialSearch.body.data.items[0].seoPath.split('/').pop();
+ const detailPath='/productos/detalle?vista=ofertas&slug='+encodeURIComponent(slug);
+ assert.equal((await request('GET',detailPath)).body.data.stores[0].price,1500);
+ assert.equal((await request('POST',path,undefined,input)).status,401);
+ assert.equal((await request('POST',path,'store',input)).status,403);
+ assert.equal((await request('POST',path,'other',input)).status,403);
+ const created=await request('POST',path,'master',input);
+ assert.equal(created.status,201,JSON.stringify(created.body));
+ assert.equal(created.body.data.totalOptimal,3000);
+ const projectPath=path+'/'+created.body.data.id;
+ assert.equal((await pg.query('SELECT count(*)::int n FROM findi.quotation_items')).rows[0].n,1);
+ assert.equal((await pg.query('SELECT count(*)::int n FROM findi.quotation_verifications')).rows[0].n,1);
+ assert.equal((await request('GET',projectPath,'other')).status,403);
+ assert.equal((await request('PUT',projectPath,'other',input)).status,403);
+ assert.equal((await request('DELETE',projectPath,'other')).status,403);
+ const offerPath='/ferreterias/store/catalogo/offer';
+ assert.equal((await request('PATCH',offerPath,'other',{precio:9000})).status,403);
+ const changedPrice=await request('PATCH',offerPath,'store',{precio:9000});
+ assert.equal(changedPrice.status,200,JSON.stringify(changedPrice.body));
+ assert.equal((await request('GET',searchPath)).body.data.items[0].minPrice,9000);
+ assert.equal((await request('GET',detailPath)).body.data.stores[0].price,9000);
+ assert.equal((await request('GET',projectPath,'master')).body.data.totalOptimal,3000);
+ const added=await request('POST',projectPath+'/items','master',{...item,quantity:1});
+ assert.equal(added.status,201,JSON.stringify(added.body));
+ assert.equal(added.body.data.totalOptimal,4500);
+ assert.equal(added.body.data.validUntil,created.body.data.validUntil);
+ const renewed=await request('PUT',projectPath,'master',{nombre:'HTTP editada',items:added.body.data.items,renovarPrecios:true});
+ assert.equal(renewed.status,200,JSON.stringify(renewed.body));
+ assert.equal(renewed.body.data.totalOptimal,27000);
+ assert.notEqual(renewed.body.data.verificationCode,created.body.data.verificationCode);
+ assert.equal((await request('PATCH',offerPath,'store',{activo:false})).status,200);
+ assert.equal((await request('GET',searchPath)).body.data.total,0);
+ assert.equal((await request('GET',detailPath)).body.data.stores.length,0);
+ assert.equal((await request('POST',path,'master',{nombre:'Segunda',items:[]})).status,201);
+ assert.equal((await request('POST',path,'master',{nombre:'Tercera',items:[]})).status,409);
+ assert.equal((await request('GET',path,'master')).body.data.length,2);
+ assert.equal((await request('DELETE',projectPath,'master')).status,200);
+ assert.equal((await request('GET',projectPath,'master')).status,404);
+ assert.equal((await pg.query('SELECT count(*)::int n FROM findi.quotation_items')).rows[0].n,0);
+});
+test('repository returns document identity instead of a payload id across reads and writes',async t=>{
+ const {db}=await fixture(t);
+ const firebase=await import('../lib/lib/firebase.js');
+ for(const method of ['collection','runTransaction','batch'])t.mock.method(firebase.db,method,db[method].bind(db));
+ const {rows,row,createRow,patchRow}=await import('../lib/repositories/firestore.repository.js');
+ const created=await createRow('categorias',{id:'payload-id',nombre:'Original'},'document-id');
+ assert.equal(created.id,'document-id');
+ assert.equal((await row('categorias','document-id')).id,'document-id');
+ assert.equal((await rows('categorias'))[0].id,'document-id');
+ assert.equal((await patchRow('categorias','document-id',{id:'changed-payload-id',nombre:'Updated'})).id,'document-id');
+ assert.equal((await db.collection('categorias').doc('document-id').get()).data().nombre,'Updated');
+ assert.equal((await db.collection('categorias').doc('payload-id').get()).exists,false);
+});
+test('SQL transactions reject foreign collection queries as well as document references',async t=>{
+ const {db,pool}=await fixture(t);
+ const other=new PostgresDatabase(pool);
+ await db.collection('categorias').doc('local').set({nombre:'Local'});
+ for(const reference of [other.collection('categorias'),other.collection('categorias').where('nombre','==','Local').limit(1),other.collection('categorias').doc('local')]){
+  await assert.rejects(db.runTransaction(tx=>tx.get(reference)),/SQL_FOREIGN_REFERENCE/);
+ }
+ const snapshot=await db.runTransaction(tx=>tx.get(db.collection('categorias').where('nombre','==','Local').limit(1)));
+ assert.deepEqual(snapshot.docs.map(doc=>doc.id),['local']);
+});
 test('SQL flag is false by default and rejects ambiguous values',()=>{
  const before=process.env.USE_SQL_DATABASE;try{delete process.env.USE_SQL_DATABASE;assert.equal(useSqlDatabase(),false);process.env.USE_SQL_DATABASE='true';assert.equal(useSqlDatabase(),true);process.env.USE_SQL_DATABASE='1';assert.throws(useSqlDatabase);}finally{if(before===undefined)delete process.env.USE_SQL_DATABASE;else process.env.USE_SQL_DATABASE=before;}
 });
@@ -154,6 +256,27 @@ test('SQL preserves DTOs and creates real normalized relationships',async t=>{
  assert.equal((await db.collection('productosMaestro').where('familiaId','==','family').get()).size,1);
  await assert.rejects(db.collection('productosMaestro').doc('invalid').set({nombre:'Otro',familiaId:'missing'}));
  assert.equal((await db.collection('productosMaestro').doc('invalid').get()).exists,false);
+});
+test('blocked-account migration preserves existing profiles and makes the auth block persistable',async t=>{
+ const {db,pg}=await fixture(t);await catalog(db);
+ const before=(await db.collection('usuarios').doc('master').get()).data();
+ await assert.rejects(db.collection('usuarios').doc('master').update({estadoCuenta:'bloqueado'}));
+ await pg.exec(await readFile(new URL('../../sql/findi/022-blocked-account-status.sql',import.meta.url),'utf8'));
+ assert.deepEqual((await db.collection('usuarios').doc('master').get()).data(),before);
+ await db.collection('usuarios').doc('master').update({estadoCuenta:'bloqueado'});
+ assert.equal((await pg.query("SELECT account_status FROM findi.users WHERE id='master'")).rows[0].account_status,'bloqueado');
+ assert.equal((await db.collection('usuarios').doc('master').get()).data().estadoCuenta,'bloqueado');
+ const firebase=await import('../lib/lib/firebase.js');
+ const {requireAuth}=await import('../lib/lib/auth.js');
+ t.mock.method(firebase.db,'collection',db.collection.bind(db));
+ t.mock.method(firebase.adminAuth,'verifyIdToken',async()=>({uid:'master'}));
+ let status;let body;let continued=false;
+ const res={status(value){status=value;return this;},json(value){body=value;return this;}};
+ await requireAuth({header:()=> 'Bearer local-test',originalUrl:'/api/maestros/master/proyectos'},res,()=>{continued=true;});
+ assert.equal(status,403);assert.equal(body.error.code,'AUTH_ACCOUNT_BLOCKED');assert.equal(continued,false);
+ await assert.rejects(db.collection('usuarios').doc('master').update({estadoCuenta:'unknown'}));
+ await db.collection('usuarios').doc('master').update({estadoCuenta:'activo'});
+ assert.equal((await pg.query("SELECT account_status FROM findi.users WHERE id='master'")).rows[0].account_status,'activo');
 });
 test('SQL keeps ordered duplicate quote lines, rolls back a failed batch and enforces quote limit',async t=>{
  const {db,pg}=await fixture(t);await catalog(db);
@@ -241,6 +364,33 @@ test('final cutover reconciliation includes the last Firestore changes atomicall
  source.get('real_solicitudesContacto').push({id:'invalid',data:{type:'otro',privacyConsent:{granted:true}}});
  await pg.exec('BEGIN');await assert.rejects(reconcileFinalSource(pg,firestore,db));await pg.exec('ROLLBACK');
  assert.equal((await db.collection('productosMaestro').doc('product').get()).data().nombre,'Último cambio antes de activar');
+});
+test('final cutover imports new review and donor parents before their dependent records',async t=>{
+ const {db,pg}=await fixture(t);await catalog(db);
+ const {mappingByCollection}=await import('../lib/database/codec.js');
+ const {reconcileFinalSource}=await import('../lib/database/cutover.js');
+ const source=new Map();
+ for(const [collection,mapping]of mappingByCollection){if(['publicCache','projectOwnerLocks'].includes(mapping.key))continue;source.set(collection,(await db.collection(collection).get()).docs.map(doc=>({id:doc.id,data:doc.data()})));}
+ source.get('usuarios').push({id:'new-owner',data:{rol:'ferreteria',nombre:'New owner',correo:'new@example.test',estadoCuenta:'activo'}});
+ source.get('real_ferreterias').push({id:'new-store',data:{usuarioDuenoId:'new-owner',nombreComercial:'New store',estado:'activo',tipoNegocio:'desarmaduria'}});
+ source.get('marcas').push({id:'vehicle-brand',data:{nombre:'Vehicle brand',nombreNormalizado:'vehicle brand',usos:['vehiculo']}});
+ source.get('modelosVehiculo').push({id:'vehicle-model',data:{marcaId:'vehicle-brand',nombre:'Model',nombreNormalizado:'model',activo:true}});
+ source.get('real_vehiculosDonantes').push({id:'donor',data:{ferreteriaId:'new-store',marcaId:'vehicle-brand',modeloId:'vehicle-model',anio:2020,estado:'disponible'}});
+ source.get('real_productosFerreteria').push({id:'donor-offer',data:{ferreteriaId:'new-store',productoMaestroId:'product',precio:1000,stock:1,vehiculoDonanteId:'donor',piezaDonanteId:'part'}});
+ source.get('real_resenasFerreteria').push({id:'review',data:{storeId:'new-store',userId:'master',authorName:'Maestro',rating:4,comment:'Buena tienda'}});
+ const firestore={collection:name=>({get:async()=>({docs:(source.get(name)||[]).map(doc=>({id:doc.id,data:()=>doc.data}))})})};
+ await pg.exec('BEGIN');
+ try{await reconcileFinalSource(pg,firestore,db);await pg.exec('COMMIT');}catch(error){await pg.exec('ROLLBACK');throw error;}
+ assert.equal((await pg.query("SELECT owner_id FROM findi.stores WHERE id='new-store'")).rows[0].owner_id,'new-owner');
+ assert.equal((await pg.query("SELECT store_id FROM findi.store_reviews WHERE id='review'")).rows[0].store_id,'new-store');
+ assert.equal((await pg.query("SELECT donor_vehicle_id FROM findi.offers WHERE id='donor-offer'")).rows[0].donor_vehicle_id,'donor');
+ source.get('real_resenasFerreteria').length=0;source.get('real_productosFerreteria').length=0;source.get('real_vehiculosDonantes').length=0;
+ source.get('real_ferreterias').pop();source.get('usuarios').pop();source.get('modelosVehiculo').length=0;source.get('marcas').pop();
+ await pg.exec('BEGIN');
+ try{await reconcileFinalSource(pg,firestore,db);await pg.exec('COMMIT');}catch(error){await pg.exec('ROLLBACK');throw error;}
+ assert.equal((await db.collection('real_ferreterias').doc('new-store').get()).exists,false);
+ assert.equal((await db.collection('real_vehiculosDonantes').doc('donor').get()).exists,false);
+ assert.equal((await db.collection('real_resenasFerreteria').doc('review').get()).exists,false);
 });
 test('SQL preserves Storage and external fallback assets without duplicate images or invented permissions',async t=>{
  const {db,pg}=await fixture(t);await catalog(db);

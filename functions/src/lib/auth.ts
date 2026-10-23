@@ -39,7 +39,12 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     req.authSecondFactor = typeof decoded.firebase?.sign_in_second_factor === 'string'
       ? decoded.firebase.sign_in_second_factor
       : undefined;
+    const requestPath = (req.originalUrl || req.path).split('?')[0];
     const profile = await db.collection('usuarios').doc(decoded.uid).get();
+    if (!profile.exists && !/^\/(?:api\/)?auth\/(?:register|session|me|logout)\/?$/i.test(requestPath)) {
+      fail(res, 'AUTH_USER_NOT_FOUND', 'Completa tu perfil antes de continuar.', 403);
+      return;
+    }
     if (profile.exists) {
       if (!profileBelongsToMode(profile.data()!)) {
         fail(res, 'AUTH_DATA_MODE_MISMATCH', 'Esta cuenta pertenece a otro entorno.', 403);
@@ -52,13 +57,12 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       const role = profile.data()?.['rol'];
       if (role === 'maestro' || role === 'ferreteria' || role === 'admin') {
         req.authRole = role;
+      } else {
+        fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para esta accion.', 403);
+        return;
       }
-      const requestPath = req.originalUrl || req.path;
-      const privacyOperation = requestPath.includes('/privacy/')
-        || requestPath.endsWith('/auth/session')
-        || requestPath.endsWith('/auth/me')
-        || requestPath.endsWith('/auth/register')
-        || requestPath.endsWith('/auth/logout');
+      const privacyOperation = /^\/(?:api\/)?privacy\//i.test(requestPath)
+        || /^\/(?:api\/)?auth\/(?:session|me|register|logout)\/?$/i.test(requestPath);
       const storeOnboardingOperation = role === 'ferreteria' && (
         /\/(?:api\/)?store-onboarding\/(current|accept)(?:\?.*)?$/.test(requestPath)
         || (req.method === 'GET' && requestPath.split('?')[0].endsWith('/store-agreement/current'))

@@ -66,6 +66,24 @@ describe('session restoration and inactivity', () => {
     expect((await verification)?.id).toBe(user.id);
   });
 
+  it('does not resolve a browser session or call Firebase while rendering on the server', async () => {
+    const { service, get } = fixture();
+    await service.verifiedUser();
+    get.mockClear();
+    const getAuth = vi.mocked((service as any).getAuth);
+    getAuth.mockClear();
+    vi.stubGlobal('window', undefined);
+    try {
+      expect(await service.verifiedUser()).toBeNull();
+      expect(getAuth).not.toHaveBeenCalled();
+      expect(get).not.toHaveBeenCalled();
+      getAuth.mockRestore();
+      await expect((service as any).getAuth()).rejects.toThrow('solo esta disponible en el navegador');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('clears the session when the server rejects its credentials, rather than treating this as an outage', async () => {
     const get = vi.fn().mockReturnValue(throwError(() => new HttpErrorResponse({ status: 401 })));
     const { service } = fixture(60_000, 'local', get);

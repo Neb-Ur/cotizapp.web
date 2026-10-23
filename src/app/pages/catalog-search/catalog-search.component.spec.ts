@@ -92,6 +92,24 @@ describe('product card navigation',()=>{
 });
 
 describe('collection filter context',()=>{
+ it('retains a selected branch missing from the loaded directory options without duplicating listed branches', async()=>{
+  const {api}=fixture();api.searchProductPage.mockResolvedValue({items:[],total:0,page:1,size:20} as any);
+  await TestBed.configureTestingModule({imports:[CatalogSearchComponent],providers:[provideRouter([]),
+   {provide:AuthService,useValue:{currentUser:()=>null}}, {provide:FirebaseDataService,useValue:api},
+   {provide:ActivatedRoute,useValue:{queryParamMap:of(convertToParamMap({ferreteriaId:'branch-2',ferreteria:'Sucursal Sur'}))}},
+   {provide:StoreDirectoryService,useValue:{list:async()=>({storeOptions:[{id:'branch-1',name:'Sucursal Norte'}]})}},
+   {provide:VehicleCatalogService,useValue:{publicCatalog:async()=>({brands:[],models:[]})}}
+  ]}).compileComponents();
+  const rendered=TestBed.createComponent(CatalogSearchComponent);
+  try {
+   rendered.detectChanges();await rendered.whenStable();rendered.detectChanges();
+   const select=rendered.nativeElement.querySelector('.filters-grid select') as HTMLSelectElement;
+   expect(select.value).toBe('branch-2');expect(select.selectedOptions[0].textContent).toContain('Sucursal Sur');
+   (rendered.componentInstance as any).storeOptions.push({id:'branch-2',name:'Sucursal Sur'});
+   rendered.changeDetectorRef.markForCheck();rendered.detectChanges();await rendered.whenStable();
+   expect(select.querySelectorAll('option[value="branch-2"]')).toHaveLength(1);
+  } finally { rendered.destroy();TestBed.resetTestingModule(); }
+ });
  it('removes taxonomy without clearing the independently selected store or brand',()=>{
   const {component}=fixture();component.router.navigate=vi.fn();
   component.selectedCategoryId='cat';component.selectedSubcategoryId='sub';component.selectedFamilyId='fam';

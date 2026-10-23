@@ -42,9 +42,50 @@ describe('guest quotations in the browser', () => {
     service.update(quote.id, { items: [{ productName: 'Cemento', quantity: 0 }] });
     expect(new GuestQuotationService().get(quote.id)?.items[0].quantity).toBe(3);
   });
+  it('keeps unsaved edits in memory when storage is readable but full', () => {
+    const service = new GuestQuotationService(); const quote = service.create('Obra');
+    const write = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new DOMException('Full', 'QuotaExceededError'); });
+    try {
+      service.add(quote.id, { productName: 'Cemento', quantity: 2 });
+      expect(service.storageWarning).not.toBe('');
+      expect(service.get(quote.id)?.items).toEqual([{ productName: 'Cemento', quantity: 2 }]);
+      service.add(quote.id, { productName: 'Clavos', quantity: 1 });
+      expect(service.get(quote.id)?.items.map(item => item.productName)).toEqual(['Cemento', 'Clavos']);
+    } finally { write.mockRestore(); }
+    service.update(quote.id, { name: 'Obra recuperada' });
+    expect(service.storageWarning).toBe('');
+    expect(new GuestQuotationService().get(quote.id)?.items).toHaveLength(2);
+  });
+  it('does not restore a quotation after its deletion fails to persist', () => {
+    const service = new GuestQuotationService(); const quote = service.create('Obra');
+    const write = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new DOMException('Full', 'QuotaExceededError'); });
+    try {
+      service.remove(quote.id);
+      expect(service.all()).toEqual([]);
+      expect(service.canCreate()).toBe(true);
+    } finally { write.mockRestore(); }
+  });
+  it('still observes another tab replacing a quotation after a failed write', () => {
+    const service = new GuestQuotationService(); const quote = service.create('Obra');
+    const other = new GuestQuotationService(); other.all();
+    const write = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new DOMException('Full', 'QuotaExceededError'); });
+    try { service.update(quote.id, { name: 'Cambio no guardado' }); }
+    finally { write.mockRestore(); }
+    other.remove(quote.id);
+    const replacement = other.create('Otra obra');
+    expect(service.get(quote.id)).toBeNull();
+    expect(service.get(replacement.id)?.name).toBe('Otra obra');
+  });
   it('does not expose a mutable reference and ignores corrupt stored quotations', () => {
     localStorage.setItem('trovio-guest-quotations:v1', JSON.stringify([{ id: 'bad', name: 'Bad', items: [{ quantity: -1 }] }]));
     const service = new GuestQuotationService(); expect(service.all()).toEqual([]);
     const quote = service.create('Obra'); quote.name = 'Modified'; expect(service.get(quote.id)?.name).toBe('Obra');
+  });
+  it('restores valid quotations even when another stored quotation contains a null item', () => {
+    localStorage.setItem('trovio-guest-quotations:v1', JSON.stringify([
+      { id: 'valid', name: 'Obra', items: [{ productName: 'Cemento', quantity: 2 }] },
+      { id: 'invalid', name: 'Corrupta', items: [null] }
+    ]));
+    expect(new GuestQuotationService().all().map(quote => quote.id)).toEqual(['valid']);
   });
 });

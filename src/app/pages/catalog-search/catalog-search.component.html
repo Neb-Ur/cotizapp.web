@@ -101,7 +101,7 @@
           <label>Local
             <select [ngModel]="selectedStoreId" (ngModelChange)="onStoreFilterChange($event)">
               <option value="">Todos los locales</option>
-              <option *ngIf="selectedStoreId && !storeOptions.length" [value]="selectedStoreId">{{ selectedStoreName || 'Local seleccionado' }}</option>
+              <option *ngIf="selectedStoreMissingFromOptions" [value]="selectedStoreId">{{ selectedStoreName || 'Local seleccionado' }}</option>
               <option *ngFor="let store of storeOptions" [value]="store.id">{{ store.name }}</option>
             </select>
             <small *ngIf="storeFilterError" role="alert">{{ storeFilterError }}</small>

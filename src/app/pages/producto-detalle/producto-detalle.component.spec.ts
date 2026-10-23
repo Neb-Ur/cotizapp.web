@@ -107,6 +107,32 @@ describe('product detail loading',()=>{
 describe('product quotation workflow',()=>{
  afterEach(()=>TestBed.resetTestingModule());
  beforeEach(()=>localStorage.clear());
+ it('confirms the submitted quantity even if the input changes while adding',async()=>{
+  const {component,api}=await setup();const auth=TestBed.inject(AuthService) as any;auth.currentUser=()=>({id:'owner',role:'maestro'});
+  let finish!:(value:any)=>void;Object.assign(api,{addItemToProject:vi.fn(()=>new Promise(resolve=>finish=resolve))});
+  component.detail={...detail,productoMaestroId:'p'};component.selectedProjectId='q';component.selectedStoreId='s';component.selectedQuantity=2;
+  component.displayStores=[{storeId:'s',storeName:'Tienda',offerId:'offer',price:1000,stock:5}];
+  const adding=component.addToQuotation();component.onQuantityChange(4);
+  finish({name:'Mi obra'});await adding;
+  expect((api as any).addItemToProject).toHaveBeenCalledWith('owner','q',expect.objectContaining({quantity:2}));
+  expect(component.quoteFeedback).toContain('2 unidad');expect(component.quoteFeedback).not.toContain('4 unidad');
+ });
+ for (const fails of [false,true]) {
+  it(`ignores a previous product's ${fails ? 'failed' : 'successful'} quotation add after navigation`,async()=>{
+   const {component,api,params,resolvers}=await setup();const auth=TestBed.inject(AuthService) as any;
+   auth.currentUser=()=>({id:'owner',role:'maestro'});
+   let finish!:(value:any)=>void;let fail!:(error:Error)=>void;
+   Object.assign(api,{refreshMaestroProjectsSection:vi.fn(async()=>undefined),addItemToProject:vi.fn(()=>new Promise((resolve,reject)=>{finish=resolve;fail=reject;}))});
+   component.detail={...detail,productoMaestroId:'p'};component.selectedProjectId='q';component.selectedStoreId='s';
+   component.displayStores=[{storeId:'s',storeName:'Tienda',offerId:'offer',price:1000,stock:5}];
+   const adding=component.addToQuotation();params.next(convertToParamMap({slug:'otro-producto'}));
+   resolvers[1]({...detail,productName:'Otro producto'});await Promise.resolve();await Promise.resolve();
+   if (fails) fail(new Error('Error del producto anterior')); else finish({name:'Mi obra'});
+   await adding;
+   expect(component.detail.productName).toBe('Otro producto');expect(component.quoteFeedback).toBe('');
+   expect(component.isAddingToQuotation).toBe(false);
+  });
+ }
  it('adds the exact offer and condition selected when a branch has several offers',async()=>{
   const {component,api}=await setup();Object.assign(api,{recordOfferEvent:vi.fn()});
   component.detail={...detail,productoMaestroId:'p'};

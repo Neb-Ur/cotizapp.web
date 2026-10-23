@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Inject, Injectable } from '@angular/core';
+import { Inject, Injectable, Optional, RESPONSE_INIT } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
@@ -85,7 +85,8 @@ export class SeoService {
   constructor(private readonly router: Router,
     private readonly title: Title,
     private readonly meta: Meta,
-    @Inject(DOCUMENT) private readonly document: Document
+    @Inject(DOCUMENT) private readonly document: Document,
+    @Optional() @Inject(RESPONSE_INIT) private readonly responseInit: ResponseInit | null = null
   ) {}
 
   initialize(): void {
@@ -150,15 +151,20 @@ export class SeoService {
   }
 
   markProductNotFound(): void {
+    if (this.responseInit) this.responseInit.status = 404;
     this.applyPage({
       title: 'Producto no encontrado | Trovio',
       description: 'El producto solicitado no está disponible en el catálogo de Trovio.',
       index: false
-    }, this.router.url.split('?')[0] || '/producto');
+    }, this.router.url.split(/[?#]/)[0] || '/producto');
+    this.removeStructuredData();
   }
 
   private updateRoute(url: string): void {
     const path = url.split('?')[0].split('#')[0] || '/';
+    let route = this.router.routerState.snapshot.root;
+    while (route.firstChild) route = route.firstChild;
+    if (route.routeConfig?.path === '**' && this.responseInit) this.responseInit.status = 404;
     const collection=this.collections.get(path);
     if(collection){this.updateCollection(collection);return;}
     const isPrivate = path.startsWith('/dashboard/') || path.startsWith('/cuenta/') || path.startsWith('/recuperar-clave');
@@ -233,7 +239,7 @@ export class SeoService {
     const script = this.document.createElement('script');
     script.id = STRUCTURED_DATA_ID;
     script.type = 'application/ld+json';
-    script.textContent = JSON.stringify(value).replace(/</g, '\u003c');
+    script.textContent = JSON.stringify(value).replace(/</g, '\\u003c');
     this.document.head.appendChild(script);
   }
 

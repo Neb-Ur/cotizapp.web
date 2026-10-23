@@ -546,6 +546,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
 
   private async loadProject(projectId: string, draftName = '', draftAddress = ''): Promise<void> {
     this.saveNotice = '';
+    this.importedGuestId = '';
     this.projectId = projectId;
     this.isNewProject = projectId === 'nuevo';
 

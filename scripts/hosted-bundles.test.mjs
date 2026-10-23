@@ -36,3 +36,26 @@ test('refuses to publish a version with a missing required lazy chunk', async ()
   try { await assert.rejects(preserveHostedBundles({base:`http://127.0.0.1:${server.address().port}`,output}),/main-MISSING.js returned 404/); }
   finally { await new Promise(resolve=>server.close(resolve));rmSync(output,{recursive:true}); }
 });
+
+test('rejects an HTML fallback served as a successful bundle response', async () => {
+  const server = createServer((req, res) => {
+    if (req.url === '/hosted-bundles.json' || req.url === '/productos/no-existe-qa-cotizapp-404') {
+      res.statusCode = 404;
+      res.end('Not found');
+    } else if (req.url === '/') {
+      res.end('<script src="main-FALLBACK.js"></script>');
+    } else {
+      res.end('<!doctype html><html><app-root></app-root></html>');
+    }
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const output = mkdtempSync(join(tmpdir(), 'trovio-bundles-html-'));
+  try {
+    await assert.rejects(preserveHostedBundles({ base: `http://127.0.0.1:${server.address().port}`, output }), /main-FALLBACK.js contains HTML/);
+    assert.equal(existsSync(join(output, 'main-FALLBACK.js')), false);
+    assert.equal(existsSync(join(output, 'hosted-bundles.json')), false);
+  } finally {
+    await new Promise(resolve => server.close(resolve));
+    rmSync(output, { recursive: true });
+  }
+});

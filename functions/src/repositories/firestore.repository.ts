@@ -3,20 +3,20 @@ import { randomUUID } from 'node:crypto';
 import { db } from '../lib/firebase.js';
 export async function rows(collectionName: string): Promise<any[]> {
   const snapshot = await db.collection(collectionName).get();
-  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  return snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
     .filter(item => collectionName !== 'usuarios' || profileBelongsToMode(item));
 }
 
 export async function row(collectionName: string, id: string): Promise<any | null> {
   const snapshot = await db.collection(collectionName).doc(id).get();
-  const value = snapshot.exists ? { id: snapshot.id, ...snapshot.data() } : null;
+  const value = snapshot.exists ? { ...snapshot.data(), id: snapshot.id } : null;
   if (!value || (collectionName === 'usuarios' && !profileBelongsToMode(value))) return null;
   return value;
 }
 
 export async function createRow(collectionName: string, payload: Record<string, unknown>, id = randomUUID()): Promise<any> {
   await db.collection(collectionName).doc(id).set(payload);
-  return { id, ...payload };
+  return { ...payload, id };
 }
 
 export async function patchRow(collectionName: string, id: string, payload: Record<string, unknown>): Promise<any | null> {
@@ -25,7 +25,7 @@ export async function patchRow(collectionName: string, id: string, payload: Reco
   if (!current.exists) return null;
   await ref.update(payload);
   const updated = await ref.get();
-  return { id: updated.id, ...updated.data() };
+  return { ...updated.data(), id: updated.id };
 }
 
 export async function deleteRowsByIds(collectionName: string, ids: string[]): Promise<void> {

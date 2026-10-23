@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /dashboard/
 
 Sitemap: https://trovio.cl/sitemap.xml

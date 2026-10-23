@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { RESPONSE_INIT } from '@angular/core';
+import { provideRouter, Router } from '@angular/router';
 import { SeoService } from './seo.service';
 
 describe('public SEO identity and real offers', () => {
@@ -12,6 +13,12 @@ describe('public SEO identity and real offers', () => {
     return TestBed.inject(SeoService);
   }
   function schema() { return JSON.parse(document.getElementById('cotizapp-page-structured-data')!.textContent!); }
+  it('escapes script delimiters for SSR without changing structured data values', () => {
+    const productName = 'Radiador </script><script>alert(1)</script>';
+    setup().updateProduct(product({productName}));
+    expect(document.getElementById('cotizapp-page-structured-data')!.textContent).not.toContain('<');
+    expect(schema()['@graph'][0].name).toBe(productName);
+  });
   it('uses trovio.cl and excludes simulated and unavailable prices from rich results', () => {
     setup().updateProduct(product({stores:[{price:100,stock:1,pilot:true},{price:500,stock:0},{price:200,stock:2},{price:300,stock:1}]}));
     expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe('https://trovio.cl/productos/radiador-kuv100');
@@ -24,6 +31,24 @@ describe('public SEO identity and real offers', () => {
   });
   it('does not index collections made exclusively of test products', () => {
     setup().updateCollection({title:'Prueba',description:'Catálogo de prueba',path:'/categorias/prueba',name:'Prueba',index:false});
+    expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toContain('noindex');
+  });
+  it('sets SSR status 404 for missing products and removes stale product structured data', () => {
+    const responseInit: ResponseInit = {status:200};
+    TestBed.configureTestingModule({providers:[provideRouter([]),{provide:RESPONSE_INIT,useValue:responseInit}]});
+    const seo = TestBed.inject(SeoService);
+    seo.updateProduct(product());
+    seo.markProductNotFound();
+    expect(responseInit.status).toBe(404);
+    expect(document.getElementById('cotizapp-page-structured-data')).toBeNull();
+    expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toContain('noindex');
+  });
+  it('sets SSR status 404 when the router resolves the existing wildcard page', async () => {
+    const responseInit: ResponseInit = {status:200};
+    TestBed.configureTestingModule({providers:[provideRouter([{path:'**',children:[]}]),{provide:RESPONSE_INIT,useValue:responseInit}]});
+    TestBed.inject(SeoService).initialize();
+    await TestBed.inject(Router).navigateByUrl('/pagina-inexistente');
+    expect(responseInit.status).toBe(404);
     expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toContain('noindex');
   });
 });

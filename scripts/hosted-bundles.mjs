@@ -30,6 +30,7 @@ export async function preserveHostedBundles({ base, output }) {
     const name = queue[index]; const destination = join(output, name);
     // Existing files must also be scanned: their lazy children may be absent.
     const body = existsSync(destination) ? readFileSync(destination, 'utf8') : await request(`/${name}`);
+    if (/^\s*(?:<!doctype\s+html\b|<html\b)/i.test(body)) throw new Error(`Cannot preserve hosted bundles: ${name} contains HTML`);
     collect(body);
     if (!existsSync(destination)) { mkdirSync(dirname(destination), { recursive: true }); writeFileSync(destination, body); retained++; }
   }

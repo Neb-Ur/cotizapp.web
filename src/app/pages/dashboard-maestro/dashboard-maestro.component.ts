@@ -261,6 +261,7 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
     try {
       if (section === 'inicio' || section === 'cotizaciones' || section === 'historial') {
         await this.apiService.refreshMaestroProjectsSection(currentUser.id, force);
+        if (this.user?.id !== currentUser.id) return;
         this.projects = [...this.apiService.getProjects(currentUser.id)]
           .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
       }
@@ -272,6 +273,7 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
       this.sectionLoadError = '';
       this.loadedSections.add(section);
     } catch (error) {
+      if (this.user?.id !== currentUser.id) return;
       this.sectionLoadError = error instanceof Error ? error.message : 'No se pudo cargar esta sección. Intenta nuevamente.';
       this.loadedSections.delete(section);
     } finally {

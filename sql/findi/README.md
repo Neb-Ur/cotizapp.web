@@ -25,3 +25,18 @@ Las pruebas del backend incluyen PGlite como dependencia de desarrollo. La copia
 10. `010-maintain-location-links.sql`: sincroniza los vínculos territoriales al editar cuentas y ferreterías.
 
 La carga de referencia se ejecuta con `functions/scripts/seed-sql-reference-data.mjs`; ver [estado y fuentes de los datos](../../docs/base-de-datos/estado-de-carga.md).
+
+## Bloqueo de cuentas
+
+`022-blocked-account-status.sql` amplía el CHECK de `users.account_status` para
+persistir `bloqueado`, el estado que deniega acceso en la autenticación del backend.
+Conserva los estados anteriores y no modifica perfiles existentes. Las pruebas
+locales de `functions/tests/sql-database.test.mjs` verifican la actualización y el
+rechazo de acceso con PGlite y Auth simulado, no con servicios reales.
+
+La lista de `functions/scripts/bootstrap-sql.mjs` incluye 022 después de 021.
+Antes de desplegar este backend sobre SQL, un operador autorizado debe aplicar
+las migraciones pendientes con el bootstrap descrito en la documentación de
+activación. No ejecutar nuevamente la importación desde Firestore sobre SQL activo
+ni cambiar migraciones anteriores ya registradas o sus hashes. Esta revisión no
+aplica DDL a bases reales.

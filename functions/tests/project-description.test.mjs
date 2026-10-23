@@ -89,3 +89,31 @@ test('legacy code backfill reads the catalog before acquiring its transaction co
  const result=response();await handler('get','/maestros/:ownerId/proyectos/:projectId')({authRole:'maestro',authUserId:'master',params:{ownerId:'master',projectId:'quote'}},result);
  assert.equal(result.statusCode,200);assert.ok(result.body.data.verificationCode);
 });
+test('adding an item reads the catalog outside its transaction and preserves saved pricing and verification',async t=>{
+ const savedOffer={productName:'Cemento',storeName:'Local',storeId:'store',productoFerreteriaId:'cement',price:1000,stock:10};
+ const saved={ownerId:'master',name:'Obra',description:'Detalles',items:[{productName:'Cemento',quantity:1}],pricingOffers:[savedOffer],pricesCapturedAt:'2020-01-01T00:00:00Z',validUntil:'2020-01-11T00:00:00Z'};
+ const fixture=firestoreFixture(t,{proyectos:{quote:saved}});
+ const runTransaction=db.runTransaction.bind(db),collection=db.collection.bind(db);
+ let inTransaction=false;
+ t.mock.method(db,'runTransaction',callback=>runTransaction(async tx=>{
+  inTransaction=true;
+  try {return await callback(tx);} finally {inTransaction=false;}
+ }));
+ t.mock.method(db,'collection',name=>{
+  if(inTransaction) assert.ok([COLLECTIONS.projects,COLLECTIONS.quotationVerifications].includes(name),'Catalog queries must not acquire extra connections inside the transaction');
+  return collection(name);
+ });
+ const result=response();
+ await handler('post','/maestros/:ownerId/proyectos/:projectId/items')({authRole:'maestro',authUserId:'master',params:{ownerId:'master',projectId:'quote'},body:{productName:'Cemento',quantity:2}},result);
+ assert.equal(result.statusCode,201);
+ assert.equal(result.body.data.totalOptimal,3000);
+ assert.equal(result.body.data.description,saved.description);
+ assert.equal(result.body.data.validUntil,saved.validUntil);
+ assert.equal(result.body.data.expired,true);
+ const updated=fixture.get('proyectos','quote');
+ assert.deepEqual(updated.pricingOffers,[savedOffer]);
+ assert.equal(updated.items.length,2);
+ const record=fixture.get('cotizacionesVerificables',updated.verificationCode);
+ assert.equal(record.lines.reduce((total,line)=>total+line.subtotal,0),3000);
+ assert.equal(record.recommendedUntil,saved.validUntil);
+});

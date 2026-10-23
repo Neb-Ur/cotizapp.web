@@ -109,7 +109,7 @@ class SqlDocument implements DocumentReference {
  async delete(){return new SqlBatch(this.database).delete(this).commit();}
 }
 class SqlCollection implements CollectionReference {
- constructor(private database:PostgresDatabase,readonly name:string,private filters:Filter[]=[],private count?:number){}
+ constructor(readonly database:PostgresDatabase,readonly name:string,private filters:Filter[]=[],private count?:number){}
  doc(id=randomUUID()):SqlDocument{return new SqlDocument(this.database,this.name,id);}
  async add(data:Data){const ref=this.doc();await ref.set(data);return ref;}
  where(field:string,op:string,value:any){return new SqlCollection(this.database,this.name,[...this.filters,[field,op,value]],this.count);}
@@ -136,7 +136,7 @@ class SqlTransaction extends SqlBatch implements Transaction {
  get(ref:Query):Promise<QuerySnapshot>;
  async get(ref:DocumentReference|Query):Promise<DocumentSnapshot|QuerySnapshot>{
   if(this.writing)throw new Error('TRANSACTION_READ_AFTER_WRITE');
-  if(ref instanceof SqlCollection)return ref.read(this.client);
+  if(ref instanceof SqlCollection){if(ref.database!==this.database)throw new Error('SQL_FOREIGN_REFERENCE');return ref.read(this.client);}
   if(!(ref instanceof SqlDocument)||ref.database!==this.database)throw new Error('SQL_FOREIGN_REFERENCE');
   return (await this.database.read(this.client,ref.collectionName,ref.id)).docs[0]||{id:ref.id,exists:false,ref,data:()=>undefined};
  }

@@ -9,7 +9,7 @@ function createComponent(projects: Array<Record<string, unknown>> = []) {
   };
   const apiService = {
     loadError: () => '',
-    refreshMaestroProjectsSection: vi.fn(async () => undefined),
+    refreshMaestroProjectsSection: vi.fn(async (): Promise<void> => undefined),
     getProjects: vi.fn(() => projects),
     deleteProject: vi.fn(async () => undefined),
     formatCurrency: (value: number) => `$${value}`
@@ -24,7 +24,7 @@ function createComponent(projects: Array<Record<string, unknown>> = []) {
     router as never
   );
 
-  return { component, apiService, router };
+  return { component, apiService, router, authService };
 }
 
 describe('DashboardMaestroComponent', () => {
@@ -110,5 +110,19 @@ describe('DashboardMaestroComponent', () => {
 
     expect(apiService.refreshMaestroProjectsSection).toHaveBeenCalledWith('maestro-1', false);
     expect(component['projects'].length).toBe(1);
+  });
+  it('does not apply a previous account response after the active account changes', async () => {
+    const { component, apiService, authService } = createComponent([
+      { id: 'private-project', createdAt: '2026-10-01T00:00:00.000Z' }
+    ]);
+    let resolveLoad!: () => void;
+    apiService.refreshMaestroProjectsSection.mockImplementationOnce(() => new Promise<void>(resolve => { resolveLoad = resolve; }));
+    const pendingLoad = component['ensureSectionData']('cotizaciones');
+    authService.currentUser = () => ({ id: 'maestro-2', role: 'maestro', displayName: 'Otra cuenta', email: 'otra@test.cl' });
+    resolveLoad();
+    await pendingLoad;
+    expect(apiService.getProjects).not.toHaveBeenCalled();
+    expect(component['projects']).toEqual([]);
+    expect(component['loadedSections'].has('cotizaciones')).toBe(false);
   });
 });

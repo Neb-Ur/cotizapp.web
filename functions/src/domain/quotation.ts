@@ -15,8 +15,8 @@ export function buildQuotationOptimization(items: Item[], offers: Offer[], selec
     // Explicit selections reserve stock first. Repeated rows must fit together.
     const groups = new Map<string, typeof normalized>();
     for (const item of normalized) groups.set(itemKey(item), [...(groups.get(itemKey(item)) || []), item]);
-    const hasSelection = (item: Item) => Boolean(item.storeId || item.storeName || item.productoFerreteriaId);
-    for (const [key, group] of [...groups].sort((a, b) => Number(hasSelection(b[1][0])) - Number(hasSelection(a[1][0])))) {
+    const selectionPriority = (item: Item) => item.productoFerreteriaId ? 2 : item.storeId || item.storeName ? 1 : 0;
+    for (const [key, group] of [...groups].sort((a, b) => selectionPriority(b[1][0]) - selectionPriority(a[1][0]))) {
       const item = group[0];
       const quantity = group.reduce((sum, row) => sum + row.quantity, 0);
       const selectedOffer = item.productoFerreteriaId ? valid.find(candidate => candidate.productoFerreteriaId === item.productoFerreteriaId) : undefined;

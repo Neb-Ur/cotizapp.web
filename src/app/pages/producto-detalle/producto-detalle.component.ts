@@ -432,18 +432,24 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
 
   protected async addToQuotation(): Promise<void> {
     if (this.isAddingToQuotation || !this.detail || !this.selectedProjectId || !this.canShowAddToQuotation) return;
+    const generation = this.loadGeneration;
+    const currentUser = this.user;
+    const quantity = this.selectedQuantity;
+    const quantityLabel = this.quantityLabel.toLowerCase();
     this.isAddingToQuotation = true; this.quoteFeedback = ''; this.changeDetector.markForCheck();
     try {
       const item = { productName: this.detail.productName, productoMaestroId: this.detail.productoMaestroId,
         storeId: this.selectedStore?.storeId, storeName: this.selectedStore?.storeName,
-        productoFerreteriaId: this.selectedStore?.offerId, quantity: this.selectedQuantity };
-      const updated = this.user
-        ? await this.apiService.addItemToProject(this.user.id, this.selectedProjectId, item)
+        productoFerreteriaId: this.selectedStore?.offerId, quantity };
+      const updated = currentUser
+        ? await this.apiService.addItemToProject(currentUser.id, this.selectedProjectId, item)
         : this.guestQuotations.add(this.selectedProjectId, item);
-      if (!this.user) this.projects = this.guestQuotations.all();
-      this.quoteFeedback = updated ? `Agregado a “${updated.name}”: ${this.selectedQuantity} ${this.quantityLabel.toLowerCase()}.` : 'No se pudo agregar el producto a la cotización.';
-    } catch (error) { this.quoteFeedback = error instanceof Error ? error.message : 'No se pudo agregar el producto. Intenta nuevamente.'; }
-    finally { this.isAddingToQuotation = false; this.changeDetector.markForCheck(); }
+      if (generation !== this.loadGeneration) return;
+      if (!currentUser) this.projects = this.guestQuotations.all();
+      this.quoteFeedback = updated ? `Agregado a “${updated.name}”: ${quantity} ${quantityLabel}.` : 'No se pudo agregar el producto a la cotización.';
+    } catch (error) {
+      if (generation === this.loadGeneration) this.quoteFeedback = error instanceof Error ? error.message : 'No se pudo agregar el producto. Intenta nuevamente.';
+    } finally { this.isAddingToQuotation = false; this.changeDetector.markForCheck(); }
   }
 
   protected goToSelectedQuotation(): void {

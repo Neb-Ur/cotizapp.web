@@ -1,4 +1,5 @@
 import { APP_BASE_HREF } from '@angular/common';
+import { RESPONSE_INIT } from '@angular/core';
 import { CommonEngine } from '@angular/ssr/node';
 import express from 'express';
 import { fileURLToPath } from 'node:url';
@@ -12,7 +13,9 @@ export function app(): express.Express {
   const browserDistFolder = resolve(serverDistFolder, '../browser');
   const indexHtml = join(serverDistFolder, 'index.server.html');
 
-  const commonEngine = new CommonEngine();
+  const commonEngine = new CommonEngine({
+    allowedHosts: ['localhost', '127.0.0.1', '[::1]', 'trovio.cl', 'www.trovio.cl', 'cotizapp-d71c8.web.app', 'cotizapp-d71c8.firebaseapp.com']
+  });
 
   server.set('view engine', 'html');
   server.set('views', browserDistFolder);
@@ -21,12 +24,18 @@ export function app(): express.Express {
   // server.get('/api/**', (req, res) => { });
   // Serve static files from /browser
   server.get('*.*', express.static(browserDistFolder, {
-    maxAge: '1y'
+    maxAge: '1y',
+    setHeaders: (res, path) => {
+      if (path.endsWith('.html') || path.endsWith('/hosted-bundles.json')) {
+        res.setHeader('Cache-Control', 'no-cache');
+      }
+    }
   }));
 
   // All regular routes use the Angular engine
   server.get('*', (req, res, next) => {
     const { protocol, originalUrl, baseUrl, headers } = req;
+    const responseInit: ResponseInit = { status: 200 };
 
     commonEngine
       .render({
@@ -34,9 +43,12 @@ export function app(): express.Express {
         documentFilePath: indexHtml,
         url: `${protocol}://${headers.host}${originalUrl}`,
         publicPath: browserDistFolder,
-        providers: [{ provide: APP_BASE_HREF, useValue: baseUrl }],
+        providers: [
+          { provide: APP_BASE_HREF, useValue: baseUrl },
+          { provide: RESPONSE_INIT, useValue: responseInit }
+        ],
       })
-      .then((html) => res.send(html))
+      .then((html) => res.status(responseInit.status || 200).send(html))
       .catch((err) => next(err));
   });
 
@@ -48,8 +60,10 @@ function run(): void {
 
   // Start up the Node server
   const server = app();
-  server.listen(port, () => {
-    console.log(`Node Express server listening on http://localhost:${port}`);
+  const listener = server.listen(port, () => {
+    const address = listener.address();
+    const actualPort = address && typeof address === 'object' ? address.port : port;
+    console.log(`Node Express server listening on http://localhost:${actualPort}`);
   });
 }
 

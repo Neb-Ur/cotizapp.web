@@ -57,6 +57,9 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
   protected selectedStoreId = '';
   protected selectedStoreName = '';
   protected storeOptions: Array<{ id: string; name: string }> = [];
+  protected get selectedStoreMissingFromOptions(): boolean {
+    return !!this.selectedStoreId && !this.storeOptions.some(store => store.id === this.selectedStoreId);
+  }
   protected storeFilterError = '';
   protected selectedVehicleBrandId = '';
   protected selectedVehicleModelId = '';
