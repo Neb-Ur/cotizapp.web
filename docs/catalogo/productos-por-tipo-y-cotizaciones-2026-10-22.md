@@ -39,3 +39,7 @@ Pruebas de reproducción: `rejects repeated SKUs in an initial Excel before publ
 El código de las cotizaciones guardadas en una cuenta se muestra al comienzo del detalle, fuera del panel de información, incluso sin productos. Incluye botón para copiar. La creación conserva el código emitido por el servidor inmediatamente. Las cotizaciones antiguas sin código reciben uno persistido con su registro verificable al cargarlas, conservando su vigencia y precios guardados; las siguientes lecturas reutilizan ese código. Las cotizaciones locales mantienen su flujo de verificación al guardarse en una cuenta.
 
 La revisión adversarial detectó y se corrigió una consulta de catálogo dentro de la transacción del backfill: ahora las ofertas se cargan antes de abrirla, evitando agotar conexiones SQL. Validación: 15 pruebas frontend, 11 pruebas backend y compilación de producción con 9 rutas prerenderizadas correctas. Cambios locales, pendientes de despliegue.
+
+### Estado posterior: desplegado el 2026-10-23
+
+Los cambios de este documento quedaron publicados con el commit `a57378e`. Verificación y revisión activa registradas en [despliegue-paneles-y-catalogo-2026-10-23.md](despliegue-paneles-y-catalogo-2026-10-23.md).

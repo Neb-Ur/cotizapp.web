@@ -32,6 +32,6 @@ Antes de ampliar significativamente el catálogo, migrar las búsquedas por iden
 
 Pruebas automatizadas de navegación por rol/acción, selección filtrada, formato CLP, revisiones concurrentes, salida con error y reanudación. Pruebas backend de stock unitario, motor bloqueado y aislamiento de maestros simulados. Revisión Playwright local con datos de prueba, sin crear publicaciones en producción. Capturas en `output/diseno-desarme/qa`.
 
-Cambios locales, sin despliegue.
+Desplegado el 2026-10-23 con el commit `a57378e`. Ver [registro de despliegue](despliegue-paneles-y-catalogo-2026-10-23.md).
 
 Resultado de comprobaciones: suite completa frontend 329 pruebas y backend 255 pruebas correctas; después de los últimos ajustes, 40 regresiones frontend y 16 backend correctas. Compilación de producción correcta con 9 rutas prerenderizadas. Recorrido Playwright: alta, selección, autosave, reanudación, precio móvil visible sobre las acciones, drawer con Escape, navegación admin y Atrás, sin errores JavaScript. Reporte visual: `design-qa.md` (passed). La recuperación ante un conflicto de revisión exige una acción explícita para reemplazar los cambios locales por la versión guardada; no los descarta silenciosamente.
