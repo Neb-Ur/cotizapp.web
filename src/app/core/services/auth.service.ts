@@ -27,7 +27,7 @@ import { getFirebaseAuthInstance } from '../config/firebase.config';
 import { STRONG_PASSWORD_PATTERN } from '../utils/password-policy.util';
 
 export const LOGIN_SUPPORT_ERROR_MESSAGE = 'Usuario con error, favor contactarse con soporte.';
-export const SESSION_IDLE_TIMEOUT_MS = 30 * 60 * 1000;
+export const SESSION_IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
 
 export class ProfileCompletionRequiredError extends Error {
   constructor(readonly email: string) {

@@ -1,6 +1,6 @@
 import {homeCatalog} from '../domain/home-catalog.js';
 import { Router } from 'express';
-import { catalogLandings, relatedCatalogLandings, seoSlug, seoProductSlug, productSeoSlugIndex } from '../domain/catalog-seo.js';
+import { catalogLandings, relatedCatalogLandings, seoSlug, productSeoSlugIndex } from '../domain/catalog-seo.js';
 import { createHash } from 'node:crypto';
 import { brandIdentity } from '../domain/brand-identity.js';
 import { brandUses } from '../domain/brand-use.js';
@@ -43,8 +43,9 @@ function xmlText(value: string): string {
 
 publicCatalogRouter.get('/sitemap.xml', async (_req, res) => {
   const catalog = await getStaticCatalog();
+  const productSlugs=productSeoSlugIndex(catalog[0]);
   const productPaths = catalog[0].filter(p => p.estado !== 'inactivo' && p.esPrueba !== true)
-    .map(p => `/productos/${seoProductSlug(p,catalog[0])}`).filter(path => path !== '/productos/');
+    .map(p => `/productos/${productSlugs.get(p.id)}`).filter(path => path !== '/productos/');
   const landings = catalogLandings(catalog);
   const paths = [...new Set([...STATIC_SITEMAP_PATHS, ...productPaths, ...landings.filter(p=>p.index && !(p.path.startsWith('/categorias/') && p.filters.categoria==='cat-repuestos-automotrices' && landings.some(page=>page.path==='/repuestos'))).map(p=>p.path)])];
   const urls = paths.map((path) => [
@@ -93,8 +94,9 @@ publicCatalogRouter.get('/catalogo-publico', async (req, res) => {
 });
 
 // This index contains no prices, stock, contact information or internal fields.
-publicCatalogRouter.get('/catalogo-busqueda', async (req, res) => {
-  const [products, categories, subcategories, families, brands] = await getStaticCatalog();
+const searchIndexes = new WeakMap<any[][], ReturnType<typeof buildSearchIndex>>();
+function buildSearchIndex(catalog:any[][]) {
+  const [products, categories, subcategories, families, brands] = catalog;
   const brandNames = new Map(brands.map(item=>[item.id,item.nombre]));
   const slugs=productSeoSlugIndex(products);
   const options = (items: any[]) => items.map(item => ({ id: item.id, name: item.nombre,
@@ -112,10 +114,18 @@ publicCatalogRouter.get('/catalogo-busqueda', async (req, res) => {
     brands: options(brands.filter(brand=>brandUses(brand.usos).includes('fabricante')))
   };
   const version = createHash('sha256').update(JSON.stringify(payload)).digest('hex').slice(0, 24);
+  return {version,...payload};
+}
+
+publicCatalogRouter.get('/catalogo-busqueda', async (req, res) => {
+  const catalog=await getStaticCatalog();
+  let index=searchIndexes.get(catalog);
+  if(!index){index=buildSearchIndex(catalog);searchIndexes.set(catalog,index);}
+  const {version}=index;
   res.set('Cache-Control', 'no-store');
   res.set('ETag', `"search-${version}"`);
   return res.json({ ok: true, data: req.query['v'] === version
-    ? { version, unchanged: true } : { version, ...payload } });
+    ? { version, unchanged: true } : index });
 });
 
 publicCatalogRouter.get('/catalogo-seo/:kind/:slug', async (req, res, next) => {

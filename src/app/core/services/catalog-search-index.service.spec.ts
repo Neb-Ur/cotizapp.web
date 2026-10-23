@@ -16,6 +16,7 @@ it('serves a saved index while an offline revalidation is pending or fails',asyn
  vi.spyOn(service as any,'storage').mockResolvedValue(snapshot);
  const pending=service.ensureReady();await Promise.resolve();await Promise.resolve();
  expect(service.search('18mm negro')[0].items[0].id).toBe('1');
+ await vi.waitFor(()=>expect(api.get).toHaveBeenCalledOnce());
  reject(new Error('Offline'));await pending;expect(service.ready()).toBe(true);expect(service.error()).toBe('');
 });
 it('accepts an unchanged version and avoids rewriting the stored index',async()=>{
@@ -24,6 +25,7 @@ it('accepts an unchanged version and avoids rewriting the stored index',async()=
  const storage=vi.spyOn(service as any,'storage').mockResolvedValue(snapshot);
  await service.ensureReady();expect(service.search('mdf')[0].items[0].id).toBe('1');
  expect(storage).toHaveBeenCalledTimes(1);
+ expect(api.get).toHaveBeenCalledWith('/catalogo-busqueda',false,{v:'v1'});
 });
 
 it('recovers an initial network failure automatically and keeps subsequent searches local',async()=>{
@@ -61,4 +63,19 @@ it('updates names when a new typing session revalidates, without a browser reloa
  expect(service.search('negro')).toEqual([]);
  expect(service.search('rojo')[0].items[0].name).toContain('rojo');
  expect(api.get).toHaveBeenCalledTimes(2);
+});
+
+it('does not wait for blocked IndexedDB before fetching and ignores stale late cache data',async()=>{
+ const next={...snapshot,version:'v2',products:[{...snapshot.products[0],name:'MDF rojo 18 mm'}]};
+ const api={get:vi.fn(async()=>next)},service=new CatalogSearchIndexService(api as unknown as ApiClientService);
+ let finish!:(value:any)=>void;vi.spyOn(service as any,'storage').mockImplementation((action:any)=>action==='read'?new Promise(resolve=>finish=resolve):Promise.resolve());
+ await service.ensureReady();expect(api.get).toHaveBeenCalledOnce();expect(service.ready()).toBe(true);
+ finish(snapshot);await Promise.resolve();expect(service.version()).toBe('v2');expect(service.search('rojo')).not.toEqual([]);
+});
+it('clears the network error if a valid local index arrives after the failed request',async()=>{
+ const service=new CatalogSearchIndexService({get:vi.fn()} as unknown as ApiClientService);
+ let finish!:(value:any)=>void;vi.spyOn(service as any,'storage').mockImplementation(()=>new Promise(resolve=>finish=resolve));
+ vi.spyOn(service as any,'fetchIndex').mockRejectedValue(new Error('Offline'));
+ await service.ensureReady();expect(service.error()).not.toBe('');
+ finish(snapshot);await Promise.resolve();expect(service.ready()).toBe(true);expect(service.error()).toBe('');
 });

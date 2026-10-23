@@ -1,5 +1,5 @@
 import { parseVehicleSearch, matchesVehicle, type VehicleSearch } from '../domain/vehicle-search.js';
-import { catalogLandings, relatedCatalogLandings, seoProductSlug } from '../domain/catalog-seo.js';
+import { catalogLandings, relatedCatalogLandings, seoProductSlug, productSeoSlugIndex } from '../domain/catalog-seo.js';
 import { Router } from 'express';
 import { getProductSheet, getStaticCatalog } from '../lib/product-sheet-cache.js';
 import { db } from '../lib/firebase.js';
@@ -136,8 +136,9 @@ searchRouter.get('/productos/detalle', async (req, res) => {
   res.set('Cache-Control','no-store');
   const snapshot = await getPublicCatalogSnapshot();
   const slug = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 120);
+  const slugs=requestedSlug ? productSeoSlugIndex(snapshot.products) : null;
   const product = snapshot.products.find(item => requestedSlug
-    ? seoProductSlug(item,snapshot.products) === requestedSlug
+    ? slugs!.get(item.id) === requestedSlug
     : normalizeText(item.nombre).toLowerCase() === name);
   if (!product) return fail(res, 'PRODUCTO_NOT_FOUND', 'No se encontro el producto solicitado.', 404);
   const searchRows = snapshot.searchRows.filter(item => item.productoMaestroId === product.id && matchesVehicle(item.vehicleApplications, vehicle));

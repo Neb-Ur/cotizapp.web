@@ -146,3 +146,11 @@ test('automotive SEO filters keep the visible product list consistent with real 
  assert.equal(real.total,1);assert.equal(real.items[0].productoMaestroId,'p0');
  assert.equal(paginateProductSearch(snapshot,{...defaults,seoOnly:true}).total,2);
 });
+
+test('paginating slugs reads product names linearly rather than scanning the catalog per card',()=>{
+ const snapshot=catalog(250);let nameReads=0;
+ for(const product of snapshot.products){const name=product.nombre;Object.defineProperty(product,'nombre',{enumerable:true,get(){nameReads++;return name;}});}
+ const result=paginateProductSearch(snapshot,{...defaults,size:50});
+ assert.equal(result.items.length,50);assert.ok(result.items.every(item=>item.seoPath.startsWith('/productos/')));
+ assert.ok(nameReads<250*6,`Expected linear name work, saw ${nameReads} reads`);
+});

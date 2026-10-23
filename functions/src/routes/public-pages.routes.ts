@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { catalogLandings, relatedCatalogLandings, seoVehicleApplications, productSeoDescription, seoProductSlug } from '../domain/catalog-seo.js';
+import { catalogLandings, relatedCatalogLandings, seoVehicleApplications, productSeoDescription, productSeoSlugIndex } from '../domain/catalog-seo.js';
 import { offerConditionLabel } from '../domain/offer-condition.js';
 import { brandIdentity } from '../domain/brand-identity.js';
 import { getStaticCatalog } from '../lib/product-sheet-cache.js';
@@ -63,6 +63,7 @@ publicPagesRouter.get(['/repuestos','/:kind(categorias|familias|marcas|marcas-ve
   try {
     const catalog = await getStaticCatalog();
     const landings = catalogLandings(catalog);
+    const productSlugs=productSeoSlugIndex(catalog[0]);
     const legacyAuto = landings.find(p=>p.path===req.path && p.filters.categoria==='cat-repuestos-automotrices' && p.path.startsWith('/categorias/'));
     if (legacyAuto && landings.some(p=>p.path==='/repuestos')) {
       const query=new URLSearchParams(req.originalUrl?.split('?')[1] || '');
@@ -73,9 +74,9 @@ publicPagesRouter.get(['/repuestos','/:kind(categorias|familias|marcas|marcas-ve
     if (!landing.index) res.set('X-Robots-Tag', 'noindex, follow');
     const related = relatedCatalogLandings(landings,landing.products,landing.path);
     const schema = {'@context':'https://schema.org','@graph':[
-      {'@type':'CollectionPage',name:landing.name,description:landing.description,url:`${SITE_URL}${landing.path}`,mainEntity:{'@type':'ItemList',numberOfItems:landing.products.length,itemListElement:landing.products.map((p,i)=>({'@type':'ListItem',position:i+1,name:p.nombre,url:`${SITE_URL}/productos/${seoProductSlug(p,catalog[0])}`}))}},
+      {'@type':'CollectionPage',name:landing.name,description:landing.description,url:`${SITE_URL}${landing.path}`,mainEntity:{'@type':'ItemList',numberOfItems:landing.products.length,itemListElement:landing.products.map((p,i)=>({'@type':'ListItem',position:i+1,name:p.nombre,url:`${SITE_URL}/productos/${productSlugs.get(p.id)}`}))}},
       {'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Inicio',item:SITE_URL},{'@type':'ListItem',position:2,name:landing.name,item:`${SITE_URL}${landing.path}`}]}]};
-    const body = `<main><nav><a href="/">Inicio</a> · <a href="/buscar">Productos</a></nav><h1>${escape(landing.name)}</h1><p>${escape(landing.description)}</p>${!landing.index ? '<p>Catálogo de referencia: productos de prueba. Confirma disponibilidad y compatibilidad real con el local.</p>' : ''}<p>${landing.products.length} productos en el catálogo</p><ul>${landing.products.map(p=>`<li><a href="/productos/${seoProductSlug(p,catalog[0])}">${escape(p.nombre)}</a></li>`).join('')}</ul><nav aria-label="Secciones relacionadas">${related.map(p=>`<a href="${escape(p.path)}">${escape(p.name)}</a>`).join(' · ')}</nav></main>`;
+    const body = `<main><nav><a href="/">Inicio</a> · <a href="/buscar">Productos</a></nav><h1>${escape(landing.name)}</h1><p>${escape(landing.description)}</p>${!landing.index ? '<p>Catálogo de referencia: productos de prueba. Confirma disponibilidad y compatibilidad real con el local.</p>' : ''}<p>${landing.products.length} productos en el catálogo</p><ul>${landing.products.map(p=>`<li><a href="/productos/${productSlugs.get(p.id)}">${escape(p.nombre)}</a></li>`).join('')}</ul><nav aria-label="Secciones relacionadas">${related.map(p=>`<a href="${escape(p.path)}">${escape(p.name)}</a>`).join(' · ')}</nav></main>`;
     res.set('Cache-Control','public, max-age=0, s-maxage=30, must-revalidate');
     return res.type('html').send(page(landing.title,landing.description,landing.path,body,schema,undefined,'website'));
   } catch(error) {return next(error);}

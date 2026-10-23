@@ -1,5 +1,5 @@
 import { matchesVehicle, hasVehicleFilter, type VehicleSearch } from './vehicle-search.js';
-import { seoProductSlug } from './catalog-seo.js';
+import { productSeoSlugIndex } from './catalog-seo.js';
 import { brandIdentity } from './brand-identity.js';
 import type { PublicCatalogSnapshot } from '../lib/public-catalog-cache.js';
 import type { ProjectProximity } from '../models/domain.models.js';
@@ -116,8 +116,9 @@ export function paginateProductSearch(snapshot: PublicCatalogSnapshot, options: 
   const total = results.length;
   const totalPages = Math.max(1, Math.ceil(total / options.size));
   const page = Math.min(options.page, totalPages);
+  const slugs=productSeoSlugIndex(snapshot.products);
   return {
-    items: results.slice((page - 1) * options.size, page * options.size).map(item=>({...item,seoPath:`/productos/${seoProductSlug(snapshot.products.find(p=>p.id===item.productoMaestroId),snapshot.products)}`})),
+    items: results.slice((page - 1) * options.size, page * options.size).map(item=>({...item,seoPath:`/productos/${slugs.get(item.productoMaestroId)}`})),
     page, size: options.size, total, totalPages, version: snapshot.version
   };
 }

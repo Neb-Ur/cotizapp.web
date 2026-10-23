@@ -20,3 +20,14 @@ test('full results support taxonomy text, accents, reordered units and exact bra
  assert.equal(paginateProductSearch(snapshot,{...options,brand:'otra'}).total,0);
  assert.equal(paginateProductSearch(snapshot,{...options,brand:'Arauco'}).total,1);
 });
+
+test('the prepared search index is reused until the catalog identity changes',async t=>{
+ firestoreFixture(t,{productosMaestro:{one:{nombre:'Producto de índice',estado:'activo'}}});
+ const {invalidateStaticCatalog}=await import('../lib/lib/product-sheet-cache.js');
+ const {db}=await import('../lib/lib/firebase.js');const {COLLECTIONS}=await import('../lib/lib/collections.js');
+ await invalidateStaticCatalog();await db.collection(COLLECTIONS.publicCache).doc('catalog-revision').set({revision:101});
+ const first=response();await handler({query:{}},first);
+ const second=response();await handler({query:{}},second);assert.equal(second.body.data,first.body.data);
+ await db.collection(COLLECTIONS.masterProducts).doc('one').update({nombre:'Producto corregido'});await invalidateStaticCatalog();await db.collection(COLLECTIONS.publicCache).doc('catalog-revision').set({revision:102});
+ const next=response();await handler({query:{}},next);assert.notEqual(next.body.data.version,first.body.data.version);assert.equal(next.body.data.products[0].name,'Producto corregido');
+});

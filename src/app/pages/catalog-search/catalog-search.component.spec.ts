@@ -250,3 +250,35 @@ describe('mobile catalog filter surface', () => {
     rendered.destroy(); rendered.nativeElement.remove();
   });
 });
+
+
+describe('initial search loading and request scheduling',()=>{
+ it('starts products before taxonomy finishes and coalesces initialization',async()=>{
+  const {component,api}=fixture();let finish!:()=>void;
+  api.refreshSearchTaxonomy.mockImplementation(()=>new Promise<undefined>(resolve=>finish=()=>resolve(undefined)));
+  const first=component.loadCatalog(),second=component.loadCatalog();
+  expect(first).toBe(second);expect(api.searchProductPage).toHaveBeenCalledOnce();
+  await Promise.resolve();await Promise.resolve();
+  expect(component.totalProducts).toBe(135);expect(component.resultsLabel).toBe('135 productos encontrados');
+  finish();await first;
+ });
+ it('renders loading instead of a false empty count until an empty response is confirmed',async()=>{
+  const {api}=fixture();let finish!:(value:any)=>void;
+  api.searchProductPage.mockImplementation(()=>new Promise(resolve=>finish=resolve));
+  await TestBed.configureTestingModule({imports:[CatalogSearchComponent],providers:[provideRouter([]),
+    {provide:AuthService,useValue:{currentUser:()=>null}}, {provide:FirebaseDataService,useValue:api},
+    {provide:ActivatedRoute,useValue:{queryParamMap:of(convertToParamMap({q:'mahindra'}))}},
+    {provide:StoreDirectoryService,useValue:{list:async()=>({storeOptions:[]})}},
+    {provide:VehicleCatalogService,useValue:{publicCatalog:async()=>({brands:[],models:[]})}}
+  ]}).compileComponents();
+  const rendered=TestBed.createComponent(CatalogSearchComponent);rendered.detectChanges();
+  expect(rendered.nativeElement.textContent).toContain('Cargando productos');
+  expect(rendered.nativeElement.textContent).not.toContain('0 productos encontrados');
+  expect(rendered.nativeElement.textContent).not.toContain('No encontramos productos');
+  expect(rendered.nativeElement.querySelectorAll('.product-skeleton').length).toBeGreaterThan(0);
+  finish({items:[],total:0,page:1,size:20});await rendered.whenStable();rendered.detectChanges();
+  expect(rendered.nativeElement.textContent).toContain('0 productos encontrados');
+  expect(rendered.nativeElement.querySelector('.catalog-loading')).toBeNull();
+  rendered.destroy();TestBed.resetTestingModule();
+ });
+});

@@ -90,7 +90,7 @@
           <div>
             <span>Acotar por</span>
             <h2>Filtros</h2>
-            <p>{{ totalProducts }} productos encontrados</p>
+            <p>{{ resultsLabel }}</p>
           </div>
           <div class="filters-heading-actions">
             <button type="button" class="clear-filters-button" (click)="clearAllFilters()" [disabled]="taxonomyFilterCount === 0">Limpiar</button>
@@ -170,13 +170,16 @@
       <div class="results-heading">
         <div>
           <span>Resultados</span>
-          <h2>{{ totalProducts }} productos encontrados</h2>
+          <h2 aria-live="polite">{{ resultsLabel }}</h2>
         </div>
         <p *ngIf="productRows.length > 0">Ordenados por disponibilidad y precio.</p>
       </div>
 
-      <p class="cards-empty" role="status" *ngIf="isPublicCatalogRefreshing">Actualizando productos disponibles...</p>
-      <div [attr.aria-busy]="isPublicCatalogRefreshing" class="product-cards" *ngIf="productRows.length > 0; else emptyProducts">
+      <section class="catalog-loading" *ngIf="productsLoading" role="status" aria-live="polite">
+        <app-ui-loader [label]="productRows.length ? 'Actualizando productos…' : 'Cargando productos…'" />
+        <div class="product-skeletons" *ngIf="!productRows.length" aria-hidden="true"><div class="product-skeleton" *ngFor="let placeholder of [1,2,3,4,5,6]"><span></span><i></i><i></i></div></div>
+      </section>
+      <div [attr.aria-busy]="productsLoading" class="product-cards" *ngIf="productRows.length > 0; else emptyProducts">
         <a
           class="product-card"
           *ngFor="let row of paginatedProductRows"
@@ -205,7 +208,7 @@
       </div>
 
       <ng-template #emptyProducts>
-        <ng-container *ngIf="!isPublicCatalogRefreshing && !dataLoadError">
+        <ng-container *ngIf="!productsLoading && !dataLoadError">
           <p class="cards-empty">{{ selectedVehicleBrandId ? 'No hay productos con compatibilidad registrada que coincidan con los filtros seleccionados.' : 'No encontramos productos en nuestro catálogo para esta búsqueda.' }}</p>
         </ng-container>
       </ng-template>

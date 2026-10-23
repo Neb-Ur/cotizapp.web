@@ -76,7 +76,15 @@ describe('session restoration and inactivity', () => {
     expect(get).toHaveBeenCalledOnce();
   });
 
-  it('renews the idle deadline on user interaction, then logs out after 30 idle minutes', async () => {
+  it('keeps an inactive session beyond 30 minutes and expires exactly at two hours', async () => {
+    expect(SESSION_IDLE_TIMEOUT_MS).toBe(120 * 60_000);
+    const {service}=fixture();await service.verifiedUser();
+    await vi.advanceTimersByTimeAsync(30 * 60_000);expect(service.isLoggedIn()).toBe(true);
+    await vi.advanceTimersByTimeAsync(90 * 60_000 - 1);expect(service.isLoggedIn()).toBe(true);
+    await vi.advanceTimersByTimeAsync(1);expect(service.sessionExpired()).toBe(true);
+  });
+
+  it('renews the idle deadline on user interaction, then logs out after two idle hours', async () => {
     const { service } = fixture();
     await service.verifiedUser();
     await vi.advanceTimersByTimeAsync(SESSION_IDLE_TIMEOUT_MS - 60_000);
@@ -91,7 +99,7 @@ describe('session restoration and inactivity', () => {
   });
 
   it('does not reset the inactivity deadline when reloading or refreshing a token', async () => {
-    const { service, notify, auth } = fixture(25 * 60_000);
+    const { service, notify, auth } = fixture(SESSION_IDLE_TIMEOUT_MS - 5 * 60_000);
     await service.verifiedUser();
     await vi.advanceTimersByTimeAsync(4 * 60_000);
     await notify(auth.currentUser);
@@ -134,7 +142,7 @@ describe('session restoration and inactivity', () => {
   });
 
   it('shares recent activity across tabs without treating focus alone as activity', async () => {
-    const { service } = fixture(29 * 60_000);
+    const { service } = fixture(SESSION_IDLE_TIMEOUT_MS - 60_000);
     await service.verifiedUser();
     localStorage.setItem('cotizapp-session-activity', JSON.stringify({ userId: user.id, at: Date.now() }));
     window.dispatchEvent(new StorageEvent('storage', { key: 'cotizapp-session-activity' }));

@@ -1,5 +1,5 @@
 import { pilotStoresEnabled, publicRecordVisible } from '../services/pilot-stores.service.js';
-import { catalogLandings, relatedCatalogLandings, seoProductSlug } from '../domain/catalog-seo.js';
+import { catalogLandings, relatedCatalogLandings, seoProductSlug, productSeoSlugIndex } from '../domain/catalog-seo.js';
 import { FieldValue } from 'firebase-admin/firestore';
 import { db } from './firebase.js';
 import { COLLECTIONS } from './collections.js';
@@ -35,8 +35,9 @@ export async function getProductSheet(name: string, slug: string): Promise<any |
   const mode = `${dataMode()}:pilot=${pilotStoresEnabled()}`;
   const catalog = await getStaticCatalog();
   const [products, categories, subcategories, families] = catalog;
+  const slugs=slug ? productSeoSlugIndex(products) : null;
   const product = products.find((item: any) => item.estado !== 'inactivo' && (slug
-    ? seoProductSlug(item,products) === slug : String(item.nombre).trim().toLowerCase() === name));
+    ? slugs!.get(item.id) === slug : String(item.nombre).trim().toLowerCase() === name));
   if (!product) return null;
   const key = `${mode}:${product.id}`;
   let sheet = sheets.get(key);

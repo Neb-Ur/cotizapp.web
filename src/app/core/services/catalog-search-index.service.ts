@@ -28,11 +28,14 @@ export class CatalogSearchIndexService {
     this.loading.set(true);this.error.set('');
     try {
       if (!this.snapshot) {
-        // A damaged or unavailable local cache must not prevent a fresh download.
-        try {
-          const saved=await this.storage('read');
-          if (this.valid(saved)) this.apply(saved);
-        } catch { /* Continue with the network index. */ }
+        // Give a fast local cache 40ms to supply its version, avoiding a full
+        // download. Blocked IndexedDB cannot delay the network for its 1.5s timeout.
+        const local=this.storage('read').then(saved=>{
+          if (!this.snapshot && this.valid(saved)) { this.apply(saved); this.error.set(''); }
+        }).catch(()=>{});
+        let timer:ReturnType<typeof setTimeout>|undefined;
+        await Promise.race([local,new Promise<void>(resolve=>{timer=setTimeout(resolve,40);})]);
+        clearTimeout(timer);
       }
       const fresh=await this.fetchIndex();
       if (fresh?.unchanged && fresh.version===this.snapshot?.version) { this.checkedAt=Date.now();return; }

@@ -1,3 +1,4 @@
+import { UiLoaderComponent } from '../../shared/components/ui-loader/ui-loader.component';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, HostListener, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -26,7 +27,7 @@ import type { CatalogLandingView } from '../catalog-landing/catalog-landing.comp
 @Component({
   selector: 'app-catalog-search',
   standalone: true,
-  imports: [ProductImageDirective, CommonModule, RouterLink, FormsModule, FontAwesomeModule, PaginatorModule, ModalSurfaceDirective],
+  imports: [UiLoaderComponent, ProductImageDirective, CommonModule, RouterLink, FormsModule, FontAwesomeModule, PaginatorModule, ModalSurfaceDirective],
   templateUrl: './catalog-search.component.html',
   styleUrls: ['./catalog-search.component.scss']
 })
@@ -95,6 +96,10 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
   protected isCatalogLoading = false;
   protected isPublicCatalogRefreshing = false;
 
+  private hasProductPage = false;
+  protected get productsLoading(): boolean { return this.isPublicCatalogRefreshing || (!this.hasProductPage && (this.isInitialLoading || this.isCatalogLoading)); }
+  protected get resultsLabel(): string { return this.productsLoading ? 'Cargando productos…' : (!this.hasProductPage && this.dataLoadError ? 'No se pudieron cargar los productos' : `${this.totalProducts} productos encontrados`); }
+  private catalogLoadingPromise?: Promise<void>;
   private catalogLoaded = false;
   private lastQuerySearch = '';
   private searchReady = false;
@@ -532,16 +537,24 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async loadCatalog(force = false): Promise<void> {
-    if (!force && this.catalogLoaded) return;
+  private loadCatalog(force = false): Promise<void> {
+    if (this.catalogLoadingPromise) return this.catalogLoadingPromise;
+    if (!force && this.catalogLoaded) return Promise.resolve();
+    this.catalogLoadingPromise=this.loadCatalogData(force).finally(()=>{this.catalogLoadingPromise=undefined;});
+    return this.catalogLoadingPromise;
+  }
+
+  private async loadCatalogData(force: boolean): Promise<void> {
 
     this.isCatalogLoading = true;
     try {
-      await this.apiService.refreshSearchTaxonomy(force);
+      const taxonomy=this.apiService.refreshSearchTaxonomy(force);
       if (this.storeDirectory) void this.loadStoreOptions();
       if (this.showVehicleFilters) void this.loadVehicleCatalog();
       this.searchReady = true;
-      if (!await this.fetchProductPage()) return;
+      const [,loaded]=await Promise.all([taxonomy,this.fetchProductPage()]);
+      this.syncTaxonomySearchLabels();
+      if (!loaded) return;
 
       this.catalogError = '';
       this.catalogLoaded = true;
@@ -595,6 +608,7 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
         ...(this.selectedBrandId ? {brandId:this.selectedBrandId} : {})
       }, this.currentPage, this.pageSize, this.productSort, this.currentProximity);
       if (requestId !== this.searchRequestId) return false;
+      this.hasProductPage = true;
       this.productRows = result.items;
       if (this.showVehicleFilters) void this.loadVehicleCatalog();
       this.totalProducts = result.total;

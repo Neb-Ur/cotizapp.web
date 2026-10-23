@@ -39,7 +39,7 @@ export class LoginComponent {
   ) {
     this.returnUrl = sanitizeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl'));
     if (this.route.snapshot.queryParamMap.get('reason') === 'inactivity') {
-      this.errorMessage = 'Tu sesión se cerró después de 30 minutos sin actividad. Inicia sesión nuevamente.';
+      this.errorMessage = 'Tu sesión se cerró después de 2 horas sin actividad. Inicia sesión nuevamente.';
     }
   }
 
