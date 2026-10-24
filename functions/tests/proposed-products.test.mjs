@@ -21,7 +21,7 @@ test('invalid local/type combinations and cross-type taxonomy fail without creat
  assert.equal(f.rows('productosMaestro').length,0);assert.equal(f.rows('productosFerreteria').length,0);
 });
 test('rejection removes the provisional offer from public results without deleting its data',async t=>{
- const f=firestoreFixture(t,seed());const result=await publishProposedProduct('junk','owner',draft('repuestos',{name:'Moldura original'}));
+ const f=firestoreFixture(t,seed());const result=await publishProposedProduct('hardware','owner',draft('materiales',{name:'Moldura de madera'}));
  await resolveProductRequest(result.id,'rechazar','','admin','Ficha incorrecta');
  assert.equal(f.get('productosFerreteria',result.productoFerreteriaId).publicado,false);
  assert.equal(f.get('productosFerreteria',result.productoFerreteriaId).stock,3);
@@ -46,8 +46,8 @@ test('retry after deleting its offer never reports a phantom publication',async 
 });
 
 test('a stale proposal cannot bypass a product type changed by administration',async t=>{
- firestoreFixture(t,seed());const result=await publishProposedProduct('junk','owner',draft('herramientas'));
+ firestoreFixture(t,seed());const result=await publishProposedProduct('hardware','owner',draft('herramientas'));
  const {db}=await import('../lib/lib/firebase.js');const {COLLECTIONS}=await import('../lib/lib/collections.js');
  await db.collection(COLLECTIONS.masterProducts).doc(result.productoMaestroSugeridoId).update({nombre:'Material reclasificado',categoriaId:'cat-materiales-por-clasificar',subcategoriaId:'sub-materiales',familiaId:'fam-materiales'});
- await assert.rejects(publishProposedProduct('junk','owner',draft('herramientas')),e=>e.code==='PRODUCT_AREA_MISMATCH');
+ await assert.rejects(publishProposedProduct('hardware','owner',draft('herramientas')),e=>e.code==='PRODUCT_AREA_MISMATCH');
 });

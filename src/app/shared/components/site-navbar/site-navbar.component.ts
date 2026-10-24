@@ -34,10 +34,9 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
   private get scopedSearchFilters(): SearchFilters {
     if(this.router.url.split(/[?#]/)[0]!=='/buscar')return {};
     const p=this.router.parseUrl(this.router.url).queryParams;
-    return {area:['materiales','herramientas','repuestos'].includes(p['rubro'])?p['rubro']:undefined,categoryId:p['categoria'] || undefined,subcategoryId:p['subcategoria'] || undefined,
+    return {area:['materiales','herramientas'].includes(p['rubro'])?p['rubro']:undefined,categoryId:p['categoria'] || undefined,subcategoryId:p['subcategoria'] || undefined,
       familyId:p['familia'] || undefined,brand:p['marca'] || undefined,brandId:p['marcaId'] || undefined,
-      storeId:p['ferreteriaId'] || undefined,vehicleBrandId:p['vehiculoMarcaId'] || undefined,
-      vehicleModelId:p['vehiculoModeloId'] || undefined,vehicleYear:p['vehiculoAnio']?Number(p['vehiculoAnio']):undefined};
+      storeId:p['ferreteriaId'] || undefined};
   }
   protected get hasScopedSearch():boolean {return Object.values(this.scopedSearchFilters).some(value=>value!==undefined);}
 
@@ -110,7 +109,7 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
   protected optionId(item:CatalogSuggestion):string { return `header-option-${item.kind}-${encodeURIComponent(item.id)}`; }
   protected suggestionParams(item:CatalogSuggestion):Record<string,string>|undefined {
     const source=this.router.parseUrl(this.router.url).queryParams;
-    const context=Object.fromEntries(['projectTarget','draftName','draftAddress','ferreteriaId','ferreteria','vehiculoMarcaId','vehiculoModeloId','vehiculoAnio'].filter(key=>source[key]).map(key=>[key,source[key]]));
+    const context=Object.fromEntries(['projectTarget','draftName','draftAddress','ferreteriaId','ferreteria'].filter(key=>source[key]).map(key=>[key,source[key]]));
     const params={...context,...(item.path?{}:item.queryParams)};
     return Object.keys(params).length?params:undefined;
   }
@@ -139,9 +138,8 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
     {label:'Cotizaciones',icon:'pi pi-file-check',section:'cotizaciones'},
     {label:'Mi perfil',icon:'pi pi-user',section:'perfil'}
   ];
-  private readonly donorStoreNavigation=[...this.baseStoreNavigation.slice(0,2),{label:'Mis vehículos',icon:'pi pi-car',section:'vehiculos'},...this.baseStoreNavigation.slice(2)];
   protected get storeNavigation():Array<{label:string;icon:string;section:string;accion?:string}>{
-    return ['desarmaduria','repuestos'].includes(this.authService.currentUser()?.businessType||'')?this.donorStoreNavigation:this.baseStoreNavigation;
+    return this.baseStoreNavigation;
   }
   protected get isFerreteria(): boolean { return this.authService.currentUser()?.role === 'ferreteria'; }
   protected get isStoreDashboard(): boolean {
@@ -207,7 +205,9 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
     this.closeSearch();this.closeMenu();this.closeTaxonomy();
     const query=this.searchValue.trim();
     const context=this.router.url.split(/[?#]/)[0]==='/buscar'?this.router.parseUrl(this.router.url).queryParams:{};
-    void this.router.navigate(['/buscar'],{queryParams:{...context,q:query || undefined}});
+    const rubro=context['rubro'];
+    const activeContext=Object.fromEntries(['categoria','subcategoria','familia','marca','marcaId','ferreteriaId','ferreteria','projectTarget','draftName','draftAddress','latitude','longitude','radiusKm','sort','page'].filter(key=>context[key] !== undefined).map(key=>[key,context[key]]));
+    void this.router.navigate(['/buscar'],{queryParams:{...activeContext,...(['materiales','herramientas'].includes(rubro)?{rubro}:{}),q:query || undefined}});
   }
   protected onSearchFocusOut(event:FocusEvent):void {
     if(!this.searchShell?.nativeElement.contains(event.relatedTarget as Node|null)) this.closeSearch();

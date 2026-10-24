@@ -1,4 +1,4 @@
-export const BRAND_USES = ['fabricante', 'vehiculo'] as const;
+export const BRAND_USES = ['fabricante'] as const;
 export type BrandUse = typeof BRAND_USES[number];
 export function brandUses(value: unknown): BrandUse[] {
   return Array.isArray(value) ? BRAND_USES.filter(use => value.includes(use)) : ['fabricante'];

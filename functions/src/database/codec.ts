@@ -1,12 +1,10 @@
-import {normalizeProductApplications,automotiveProductName,offerApplicationsWithinProduct,automotiveIdentity} from '../domain/product-vehicle.js';
-import { normalizeVehicleApplications } from '../domain/vehicle-application.js';
 import mappings from './source-mapping.json' with {type:'json'};
 import columns from './table-columns.json' with {type:'json'};
 import { createHash } from 'node:crypto';
 import type { PoolClient } from 'pg';
 import type { Data } from './port.js';
 import { isOfferCondition } from '../domain/offer-condition.js';
-import { isBusinessType, isProductBusinessScope, normalizeProductBusinessScope } from '../domain/business-type.js';
+import { normalizeProductBusinessScope } from '../domain/business-type.js';
 import { brandUses, validBrandUses } from '../domain/brand-use.js';
 import {CURRENT_STORE_AGREEMENT_VERSION,STORE_AGREEMENT_PROVIDER,STORE_AGREEMENT_CLAUSES} from '../lib/legal.js';
 export type SqlClient = Pick<PoolClient,'query'>;
@@ -40,50 +38,15 @@ export async function writeDocument(client:SqlClient,collection:string,id:string
   if(input.usos!==undefined&&!validBrandUses(input.usos))throw new Error('BRAND_USES_INVALID');
   input={...input,usos:brandUses(input.usos)};
  }
- if(key==='families'){
-  if(input.permiteVehiculos!==undefined&&typeof input.permiteVehiculos!=='boolean')throw new Error('FAMILY_VEHICLE_CAPABILITY_INVALID');
-  input={...input,permiteVehiculos:input.permiteVehiculos??false};
- }
  if(key==='stores'){
-  if(input.tipoNegocio!==undefined&&!isBusinessType(input.tipoNegocio))throw new Error('BUSINESS_TYPE_INVALID');
+  if(input.tipoNegocio!==undefined&&!['ferreteria'].includes(input.tipoNegocio))throw new Error('BUSINESS_TYPE_INVALID');
   input={...input,tipoNegocio:input.tipoNegocio??'ferreteria'};
  }
  if(key==='masterProducts'){
-  if(input.ambitoComercial!==undefined&&!isProductBusinessScope(input.ambitoComercial))throw new Error('PRODUCT_BUSINESS_SCOPE_INVALID');
-  input={...input,ambitoComercial:normalizeProductBusinessScope(input.ambitoComercial,input.categoriaId)};
- }
- if(key==='masterProducts' && input.compatibilidadVehiculos!==undefined){
-  const applications=normalizeProductApplications(input.compatibilidadVehiculos);
-  const previous=(await client.query('SELECT api_payload FROM findi.products WHERE id=$1',[id])).rows[0]?.api_payload;
-  if(previous?.compatibilidadVehiculos?.length && !applications.length)throw new Error('PRODUCT_COMPATIBILITY_REQUIRED');
-  if(applications.length){
-   const family=await client.query('SELECT supports_vehicle_applications FROM findi.families WHERE id=$1',[input.familiaId]);
-   if(family.rows[0]?.supports_vehicle_applications!==true)throw new Error('FAMILY_VEHICLES_DISABLED');
-   const resolvedApplications: import('../domain/vehicle-application.js').VehicleApplication[]=[];
-   for(const a of applications){
-    const reference=(await client.query('SELECT b.name brand_name,m.name model_name,m.active FROM findi.vehicle_models m JOIN findi.brands b ON b.id=m.brand_id WHERE m.id=$1 AND m.brand_id=$2',[a.modeloId,a.marcaId])).rows[0];
-    if(!reference)throw new Error('PRODUCT_VEHICLE_MODEL_INVALID');
-    if(reference.active===false && !(previous?.compatibilidadVehiculos||[]).some((p:any)=>p.marcaId===a.marcaId&&p.modeloId===a.modeloId&&p.anioDesde===a.anioDesde&&p.anioHasta===a.anioHasta))throw new Error('PRODUCT_VEHICLE_MODEL_INACTIVE');
-    resolvedApplications.push({...a,marcaNombre:reference.brand_name,modeloNombre:reference.model_name});
-   }
-   const existingOffers=await client.query('SELECT api_payload FROM findi.offers WHERE product_id=$1',[id]);
-   const tuples=(value:any[])=>JSON.stringify(value.map(a=>[a.marcaId,a.modeloId,a.anioDesde,a.anioHasta]).sort());
-   if(previous?.compatibilidadVehiculos?.length && tuples(previous.compatibilidadVehiculos)!==tuples(resolvedApplications) && existingOffers.rows.some(r=>r.api_payload?.activo!==false&&r.api_payload?.publicado!==false))throw new Error('PRODUCT_VARIANT_HAS_OFFERS_CREATE_NEW');
-   if(existingOffers.rows.some(r=>!offerApplicationsWithinProduct(r.api_payload?.asociacionesVehiculos||[],resolvedApplications)))throw new Error('PRODUCT_COMPATIBILITY_HAS_OFFERS_OUTSIDE_RANGE');
-   input={...input,catalogoNivel:'producto_comercial',compatibilidadVehiculos:resolvedApplications,nombre:automotiveProductName(String(input.nombrePieza||''),resolvedApplications,String(input.detalleVariante||''))};
-  }
+  if(input.ambitoComercial!==undefined&&!['ferreteria'].includes(input.ambitoComercial))throw new Error('PRODUCT_BUSINESS_SCOPE_INVALID');
+  input={...input,ambitoComercial:input.ambitoComercial??normalizeProductBusinessScope(undefined,input.categoriaId)};
  }
  if(key==='storeProducts'){
-  if(input.asociacionesVehiculos!==undefined){
-   input={...input,asociacionesVehiculos:normalizeVehicleApplications(input.asociacionesVehiculos)};
-   const previous=(await client.query('SELECT api_payload FROM findi.offers WHERE id=$1',[id])).rows[0]?.api_payload;
-   if(input.asociacionesVehiculos.length && JSON.stringify(input.asociacionesVehiculos)!==JSON.stringify(normalizeVehicleApplications(previous?.asociacionesVehiculos || []))){
-    const family=await client.query('SELECT f.supports_vehicle_applications FROM findi.products p JOIN findi.families f ON f.id=p.family_id WHERE p.id=$1',[input.productoMaestroId]);
-    if(family.rows[0]?.supports_vehicle_applications!==true)throw new Error('FAMILY_VEHICLES_DISABLED');
-   }
-  }
-  const master=(await client.query('SELECT api_payload FROM findi.products WHERE id=$1',[input.productoMaestroId])).rows[0]?.api_payload;
-  if(master?.compatibilidadVehiculos?.length && !offerApplicationsWithinProduct(input.asociacionesVehiculos||[],master.compatibilidadVehiculos))throw new Error('OFFER_VEHICLES_OUTSIDE_PRODUCT');
   if(input.condicion!==undefined&&!isOfferCondition(input.condicion))throw new Error('OFFER_CONDITION_INVALID');
   input={...input,condicion:input.condicion??'sin_especificar'};
  }
@@ -105,7 +68,6 @@ export async function writeDocument(client:SqlClient,collection:string,id:string
  if(key==='brands'&&!values.normalized_name)values.normalized_name=String(data.nombre).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
  if(key==='masterProducts'){
   if(data.modelo){const modelId=digest('model:'+data.familiaId+':'+(data.marcaId||'')+':'+data.modelo);await upsert(client,'product_models',{id:modelId,family_id:data.familiaId,name:data.modelo},['id']);values.model_id=modelId;}else values.model_id=null;
-  if(data.compatibilidadVehiculos?.length)values.automotive_identity=automotiveIdentity(data);
   values.legacy_brand_label=data.marca||null;values.model_label=data.modelo??null;values.manufacturer_code=data.codigoFabricante??null;values.catalog_evidence=data.evidenciaCatalogo??null;}
  if(key==='masterAttributes'){
   const p=await client.query('SELECT family_id FROM findi.products WHERE id=$1',[data.productoMaestroId]);
@@ -147,14 +109,6 @@ export async function writeDocument(client:SqlClient,collection:string,id:string
  await materializeChildren(client,key,id,data);
 }
 async function materializeChildren(client:SqlClient,key:string,id:string,data:Data) {
- if(key==='masterProducts'){
-  await client.query('DELETE FROM findi.product_vehicle_applications WHERE product_id=$1',[id]);
-  for(const [position,a]of (data.compatibilidadVehiculos||[]).entries())await upsert(client,'product_vehicle_applications',{product_id:id,position,brand_id:a.marcaId,model_id:a.modeloId,year_from:a.anioDesde,year_to:a.anioHasta,brand_name_snapshot:a.marcaNombre,model_name_snapshot:a.modeloNombre},['product_id','position']);
- }
- if(key==='storeProducts'){
-  await client.query('DELETE FROM findi.offer_vehicle_applications WHERE offer_id=$1',[id]);
-  for(const [position,application] of (data.asociacionesVehiculos||[]).entries())await upsert(client,'offer_vehicle_applications',{offer_id:id,position,brand_id:application.marcaId,model_id:application.modeloId,year_from:application.anioDesde,year_to:application.anioHasta,brand_name_snapshot:application.marcaNombre??null,model_name_snapshot:application.modeloNombre??null},['offer_id','position']);
- }
  if(key==='brands'){
   const uses=brandUses(data.usos);
   for(const use of uses)await upsert(client,'brand_uses',{brand_id:id,use_kind:use},['brand_id','use_kind']);

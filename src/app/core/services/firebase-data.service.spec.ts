@@ -184,24 +184,17 @@ it('rejects a known product of another type even if the Excel declaration lies',
  expect(writes).toHaveLength(0);
 });
 
-it('reimports a donor SKU by updating the exact offer without creating a regular duplicate',async()=>{
+it('reimports a hardware SKU by updating the exact offer without creating a duplicate',async()=>{
  const {service,catalog,writes}=fixture();
- catalog.push({id:'donor-offer',productoMaestroId:'master',productoMaestro:master,vehiculoDonanteId:'car',piezaDonanteId:'piece',skuFerreteria:'CAR-1',precio:1000,stock:1,publicado:true});
+ catalog.push({id:'donor-offer',productoMaestroId:'master',productoMaestro:master,skuFerreteria:'CAR-1',precio:1000,stock:1,publicado:true});
  const update=vi.spyOn(service,'upsertCatalog').mockResolvedValue([]);
  await service.importCatalogBatch('user','Local','nombre,sku,precio,stock\nCemento gris 25 kg,CAR-1,2000,1',{...options,area:'materiales'});
- expect(update).toHaveBeenCalledExactlyOnceWith('user',expect.objectContaining({id:'donor-offer',donorVehicleId:'car',price:2000,stock:1}));
+ expect(update).toHaveBeenCalledExactlyOnceWith('user',expect.objectContaining({id:'donor-offer',price:2000,stock:1}));
  expect(writes).toHaveLength(0);
 });
 
 it('rejects repeated SKUs in an initial Excel before publishing either product',async()=>{
  const {service,writes}=fixture();
  await expect(service.importCatalogBatch('user','Local','nombre,sku,precio,stock\nPerno largo,REPETIDO,1000,2\nTuerca M8,REPETIDO,2000,4',{...options,area:'materiales'})).rejects.toThrow('repetid');
- expect(writes).toHaveLength(0);
-});
-
-it('rejects stock greater than one for a donor offer before importing the file',async()=>{
- const {service,catalog,writes}=fixture();
- catalog.push({id:'donor-offer',productoMaestroId:'master',productoMaestro:master,vehiculoDonanteId:'car',piezaDonanteId:'piece',skuFerreteria:'CAR-1',precio:1000,stock:1,publicado:true});
- await expect(service.importCatalogBatch('user','Local','nombre,sku,precio,stock\nCemento gris 25 kg,CAR-1,2000,3',{...options,area:'materiales'})).rejects.toThrow('stock 0 o 1');
  expect(writes).toHaveLength(0);
 });

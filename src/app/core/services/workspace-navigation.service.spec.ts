@@ -9,9 +9,9 @@ describe('workspace navigation',()=>{
  const user=signal<any>(null);let events:Subject<any>;
  beforeEach(()=>{events=new Subject();TestBed.configureTestingModule({providers:[{provide:AuthService,useValue:{currentUser:user}},{provide:Router,useValue:{url:'/dashboard/ferreteria',events}}]});});
  afterEach(()=>TestBed.resetTestingModule());
- it('keeps donor navigation exclusive to vehicle stores and highlights the exact action',()=>{
+ it('has no retired inventory navigation and highlights the exact hardware action',()=>{
   user.set({role:'ferreteria',businessType:'desarmaduria'});const nav=TestBed.inject(WorkspaceNavigationService);
-  expect(nav.active()).toBe(true);expect(nav.links().some(item=>item.section==='vehiculos')).toBe(true);
+  expect(nav.active()).toBe(true);expect(nav.links().some(item=>item.section==='vehiculos')).toBe(false);
   events.next(new NavigationEnd(1,'','/dashboard/ferreteria?section=catalogo&accion=archivo'));
   expect(nav.links().filter(item=>nav.isActive(item)).map(item=>item.label)).toEqual(['Carga por Excel']);
   user.set({role:'ferreteria',businessType:'ferreteria'});expect(nav.links().some(item=>item.section==='vehiculos')).toBe(false);

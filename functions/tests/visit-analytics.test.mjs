@@ -22,7 +22,7 @@ test('unauthorized analytics does not reach storage, and admin reports require a
 });
 test('SQL counts an IP once per Chilean day, keeps daily totals after expiring keys and reports empty days',async t=>{
  const pg=new PGlite();t.after(()=>pg.close());
- for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','014-visit-analytics.sql'])await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
+ for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','014-visit-analytics.sql','016-store-business-type.sql'])await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
  const now=new Date('2026-10-11T16:00:00Z');
  assert.equal(await recordUniqueVisit(pg,'203.0.113.2',secret,now),true);
  assert.equal(await recordUniqueVisit(pg,'203.0.113.2',secret,now),false);

@@ -28,3 +28,13 @@ it('groups variants by stable brand identity and opens an ID-based brand filter'
  expect(brand).toHaveLength(1);expect(brand[0].count).toBe(2);
  expect(brand[0].queryParams).toEqual({marca:'Arauco',marcaId:'b1'});
 });
+
+
+it('does not suggest automotive products, families or brands from an old offline index',()=>{
+ const search=prepareCatalogIndex({...snapshot,
+  products:[...snapshot.products,{id:'old-auto',name:'Radiador Accent',brand:'Hyundai',type:'Repuesto',categoryId:'cat-repuestos-automotrices',subcategoryId:'auto-sub',familyId:'auto-family'}],
+  categories:[...snapshot.categories,{id:'cat-repuestos-automotrices',name:'Repuestos automotrices'}],
+  subcategories:[...snapshot.subcategories,{id:'auto-sub',name:'Motor',categoryId:'cat-repuestos-automotrices'}],
+  families:[...snapshot.families,{id:'auto-family',name:'Radiadores',subcategoryId:'auto-sub'}]});
+ expect(search('radiador')).toEqual([]);expect(search('hyundai')).toEqual([]);expect(search('mdf')[0].items.length).toBeGreaterThan(0);
+});

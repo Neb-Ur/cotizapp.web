@@ -36,20 +36,17 @@ const productPaths=new Map(searchIndex.products.map(p=>[p.id,p.path]));
 for(const product of active) {
  assert.ok(sitemap.body.includes(`${productPaths.get(product.id)}</loc>`), `Missing sitemap product ${product.nombre}`);
 }
-for(const kind of ['categorias','familias','marcas','marcas-vehiculos','vehiculos']) {
+for(const kind of ['categorias','familias','marcas']) {
  const url=[...sitemap.body.matchAll(/<loc>(.*?)<\/loc>/g)].map(match=>match[1]).find(url=>url.includes(`/${kind}/`));
  if(!url)continue;
  const response=await get(new URL(url).pathname+`?v=${probeVersion}`);
  assert.equal(response.status,200);assert.match(response.body,/CollectionPage/);assert.match(response.body,/<h1>/);assert.match(response.body,/href="\/productos\//);assert.ok(response.body.includes(`rel="canonical" href="${url}"`));
  const absent=await get(`/${kind}/no-existe-qa-seo`);assert.equal(absent.status,404);assert.match(absent.body,/noindex/);
 }
-const automotivePage=await get('/repuestos');assert.equal(automotivePage.status,200);assert.match(automotivePage.body,/CollectionPage/);
-assert.ok(automotivePage.body.includes(`rel="canonical" href="${canonicalBase}/repuestos"`));
-if(active.some(p=>p.categoriaId==='cat-repuestos-automotrices')) {
- assert.ok(sitemap.body.includes(`${canonicalBase}/repuestos</loc>`));
-} else {
- assert.match(automotivePage.headers.get('x-robots-tag') || '',/noindex/);
- assert.ok(!sitemap.body.includes(`${canonicalBase}/repuestos</loc>`));
+assert.ok(!catalog.products.some(p=>p.categoriaId==='cat-repuestos-automotrices'));
+assert.doesNotMatch(sitemap.body,/\/(?:repuestos|vehiculos|marcas-vehiculos)(?:\/|<)/);
+for(const path of ['/repuestos','/vehiculos/hyundai-accent','/marcas-vehiculos/hyundai','/categorias/repuestos-automotrices']){
+ const response=await get(path);assert.equal(response.status,410);assert.match(response.headers.get('x-robots-tag')||'',/noindex/);
 }
 for (const path of ['/productos/no-existe-qa-cotizapp-404','/ruta-inexistente-qa-cotizapp-404']) {
  const response = await get(path); assert.equal(response.status,404); assert.match(response.body,/noindex/);

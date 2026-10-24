@@ -1,4 +1,4 @@
-import { vehicleApplicationsEnabled } from '../domain/vehicle-application.js';
+import { isHardwareProduct, isHardwareStore } from '../domain/market-scope.js';
 import { Router } from 'express';
 import { isOfferCondition, normalizeOfferCondition } from '../domain/offer-condition.js';
 import { db } from '../lib/firebase.js';
@@ -50,13 +50,12 @@ storeCatalogRouter.get('/ferreterias/:storeId/catalogo', requireAuth, requireRol
   const store = await row(COLLECTIONS.stores, req.params.storeId);
   if (!store) return fail(res, 'FERRETERIA_NOT_FOUND', 'No existe la ferreteria indicada.', 404);
   if (req.authRole !== 'admin' && req.authUserId !== store.usuarioDuenoId) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para consultar este catalogo.', 403);
-  const [products,families] = await Promise.all([rows(COLLECTIONS.masterProducts),rows(COLLECTIONS.families)]);
-  const vehicleFamilies = new Set(families.filter(f=>f.permiteVehiculos===true).map(f=>f.id));
+  const products = await rows(COLLECTIONS.masterProducts);
   const productById = new Map(products.map((item) => [item.id, item]));
   const data = (await rows(COLLECTIONS.storeProducts))
     .filter((item) => item.ferreteriaId === req.params.storeId)
-    .map((item) => ({ ...item, vehiculosEditables: !productById.get(item.productoMaestroId)?.compatibilidadVehiculos?.length && vehicleApplicationsEnabled(req.params.storeId) && vehicleFamilies.has(productById.get(item.productoMaestroId)?.familiaId), productoMaestro: productById.get(item.productoMaestroId) }))
-    .filter((item) => !!item.productoMaestro && (req.authRole === 'admin' || productMatchesBusinessType(item.productoMaestro, store.tipoNegocio)));
+    .map((item) => ({ ...item, productoMaestro: productById.get(item.productoMaestroId) }))
+    .filter((item) => !!item.productoMaestro && isHardwareProduct(item.productoMaestro) && (req.authRole === 'admin' || productMatchesBusinessType(item.productoMaestro, store.tipoNegocio)));
   return ok(res, data);
 });
 
@@ -69,7 +68,7 @@ storeCatalogRouter.post('/ferreterias/:storeId/catalogo', requireAuth, requireRo
   if (!product || product.estado === 'inactivo') return fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro indicado.', 404);
   const store = await row(COLLECTIONS.stores, req.params.storeId);
   if (store?.esPrueba !== true && product.esPrueba === true) return fail(res, 'TEST_PRODUCT_NOT_ALLOWED', 'Un local real no puede publicar productos simulados.', 400);
-  if (!productMatchesBusinessType(product, store?.tipoNegocio)) return fail(res, 'STORE_PRODUCT_BUSINESS_TYPE_MISMATCH', 'Este producto no corresponde al tipo de negocio del local.', 400);
+  if (!isHardwareProduct(product) || !isHardwareStore(store || {}) || !productMatchesBusinessType(product, store?.tipoNegocio)) return fail(res, 'STORE_PRODUCT_BUSINESS_TYPE_MISMATCH', 'Este producto no corresponde al tipo de negocio del local.', 400);
   const offerPayload = {
     condicion: normalizeOfferCondition(req.body?.condicion),
     ferreteriaId: req.params.storeId,
@@ -97,7 +96,7 @@ storeCatalogRouter.post('/ferreterias/:storeId/catalogo', requireAuth, requireRo
     const store = await tx.get(storeRef);
     const existing = await tx.get(db.collection(COLLECTIONS.storeProducts)
       .where('ferreteriaId', '==', req.params.storeId).where('productoMaestroId', '==', masterId));
-    if (!store.exists || existing.docs.some(doc=>!doc.data()?.['vehiculoDonanteId'])) return null;
+    if (!store.exists || existing.docs.length > 0) return null;
     const ref = db.collection(COLLECTIONS.storeProducts).doc();
     tx.create(ref, offerPayload);
     tx.update(storeRef, { catalogoActualizadoEn: nowIso() });
@@ -126,10 +125,9 @@ storeCatalogRouter.patch('/ferreterias/:storeId/catalogo/:offerId', requireAuth,
   if (!(await requireCurrentStoreAgreement(req, res, req.params.storeId))) return;
   const existing = await row(COLLECTIONS.storeProducts, req.params.offerId);
   if (!existing || existing.ferreteriaId !== req.params.storeId) return fail(res, 'CATALOGO_NOT_FOUND', 'Producto de ferreteria no encontrado.', 404);
-  if (existing.vehiculoDonanteId && req.body?.stock !== undefined && ![0,1].includes(Number(req.body.stock))) return fail(res, 'DONOR_STOCK_INVALID', 'Cada pieza de un vehículo admite stock 0 o 1.', 400);
   const store = await row(COLLECTIONS.stores, req.params.storeId);
   const master = await row(COLLECTIONS.masterProducts, existing.productoMaestroId);
-  if (req.authRole !== 'admin' && master && !productMatchesBusinessType(master, store?.tipoNegocio)) return fail(res, 'STORE_PRODUCT_BUSINESS_TYPE_MISMATCH', 'Este producto no corresponde a la clasificación del local.', 400);
+  if (master && (!isHardwareProduct(master) || !isHardwareStore(store || {}) || (req.authRole !== 'admin' && !productMatchesBusinessType(master, store?.tipoNegocio)))) return fail(res, 'STORE_PRODUCT_BUSINESS_TYPE_MISMATCH', 'Este producto no corresponde a la clasificación del local.', 400);
   const patch: Record<string, unknown> = { actualizadoEn: nowIso() };
   if (req.body?.condicion !== undefined) {
     if (!isOfferCondition(req.body.condicion)) return fail(res, 'OFFER_CONDITION_INVALID', 'Selecciona una condición válida.', 400);
@@ -221,10 +219,6 @@ storeCatalogRouter.delete('/ferreterias/:storeId/catalogo/:offerId', requireAuth
     const offerRef=db.collection(COLLECTIONS.storeProducts).doc(req.params.offerId);
     const current=await tx.get(offerRef);
     if(!current.exists)return;
-    if(existing.vehiculoDonanteId){
-      const donorRef=db.collection(COLLECTIONS.donorVehicles).doc(existing.vehiculoDonanteId),donor=await tx.get(donorRef);
-      if(donor.exists){const data=donor.data()!;tx.update(donorRef,{piezas:(data['piezas']||[]).map((p:any)=>p.id===existing.piezaDonanteId?{...p,ofertaId:null,estado:'borrador',seleccionada:false,fotosPublicacion:[]}:p),revision:Number(data['revision']||0)+1,actualizadoEn:nowIso()});}
-    }
     tx.delete(offerRef);
   });
   const cleanup=await Promise.allSettled((existing.fotosPublicacion||[]).map((photo:any)=>deleteOfferImageFiles(photo)));

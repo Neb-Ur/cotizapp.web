@@ -336,48 +336,6 @@
     "middlewareCount": 3
   },
   {
-    "method": "get",
-    "path": "/vehiculos/catalogo",
-    "auth": false,
-    "middlewareCount": 1
-  },
-  {
-    "method": "get",
-    "path": "/admin/vehiculos/catalogo",
-    "auth": true,
-    "middlewareCount": 3
-  },
-  {
-    "method": "post",
-    "path": "/admin/vehiculos/marcas",
-    "auth": true,
-    "middlewareCount": 3
-  },
-  {
-    "method": "post",
-    "path": "/admin/vehiculos/modelos",
-    "auth": true,
-    "middlewareCount": 3
-  },
-  {
-    "method": "patch",
-    "path": "/admin/vehiculos/modelos/:id",
-    "auth": true,
-    "middlewareCount": 3
-  },
-  {
-    "method": "get",
-    "path": "/ferreterias/:storeId/catalogo/:offerId/vehiculos",
-    "auth": true,
-    "middlewareCount": 3
-  },
-  {
-    "method": "put",
-    "path": "/ferreterias/:storeId/catalogo/:offerId/vehiculos",
-    "auth": true,
-    "middlewareCount": 3
-  },
-  {
     "method": "post",
     "path": "/ferreterias/:storeId/catalogo/:offerId/fotos",
     "auth": true,
@@ -550,48 +508,6 @@
     "path": "/ferreterias/:storeId/catalogo/:offerId",
     "auth": true,
     "middlewareCount": 3
-  },
-  {
-    "method": "get",
-    "path": "/ferreterias/:storeId/vehiculos-donantes",
-    "auth": true,
-    "middlewareCount": 4
-  },
-  {
-    "method": "put",
-    "path": "/ferreterias/:storeId/vehiculos-donantes/:vehicleId",
-    "auth": true,
-    "middlewareCount": 4
-  },
-  {
-    "method": "get",
-    "path": "/ferreterias/:storeId/vehiculos-donantes/:vehicleId/candidatos",
-    "auth": true,
-    "middlewareCount": 4
-  },
-  {
-    "method": "post",
-    "path": "/ferreterias/:storeId/vehiculos-donantes/:vehicleId/publicar",
-    "auth": true,
-    "middlewareCount": 4
-  },
-  {
-    "method": "post",
-    "path": "/ferreterias/:storeId/vehiculos-donantes/:vehicleId/piezas/:itemId/fotos",
-    "auth": true,
-    "middlewareCount": 5
-  },
-  {
-    "method": "delete",
-    "path": "/ferreterias/:storeId/vehiculos-donantes/:vehicleId/piezas/:itemId/fotos/:photoId",
-    "auth": true,
-    "middlewareCount": 4
-  },
-  {
-    "method": "delete",
-    "path": "/ferreterias/:storeId/vehiculos-donantes/:vehicleId",
-    "auth": true,
-    "middlewareCount": 4
   },
   {
     "method": "get",

@@ -17,3 +17,13 @@ it('invalidates cached product sheets only when the index version changes',()=>{
  service.acceptCatalogSearchVersion('two');expect(localStorage.getItem('cotizapp-product-sheet-v1:real:abrazadera')).toBeNull();
  localStorage.clear();
 });
+it('removes retired product sheets from browser storage and preserves hardware sheets',()=>{
+ localStorage.clear();
+ const oldKey='cotizapp-product-sheet-v1:real:retired';
+ const hardwareKey='cotizapp-product-sheet-v1:real:cemento';
+ localStorage.setItem(oldKey,JSON.stringify({raw:{productoMaestro:{id:'old',categoriaId:'cat-repuestos-automotrices'}}}));
+ localStorage.setItem(hardwareKey,JSON.stringify({raw:{productoMaestro:{id:'cement',categoriaId:'materials'}}}));
+ new FirebaseDataService({} as any,{} as any);
+ expect(localStorage.getItem(oldKey)).toBeNull();expect(localStorage.getItem(hardwareKey)).not.toBeNull();
+ localStorage.clear();
+});

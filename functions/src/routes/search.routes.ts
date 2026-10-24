@@ -1,4 +1,3 @@
-import { parseVehicleSearch, matchesVehicle, type VehicleSearch } from '../domain/vehicle-search.js';
 import { catalogLandings, relatedCatalogLandings, seoProductSlug, productSeoSlugIndex } from '../domain/catalog-seo.js';
 import { Router } from 'express';
 import { getProductSheet, getStaticCatalog } from '../lib/product-sheet-cache.js';
@@ -14,14 +13,11 @@ import { attributedOfferPhotos } from '../domain/offer-photo.js';
 export const searchRouter = Router();
 
 searchRouter.get('/busqueda', async (req, res) => {
-  let vehicle: VehicleSearch;
-  try { vehicle = parseVehicleSearch(req.query); }
-  catch { return fail(res, 'SEARCH_INVALID_VEHICLE', 'Selecciona marca, modelo y un año válido del vehículo.'); }
   // Opt-in product pages preserve the legacy array response used by quotation
   // and catalog consumers, while the search screen downloads only one page.
   if (req.query['vista'] === 'productos') {
     const area = req.query['rubro'];
-    if (area !== undefined && (typeof area !== 'string' || area !== '' && !['materiales', 'herramientas', 'repuestos'].includes(area))) {
+    if (area !== undefined && (typeof area !== 'string' || area !== '' && !['materiales', 'herramientas'].includes(area))) {
       return fail(res, 'SEARCH_INVALID_AREA', 'Selecciona un rubro válido.');
     }
     const page = Number(req.query['page'] ?? 1);
@@ -37,7 +33,6 @@ searchRouter.get('/busqueda', async (req, res) => {
       return fail(res, 'SEARCH_INVALID_PROXIMITY', 'La ubicación o el radio de búsqueda no son válidos.');
     }
     const result = paginateProductSearch(await getPublicCatalogSnapshot(), {
-      ...vehicle,
       seoOnly:req.query['catalogoReal'] === '1',
       area: area ? area as ProductSearchOptions['area'] : undefined,
       query: normalizeText(req.query['query']),
@@ -58,7 +53,6 @@ searchRouter.get('/busqueda', async (req, res) => {
   const subcategoryId = normalizeText(req.query['subcategoriaId']);
   const familyId = normalizeText(req.query['familiaId']);
   const data = (await getPublicCatalogSnapshot()).searchRows
-    .filter(item => matchesVehicle(item.vehicleApplications, vehicle))
     .filter((item) => !req.query['ferreteriaId'] || item.storeId === req.query['ferreteriaId'])
     .filter((item) => !q || item.productName.toLowerCase().includes(q) || item.sku.toLowerCase().includes(q))
     .filter((item) => !categoryId || item.categoryId === categoryId)
@@ -123,9 +117,6 @@ searchRouter.get('/productos/populares', async (req, res) => {
 });
 
 searchRouter.get('/productos/detalle', async (req, res) => {
-  let vehicle: VehicleSearch;
-  try { vehicle = parseVehicleSearch(req.query); }
-  catch { return fail(res, 'SEARCH_INVALID_VEHICLE', 'Selecciona marca, modelo y un año válido del vehículo.'); }
   const name = normalizeText(req.query['producto']).toLowerCase();
   const requestedSlug = normalizeText(req.query['slug']);
   if (req.query['vista'] === 'ficha') {
@@ -141,7 +132,7 @@ searchRouter.get('/productos/detalle', async (req, res) => {
     ? slugs!.get(item.id) === requestedSlug
     : normalizeText(item.nombre).toLowerCase() === name);
   if (!product) return fail(res, 'PRODUCTO_NOT_FOUND', 'No se encontro el producto solicitado.', 404);
-  const searchRows = snapshot.searchRows.filter(item => item.productoMaestroId === product.id && matchesVehicle(item.vehicleApplications, vehicle));
+  const searchRows = snapshot.searchRows.filter(item => item.productoMaestroId === product.id);
   const photoOffers=await db.collection(COLLECTIONS.storeProducts).where('productoMaestroId','==',product.id).get();
   const storePhotos=attributedOfferPhotos(photoOffers.docs.map(doc=>({id:doc.id,...doc.data()})),searchRows);
   const offersOnly = req.query['vista'] === 'ofertas';

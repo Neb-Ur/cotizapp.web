@@ -6,7 +6,6 @@ import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { convertToParamMap } from '@angular/router';
 import { of, Subject } from 'rxjs';
-import { VehicleCatalogService } from '../../core/services/vehicle-catalog.service';
 import { StoreDirectoryService } from '../../core/services/store-directory.service';
 
 function fixture() {
@@ -98,7 +97,6 @@ describe('collection filter context',()=>{
    {provide:AuthService,useValue:{currentUser:()=>null}}, {provide:FirebaseDataService,useValue:api},
    {provide:ActivatedRoute,useValue:{queryParamMap:of(convertToParamMap({ferreteriaId:'branch-2',ferreteria:'Sucursal Sur'}))}},
    {provide:StoreDirectoryService,useValue:{list:async()=>({storeOptions:[{id:'branch-1',name:'Sucursal Norte'}]})}},
-   {provide:VehicleCatalogService,useValue:{publicCatalog:async()=>({brands:[],models:[]})}}
   ]}).compileComponents();
   const rendered=TestBed.createComponent(CatalogSearchComponent);
   try {
@@ -147,84 +145,11 @@ it('filters products by store ID and carries the branch into product details', a
  expect(new URL(url,'https://test.local').searchParams.get('ferreteriaId')).toBe('branch-2');
 });
 
-describe('vehicle filters', () => {
- it('rejects invalid URL years and does not submit them when ordering changes', async () => {
-  const {component,api}=fixture();component.searchReady=true;
-  component.selectedVehicleYear='2010.5';
-  expect(await component.fetchProductPage()).toBe(false);
-  component.onProductSortChange('price-asc');
-  expect(component.vehicleYearError).toContain('año');
-  expect(api.searchProductPage).not.toHaveBeenCalled();
-  component.selectedVehicleYear='2010';
-  await component.fetchProductPage();
-  expect(component.vehicleYearError).toBe('');
-  expect(api.searchProductPage).toHaveBeenCalledOnce();
- });
- it('sends the complete vehicle and preserves it in the detail link', async () => {
-  const {component,api}=fixture();
-  component.selectedVehicleBrandId='toyota';component.selectedVehicleModelId='corolla';component.selectedVehicleYear='2010';
-  await component.fetchProductPage();
-  expect(api.searchProductPage).toHaveBeenCalledWith(expect.objectContaining({vehicleBrandId:'toyota',vehicleModelId:'corolla',vehicleYear:2010}),1,20,'relevance',undefined);
-  const url=new URL(component.productUrl('Alternador'), 'https://test.local');
-  expect(url.searchParams.get('vehiculoMarcaId')).toBe('toyota');expect(url.searchParams.get('vehiculoModeloId')).toBe('corolla');expect(url.searchParams.get('vehiculoAnio')).toBe('2010');
- });
- it('resets dependent model/year selections when brand or model changes', () => {
-  const {component}=fixture();component.router.navigate=vi.fn();
-  component.selectedVehicleModelId='old';component.selectedVehicleYear='2010';component.currentPage=7;
-  component.onVehicleBrandChange('toyota');
-  expect(component.selectedVehicleModelId).toBe('');expect(component.selectedVehicleYear).toBe('');expect(component.currentPage).toBe(1);
-  component.selectedVehicleYear='2012';component.onVehicleModelChange('corolla');expect(component.selectedVehicleYear).toBe('');
-  component.clearVehicleFilters();expect(component.taxonomyFilterCount).toBe(0);
- });
- it('clears the whole vehicle and dependent taxonomy when leaving auto parts',()=>{
-  const {component}=fixture();component.router.navigate=vi.fn();
-  component.selectedVehicleBrandId='toyota';component.selectedVehicleModelId='corolla';component.selectedVehicleYear='2010';
-  component.selectedSubcategoryId='auto-sub';component.selectedFamilyId='auto-family';
-  component.onCategoryInput('');
-  expect(component.router.navigate).toHaveBeenCalledWith([],expect.objectContaining({queryParams:expect.objectContaining({vehiculoMarcaId:null,vehiculoModeloId:null,vehiculoAnio:null,subcategoria:null,familia:null})}));
- });
- it('does not submit invalid years and shows filters for automotive results', () => {
-  const {component,api}=fixture();component.router.navigate=vi.fn();component.searchReady=true;
-  component.productRows=[{categoryId:'cat-repuestos-automotrices'}];expect(component.showVehicleFilters).toBe(true);
-  component.selectedVehicleBrandId='toyota';component.selectedVehicleModelId='corolla';
-  component.onVehicleYearChange(2010.5);expect(component.vehicleYearError).toContain('año');expect(api.searchProductPage).not.toHaveBeenCalled();
- });
- it('renders Local and dependent vehicle controls in the automotive category', async () => {
-  const {api}=fixture();api.searchProductPage.mockResolvedValue({items:[],total:0,page:1,size:20} as any);
-  await TestBed.configureTestingModule({imports:[CatalogSearchComponent],providers:[
-   {provide:AuthService,useValue:{currentUser:()=>null}}, {provide:FirebaseDataService,useValue:api},
-   {provide:ActivatedRoute,useValue:{queryParamMap:of(convertToParamMap({categoria:'cat-repuestos-automotrices'}))}},
-   {provide:Router,useValue:{navigate:vi.fn()}},
-   {provide:StoreDirectoryService,useValue:{list:async()=>({storeOptions:[{id:'garage',name:'Desarmaduría Norte'}]})}},
-   {provide:VehicleCatalogService,useValue:{publicCatalog:async()=>({brands:[{id:'toyota',nombre:'Toyota'}],models:[{id:'corolla',marcaId:'toyota',nombre:'Corolla'}]})}}
-  ]}).compileComponents();
-  const rendered=TestBed.createComponent(CatalogSearchComponent);rendered.detectChanges();await rendered.whenStable();rendered.detectChanges();
-  const text=rendered.nativeElement.textContent;
-  expect(text).toContain('Local');expect(text).toContain('Desarmaduría Norte');expect(text).toContain('Marca del vehículo');expect(text).toContain('Modelo del vehículo');expect(text).toContain('Año del vehículo');
-  const selects=rendered.nativeElement.querySelectorAll('.filters-grid select');expect(selects[2].disabled).toBe(true);
-  selects[1].value='toyota';selects[1].dispatchEvent(new Event('change'));
-  await rendered.whenStable();rendered.detectChanges();await rendered.whenStable();
-  expect((rendered.componentInstance as any).selectedVehicleBrandId).toBe('toyota');
-  expect(rendered.nativeElement.querySelectorAll('.filters-grid select')[2].disabled).toBe(false);expect(text).not.toContain('Ferretería');
-  rendered.destroy();TestBed.resetTestingModule();
- });
-});
-
-describe('automotive SEO landing defaults',()=>{
- it('requests the real model catalog on initial navigation without returning to generic search',async()=>{
-  const {component,api}=fixture();component.router.navigate=vi.fn();
-  component.route={queryParamMap:of(convertToParamMap({}))};
-  component.landing={path:'/vehiculos/hyundai-accent',filters:{rubro:'repuestos',categoria:'cat-repuestos-automotrices',vehiculoMarcaId:'hyundai',vehiculoModeloId:'accent'}};
-  component.startCatalog();await component.loadCatalog();
-  expect(api.searchProductPage).toHaveBeenCalledWith(expect.objectContaining({seoOnly:true,area:'repuestos',categoryId:'cat-repuestos-automotrices',vehicleBrandId:'hyundai',vehicleModelId:'accent'}),1,20,'relevance',undefined);
-  expect(component.router.navigate).not.toHaveBeenCalled();component.ngOnDestroy();
- });
- it('returns to search when changing the model that defines a landing',()=>{
-  const {component}=fixture();component.router.navigate=vi.fn();component.searchReady=true;
-  component.landing={path:'/vehiculos/hyundai-accent',filters:{rubro:'repuestos',vehiculoMarcaId:'hyundai',vehiculoModeloId:'accent'}};
-  component.selectedArea='repuestos';component.selectedVehicleBrandId='hyundai';component.selectedVehicleModelId='elantra';component.refreshProductRows();
-  expect(component.router.navigate).toHaveBeenCalledWith(['/buscar'],expect.objectContaining({queryParams:expect.objectContaining({vehiculoModeloId:'elantra'})}));
- });
+it('ignores retired vehicle parameters and never forwards them to hardware searches',async()=>{
+ const {component,api}=fixture();component.selectedVehicleBrandId='toyota';component.selectedVehicleModelId='corolla';component.selectedVehicleYear='2010';
+ await component.fetchProductPage();
+ const filters=(api.searchProductPage.mock.calls as any[][])[0][0];expect(filters.vehicleBrandId).toBeUndefined();expect(filters.vehicleModelId).toBeUndefined();expect(filters.vehicleYear).toBeUndefined();expect('showVehicleFilters' in component).toBe(false);
+ expect(component.productUrl('Taladro')).not.toContain('vehiculo');
 });
 
 describe('mobile catalog filter surface', () => {
@@ -237,7 +162,6 @@ describe('mobile catalog filter surface', () => {
       {provide:AuthService,useValue:{currentUser:()=>null}}, {provide:FirebaseDataService,useValue:api},
       {provide:ActivatedRoute,useValue:{queryParamMap:of(convertToParamMap({}))}},
       {provide:StoreDirectoryService,useValue:{list:async()=>({storeOptions:[]})}},
-      {provide:VehicleCatalogService,useValue:{publicCatalog:async()=>({brands:[],models:[]})}}
     ]}).compileComponents();
     const rendered = TestBed.createComponent(CatalogSearchComponent);
     document.body.append(rendered.nativeElement);
@@ -287,7 +211,6 @@ describe('initial search loading and request scheduling',()=>{
     {provide:AuthService,useValue:{currentUser:()=>null}}, {provide:FirebaseDataService,useValue:api},
     {provide:ActivatedRoute,useValue:{queryParamMap:of(convertToParamMap({q:'mahindra'}))}},
     {provide:StoreDirectoryService,useValue:{list:async()=>({storeOptions:[]})}},
-    {provide:VehicleCatalogService,useValue:{publicCatalog:async()=>({brands:[],models:[]})}}
   ]}).compileComponents();
   const rendered=TestBed.createComponent(CatalogSearchComponent);rendered.detectChanges();
   expect(rendered.nativeElement.textContent).toContain('Cargando productos');

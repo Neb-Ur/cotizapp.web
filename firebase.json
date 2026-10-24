@@ -19,7 +19,9 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "assets/catalogo/repuestos/**",
+      "assets/home-hero-mixto-v1.webp"
     ],
     "headers": [
       {

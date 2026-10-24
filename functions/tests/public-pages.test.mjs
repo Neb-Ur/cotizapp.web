@@ -15,7 +15,7 @@ test('robots allows crawlers to read noindex on private routes',()=>{
 });
 test('legacy product routes preserve quotation parameters and product metadata uses the product image',async t=>{
  const updatedAt=new Date().toISOString();
- firestoreFixture(t,{productosMaestro:{master:product},categorias:{},subcategorias:{},familias:{},atributosProductoMaestro:{},definicionesAtributoFamilia:{},cachePublico:{meta:{dirty:false,policy:`data-modes-v8:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,version:'fixture',updatedAt,taxonomyDocId:'taxonomy',offerDocIds:['offers'],productDocIds:['products']},taxonomy:{categories:[],subcategories:[],families:[]},offers:{items:[{productoMaestroId:'master',storePilot:true,price:100,stock:1},{productoMaestroId:'master',offerPilot:true,price:50,stock:1}]},products:{items:[product]}}});
+ firestoreFixture(t,{productosMaestro:{master:product},categorias:{},subcategorias:{},familias:{},atributosProductoMaestro:{},definicionesAtributoFamilia:{},cachePublico:{meta:{dirty:false,policy:`data-modes-v9-hardware:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,version:'fixture',updatedAt,taxonomyDocId:'taxonomy',offerDocIds:['offers'],productDocIds:['products']},taxonomy:{categories:[],subcategories:[],families:[]},offers:{items:[{productoMaestroId:'master',storePilot:true,price:100,stock:1},{productoMaestroId:'master',offerPilot:true,price:50,stock:1}]},products:{items:[product]}}});
  const res=response();
  await handler('/producto')({path:'/producto',originalUrl:'/producto?product=Cemento+gris+25+kg&ferreteriaId=south&cantidad=3&crearCotizacion=1'},res,error=>{throw error;});
  assert.equal(res.statusCode,302);
@@ -50,9 +50,9 @@ test('test product HTML preserves noindex and escapes metadata and JSON-LD',asyn
  const previousPilot=process.env.PILOT_STORES_ENABLED;
  process.env.PILOT_STORES_ENABLED='true';
  t.after(()=>{if(previousPilot===undefined)delete process.env.PILOT_STORES_ENABLED;else process.env.PILOT_STORES_ENABLED=previousPilot;});
- const demo={...product,id:'demo-escaping',nombre:'Pieza </script><script>alert("x")</script> & prueba',esPrueba:true,categoriaId:'cat-repuestos-automotrices'};
+ const demo={...product,id:'demo-escaping',nombre:'Pieza </script><script>alert("x")</script> & prueba',esPrueba:true,categoriaId:'materials'};
  const updatedAt=new Date().toISOString();
- firestoreFixture(t,{productosMaestro:{[demo.id]:demo},cachePublico:{'catalog-revision':{revision:804},meta:{dirty:false,policy:`data-modes-v8:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=true`,version:'escaping-fixture',updatedAt,taxonomyDocId:'taxonomy',offerDocIds:['offers'],productDocIds:['products']},taxonomy:{categories:[],subcategories:[],families:[]},offers:{items:[]},products:{items:[demo]}}});
+ firestoreFixture(t,{productosMaestro:{[demo.id]:demo},cachePublico:{'catalog-revision':{revision:804},meta:{dirty:false,policy:`data-modes-v9-hardware:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=true`,version:'escaping-fixture',updatedAt,taxonomyDocId:'taxonomy',offerDocIds:['offers'],productDocIds:['products']},taxonomy:{categories:[],subcategories:[],families:[]},offers:{items:[]},products:{items:[demo]}}});
  const {productSeoSlugIndex}=await import('../lib/domain/catalog-seo.js');
  const slug=productSeoSlugIndex([demo]).get(demo.id);
  const page=response();await handler('/productos/:slug')({path:`/productos/${slug}`,params:{slug}},page,error=>{throw error;});
@@ -64,20 +64,16 @@ test('test product HTML preserves noindex and escapes metadata and JSON-LD',asyn
  assert.ok(!serialized.includes('<'));
  assert.equal(JSON.parse(serialized)['@graph'][0].name,demo.nombre);
  assert.doesNotMatch(serialized,/"@type":"Product"/);
- const collection=response();
- await handler(['/repuestos','/:kind(categorias|familias|marcas|marcas-vehiculos|vehiculos)/:slug'])({path:'/repuestos'},collection,error=>{throw error;});
- assert.equal(collection.statusCode,200);
- assert.equal(collection.headers['X-Robots-Tag'],'noindex, follow');
- assert.match(collection.body,/<meta name="robots" content="noindex, follow">/);
+
 });
 
-test('initial product HTML exposes real price, stock, condition and explicit fitment without pilot offers',async t=>{
- const part={...product,id:'radiator-real',nombre:'Radiador Hyundai Accent',categoriaId:'cat-repuestos-automotrices',compatibilidadVehiculos:[{marcaId:'hyundai',modeloId:'accent',marcaNombre:'Hyundai',modeloNombre:'Accent',anioDesde:2015,anioHasta:2018}]};
+test('initial product HTML exposes real price, stock and condition without retired metadata or pilot offers',async t=>{
+ const part={...product,id:'radiator-real',nombre:'Radiador Hyundai Accent',categoriaId:'materials',compatibilidadVehiculos:[{marcaId:'hyundai',modeloId:'accent',marcaNombre:'Hyundai',modeloNombre:'Accent',anioDesde:2015,anioHasta:2018}]};
  const updatedAt=new Date().toISOString();
  const offer={productoMaestroId:part.id,storeId:'local-real',storeName:'Local real',price:25000,stock:1,condition:'usado',storeCommune:'Santiago'};
- firestoreFixture(t,{productosMaestro:{[part.id]:part},categorias:{},subcategorias:{},familias:{},atributosProductoMaestro:{},definicionesAtributoFamilia:{},cachePublico:{'catalog-revision':{revision:802},meta:{dirty:false,policy:`data-modes-v8:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,version:'real-offer-fixture',updatedAt,taxonomyDocId:'taxonomy',offerDocIds:['offers'],productDocIds:['products']},taxonomy:{categories:[],subcategories:[],families:[]},offers:{items:[offer,{...offer,storeName:'Local simulado',storePilot:true,price:1},{...offer,storeName:'Local agotado',stock:0,price:3}]},products:{items:[part]}}});
+ firestoreFixture(t,{productosMaestro:{[part.id]:part},categorias:{},subcategorias:{},familias:{},atributosProductoMaestro:{},definicionesAtributoFamilia:{},cachePublico:{'catalog-revision':{revision:802},meta:{dirty:false,policy:`data-modes-v9-hardware:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,version:'real-offer-fixture',updatedAt,taxonomyDocId:'taxonomy',offerDocIds:['offers'],productDocIds:['products']},taxonomy:{categories:[],subcategories:[],families:[]},offers:{items:[offer,{...offer,storeName:'Local simulado',storePilot:true,price:1},{...offer,storeName:'Local agotado',stock:0,price:3}]},products:{items:[part]}}});
  const page=response();await handler('/productos/:slug')({path:'/productos/radiador-hyundai-accent',params:{slug:'radiador-hyundai-accent'}},page,e=>{throw e;});
- assert.equal(page.statusCode,200);assert.match(page.body,/\$25\.000/);assert.match(page.body,/Stock: 1 · Estado: Usado/);assert.match(page.body,/Hyundai Accent · 2015–2018/);assert.match(page.body,/href="\/vehiculos\/hyundai-accent"/);
+ assert.equal(page.statusCode,200);assert.match(page.body,/\$25\.000/);assert.match(page.body,/Stock: 1 · Estado: Usado/);assert.doesNotMatch(page.body,/Compatibilidad registrada|código de pieza/);
  assert.doesNotMatch(page.body,/Local simulado|Local agotado/);
  const schema=JSON.parse(page.body.match(/<script[^>]*type="application\/ld\+json">(.*?)<\/script>/s)[1]);
  assert.equal((page.body.match(/type="application\/ld\+json"/g)||[]).length,1);

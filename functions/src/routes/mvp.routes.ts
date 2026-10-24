@@ -1,8 +1,5 @@
-import {donorVehiclesRouter} from './donor-vehicles.routes.js';
-import { offerVehiclesRouter } from './offer-vehicles.routes.js';
 import { offerPhotosRouter } from './offer-photos.routes.js';
 import { storeDirectoryRouter } from './store-directory.routes.js';
-import { vehicleCatalogRouter } from './vehicle-catalog.routes.js';
 import { storeQuotationsRouter } from './store-quotations.routes.js';
 import { Router } from 'express';
 import { imagesRouter } from './images.routes.js';
@@ -25,6 +22,17 @@ import { priceReportsRouter } from './price-reports.routes.js';
 
 // Preserve route registration order and the existing /api and direct URL contracts.
 export const mvpRouter = Router();
+// Retired automotive endpoints are deliberately unavailable, including old clients.
+mvpRouter.use((req, res, next) => {
+  if (/^\/(?:admin\/vehiculos(?:\/|$)|vehiculos\/catalogo(?:\/|$))/.test(req.path) || /^\/ferreterias\/[^/]+\/(?:vehiculos|vehiculos-donantes)(?:\/|$)/.test(req.path) || /^\/ferreterias\/[^/]+\/catalogo\/[^/]+\/vehiculos(?:\/|$)/.test(req.path)) {
+    res.set('X-Robots-Tag','noindex');
+    return res.status(410).json({ok:false,error:{code:'MARKET_RETIRED',message:'El catálogo automotriz ya no está disponible en Trovio.'}});
+  }
+  if (['POST', 'PUT', 'PATCH'].includes(req.method) && (req.body?.categoriaId === 'cat-repuestos-automotrices' || ['repuestos','desarmaduria'].includes(req.body?.tipoNegocio) || req.body?.ambitoComercial === 'desarmaduria' || req.body?.permiteVehiculos === true || req.body?.compatibilidadVehiculos?.length)) {
+    return res.status(400).json({ok:false,error:{code:'MARKET_UNSUPPORTED',message:'Trovio admite ferretería, herramientas y materiales de construcción.'}});
+  }
+  next();
+});
 mvpRouter.use(imagesRouter);
 mvpRouter.use(contactRouter);
 mvpRouter.use(marketingRouter);
@@ -36,14 +44,11 @@ mvpRouter.use(storeAgreementRouter);
 mvpRouter.use(storeOnboardingRouter);
 mvpRouter.use(intellectualPropertyRouter);
 mvpRouter.use(taxonomyRouter);
-mvpRouter.use(vehicleCatalogRouter);
-mvpRouter.use(offerVehiclesRouter);
 mvpRouter.use(offerPhotosRouter);
 mvpRouter.use(masterProductsRouter);
 mvpRouter.use(searchRouter);
 mvpRouter.use(storeDirectoryRouter);
 mvpRouter.use(storeCatalogRouter);
-mvpRouter.use(donorVehiclesRouter);
 mvpRouter.use(projectsRouter);
 mvpRouter.use(storeQuotationsRouter);
 mvpRouter.use(productRequestsRouter);

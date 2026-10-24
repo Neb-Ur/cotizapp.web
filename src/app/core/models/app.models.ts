@@ -1,3 +1,4 @@
+import type {WorkBudget, PaintingPlan} from '../utils/work-budget.util';
 import type { BusinessType } from '../utils/business-type.util';
 import type { OfferCondition } from '../utils/offer-condition.util';
 export type UserRole = 'maestro' | 'ferreteria' | 'admin';
@@ -214,10 +215,7 @@ export interface SearchRow {
 
 export interface SearchFilters {
   seoOnly?: boolean;
-  area?: 'materiales' | 'herramientas' | 'repuestos';
-  vehicleBrandId?: string;
-  vehicleModelId?: string;
-  vehicleYear?: number;
+  area?: 'materiales' | 'herramientas';
   storeId?: string;
   brandId?: string;
   brand?: string;
@@ -234,7 +232,6 @@ export interface SearchProximity {
 }
 
 export interface TaxonomyOption {
-  supportsVehicleApplications?: boolean;
   icon?: string;
   id: string;
   name: string;
@@ -360,8 +357,6 @@ export interface ProductDetailView {
   relatedCatalog?: {path:string;name:string}[];
   isTestProduct?: boolean;
   storePhotos?: ProductGalleryPhoto[];
-  vehicleCompatibility?: import('../services/vehicle-catalog.service').VehicleApplication[];
-  compatibilityReference?: boolean;
   seoPath?:string;
   productoMaestroId?: string;
   productName: string;
@@ -391,6 +386,7 @@ export interface ProductDetailView {
 }
 
 export interface ProjectItem {
+  calculationSource?: 'painting';
   productName: string;
   quantity: number;
   storeId?: string;
@@ -407,6 +403,8 @@ export interface SavedQuotationOffer extends SearchRow {
 }
 
 export interface ProjectSummary {
+  workBudget?: WorkBudget;
+  paintingPlan?: PaintingPlan;
   verificationCode?: string;
   pricesCapturedAt?: string;
   validUntil?: string;
@@ -471,15 +469,8 @@ export interface ProjectComparisonStrategy {
 }
 
 export interface CatalogProduct {
-  donorVehicleId?: string;
-  donorItemId?: string;
   businessScope?: import('../utils/business-type.util').ProductBusinessScope;
   offerPhotos?: OfferPhoto[];
-  partName?: string;
-  variantLabel?: string;
-  vehicleCompatibility?: import('../services/vehicle-catalog.service').VehicleApplication[];
-  vehicleApplicationsEditable?: boolean;
-  vehicleApplications?: import('../services/vehicle-catalog.service').VehicleApplication[];
   condition?: OfferCondition;
   brandId?: string | null;
   catalogLevel?: 'tipo_base' | 'producto_comercial';

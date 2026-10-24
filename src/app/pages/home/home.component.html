@@ -3,7 +3,7 @@
     <div class="discovery-grid">
       <div class="discovery-copy">
         <h1 id="home-title">¿Qué estás buscando?</h1>
-        <p>Compara repuestos de autos, herramientas y materiales en Chile.</p>
+        <p>Cotiza materiales y herramientas para tu obra o reparación.</p>
       </div>
       <div class="discovery-areas" role="group" aria-label="Tipo de producto">
         <button type="button" *ngFor="let option of areas" [class.selected]="(area || '') === option.id"
@@ -11,30 +11,14 @@
           <i [class]="option.icon" aria-hidden="true"></i>{{ option.label }}
         </button>
       </div>
-      <section *ngIf="area === 'repuestos'" class="discovery-vehicle" aria-labelledby="discovery-vehicle-title">
-        <strong id="discovery-vehicle-title">Tu vehículo</strong>
-        <div class="discovery-vehicle-fields">
-          <label>Marca<select aria-label="Marca del vehículo" [ngModel]="vehicleBrand" (ngModelChange)="changeVehicleBrand($event)" [disabled]="vehicleLoading">
-            <option value="">Todas</option><option *ngFor="let brand of vehicleCatalog.brands" [value]="brand.id">{{ brand.nombre }}</option>
-          </select></label>
-          <label>Modelo<select aria-label="Modelo del vehículo" [ngModel]="vehicleModel" (ngModelChange)="changeVehicleModel($event)" [disabled]="!vehicleBrand">
-            <option value="">Todos</option><option *ngFor="let model of modelOptions" [value]="model.id">{{ model.nombre }}</option>
-          </select></label>
-          <label>Año<select aria-label="Año del vehículo" [ngModel]="vehicleYear" (ngModelChange)="changeVehicleYear($event)" [disabled]="!vehicleModel">
-            <option value="">Todos</option><option *ngFor="let year of years" [value]="year">{{ year }}</option>
-          </select></label>
-        </div>
-        <span *ngIf="vehicleLoading" role="status" class="vehicle-status">Cargando vehículos…</span>
-        <p *ngIf="vehicleError" role="alert" class="vehicle-status">{{ vehicleError }} <button type="button" (click)="loadVehicles()">Reintentar</button></p>
-        <button type="button" class="discovery-vehicle-clear" (click)="clearVehicle()">Buscar sin vehículo</button>
-      </section>
+
       <form #discoverySearch class="discovery-search" role="search" aria-label="Buscar productos" (ngSubmit)="submitDiscovery()" (focusout)="onDiscoveryFocusOut($event)">
         <div class="discovery-input-wrap">
-          <label for="discovery-query" class="visually-hidden">Nombre del producto o repuesto</label>
+          <label for="discovery-query" class="visually-hidden">Nombre del material o herramienta</label>
           <i class="pi pi-search discovery-search-icon" aria-hidden="true"></i>
           <input id="discovery-query" name="discoveryQuery" type="search" autocomplete="off" [(ngModel)]="query"
             (ngModelChange)="onDiscoveryInput()" (focus)="focusDiscovery()" (keydown)="onDiscoveryKeydown($event)"
-            [placeholder]="area === 'repuestos' ? 'Ej: radiador, foco o neblinero' : area === 'herramientas' ? 'Ej: taladro, alicate o martillo' : area === 'materiales' ? 'Ej: cemento, madera o pintura' : '¿Qué producto necesitas?'"
+            [placeholder]="area === 'herramientas' ? 'Ej: taladro, alicate o martillo' : area === 'materiales' ? 'Ej: cemento, madera o pintura' : '¿Qué producto necesitas?'"
             role="combobox" aria-autocomplete="list" [attr.aria-expanded]="suggestionsOpen" aria-controls="discovery-options"
             [attr.aria-activedescendant]="suggestionsOpen && activeSuggestion >= 0 ? 'discovery-option-' + activeSuggestion : null" />
           <section *ngIf="suggestionsOpen" class="discovery-suggestions" aria-label="Sugerencias de productos"
@@ -55,7 +39,8 @@
         </div>
         <button type="submit" class="discovery-submit">{{ searchLabel }} <i class="pi pi-arrow-right" aria-hidden="true"></i></button>
       </form>
-      <a class="discovery-quotation" routerLink="/cotizaciones/nueva">Crear una cotización <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
+      <div class="discovery-links"><a class="discovery-quotation" routerLink="/cotizaciones/nueva" [queryParams]="{herramienta:'pintura'}">Calcular pintura <i class="pi pi-calculator" aria-hidden="true"></i></a>
+      <a class="discovery-quotation" routerLink="/cotizaciones/nueva">Crear una cotización <i class="pi pi-arrow-right" aria-hidden="true"></i></a></div>
     </div>
   </section>
 
@@ -64,7 +49,7 @@
       <div>
         <span>Catálogo de Trovio</span>
         <h2 id="featured-products-title">{{ previewTitle }}</h2>
-        <p>{{ area === 'repuestos' ? 'Compatibilidad registrada. Confirma con el local.' : 'Encuentra productos y compara precios entre los locales con ofertas disponibles.' }}</p>
+        <p>Encuentra productos y compara precios entre ferreterías con ofertas disponibles.</p>
       </div>
       <a routerLink="/buscar" [queryParams]="searchParams">Ver todos <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
     </div>
@@ -146,7 +131,7 @@
   <section class="store-invitation">
     <div>
       <i class="pi pi-shop" aria-hidden="true"></i>
-      <div><strong>¿Tienes un local?</strong><span>Publica tu catálogo y conecta con técnicos y maestros.</span></div>
+      <div><strong>¿Tienes un local?</strong><span>Publica tu catálogo y conecta con maestros y personas que construyen o reparan.</span></div>
     </div>
     <a class="btn btn-secondary" [href]="storeAccessWhatsappUrl" target="_blank" rel="noopener noreferrer" aria-label="Solicitar acceso por WhatsApp para mi local">Solicitar acceso por WhatsApp</a>
   </section>

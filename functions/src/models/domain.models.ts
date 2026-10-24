@@ -1,6 +1,7 @@
 
 export type UserRole = 'maestro' | 'ferreteria' | 'admin';
 export type ProjectItem = {
+  calculationSource?: 'painting';
   productName: string;
   quantity: number;
   storeId?: string;
@@ -16,7 +17,6 @@ export type ProjectProximity = {
 };
 
 export type SearchRow = {
-  vehicleApplications?: import('../domain/vehicle-application.js').VehicleApplication[];
   condition?: import('../domain/offer-condition.js').OfferCondition;
   productoMaestroId: string;
   productoFerreteriaId: string;

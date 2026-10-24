@@ -64,22 +64,22 @@
       <div class="table-wrap quotations-wrap" *ngIf="projects.length > 0; else emptyQuotes">
         <table class="quotations-table">
           <caption class="visually-hidden">Cotizaciones guardadas</caption>
-          <thead><tr><th>Cotización</th><th class="quotation-desktop">Fecha</th><th class="quotation-desktop">Ítems</th><th>Total óptimo</th><th class="quotation-desktop">Ahorro</th><th>Acciones</th></tr></thead>
+          <thead><tr><th>Cotización</th><th class="quotation-desktop">Fecha</th><th class="quotation-desktop">Ítems</th><th>Total</th><th class="quotation-desktop">Ahorro</th><th>Acciones</th></tr></thead>
           <tbody>
             <tr *ngFor="let project of projects">
               <td class="quotation-identity">
-                <span class="quotation-name" [title]="project.name">{{ project.name }}</span>
-                <div class="quotation-code" *ngIf="project.verificationCode; else missingCode">
-                  <span class="quotation-code-label">Código para presentar en el local</span>
+                <span class="quotation-name" [title]="project.name">{{ project.name }}</span><small *ngIf="project.workBudget?.enabled">Presupuesto de trabajo</small>
+                <ng-container *ngIf="!project.workBudget?.enabled || project.items.length > 0"><div class="quotation-code" *ngIf="project.verificationCode; else missingCode">
+                  <span class="quotation-code-label">{{ project.workBudget?.enabled ? 'Verificación de materiales' : 'Código para presentar en el local' }}</span>
                   <strong>{{ project.verificationCode }}</strong>
                   <button type="button" class="secondary quotation-copy" [attr.aria-label]="'Copiar código de ' + project.name" (click)="copyQuotationCode(project)"><i class="pi pi-copy" aria-hidden="true"></i> Copiar código</button>
                 </div>
-                <ng-template #missingCode><button type="button" class="secondary quotation-copy" (click)="goToProjectDetail(project.id)">Ver código en la cotización</button></ng-template>
+                <ng-template #missingCode><button type="button" class="secondary quotation-copy" (click)="goToProjectDetail(project.id)">Ver código en la cotización</button></ng-template></ng-container>
                 <small *ngIf="project.validUntil" class="quotation-desktop quotation-validity">{{ project.expired ? 'Más de 10 días' : 'Compra recomendada hasta' }} · {{ project.validUntil | date:'dd/MM/yyyy' }}</small>
               </td>
               <td class="quotation-desktop">{{ project.createdAt | date:'short' }}</td>
               <td class="quotation-desktop">{{ project.items.length }}</td>
-              <td class="quotation-total">{{ project.availabilityStatus === 'incomplete' ? 'Incompleta: revisar ofertas' : formatCurrency(project.totalOptimal) }}</td>
+              <td class="quotation-total">{{ project.availabilityStatus === 'incomplete' ? 'Incompleta: revisar ofertas' : formatCurrency(projectTotal(project)) }}</td>
               <td class="quotation-desktop">{{ formatCurrency(project.saving) }}</td>
               <td class="quotation-actions-cell">
                 <div class="row-actions quotation-actions">
@@ -102,7 +102,7 @@
           <h4>{{ project.name }}</h4><p *ngIf="project.validUntil">{{ project.expired ? 'Más de 10 días' : 'Compra recomendada hasta' }} · {{ project.validUntil | date:'dd/MM/yyyy' }}</p>
           <p>{{ project.createdAt | date:'short' }}</p>
           <p>Items: {{ project.items.length }}</p>
-          <p>Total optimo: {{ project.availabilityStatus === 'incomplete' ? 'Incompleta: revisar ofertas' : formatCurrency(project.totalOptimal) }}</p>
+          <p>{{ project.workBudget?.enabled ? 'Total presupuesto' : 'Total materiales' }}: {{ project.availabilityStatus === 'incomplete' ? 'Incompleta: revisar ofertas' : formatCurrency(projectTotal(project)) }}</p>
           <p>Ahorro estimado: {{ formatCurrency(project.saving) }}</p>
           <div class="row-actions">
             <button type="button" class="secondary" (click)="goToProjectDetail(project.id)">Ver cotización</button>

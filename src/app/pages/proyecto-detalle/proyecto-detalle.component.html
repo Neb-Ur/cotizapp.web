@@ -2,7 +2,7 @@
   <header class="page-header">
     <button type="button" class="back-to-quotations" (click)="backToProjects()"><i class="pi pi-arrow-left" aria-hidden="true"></i> Mis cotizaciones</button>
     <div class="page-title">
-      <h1>{{ isLoading ? 'Cargando cotización…' : (isNewProject ? 'Nueva cotización' : 'Detalle de cotización') }}</h1>
+      <h1>{{ isLoading ? 'Cargando cotización…' : (workBudget.enabled ? 'Presupuesto de trabajo' : (isNewProject ? 'Nueva cotización' : 'Detalle de cotización')) }}</h1>
       <p *ngIf="!isLoading && !loadError">
         {{ isNewProject
           ? 'Agrega productos y revisa el total.'
@@ -17,10 +17,14 @@
     <section class="detail-card" role="alert"><p>{{ loadError }}</p><button type="button" (click)="retryLoad()">Reintentar</button></section>
   } @else {
   <article class="detail-card quotation-content">
-    <section class="verification-code" *ngIf="verificationCode" aria-label="Código de cotización">
-      <div><span>Código de cotización</span><strong>{{ verificationCode }}</strong></div>
+    <section class="verification-code" *ngIf="verificationCode && (!workBudget.enabled || projectItems.length > 0)" aria-label="Código de cotización">
+      <div><span>{{ workBudget.enabled ? 'Verificación de materiales' : 'Código de cotización' }}</span><strong>{{ verificationCode }}</strong></div>
       <button type="button" class="secondary" (click)="copyVerificationCode()"><i class="pi pi-copy" aria-hidden="true"></i> Copiar código</button>
     </section>
+    <details class="painting-tool" [open]="showPaintingCalculator">
+      <summary><span><i class="pi pi-calculator" aria-hidden="true"></i> Calcular pintura</span><small>{{ paintingPlan ? 'Cálculo guardado: revisar o actualizar' : 'De medidas a envases del catálogo' }}</small></summary>
+      <app-painting-calculator [products]="paintProducts" [plan]="paintingPlan" [busy]="isSaving" (applyPlan)="applyPaintingPlan($event)" />
+    </details>
     <article class="summary">
         <div class="summary-heading">
           <h2>Resumen</h2>
@@ -79,7 +83,7 @@
             <tr *ngFor="let item of projectItems; let i = index">
               <td class="product-cell">
                 <strong *ngIf="isLocalQuotation">{{ item.productName }}</strong>
-                <select *ngIf="!isLocalQuotation" [attr.aria-label]="'Producto de la fila ' + (i + 1)" [(ngModel)]="item.productName">
+                <select *ngIf="!isLocalQuotation" [attr.aria-label]="'Producto de la fila ' + (i + 1)" [(ngModel)]="item.productName" (ngModelChange)="onProductChange(item)">
                   <option value="">Selecciona producto</option>
                   <option *ngFor="let option of productOptions" [value]="option">{{ option }}</option>
                 </select>
@@ -97,7 +101,7 @@
           </tbody>
           <tfoot>
             <tr class="totals-row total-final">
-              <th colspan="3" scope="row">Total con IVA</th>
+              <th colspan="3" scope="row">Total materiales (IVA incluido)</th>
               <td>{{ formatCurrency(totalWithIva) }}</td>
               <td></td>
             </tr>
@@ -112,6 +116,7 @@
         </div>
       </ng-template>
     </section>
+    <app-work-budget-editor class="work-budget-section" [budget]="workBudget" [materials]="totalWithIva" [incomplete]="unavailableItemCount > 0" (changed)="persistDraftIfNeeded()" />
     <article class="editor-panel">
         <h2>Datos de la cotización</h2>
         <div class="validity-note">

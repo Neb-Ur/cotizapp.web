@@ -76,7 +76,7 @@ test('API returns product pages and legacy offer arrays with and without offers'
     const snapshot=catalog(135);
     if(!hasOffers)snapshot.searchRows=[];
     const cache=db.collection(COLLECTIONS.publicCache);
-    await cache.doc('meta').set({dirty:false,version:`paged-search-${hasOffers}`,updatedAt:snapshot.updatedAt,policy:`data-modes-v8:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']});
+    await cache.doc('meta').set({dirty:false,version:`paged-search-${hasOffers}`,updatedAt:snapshot.updatedAt,policy:`data-modes-v9-hardware:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']});
     await cache.doc('taxonomy').set(snapshot.taxonomy);
     await cache.doc('products').set({items:snapshot.products});await cache.doc('offers').set({items:snapshot.searchRows});
     const res=response();await handler({query:{vista:'productos',page:'7',size:'20'}},res);
@@ -120,31 +120,31 @@ test('store filter removes unrelated masters and aggregates only prices from tha
  assert.equal(paginateProductSearch(snapshot,{...defaults,storeId:'missing'}).total,0);
 });
 
-test('discovery areas partition the master catalog before pagination and intersect vehicle compatibility',()=>{
+test('hardware discovery areas exclude retired automotive products before pagination',()=>{
  const snapshot=catalog(6);snapshot.searchRows=[];
  snapshot.products.forEach((p,i)=>{p.categoriaId=i<2?'cat-repuestos-automotrices':i<4?'cat-herramientas-y-consumibles':'cat-acero';});
  snapshot.products[0].compatibilidadVehiculos=[{marcaId:'mahindra',modeloId:'kuv',anioDesde:2016,anioHasta:2019}];
  snapshot.products[1].compatibilidadVehiculos=[{marcaId:'mahindra',modeloId:'kuv',anioDesde:2020,anioHasta:2023}];
- for(const area of ['materiales','herramientas','repuestos'])assert.equal(paginateProductSearch(snapshot,{...defaults,area,size:1}).total,2);
+ for(const area of ['materiales','herramientas'])assert.equal(paginateProductSearch(snapshot,{...defaults,area,size:1}).total,2);
  const page=paginateProductSearch(snapshot,{...defaults,area:'repuestos',vehicleBrandId:'mahindra',vehicleModelId:'kuv',vehicleYear:2018});
- assert.deepEqual(page.items.map(p=>p.productoMaestroId),[snapshot.products[0].id]);
- assert.equal(paginateProductSearch(snapshot,{...defaults,area:'herramientas',vehicleBrandId:'mahindra'}).total,0);
+ assert.deepEqual(page.items,[]);
+ assert.equal(paginateProductSearch(snapshot,{...defaults,area:'herramientas',vehicleBrandId:'mahindra'}).total,2);
  assert.equal(paginateProductSearch(snapshot,{...defaults,area:'repuestos',vehicleBrandId:'mahindra',vehicleModelId:'kuv',vehicleYear:2025}).total,0);
 });
 test('product search rejects unknown or repeated discovery area parameters',async()=>{
- for(const rubro of ['cualquier-cosa',['repuestos']]){const res=response();await handler({query:{vista:'productos',rubro}},res);assert.equal(res.statusCode,400);}
+ for(const rubro of ['cualquier-cosa','repuestos',['repuestos']]){const res=response();await handler({query:{vista:'productos',rubro}},res);assert.equal(res.statusCode,400);}
 });
 
-test('automotive SEO filters keep the visible product list consistent with real vehicle landing pages',()=>{
+test('automotive SEO queries cannot restore retired products',()=>{
  const snapshot=catalog(3);snapshot.searchRows=[];
  const application={marcaId:'hyundai',modeloId:'accent',anioDesde:2015,anioHasta:2018};
  snapshot.products.forEach(p=>{p.compatibilidadVehiculos=[application];p.categoriaId='cat-repuestos-automotrices';});
  snapshot.products[1].esPrueba=true;snapshot.products[2].compatibilidadReferencial=true;
  const vehicle={vehicleBrandId:'hyundai',vehicleModelId:'accent'};
- assert.equal(paginateProductSearch(snapshot,{...defaults,...vehicle}).total,3);
+ assert.equal(paginateProductSearch(snapshot,{...defaults,...vehicle}).total,0);
  const real=paginateProductSearch(snapshot,{...defaults,...vehicle,seoOnly:true});
- assert.equal(real.total,1);assert.equal(real.items[0].productoMaestroId,'p0');
- assert.equal(paginateProductSearch(snapshot,{...defaults,seoOnly:true}).total,2);
+ assert.equal(real.total,0);
+ assert.equal(paginateProductSearch(snapshot,{...defaults,seoOnly:true}).total,0);
 });
 
 test('paginating slugs reads product names linearly rather than scanning the catalog per card',()=>{

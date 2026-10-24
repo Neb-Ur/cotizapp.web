@@ -1,3 +1,5 @@
+import {normalizeWorkBudget, normalizePaintingPlan, type WorkBudget, type PaintingPlan} from '../utils/work-budget.util';
+import { hardwareSnapshot, isHardwareProduct } from '../../../../functions/src/domain/market-scope';
 import { normalizeOfferCondition } from '../utils/offer-condition.util';
 import { productArea, isProductArea, allowedProductAreas, type ProductArea, normalizeBusinessType, productMatchesBusinessType, normalizeProductBusinessScope, type BusinessType } from '../utils/business-type.util';
 import { StoreDailyAnalytics } from '../models/app.models';
@@ -59,8 +61,6 @@ interface ProductoMaestroApi {
   ambitoComercial?: import('../utils/business-type.util').ProductBusinessScope;
   nombrePieza?: string;
   detalleVariante?: string;
-  compatibilidadVehiculos?: import('./vehicle-catalog.service').VehicleApplication[];
-  compatibilidadReferencial?: boolean;
   id: string;
   categoriaId: string;
   subcategoriaId: string;
@@ -209,7 +209,16 @@ export class FirebaseDataService {
     private readonly apiClient: ApiClientService,
     private readonly authService: AuthService,
     private readonly dataMode: DataModeService | null = null
-  ) {}
+  ) {
+    if (typeof localStorage !== 'undefined') {
+      try {
+        for (const key of Object.keys(localStorage).filter(key => key.startsWith('cotizapp-product-sheet-v1:'))) {
+          const cached = JSON.parse(localStorage.getItem(key) || 'null');
+          if (cached?.raw?.productoMaestro && !isHardwareProduct(cached.raw.productoMaestro)) localStorage.removeItem(key);
+        }
+      } catch { /* Optional browser storage. */ }
+    }
+  }
 
   async refreshMaestroData(ownerId: string): Promise<void> {
     await Promise.all([
@@ -236,7 +245,6 @@ export class FirebaseDataService {
   async searchProductPage(filters: SearchFilters, page: number, size: number, sort: string, proximity?: SearchProximity): Promise<ProductSearchPage> {
     try {
       return await this.apiClient.get<ProductSearchPage>('/busqueda', false, {
-        vehiculoMarcaId: filters.vehicleBrandId, vehiculoModeloId: filters.vehicleModelId, vehiculoAnio: filters.vehicleYear,
         catalogoReal: filters.seoOnly ? '1' : undefined,
         vista: 'productos', rubro: filters.area, query: filters.query, marca: filters.brand, marcaId: filters.brandId,
         categoriaId: filters.categoryId, subcategoriaId: filters.subcategoryId, familiaId: filters.familyId,
@@ -378,7 +386,7 @@ export class FirebaseDataService {
 
   getCategoryOptions(autoLoad = true): TaxonomyOption[] {
     if (autoLoad) this.observeLoad(this.ensureBasicTaxonomyLoaded());
-    return this.categories;
+    return this.categories.filter(item=>item.id!=='cat-repuestos-automotrices');
   }
 
   getSubcategoryOptions(categoryId?: string, autoLoad = true): TaxonomyOption[] {
@@ -447,24 +455,22 @@ export class FirebaseDataService {
     await this.ensureTaxonomyLoaded(true);
   }
 
-  async createFamily(subcategoryId: string, name: string, supportsVehicleApplications?: boolean): Promise<TaxonomyOption> {
+  async createFamily(subcategoryId: string, name: string): Promise<TaxonomyOption> {
     const created = await this.apiClient.post<any>('/familias', {
       subcategoriaId: subcategoryId,
       nombre: name.trim(),
-      ...(supportsVehicleApplications !== undefined ? { permiteVehiculos: supportsVehicleApplications } : {})
     }, true);
     await this.ensureTaxonomyLoaded(true);
-    return { id: created.id, parentId: created.subcategoriaId, name: created.nombre, supportsVehicleApplications: created.permiteVehiculos === true };
+    return { id: created.id, parentId: created.subcategoriaId, name: created.nombre };
   }
 
-  async updateFamily(familyId: string, subcategoryId: string, name: string, supportsVehicleApplications?: boolean): Promise<TaxonomyOption> {
+  async updateFamily(familyId: string, subcategoryId: string, name: string): Promise<TaxonomyOption> {
     const updated = await this.apiClient.patch<any>(`/familias/${familyId}`, {
       subcategoriaId: subcategoryId,
       nombre: name.trim(),
-      ...(supportsVehicleApplications !== undefined ? { permiteVehiculos: supportsVehicleApplications } : {})
     }, true);
     await this.ensureTaxonomyLoaded(true);
-    return { id: updated.id, parentId: updated.subcategoriaId, name: updated.nombre, supportsVehicleApplications: updated.permiteVehiculos === true };
+    return { id: updated.id, parentId: updated.subcategoriaId, name: updated.nombre };
   }
 
   async deleteFamily(familyId: string): Promise<void> {
@@ -646,9 +652,6 @@ export class FirebaseDataService {
       estado: payload.isPublished === false ? 'inactivo' : 'activo',
       marca: payload.brand,
       codigoBarras: payload.barcode,
-      nombrePieza: payload.partName,
-      detalleVariante: payload.variantLabel,
-      compatibilidadVehiculos: payload.vehicleCompatibility,
       categoriaId: payload.categoryId,
       subcategoriaId: payload.subcategoryId,
       familiaId: payload.familyId,
@@ -694,9 +697,6 @@ export class FirebaseDataService {
       estado: patch.isPublished === undefined ? undefined : patch.isPublished ? 'activo' : 'inactivo',
       marca: patch.brand,
       codigoBarras: patch.barcode,
-      nombrePieza: patch.partName,
-      detalleVariante: patch.variantLabel,
-      compatibilidadVehiculos: patch.vehicleCompatibility,
       categoriaId: patch.categoryId,
       subcategoriaId: patch.subcategoryId,
       familiaId: patch.familyId,
@@ -824,7 +824,7 @@ export class FirebaseDataService {
   }): Promise<{ catalog: CatalogProduct[]; wasUpdate: boolean }> {
     await this.ensureCatalogLoaded(ownerId, true);
     const catalog = this.getCatalog(ownerId);
-    const current = catalog.find((item) => !item.donorVehicleId && (item.masterProductId || item.id) === masterProductId);
+    const current = catalog.find((item) => (item.masterProductId || item.id) === masterProductId);
 
     if (current) {
       const updated = await this.upsertCatalog(ownerId, {
@@ -866,7 +866,7 @@ export class FirebaseDataService {
       }
 
       await this.ensureCatalogLoaded(ownerId, true);
-      const synced = this.getCatalog(ownerId).find((item) => !item.donorVehicleId && (item.masterProductId || item.id) === masterProductId);
+      const synced = this.getCatalog(ownerId).find((item) => (item.masterProductId || item.id) === masterProductId);
       if (!synced) {
         throw error;
       }
@@ -992,10 +992,9 @@ export class FirebaseDataService {
       const known = [...this.getCatalog(ownerId), ...importMasters];
       for(const parsed of parsedRows) {
         const declared = parsed.area?.trim().toLowerCase();
-        const aliases: Record<string,string> = {material:'materiales',herramienta:'herramientas',repuesto:'repuestos'};
-        if(declared && (aliases[declared] || declared) !== options.area) throw new Error('El archivo contiene otro tipo de producto. Usa un archivo separado para materiales, herramientas o repuestos. No se aplicó ningún cambio.');
+        const aliases: Record<string,string> = {material:'materiales',herramienta:'herramientas',};
+        if(declared && (aliases[declared] || declared) !== options.area) throw new Error('El archivo contiene otro tipo de producto. Usa un archivo separado para materiales o herramientas. No se aplicó ningún cambio.');
         const matches = known.filter(p => (parsed.barcode && p.barcode === parsed.barcode) || (parsed.sku && p.sku === parsed.sku) || p.name.trim().toLowerCase()===parsed.name.trim().toLowerCase());
-        if(matches.some(p=>p.donorVehicleId) && ![0,1].includes(parsed.stock)) throw new Error('Las piezas de vehículos admiten stock 0 o 1. Corrige el archivo antes de importar. No se aplicó ningún cambio.');
         if(matches.some(p=>productArea({categoriaId:p.categoryId,ambitoComercial:p.businessScope})!==options.area)) throw new Error('El archivo mezcla tipos de producto del catálogo. Separa los tipos antes de importar. No se aplicó ningún cambio.');
       }
     }
@@ -1101,10 +1100,6 @@ export class FirebaseDataService {
             continue;
           }
 
-          if(existingCatalogProduct.donorVehicleId && !skuMatches.length && !barcodeMatches.length){
-            reportRows.push(failedRow('Las piezas de vehículos donantes se actualizan por SKU o código de barras único.'));
-            continue;
-          }
           const priceChanged = existingCatalogProduct.price !== parsed.price;
           const stockChanged = existingCatalogProduct.stock !== parsed.stock;
 
@@ -1155,7 +1150,7 @@ export class FirebaseDataService {
           continue;
         }
         const existingCatalogProduct = skuMatches[0] || barcodeMatches[0]
-          || findExactMasterMatch(catalog.filter(item=>!item.donorVehicleId), parsed.name, parsed.barcode);
+          || findExactMasterMatch(catalog.filter(item=>true), parsed.name, parsed.barcode);
 
         if (existingCatalogProduct) {
           await this.upsertCatalog(ownerId, {
@@ -1181,7 +1176,6 @@ export class FirebaseDataService {
           continue;
         }
 
-        if(catalog.some(item=>item.donorVehicleId && item.name.trim().toLowerCase()===parsed.name.trim().toLowerCase())) { reportRows.push(failedRow('Para actualizar una pieza de vehículo conserva su SKU o código de barras único.')); continue; }
         const suggestions = this.suggestMatches(parsed.name, importMasters);
         const firstMatch = findExactMasterMatch(importMasters, parsed.name, parsed.barcode);
         if (!firstMatch) {
@@ -1363,13 +1357,17 @@ export class FirebaseDataService {
     proximity?: SearchProximity,
     singleStoreName?: string,
     singleStoreId?: string,
-    description = ''
+    description = '',
+    workBudget?: WorkBudget,
+    paintingPlan?: PaintingPlan | null
   ): Promise<ProjectSummary> {
     try {
       const created = await this.apiClient.post<any>(`/maestros/${ownerId}/proyectos`, {
         nombre: name.trim(),
         direccionObra: address.trim(),
         descripcion: description.trim(),
+        ...(workBudget !== undefined ? {workBudget:normalizeWorkBudget(workBudget)} : {}),
+        ...(paintingPlan !== undefined ? {paintingPlan:paintingPlan === null ? null : normalizePaintingPlan(paintingPlan)} : {}),
         proximidad: proximity ? {
           latitude: proximity.latitude,
           longitude: proximity.longitude,
@@ -1403,13 +1401,17 @@ export class FirebaseDataService {
     singleStoreName?: string,
     singleStoreId?: string,
     description = '',
-    renewPrices = false
+    renewPrices = false,
+    workBudget?: WorkBudget,
+    paintingPlan?: PaintingPlan | null
   ): Promise<ProjectSummary | null> {
     try {
       const updated = await this.apiClient.put<any>(`/maestros/${ownerId}/proyectos/${projectId}`, {
         nombre: name.trim(),
         direccionObra: address.trim(),
         descripcion: description.trim(),
+        ...(workBudget !== undefined ? {workBudget:normalizeWorkBudget(workBudget)} : {}),
+        ...(paintingPlan !== undefined ? {paintingPlan:paintingPlan === null ? null : normalizePaintingPlan(paintingPlan)} : {}),
         renovarPrecios: renewPrices,
         proximidad: proximity ? {
           latitude: proximity.latitude,
@@ -1666,8 +1668,6 @@ export class FirebaseDataService {
         relatedCatalog: Array.isArray(raw.relatedCatalog) ? raw.relatedCatalog : [],
         isTestProduct: master.esPrueba === true,
         storePhotos: Array.isArray(raw.storePhotos) ? raw.storePhotos : [],
-        vehicleCompatibility: master.compatibilidadVehiculos || [],
-        compatibilityReference: master.compatibilidadReferencial === true,
         seoPath:master.seoPath,
         productoMaestroId: master.id,
         productName: master.nombre,
@@ -1736,6 +1736,7 @@ export class FirebaseDataService {
       const raw = await this.apiClient.get<any>('/productos/detalle', false, {
         producto: productName || undefined, slug: slug || undefined, vista: 'ficha'
       });
+      if (!isHardwareProduct(raw.productoMaestro || {})) return null;
       // Persist only the sheet. Prices, stock and store contacts are never persisted here.
       const sheet = { productoMaestro: raw.productoMaestro, categoryName: raw.categoryName,
         subcategoryName: raw.subcategoryName, familyName: raw.familyName, atributosProducto: raw.atributosProducto };
@@ -1750,10 +1751,9 @@ export class FirebaseDataService {
     }
   }
 
-  async loadProductOffers(sheet: ProductDetailView, vehicle?: Pick<SearchFilters, 'vehicleBrandId' | 'vehicleModelId' | 'vehicleYear'>): Promise<ProductDetailView> {
+  async loadProductOffers(sheet: ProductDetailView): Promise<ProductDetailView> {
     const raw = await this.apiClient.get<any>('/productos/detalle', false, {
       slug: sheet.seoPath?.split('/').pop() || productSlug(sheet.productName), vista: 'ofertas',
-      vehiculoMarcaId: vehicle?.vehicleBrandId, vehiculoModeloId: vehicle?.vehicleModelId, vehiculoAnio: vehicle?.vehicleYear
     });
     const offers = this.mapProductDetail({ ...raw, productoMaestro: { id: sheet.productoMaestroId, nombre: sheet.productName } });
     return { ...sheet, storePhotos: offers.storePhotos, stores: offers.stores, minPrice: offers.minPrice, maxPrice: offers.maxPrice,
@@ -1898,8 +1898,10 @@ export class FirebaseDataService {
         localStorage.removeItem(this.publicCatalogStorageKey);
         return false;
       }
+      const cleaned = hardwareSnapshot(snapshot);
+      localStorage.setItem(this.publicCatalogStorageKey, JSON.stringify(cleaned));
       this.publicCatalogNeedsPriceRefresh=age>60_000;
-      this.applyPublicCatalogSnapshot(this.publicCatalogNeedsPriceRefresh?{...snapshot,searchRows:[]}:snapshot);
+      this.applyPublicCatalogSnapshot(this.publicCatalogNeedsPriceRefresh?{...cleaned,searchRows:[]}:cleaned);
       return true;
     } catch {
       localStorage.removeItem(this.publicCatalogStorageKey);
@@ -1932,6 +1934,7 @@ export class FirebaseDataService {
   }
 
   private applyPublicCatalogSnapshot(snapshot: PublicCatalogSnapshotApi): void {
+    snapshot = hardwareSnapshot(snapshot);
     if (snapshot.version !== this.publicCatalogVersion) this.productDetailByName.clear();
     this.publicCatalogVersion = snapshot.version || '';
 
@@ -1951,7 +1954,6 @@ export class FirebaseDataService {
     this.replaceArray(this.families, families.map((item) => ({
       id: item.id,
       parentId: item.subcategoriaId,
-      supportsVehicleApplications: item.permiteVehiculos === true,
       name: item.nombre, icon: item.icono
     })));
 
@@ -2018,7 +2020,6 @@ export class FirebaseDataService {
 
         this.replaceArray(this.categories, categories.map((item) => ({ id: item.id, name: item.nombre, icon: item.icono })));
         this.replaceArray(this.subcategories, subcategories.map((item) => ({ id: item.id, parentId: item.categoriaId, name: item.nombre })));
-        this.replaceArray(this.families, families.map((item) => ({ id: item.id, parentId: item.subcategoriaId, name: item.nombre, supportsVehicleApplications: item.permiteVehiculos === true })));
       } catch (error) {
         throw this.recordLoadError('basic-taxonomy', error, 'No se pudieron cargar las categorías.');
       } finally {
@@ -2224,9 +2225,6 @@ export class FirebaseDataService {
       id: product.id,
       masterProductId: product.id,
       businessScope: normalizeProductBusinessScope(product.ambitoComercial, product.categoriaId),
-      partName: product.nombrePieza,
-      variantLabel: product.detalleVariante,
-      vehicleCompatibility: product.compatibilidadVehiculos,
       catalogLevel: product.catalogoNivel,
       name: product.nombre,
       barcode: product.codigoBarras || '',
@@ -2284,12 +2282,8 @@ export class FirebaseDataService {
     const master = row.productoMaestro || {};
 
     const item: CatalogProduct = {
-      donorVehicleId: row.vehiculoDonanteId || undefined,
-      donorItemId: row.piezaDonanteId || undefined,
       offerPhotos: Array.isArray(row.fotosPublicacion) ? row.fotosPublicacion.map((photo:any)=>({id:photo.id,url:photo.url,thumbnailUrl:photo.thumbnailUrl})) : [],
       id: row.id,
-      vehicleApplicationsEditable: row.vehiculosEditables === true,
-      vehicleApplications: Array.isArray(row.asociacionesVehiculos) ? row.asociacionesVehiculos : [],
       masterProductId: master.id || row.productoMaestroId,
       businessScope: normalizeProductBusinessScope(master.ambitoComercial, master.categoriaId),
       name: master.nombre || 'Producto',
@@ -2348,6 +2342,8 @@ export class FirebaseDataService {
         pricingOffers: row.pricingOffers,
         id: row.id,
         description: row.description || '',
+        workBudget: normalizeWorkBudget(row.workBudget),
+        paintingPlan: normalizePaintingPlan(row.paintingPlan),
         name: row.name,
         address: row.address || '',
         proximity: this.mapSearchProximity(row.proximity),

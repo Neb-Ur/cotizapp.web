@@ -122,3 +122,5 @@ button:disabled { opacity: .6; cursor: not-allowed; }
   .same-store-option > button { grid-column: 1 / -1; }
   .actions button { flex: 1; }
 }
+
+.painting-tool,.work-budget-section{grid-column:1/-1;min-width:0}.painting-tool{border:1px solid var(--border-med);border-radius:14px;background:white;overflow:hidden}.painting-tool>summary{cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;color:var(--navy-900);font-weight:700;min-height:44px;list-style:none}.painting-tool>summary span{display:flex;gap:10px;align-items:center}.painting-tool>summary small{font-weight:400;color:var(--ink-700)}.painting-tool>summary:focus-visible{outline:2px solid var(--orange-500);outline-offset:-3px}.painting-tool[open]>summary{border-bottom:1px solid var(--border-med)}@media(max-width:600px){.painting-tool>summary{align-items:flex-start;flex-direction:column}}

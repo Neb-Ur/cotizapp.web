@@ -1,3 +1,4 @@
+import {normalizeWorkBudget,workBudgetTotals} from '../../core/utils/work-budget.util';
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -146,6 +147,10 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
     }
   }
 
+  protected projectTotal(project:ProjectSummary):number {
+    try{return workBudgetTotals(project.totalOptimal,normalizeWorkBudget(project.workBudget)).total;}catch{return project.totalOptimal;}
+  }
+
   protected async shareProject(project: ProjectSummary): Promise<void> {
     const quotation = this.apiService.buildProjectQuotation(
       project.items,
@@ -154,7 +159,7 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
       project.singleStoreId,
       project.pricingOffers
     );
-    if (quotation.lines.length === 0) {
+    if (quotation.lines.length === 0 && (!project.workBudget?.enabled || this.projectTotal(project)<=0)) {
       this.quotationNotice = 'Esta cotizacion no tiene productos para enviar.';
       return;
     }
@@ -170,6 +175,8 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
         projectName: project.name,
         projectAddress: project.address || '',
         projectDescription: project.description || '',
+        workBudget:project.workBudget,
+        paintingPlan:project.paintingPlan,
         pricesCapturedAt: project.pricesCapturedAt,
         validUntil: project.validUntil,
         verificationCode: project.verificationCode,
@@ -177,6 +184,7 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
         quotation,
         proximity: project.proximity
       });
+      if(result==='cancelled')return;
       this.quotationNotice = result === 'shared'
         ? 'Cotizacion lista para enviar al cliente.'
         : 'Tu navegador no permite compartir el PDF directamente; se descargo para que puedas enviarlo.';

@@ -75,8 +75,11 @@ export class CatalogSearchIndexService {
       const finish=(result:any)=>{if(done)return;done=true;clearTimeout(timer);db?.close();resolve(result);};
       const timer=setTimeout(()=>finish(null),1_500);
       try {
-        const request=indexedDB.open('cotizapp-search-v1',1);
-        request.onupgradeneeded=()=>request.result.createObjectStore('catalog');
+        const request=indexedDB.open('cotizapp-search-v1',2);
+        request.onupgradeneeded=()=>{
+          if (request.result.objectStoreNames.contains('catalog')) request.transaction!.objectStore('catalog').clear();
+          else request.result.createObjectStore('catalog');
+        };
         request.onerror=()=>finish(null);request.onblocked=()=>finish(null);
         request.onsuccess=()=>{
           db=request.result;if(done){db.close();return;}

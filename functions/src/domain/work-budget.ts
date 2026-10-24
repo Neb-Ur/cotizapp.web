@@ -1,0 +1,61 @@
+export interface CostEntry { description: string; unit: 'trabajo' | 'hora' | 'jornada' | 'unidad'; quantity: number; unitPrice: number; }
+export interface WorkBudget { version: 1; enabled: boolean; clientName: string; scope: string; terms: string; labor: CostEntry[]; expenses: CostEntry[]; markupPercent: number; discloseCosts: boolean; }
+export class WorkBudgetError extends Error {}
+export const emptyWorkBudget = (): WorkBudget => ({version:1,enabled:false,clientName:'',scope:'',terms:'',labor:[],expenses:[],markupPercent:0,discloseCosts:false});
+const text=(value:unknown,max:number)=>typeof value==='string'?value.trim().slice(0,max):'';
+function number(value:unknown,min:number,max:number,label:string):number {
+ if(typeof value!=='number'||!Number.isFinite(value)||value<min||value>max)throw new WorkBudgetError(`Revisa ${label}.`);
+ return value;
+}
+export function normalizeWorkBudget(value:unknown): WorkBudget {
+ if(value==null)return emptyWorkBudget();
+ if(typeof value!=='object'||Array.isArray(value))throw new WorkBudgetError('Revisa el presupuesto de trabajo.');
+ const v=value as WorkBudget;
+ if(v.version!==1||typeof v.enabled!=='boolean'||typeof v.discloseCosts!=='boolean')throw new WorkBudgetError('Formato de presupuesto no válido.');
+ if(!v.enabled)return {...emptyWorkBudget(),clientName:text(v.clientName,200),scope:text(v.scope,3000),terms:text(v.terms,2000)};
+ const entries=(input:unknown):CostEntry[]=>{
+  if(!Array.isArray(input)||input.length>50)throw new WorkBudgetError('Usa hasta 50 partidas por sección.');
+  return input.map(row=>{
+   if(!row||typeof row!=='object'||!['trabajo','hora','jornada','unidad'].includes(row.unit))throw new WorkBudgetError('Revisa la unidad de cada partida.');
+   const description=text(row.description,200);
+   if(!description)throw new WorkBudgetError('Indica una descripción para cada partida.');
+   return {description,unit:row.unit,quantity:number(row.quantity,0.01,1_000_000,'la cantidad de cada partida'),unitPrice:Math.round(number(row.unitPrice,0,1_000_000_000,'el precio de cada partida'))};
+  });
+ };
+ const labor=entries(v.labor),expenses=entries(v.expenses);
+ if([...labor,...expenses].reduce((sum,row)=>sum+Math.round(row.quantity*row.unitPrice),0)>1_000_000_000_000)throw new WorkBudgetError('El costo del trabajo supera el máximo permitido.');
+ return {version:1,enabled:v.enabled,clientName:text(v.clientName,200),scope:text(v.scope,3000),terms:text(v.terms,2000),labor,expenses,markupPercent:number(v.markupPercent,0,100,'el recargo sobre costos (0 a 100 %)'),discloseCosts:v.discloseCosts};
+}
+export function workBudgetTotals(materials:number,budget:WorkBudget) {
+ const normalized=normalizeWorkBudget(budget);
+ const sum=(entries:CostEntry[])=>entries.reduce((total,row)=>total+Math.round(row.quantity*row.unitPrice),0);
+ const labor=normalized.enabled?sum(normalized.labor):0,expenses=normalized.enabled?sum(normalized.expenses):0;
+ const materialTotal=Number.isFinite(materials)&&materials>=0?Math.round(materials):0;
+ const cost=materialTotal+labor+expenses;
+ const markup=normalized.enabled?Math.round(cost*normalized.markupPercent/100):0;
+ return {materials:materialTotal,labor,expenses,cost,markup,total:cost+markup};
+}
+export interface PaintingPlan {version:1; length:number; height:number; surfaces:number; openings:number; coats:number; coverage:number; wastePercent:number; packLiters:number; productId:string; productName:string;}
+export function calculatePainting(input:Pick<PaintingPlan,'length'|'height'|'surfaces'|'openings'|'coats'|'coverage'|'wastePercent'|'packLiters'>) {
+ const length=number(input.length,0.01,10000,'el largo'),height=number(input.height,0.01,10000,'el alto');
+ const surfaces=number(input.surfaces,1,1000,'la cantidad de superficies'),coats=number(input.coats,1,20,'las manos');
+ if(!Number.isInteger(surfaces)||!Number.isInteger(coats))throw new WorkBudgetError('Superficies y manos deben ser números enteros.');
+ const grossArea=length*height*surfaces,openings=number(input.openings,0,grossArea,'la superficie de puertas y ventanas');
+ if(openings>=grossArea)throw new WorkBudgetError('La superficie a pintar debe ser mayor que cero.');
+ const coverage=number(input.coverage,0.01,1000,'el rendimiento por litro y mano');
+ const waste=number(input.wastePercent,0,100,'el porcentaje adicional'),pack=number(input.packLiters,0.01,10000,'los litros del envase');
+ const area=grossArea-openings,liters=area*coats/coverage*(1+waste/100);
+ const packages=Math.ceil(Number((liters/pack).toPrecision(12)));
+ if(!Number.isSafeInteger(packages)||packages>1_000_000)throw new WorkBudgetError('El cálculo supera la cantidad permitida de envases.');
+ return {area,liters,packages,purchasedLiters:packages*pack};
+}
+export function normalizePaintingPlan(value:unknown):PaintingPlan|undefined {
+ if(value==null)return undefined;
+ if(typeof value!=='object'||Array.isArray(value))throw new WorkBudgetError('Revisa el cálculo de pintura.');
+ const v=value as PaintingPlan;
+ if(v.version!==1)throw new WorkBudgetError('Formato del cálculo de pintura no válido.');
+ calculatePainting(v);
+ const productId=text(v.productId,200),productName=text(v.productName,200);
+ if(!productId||!productName)throw new WorkBudgetError('Selecciona una pintura del catálogo.');
+ return {version:1,length:v.length,height:v.height,surfaces:v.surfaces,openings:v.openings,coats:v.coats,coverage:v.coverage,wastePercent:v.wastePercent,packLiters:v.packLiters,productId,productName};
+}

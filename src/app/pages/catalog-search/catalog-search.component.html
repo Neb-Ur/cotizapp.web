@@ -8,7 +8,7 @@
     <label class="area-filter">¿Qué buscas?
       <select [ngModel]="selectedArea || ''" (ngModelChange)="onAreaChange($event)">
         <option value="">Todos los productos</option><option value="materiales">Materiales</option>
-        <option value="herramientas">Herramientas</option><option value="repuestos">Repuestos automotrices</option>
+        <option value="herramientas">Herramientas</option>
       </select>
     </label>
     <section class="search-primary" aria-labelledby="product-search-label">
@@ -121,28 +121,7 @@
             <input list="family-options" [(ngModel)]="familySearch" (ngModelChange)="onFamilyInput($event)" [disabled]="!selectedSubcategoryId" placeholder="Todas" />
             <datalist id="family-options"><option *ngFor="let option of familyOptions" [value]="option.name"></option></datalist>
           </label>
-          <ng-container *ngIf="showVehicleFilters">
-            <label>Marca del vehículo
-              <select [ngModel]="selectedVehicleBrandId" (ngModelChange)="onVehicleBrandChange($event)">
-                <option value="">Todas las marcas</option>
-                <option *ngFor="let brand of vehicleCatalog.brands" [value]="brand.id">{{ brand.nombre }}</option>
-              </select>
-            </label>
-            <label>Modelo del vehículo
-              <select [ngModel]="selectedVehicleModelId" (ngModelChange)="onVehicleModelChange($event)" [disabled]="!selectedVehicleBrandId">
-                <option value="">Todos los modelos</option>
-                <option *ngFor="let model of vehicleModelOptions" [value]="model.id">{{ model.nombre }}</option>
-              </select>
-            </label>
-            <label>Año del vehículo
-              <input type="number" min="1886" max="2100" step="1" placeholder="Todos los años" [ngModel]="selectedVehicleYear" (ngModelChange)="onVehicleYearChange($event)" [disabled]="!selectedVehicleModelId" />
-              <small *ngIf="vehicleYearError" role="alert">{{ vehicleYearError }}</small>
-            </label>
-            <p>Filtra por la compatibilidad registrada en el producto maestro. Confirma la compatibilidad antes de comprar.</p>
-            <p *ngIf="!vehicleCatalog.brands.length && !vehicleCatalogError">Todavía no hay marcas y modelos de vehículos registrados.</p>
-            <p *ngIf="selectedVehicleBrandId && !vehicleModelOptions.length">Esta marca todavía no tiene modelos registrados.</p>
-            <p *ngIf="vehicleCatalogError" role="alert">{{ vehicleCatalogError }} <button type="button" (click)="loadVehicleCatalog()">Reintentar</button></p>
-          </ng-container>
+
         </div>
       </aside>
 
@@ -159,7 +138,6 @@
           {{ selectedFamilyName }} <fa-icon [icon]="faRemove" aria-hidden="true" />
         </button>
         <button type="button" *ngIf="selectedBrand" (click)="clearBrandFilter()" [attr.aria-label]="'Quitar marca ' + selectedBrand">{{ selectedBrand }} <fa-icon [icon]="faRemove" aria-hidden="true" /></button>
-        <button type="button" *ngIf="selectedVehicleBrandId || selectedVehicleModelId || selectedVehicleYear" (click)="clearVehicleFilters()" aria-label="Quitar filtros de vehículo">Vehículo{{ selectedVehicleYear ? ' · ' + selectedVehicleYear : '' }} <fa-icon [icon]="faRemove" aria-hidden="true" /></button>
         <button type="button" class="clear-active-filters" (click)="clearAllFilters()">Limpiar todo</button>
       </div>
 
@@ -209,7 +187,7 @@
 
       <ng-template #emptyProducts>
         <ng-container *ngIf="!productsLoading && !dataLoadError">
-          <p class="cards-empty">{{ selectedVehicleBrandId ? 'No hay productos con compatibilidad registrada que coincidan con los filtros seleccionados.' : 'No encontramos productos en nuestro catálogo para esta búsqueda.' }}</p>
+          <p class="cards-empty">No encontramos productos en nuestro catálogo para esta búsqueda.</p>
         </ng-container>
       </ng-template>
 

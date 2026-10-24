@@ -11,16 +11,16 @@ test('pilot stores require explicit enablement and disappear with their offers w
  assert.equal(storeCanPublish({estado:'activo'}),false);
  }finally{if(before===undefined)delete process.env.PILOT_STORES_ENABLED;else process.env.PILOT_STORES_ENABLED=before;}
 });
-test('public offer rows expose only normalized vehicle declarations from visible offers', async () => {
+test('public offer rows never expose retired vehicle metadata', async () => {
  const before=process.env.PILOT_STORES_ENABLED;
  try {
   process.env.PILOT_STORES_ENABLED='true';
   const data=source();
   data[0][0].asociacionesVehiculos=[{marcaId:'a',modeloId:'m',anioDesde:2000,anioHasta:2004,marcaNombre:'Marca',modeloNombre:'Modelo',internalNote:'private'}];
   const rows=await buildSearchRows(data);
-  assert.deepEqual(rows[0].vehicleApplications,[{marcaId:'a',modeloId:'m',anioDesde:2000,anioHasta:2004,marcaNombre:'Marca',modeloNombre:'Modelo'}]);
+  assert.equal('vehicleApplications' in rows[0],false);
   data[0][0].asociacionesVehiculos=[{marcaId:'a',modeloId:'m',anioDesde:2004,anioHasta:2000}];
-  assert.deepEqual((await buildSearchRows(data))[0].vehicleApplications,[]);
+  assert.equal('vehicleApplications' in (await buildSearchRows(data))[0],false);
   data[0][0].publicado=false;assert.equal((await buildSearchRows(data)).length,0);
  } finally {if(before===undefined)delete process.env.PILOT_STORES_ENABLED;else process.env.PILOT_STORES_ENABLED=before;}
 });

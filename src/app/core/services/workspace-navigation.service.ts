@@ -28,7 +28,6 @@ export class WorkspaceNavigationService {
   readonly links = computed<WorkspaceLink[]>(()=> {
     if(this.admin()) return ADMIN_WORKSPACE_LINKS;
     const items:WorkspaceLink[]=[{section:'inicio',label:'Resumen',icon:'pi pi-chart-bar'},{section:'catalogo',label:'Mi catálogo',icon:'pi pi-box'}];
-    if(['desarmaduria','repuestos'].includes(this.auth.currentUser()?.businessType || '')) items.push({section:'vehiculos',label:'Mis vehículos',icon:'pi pi-car'});
     return [...items,{section:'catalogo',accion:'agregar',label:'Agregar productos',icon:'pi pi-plus'},{section:'catalogo',accion:'archivo',label:'Carga por Excel',icon:'pi pi-upload'},
       {section:'cotizaciones',label:'Cotizaciones',icon:'pi pi-file-check'},{section:'perfil',label:'Mi perfil',icon:'pi pi-user'}];
   });

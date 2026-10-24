@@ -7,3 +7,7 @@ it('normalizes Chilean mobile numbers and encodes names, totals and the pilot wa
 it('rejects invalid recipients and supports international country codes',()=>{
  expect(()=>quotationWhatsappUrl('javascript:123','Trabajo','$1')).toThrow();expect(()=>quotationWhatsappUrl('123','Trabajo','$1')).toThrow();expect(quotationWhatsappUrl('+54 9 11 1234 5678','Trabajo','$1')).toContain('/5491112345678?');
 });
+it('uses the work budget amount without calling labor VAT verified by a store',()=>{
+ const url=quotationWhatsappUrl('+56 9 1234 5678','Pintura','$200.000',false,undefined,'TRV-TEST',true);
+ const message=decodeURIComponent(url);expect(message).toContain('Total presupuestado: $200.000');expect(message).toContain('verificación de materiales');expect(message).not.toContain('Total con IVA');
+});

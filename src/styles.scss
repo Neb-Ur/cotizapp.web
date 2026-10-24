@@ -803,6 +803,3 @@ app-dashboard-admin-validaciones .admin-data-table .p-datatable-tbody > tr > td 
 }
 
 body.discovery-search-open app-help-widget, body.discovery-search-open app-pilot-banner { visibility: hidden; }
-
-/* Keep the floating help control clear of the donor editor action bar. */
-body:has(app-donor-inventory .vehicle-editor) app-help-widget { display: none; }

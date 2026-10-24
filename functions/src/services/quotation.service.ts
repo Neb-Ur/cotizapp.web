@@ -1,3 +1,4 @@
+import {normalizeWorkBudget, normalizePaintingPlan, workBudgetTotals} from '../domain/work-budget.js';
 import { captureQuotationPricing, quotationExpired } from '../domain/quotation-validity.js';
 import { buildQuotationOptimization } from '../domain/quotation.js';
 import type { ProjectItem, ProjectProximity } from '../models/domain.models.js';
@@ -8,6 +9,7 @@ export function normalizeItems(value: unknown): ProjectItem[] {
   return value
     .map((item: any) => ({
       productName: normalizeText(item?.productName),
+      ...(item?.calculationSource === 'painting' ? {calculationSource:'painting' as const} : {}),
       quantity: Math.max(1, Math.floor(numberValue(item?.quantity, 1))),
       ...(normalizeText(item?.productoMaestroId) ? { productoMaestroId: normalizeText(item.productoMaestroId) } : {}),
       ...(normalizeText(item?.storeId) ? { storeId: normalizeText(item.storeId) } : {}),
@@ -54,12 +56,15 @@ export async function projectView(project: any, offers?: Awaited<ReturnType<type
     name: project.name || project.nombre || 'Cotizacion',
     address: project.address || project.direccionObra || '',
     description: project.description || '',
+    workBudget: normalizeWorkBudget(project.workBudget),
+    workBudgetTotals: workBudgetTotals(optimization.optimalTotal, normalizeWorkBudget(project.workBudget)),
+    paintingPlan: normalizePaintingPlan(project.paintingPlan),
     proximity: proximity || undefined,
     singleStoreName: optimization.appliedStoreName || undefined,
     singleStoreId: optimization.appliedStoreId || undefined,
     createdAt: project.createdAt || project.creadoEn || nowIso(),
     items,
-    availabilityStatus: items.length === 0 ? 'draft' : optimization.lines.some((line: any) => line.unitPrice <= 0) ? 'incomplete' : 'ready',
+    availabilityStatus: items.length === 0 ? (workBudgetTotals(0,normalizeWorkBudget(project.workBudget)).total>0 ? 'ready' : 'draft') : optimization.lines.some((line: any) => line.unitPrice <= 0) ? 'incomplete' : 'ready',
     pricesCheckedAt: project.pricesCapturedAt || nowIso(),
     pricesCapturedAt: project.pricesCapturedAt,
     validUntil: project.validUntil,

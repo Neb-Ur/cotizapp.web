@@ -65,38 +65,6 @@ erDiagram
     text brand_id PK,FK "NOT NULL"
     text use_kind PK "NOT NULL"
   }
-  product_vehicle_applications["Compatibilidad del producto maestro"] {
-    text product_id PK,FK "NOT NULL"
-    integer position PK "NOT NULL"
-    text brand_id FK "NOT NULL"
-    text model_id FK "NOT NULL"
-    integer year_from "NOT NULL"
-    integer year_to "NOT NULL"
-    text brand_name_snapshot "NOT NULL"
-    text model_name_snapshot "NOT NULL"
-  }
-  offer_vehicle_applications["Vehículos declarados por publicación"] {
-    text offer_id PK,FK "NOT NULL"
-    integer position PK "NOT NULL"
-    text brand_id FK "NOT NULL"
-    text model_id FK "NOT NULL"
-    integer year_from "nullable"
-    integer year_to "nullable"
-    text brand_name_snapshot "nullable"
-    text model_name_snapshot "nullable"
-  }
-  vehicle_models["Modelos de vehículos"] {
-    text id PK "NOT NULL"
-    text brand_id FK "NOT NULL"
-    text brand_use FK "NOT NULL"
-    text name "NOT NULL"
-    text normalized_name "NOT NULL"
-    boolean active "NOT NULL"
-    timestamptz created_at "NOT NULL"
-    timestamptz updated_at "NOT NULL"
-    jsonb api_payload "nullable"
-    bigint api_version "NOT NULL"
-  }
   visit_daily_keys["Claves de visitas por día"] {
     date visit_date PK "NOT NULL"
     text visitor_key PK "NOT NULL"
@@ -226,7 +194,6 @@ erDiagram
     text id PK "NOT NULL"
     text subcategory_id FK "NOT NULL"
     text name "NOT NULL"
-    boolean supports_vehicle_applications "NOT NULL"
     jsonb api_payload "nullable"
     bigint api_version "NOT NULL"
   }
@@ -531,9 +498,6 @@ erDiagram
     bigint api_version "NOT NULL"
   }
   products["Productos del catálogo maestro"] {
-    text part_name "nullable"
-    text variant_label "nullable"
-    text automotive_identity "nullable; índice único parcial"
     text id PK "NOT NULL"
     text family_id FK "NOT NULL"
     text model_id FK "nullable"
@@ -947,10 +911,4 @@ erDiagram
   cities o|..o{ store_locations : "city_id"
   stores ||..o{ store_reviews : "store_id"
   users ||..o{ store_reviews : "user_id"
-  products ||--o{ product_vehicle_applications : "product_id"
-  vehicle_models ||..o{ product_vehicle_applications : "model_id, brand_id"
-  offers ||..o{ offer_vehicle_applications : "offer_id"
-  vehicle_models ||..o{ offer_vehicle_applications : "model_id, brand_id"
   brands ||--o{ brand_uses : "brand_id"
-  brands ||..o{ vehicle_models : "brand_id"
-  brand_uses ||..o{ vehicle_models : "brand_id, brand_use"

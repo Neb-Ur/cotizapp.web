@@ -185,19 +185,19 @@ it('keeps the home header compact without duplicating the discovery search',asyn
  expect(fixture.nativeElement.querySelector('.navbar-search')).not.toBeNull();
 });
 
-it('preserves discovery and vehicle context while searching another part from the results header',async()=>{
+it('drops retired vehicle context from header search',async()=>{
  const {component,router,data}=await setup();
- vi.spyOn(router,'url','get').mockReturnValue('/buscar?rubro=repuestos&vehiculoMarcaId=mahindra&vehiculoModeloId=kuv&vehiculoAnio=2018&q=foco');
+ vi.spyOn(router,'url','get').mockReturnValue('/buscar?rubro=herramientas&vehiculoMarcaId=mahindra&vehiculoModeloId=kuv&vehiculoAnio=2018&q=foco');
  data.searchProductPage.mockResolvedValue({items:[{productoMaestroId:'radiador',productName:'Radiador KUV100',productType:'Radiador',seoPath:'/productos/radiador-kuv'}]});
  component.searchValue='radiador';component.onSearchInput();await new Promise(resolve=>setTimeout(resolve,300));
- expect(data.searchProductPage).toHaveBeenCalledWith(expect.objectContaining({area:'repuestos',vehicleBrandId:'mahindra',vehicleModelId:'kuv',vehicleYear:2018,query:'radiador'}),1,6,'relevance');
+ expect(data.searchProductPage).toHaveBeenCalledWith(expect.objectContaining({area:'herramientas',query:'radiador'}),1,6,'relevance');
  expect(component.flatSuggestions[0].name).toBe('Radiador KUV100');
  const navigate=vi.spyOn(router,'navigate').mockResolvedValue(true);component.submitSearch();
- expect(navigate).toHaveBeenCalledWith(['/buscar'],{queryParams:{rubro:'repuestos',vehiculoMarcaId:'mahindra',vehiculoModeloId:'kuv',vehiculoAnio:'2018',q:'radiador'}});
+ expect(navigate).toHaveBeenCalledWith(['/buscar'],{queryParams:{rubro:'herramientas',q:'radiador'}});
 });
 it('shows donor inventory only for junkyards and parts stores',async()=>{
  const {fixture,router}=await setup();const auth=TestBed.inject(AuthService) as any;vi.spyOn(router,'url','get').mockReturnValue('/dashboard/ferreteria');auth.isLoggedIn=()=>true;
- for(const businessType of ['desarmaduria','repuestos','ferreteria']){auth.currentUser=()=>({role:'ferreteria',businessType});fixture.detectChanges();const links=Array.from(fixture.nativeElement.querySelectorAll('.store-header-links a')) as HTMLAnchorElement[];expect(links.some(a=>a.textContent?.includes('Mis vehículos'))).toBe(businessType!=='ferreteria');}
+ for(const businessType of ['desarmaduria','repuestos','ferreteria']){auth.currentUser=()=>({role:'ferreteria',businessType});fixture.detectChanges();const links=Array.from(fixture.nativeElement.querySelectorAll('.store-header-links a')) as HTMLAnchorElement[];expect(links.some(a=>a.textContent?.includes('Mis vehículos'))).toBe(false);}
 });
 
 describe('home navigation loading',()=>{

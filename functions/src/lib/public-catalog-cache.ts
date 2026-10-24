@@ -1,3 +1,4 @@
+import { hardwareSnapshot, hardwareTaxonomy, isHardwareProduct } from '../domain/market-scope.js';
 import { pilotStoresEnabled, publicRecordVisible } from '../services/pilot-stores.service.js';
 import { catalogCacheIsFresh, nextCatalogTransition } from '../domain/catalog-cache-validity.js';
 import { useSqlDatabase } from '../database/config.js';
@@ -30,12 +31,13 @@ export type PublicCatalogSnapshot = {
 
 const META_ID = 'meta';
 const CHUNK_SIZE = 150;
-const CACHE_POLICY = `data-modes-v8:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}`;
+const CACHE_POLICY = `data-modes-v9-hardware:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}`;
 function fresh(meta:any):boolean {return catalogCacheIsFresh(meta,`${CACHE_POLICY}:pilot=${pilotStoresEnabled()}`);}
 const rebuildPromises = new Map<string, Promise<PublicCatalogSnapshot>>();
 const memorySnapshots = new Map<string, PublicCatalogSnapshot>();
 
 function rememberSnapshot(snapshot: PublicCatalogSnapshot): PublicCatalogSnapshot {
+  snapshot = hardwareSnapshot(snapshot);
   memorySnapshots.set(dataMode(), snapshot);
   return snapshot;
 }
@@ -92,7 +94,7 @@ async function materializeSnapshot(): Promise<PublicCatalogSnapshot> {
   const nextTransitionAt=nextCatalogTransition(offers,asOf);
 
   const activeProducts = products
-    .filter((item) => item.estado !== 'inactivo' && publicRecordVisible(item))
+    .filter((item) => item.estado !== 'inactivo' && publicRecordVisible(item) && isHardwareProduct(item))
     .map((item) => ({
       id: item.id,
       esPrueba: item.esPrueba === true,
@@ -101,10 +103,6 @@ async function materializeSnapshot(): Promise<PublicCatalogSnapshot> {
       subcategoriaId: item.subcategoriaId,
       familiaId: item.familiaId,
       nombre: item.nombre,
-      nombrePieza: item.nombrePieza || '',
-      detalleVariante: item.detalleVariante || '',
-      compatibilidadVehiculos: item.compatibilidadVehiculos || [],
-      compatibilidadReferencial: item.compatibilidadReferencial === true,
       tipoProducto: item.tipoProducto || '',
       unidadVenta: item.unidadVenta || '',
       presentacion: item.presentacion || '',
@@ -124,11 +122,8 @@ async function materializeSnapshot(): Promise<PublicCatalogSnapshot> {
     }))
     .sort((a, b) => normalizeText(a.nombre).localeCompare(normalizeText(b.nombre)));
 
-  const taxonomy = {
-    categories: categories.sort((a, b) => normalizeText(a.nombre).localeCompare(normalizeText(b.nombre))),
-    subcategories: subcategories.sort((a, b) => normalizeText(a.nombre).localeCompare(normalizeText(b.nombre))),
-    families: families.sort((a, b) => normalizeText(a.nombre).localeCompare(normalizeText(b.nombre)))
-  };
+  const taxonomy = hardwareTaxonomy(categories, subcategories, families);
+  for (const items of Object.values(taxonomy)) items.sort((a,b)=>normalizeText(a.nombre).localeCompare(normalizeText(b.nombre)));
 
   const version = `${Date.now()}-${randomUUID().slice(0, 8)}`;
   const updatedAt = nowIso();

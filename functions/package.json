@@ -8,7 +8,7 @@
     "node": "22"
   },
   "scripts": {
-    "build": "tsc && cd .. && node functions/scripts/copy-web-template.mjs",
+    "build": "node scripts/clean-build.mjs && tsc && cd .. && node functions/scripts/copy-web-template.mjs",
     "serve": "npm run build && firebase emulators:start --only functions,firestore,auth,hosting",
     "deploy": "firebase deploy --only functions,firestore:rules",
     "test": "npm run build && node --test tests/*.test.mjs",

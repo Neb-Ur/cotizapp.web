@@ -1,6 +1,7 @@
+import { brandUses } from '../domain/brand-use.js';
+import { isHardwareProduct, hardwareCatalog } from '../domain/market-scope.js';
 import { productArea, isProductArea, allowedProductAreas } from '../domain/business-type.js';
 import { publicRecordVisible } from '../services/pilot-stores.service.js';
-import {normalizeProductApplications,automotiveProductName,automotiveIdentity} from '../domain/product-vehicle.js';
 import { invalidateStaticCatalog } from '../lib/product-sheet-cache.js';
 import { markPublicCatalogDirty } from '../lib/public-catalog-cache.js';
 import { Router, type Request, type Response } from 'express';
@@ -11,32 +12,11 @@ import { COLLECTIONS } from '../lib/collections.js';
 import { nowIso, normalizeText, numberValue } from '../lib/values.js';
 import { rows, row, createRow, patchRow, deleteRowsByIds } from '../repositories/firestore.repository.js';
 import { resolveProductBrand } from '../lib/brands.js';
-import { brandUses } from '../domain/brand-use.js';
 import { productMatchesBusinessType, isBusinessType, normalizeBusinessType, isProductBusinessScope, normalizeProductBusinessScope } from '../domain/business-type.js';
 export const masterProductsRouter = Router();
 
 const validImageSources = ['external_url', 'ai_generated', 'manufacturer_authorized', 'store_authorized', 'licensed_stock', 'original', 'other'];
 const validContentSources = ['manufacturer_authorized', 'store_authorized', 'licensed', 'original', 'ai_assisted_original', 'public_domain', 'other'];
-
-async function vehicleFields(body: Record<string, any>, current: any = {}) {
-  if(body.compatibilidadVehiculos===undefined && !current.compatibilidadVehiculos?.length && body.nombrePieza===undefined)return {};
-  const applications=normalizeProductApplications(body.compatibilidadVehiculos ?? current.compatibilidadVehiculos ?? []);
-  if(!applications.length)throw new Error('PRODUCT_COMPATIBILITY_REQUIRED');
-  const family=await row(COLLECTIONS.families,body.familiaId ?? current.familiaId);
-  if(family?.permiteVehiculos!==true)throw new Error('FAMILY_VEHICLES_DISABLED');
-  const resolved=[];
-  for(const a of applications){
-    const model=await row(COLLECTIONS.vehicleModels,a.modeloId),brand=await row(COLLECTIONS.brands,a.marcaId);
-    if(!model || model.marcaId!==a.marcaId || !brand || !brandUses(brand.usos).includes('vehiculo'))throw new Error('PRODUCT_VEHICLE_MODEL_INVALID');
-    const prior=(current.compatibilidadVehiculos||[]).some((p:any)=>p.marcaId===a.marcaId&&p.modeloId===a.modeloId&&p.anioDesde===a.anioDesde&&p.anioHasta===a.anioHasta);
-    if(model.activo===false && !prior)throw new Error('PRODUCT_VEHICLE_MODEL_INACTIVE');
-    resolved.push({...a,marcaNombre:brand.nombre,modeloNombre:model.nombre});
-  }
-  const tuples=(value:any[])=>JSON.stringify(value.map(a=>[a.marcaId,a.modeloId,a.anioDesde,a.anioHasta]).sort());
-  if(current.compatibilidadVehiculos?.length && tuples(current.compatibilidadVehiculos)!==tuples(resolved) && (await rows(COLLECTIONS.storeProducts)).some(o=>o.productoMaestroId===current.id&&o.activo!==false&&o.publicado!==false))throw new Error('PRODUCT_VARIANT_HAS_OFFERS_CREATE_NEW');
-  const nombrePieza=normalizeText(body.nombrePieza ?? current.nombrePieza),detalleVariante=normalizeText(body.detalleVariante ?? current.detalleVariante);
-  return {catalogoNivel:'producto_comercial',nombrePieza,detalleVariante,compatibilidadVehiculos:resolved,nombre:automotiveProductName(nombrePieza,resolved,detalleVariante)};
-}
 
 function additionalFields(body: Record<string, unknown>): Record<string, unknown> {
   const fields: Record<string, unknown> = {};
@@ -97,7 +77,8 @@ function contentRightsPayload(body: Record<string, any>, reviewerId: string | un
 }
 
 masterProductsRouter.get('/marcas', async (_req, res) => {
-  const brands = (await rows(COLLECTIONS.brands)).filter(item=>brandUses(item.usos).includes('fabricante')).map(item => ({ id: item.id, nombre: item.nombre })).sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+  const [products, allBrands] = await Promise.all([rows(COLLECTIONS.masterProducts), rows(COLLECTIONS.brands)]);
+  const brands = hardwareCatalog([products,[],[],[],allBrands])[4].filter(item=>brandUses(item.usos).includes('fabricante')).map(item => ({ id: item.id, nombre: item.nombre })).sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
   return ok(res, brands);
 });
 
@@ -109,6 +90,7 @@ masterProductsRouter.get('/productos-maestro', async (req, res) => {
   const subcategoryId = normalizeText(req.query['subcategoriaId']);
   const familyId = normalizeText(req.query['familiaId']);
   const data = (await rows(COLLECTIONS.masterProducts))
+    .filter(isHardwareProduct)
     .filter(item => !businessType || productMatchesBusinessType(item, businessType))
     .filter((item) => item.estado !== 'inactivo' && publicRecordVisible(item))
     .filter((item) => !q || normalizeText(item.nombre).toLowerCase().includes(q) || normalizeText(item.marca).toLowerCase().includes(q) || normalizeText(item.codigoBarras).toLowerCase().includes(q))
@@ -126,7 +108,7 @@ const listMasterPage = async (req: Request, res: Response) => {
     const store = await row(COLLECTIONS.stores, req.params?.storeId);
     if (!store) return fail(res, 'FERRETERIA_NOT_FOUND', 'No existe el local.', 404);
     if (req.authRole !== 'admin' && store.usuarioDuenoId !== req.authUserId) return fail(res, 'AUTH_FORBIDDEN', 'No puedes consultar el catálogo de otro local.', 403);
-    businessType = normalizeBusinessType(store.tipoNegocio);
+    businessType = store.tipoNegocio ?? 'ferreteria';
     testStore = store.esPrueba === true;
   }
   if (businessType !== undefined && !isBusinessType(businessType)) return fail(res, 'BUSINESS_TYPE_INVALID', 'Selecciona un tipo de local válido.', 400);
@@ -140,6 +122,7 @@ const listMasterPage = async (req: Request, res: Response) => {
   const page = Math.max(1, Math.floor(numberValue(req.query['page'], 1)));
   const size = Math.min(100, Math.max(1, Math.floor(numberValue(req.query['size'], 25))));
   const eligible = (await rows(COLLECTIONS.masterProducts))
+    .filter(isHardwareProduct)
     .filter(item => !businessType || productMatchesBusinessType(item, businessType))
     .filter((item) => req.params?.storeId ? item.estado !== 'inactivo' && (testStore || item.esPrueba !== true) : req.authRole === 'admin' || item.estado !== 'inactivo' && publicRecordVisible(item));
   const scoped = eligible.filter(item => !area || productArea(item) === area);
@@ -164,7 +147,7 @@ masterProductsRouter.get('/ferreterias/:storeId/productos-disponibles', requireA
 
 const masterDetail = async (req: Request, res: Response) => {
   const product = await row(COLLECTIONS.masterProducts, req.params.id);
-  if (!product || (req.authRole !== 'admin' && (product.estado === 'inactivo' || !publicRecordVisible(product)))) return fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro.', 404);
+  if (!product || !isHardwareProduct(product) || (req.authRole !== 'admin' && (product.estado === 'inactivo' || !publicRecordVisible(product)))) return fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro.', 404);
   const atributos = (await rows(COLLECTIONS.masterAttributes)).filter((item) => item.productoMaestroId === product.id);
   return ok(res, { ...product, atributos });
 };
@@ -173,17 +156,13 @@ masterProductsRouter.get('/productos-maestro/:id', masterDetail);
 
 masterProductsRouter.post('/productos-maestro', requireAuth, requireRole('admin'), async (req, res) => {
   if (req.body?.ambitoComercial !== undefined && !isProductBusinessScope(req.body.ambitoComercial)) return fail(res, 'PRODUCT_BUSINESS_SCOPE_INVALID', 'Selecciona Ferretería, Desarmaduría o Ambos.', 400);
-  let automotive: Record<string, unknown>;
-  try { automotive=await vehicleFields(req.body || {}); } catch(error) {return fail(res,(error as Error).message,'Indica pieza, marca/modelo y rangos de años válidos del producto maestro.',400);}
-  if(req.body?.categoriaId==='cat-repuestos-automotrices' && !automotive.compatibilidadVehiculos)return fail(res,'PRODUCT_COMPATIBILITY_REQUIRED','Los repuestos requieren pieza y compatibilidad en el maestro.',400);
-  const nombre = normalizeText(automotive.nombre || req.body?.nombre);
+  const nombre = normalizeText(req.body?.nombre);
   if (!nombre) return fail(res, 'PRODUCTO_MAESTRO_INVALID_PAYLOAD', 'Nombre requerido.', 400);
   const imageRights = imageRightsPayload(req.body || {}, req.authUserId);
   if (imageRights === null) return fail(res, 'PRODUCT_IMAGE_RIGHTS_REQUIRED', 'Registra el origen, proveedor y respaldo de derechos de la imagen. Las marcas de terceros requieren autorización específica.', 400);
   const contentRights = contentRightsPayload(req.body || {}, req.authUserId);
   if (contentRights === null) return fail(res, 'PRODUCT_CONTENT_RIGHTS_REQUIRED', 'Registra la fuente o autorización de las descripciones y fichas del producto.', 400);
   const manufacturer=await resolveProductBrand(req.body?.marca);
-  if(automotive.compatibilidadVehiculos){const candidate={...req.body,...automotive,...manufacturer};const duplicate=(await rows(COLLECTIONS.masterProducts)).find(p=>p.estado!=='inactivo'&&p.compatibilidadVehiculos?.length&&automotiveIdentity(p)===automotiveIdentity(candidate));if(duplicate)return fail(res,'PRODUCT_VARIANT_DUPLICATE','Ya existe esta variante. Usa su ficha o indica la especificación que distingue otra pieza.',409);}
   const created = await createRow(COLLECTIONS.masterProducts, {
     ambitoComercial: normalizeProductBusinessScope(req.body?.ambitoComercial, req.body?.categoriaId),
     categoriaId: normalizeText(req.body?.categoriaId),
@@ -202,7 +181,6 @@ masterProductsRouter.post('/productos-maestro', requireAuth, requireRole('admin'
     ...imageRights,
     ...contentRights,
     ...additionalFields(req.body || {}),
-    ...automotive,
     estado: req.body?.estado === 'inactivo' ? 'inactivo' : 'activo',
     creadoEn: nowIso()
   });
@@ -214,8 +192,6 @@ masterProductsRouter.patch('/productos-maestro/:id', requireAuth, requireRole('a
   const current = await row(COLLECTIONS.masterProducts, req.params.id);
   if (!current) return fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro.', 404);
   if (req.body?.ambitoComercial !== undefined && !isProductBusinessScope(req.body.ambitoComercial)) return fail(res, 'PRODUCT_BUSINESS_SCOPE_INVALID', 'Selecciona Ferretería, Desarmaduría o Ambos.', 400);
-  let automotive: Record<string, unknown>;
-  try { automotive=await vehicleFields(req.body || {},current); } catch(error) {const code=(error as Error).message;return fail(res,code,code==='PRODUCT_VARIANT_HAS_OFFERS_CREATE_NEW'?'Esta variante tiene ofertas publicadas. Crea una nueva ficha para otro vehículo o rango de años.':'Revisa pieza, marca/modelo y rangos de años del maestro.',code==='PRODUCT_VARIANT_HAS_OFFERS_CREATE_NEW'?409:400);}
   const nextImageUrl = req.body?.imagenPrincipalUrl !== undefined ? req.body.imagenPrincipalUrl : current.imagenPrincipalUrl;
   const rightsInput = { ...current, ...(req.body || {}), imagenPrincipalUrl: nextImageUrl };
   // The existing editor changes one URL; keep its replacement/removal semantics.
@@ -235,8 +211,6 @@ masterProductsRouter.patch('/productos-maestro/:id', requireAuth, requireRole('a
   const patch: Record<string, unknown> = { ...imageRights, ...contentRights, ...additionalFields(rightsInput), actualizadoEn: nowIso() };
   allowed.forEach((key) => { if (req.body?.[key] !== undefined) patch[key] = req.body[key]; });
   Object.assign(patch, await resolveProductBrand(req.body?.marca !== undefined ? req.body.marca : current.marca));
-  Object.assign(patch,automotive);
-  if(automotive.compatibilidadVehiculos){const candidate={...current,...patch};const duplicate=(await rows(COLLECTIONS.masterProducts)).find(p=>p.id!==current.id&&p.estado!=='inactivo'&&p.compatibilidadVehiculos?.length&&automotiveIdentity(p)===automotiveIdentity(candidate));if(duplicate)return fail(res,'PRODUCT_VARIANT_DUPLICATE','Ya existe otra ficha para esta variante.',409);}
   const updated = await patchRow(COLLECTIONS.masterProducts, req.params.id, patch);
   if (updated) await Promise.all([invalidateStaticCatalog(), markPublicCatalogDirty()]);
   return updated ? ok(res, updated) : fail(res, 'PRODUCTO_MAESTRO_NOT_FOUND', 'No existe el producto maestro.', 404);

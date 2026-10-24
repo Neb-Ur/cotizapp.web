@@ -1,0 +1,25 @@
+<section class="budget-editor" aria-labelledby="work-budget-title">
+ <div class="budget-heading"><div><span class="eyebrow">De materiales a trabajo completo</span><h2 id="work-budget-title">Presupuesto de trabajo</h2><p>Incluye tus costos de mano de obra, gastos y ganancia.</p></div></div>
+ <label class="check"><input type="checkbox" [(ngModel)]="budget.enabled" (ngModelChange)="changed.emit()" /> Preparar un presupuesto para mi cliente</label>
+ <div *ngIf="budget.enabled" class="budget-body">
+  <div class="fields"><label>Cliente (opcional)<input maxlength="200" [(ngModel)]="budget.clientName" (ngModelChange)="changed.emit()" placeholder="Nombre del cliente" /></label><label>Alcance del trabajo<textarea rows="3" maxlength="3000" [(ngModel)]="budget.scope" (ngModelChange)="changed.emit()" placeholder="Qué incluye el trabajo y qué queda fuera"></textarea></label></div>
+  <section *ngFor="let group of groups" class="cost-group">
+   <div class="group-heading"><h3>{{ group.title }}</h3><button type="button" (click)="add(group.key)" [disabled]="budget[group.key].length >= 50">{{ group.button }}</button></div>
+   <p class="muted" *ngIf="!budget[group.key].length">Sin partidas. Agrega los costos que correspondan a tu trabajo.</p>
+   <div class="cost-row" *ngFor="let row of budget[group.key]; let i=index">
+    <label>Descripción<input maxlength="200" [(ngModel)]="row.description" (ngModelChange)="changed.emit()" /></label>
+    <label>Cantidad<input type="number" min="0.01" max="1000000" step="0.25" [(ngModel)]="row.quantity" (ngModelChange)="changed.emit()" /></label>
+    <label>Unidad<select [(ngModel)]="row.unit" (ngModelChange)="changed.emit()"><option value="trabajo">Trabajo</option><option value="hora">Hora</option><option value="jornada">Jornada</option><option value="unidad">Unidad</option></select></label>
+    <label>Costo unitario (CLP)<input type="number" min="0" max="1000000000" step="1" [(ngModel)]="row.unitPrice" (ngModelChange)="changed.emit()" /></label>
+    <div class="row-total"><span>Subtotal</span><strong>{{ money(entryTotal(row)) }}</strong></div><button type="button" class="remove" (click)="remove(group.key,i)" [attr.aria-label]="'Quitar '+row.description">Quitar</button>
+   </div>
+  </section>
+  <div class="fields"><label>Recargo sobre el costo (%)<input type="number" min="0" max="100" step="0.5" [(ngModel)]="budget.markupPercent" (ngModelChange)="changed.emit()" /><small>Se aplica a materiales, mano de obra y gastos. Un costo de $100.000 con 25 % de recargo da un precio de $125.000.</small></label><label>Condiciones para el cliente<textarea rows="3" maxlength="2000" [(ngModel)]="budget.terms" (ngModelChange)="changed.emit()" placeholder="Plazo, forma de pago, vigencia y condiciones del trabajo"></textarea></label></div>
+  <p class="error" role="alert" *ngIf="error">{{ error }}</p>
+  <div class="budget-totals" *ngIf="totals as summary"><div><span>Materiales</span><strong>{{ money(summary.materials) }}</strong></div><div><span>Mano de obra</span><strong>{{ money(summary.labor) }}</strong></div><div><span>Otros gastos</span><strong>{{ money(summary.expenses) }}</strong></div><div><span>Costo total</span><strong>{{ money(summary.cost) }}</strong></div><div><span>Recargo / ganancia agregada</span><strong>{{ money(summary.markup) }}</strong></div><div class="grand-total"><span>{{ incomplete ? 'Total parcial del presupuesto' : 'Total presupuestado' }}</span><strong>{{ money(summary.total) }}</strong></div></div>
+  <p class="error" *ngIf="incomplete">Faltan ofertas con stock suficiente para algunos materiales. Completa la cotización antes de entregar el presupuesto.</p>
+  <p class="muted">Los materiales conservan sus precios con IVA. Ingresa tus costos finales de trabajo y gastos: Trovio no agrega otro impuesto automáticamente.</p>
+  <label class="check"><input type="checkbox" [(ngModel)]="budget.discloseCosts" (ngModelChange)="changed.emit()" /> Incluir mis costos y el recargo en el PDF</label>
+  <p class="muted">Por defecto, el cliente ve el alcance, las cantidades y el total; tus costos y ganancia quedan en esta vista interna. El código de verificación corresponde solo a los materiales.</p>
+ </div>
+</section>

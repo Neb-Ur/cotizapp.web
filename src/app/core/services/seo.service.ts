@@ -15,8 +15,8 @@ interface SeoPage {
 const SITE_URL = 'https://trovio.cl';
 const STRUCTURED_DATA_ID = 'cotizapp-page-structured-data';
 const DEFAULT_PAGE: SeoPage = {
-  title: 'Repuestos de autos, herramientas y materiales en Chile | Trovio',
-  description: 'Compara repuestos de autos, herramientas y materiales en Chile. Busca por marca, modelo y año, consulta disponibilidad y cotiza con locales.'
+  title: 'Materiales de construcción y herramientas en Chile | Trovio',
+  description: 'Cotiza materiales de construcción y herramientas. Compara precios y disponibilidad entre ferreterías de Chile para tu obra o reparación.'
 };
 
 const PAGE_SEO: Record<string, SeoPage> = {
@@ -121,7 +121,6 @@ export class SeoService {
         description,
         sku: product.sku || undefined,
         brand: product.brand && !['por especificar','sin marca','generico','sin especificar'].includes(product.brand.toLowerCase()) ? { '@type': 'Brand', name: product.brand } : undefined,
-        ...(!product.compatibilityReference && !product.isTestProduct && product.vehicleCompatibility?.length ? {additionalProperty:product.vehicleCompatibility.filter(a=>a.marcaNombre && a.modeloNombre).map(a=>({'@type':'PropertyValue',name:'Compatibilidad registrada',value:`${a.marcaNombre} ${a.modeloNombre}${a.anioDesde !== null ? ` ${a.anioDesde}–${a.anioHasta}` : ' · Año sin especificar'}`}))} : {}),
         category: [product.categoryName, product.subcategoryName, product.familyName].filter(Boolean).join(' > '),
         offers: !product.isTestProduct && realOffers.length > 0 ? {
           '@type': 'AggregateOffer',
@@ -195,7 +194,7 @@ export class SeoService {
     image?: string,
     forcePrivate = false
   ): void {
-    image = image || `${SITE_URL}/assets/home-hero-mixto-v1.webp`;
+    image = image || `${SITE_URL}/assets/home-hero-construction.webp`;
     const canonicalUrl = `${SITE_URL}${canonicalPath === '/' ? '' : canonicalPath}`;
     const shouldIndex = page.index !== false && !forcePrivate;
 

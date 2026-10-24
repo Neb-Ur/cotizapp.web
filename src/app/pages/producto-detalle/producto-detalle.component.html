@@ -28,7 +28,7 @@
       </ol>
     </nav>
 
-    <nav *ngIf="product.relatedCatalog?.length" class="related-catalog" aria-label="Explorar repuestos relacionados"><a *ngFor="let link of product.relatedCatalog" [routerLink]="link.path">{{link.name}}</a></nav>
+    <nav *ngIf="product.relatedCatalog?.length" class="related-catalog" aria-label="Explorar productos relacionados"><a *ngFor="let link of product.relatedCatalog" [routerLink]="link.path">{{link.name}}</a></nav>
 
     <header class="product-heading">
       <h1>{{ product.productName }}</h1>
@@ -76,13 +76,8 @@
             : 'No hay locales con este producto.' }}</span>
         </p>
         <section class="quick-stores">
-          <section *ngIf="product.vehicleCompatibility?.length" aria-label="Compatibilidad del producto">
-            <h3>Compatibilidad del producto maestro</h3>
-            <p *ngFor="let a of product.vehicleCompatibility">{{a.marcaNombre}} {{a.modeloNombre}}<span *ngIf="a.anioDesde !== null"> · {{a.anioDesde}}–{{a.anioHasta}}</span><span *ngIf="a.anioDesde === null"> · Año sin especificar</span></p>
-            <p *ngIf="product.compatibilityReference">Compatibilidad simulada para pruebas; no acredita ajuste real de la pieza.</p>
-          </section>
+
           <h3>Precios por local</h3>
-          <p *ngIf="vehicleFilterApplied">Ofertas filtradas por el vehículo seleccionado. Confirma la compatibilidad con el vendedor.</p>
           <p *ngIf="offersLoading" role="status" aria-live="polite">Cargando precios de los locales…</p>
           <p *ngIf="offersError" role="alert">{{ offersError }} <button type="button" (click)="retryOffers()">Reintentar</button></p>
           <p class="quick-stores-hint" *ngIf="!nearbyEnabled && !offersLoading && !offersError">{{ displayedStoreCount }} local(es) · {{ displayStores.length }} publicación(es) disponible(s).</p>

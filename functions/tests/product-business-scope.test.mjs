@@ -12,39 +12,20 @@ const seed=()=>({
  contratosFerreteria:{a:{ferreteriaId:'junk',version:CURRENT_STORE_AGREEMENT_VERSION,documentHash:storeAgreementDocumentHash(),estado:'vigente'}},
  productosFerreteria:{wrong:{ferreteriaId:'junk',productoMaestroId:'hardware',precio:1000,stock:2},valid:{ferreteriaId:'junk',productoMaestroId:'car',precio:2000,stock:1}}
 });
-test('product area controls eligibility and tools are shared across local types',()=>{
- assert.equal(productMatchesBusinessType({ambitoComercial:'ferreteria',categoriaId:'cat-repuestos-automotrices'},'desarmaduria'),true);
- for(const type of ['ferreteria','desarmaduria','repuestos'])assert.equal(productMatchesBusinessType({ambitoComercial:'ambos',categoriaId:'cat-herramientas-y-consumibles'},type),true);
- assert.equal(normalizeProductBusinessScope(undefined,'cat-repuestos-automotrices'),'desarmaduria');assert.equal(normalizeProductBusinessScope(undefined,'materials'),'ferreteria');
+test('retired local types cannot publish any active product area',()=>{
+ for(const type of ['desarmaduria','repuestos'])for(const categoriaId of ['construction','cat-herramientas-y-consumibles','cat-repuestos-automotrices'])assert.equal(productMatchesBusinessType({categoriaId},type),false);
+ assert.equal(productMatchesBusinessType({categoriaId:'construction'},'ferreteria'),true);
 });
-test('available products use the actual owned store even when the browser sends the other business type',async t=>{
+test('retired stores cannot request available products by forging a hardware query',async t=>{
  firestoreFixture(t,seed());const list=handler(masterProductsRouter,'/ferreterias/:storeId/productos-disponibles');
- const req=(storeId,uid,query={})=>({params:{storeId},authUserId:uid,authRole:'ferreteria',query});
- const res=response();await list(req('junk','owner',{tipoNegocio:'ferreteria',size:'1',page:'2'}),res);assert.equal(res.body.data.total,2);assert.equal(res.body.data.items[0].id,'shared');assert.deepEqual(new Set(res.body.data.categoryIds),new Set(['cat-repuestos-automotrices','cat-herramientas-y-consumibles']));
- const denied=response();await list(req('hardware','owner'),denied);assert.equal(denied.statusCode,403);
- const hardware=response();await list(req('hardware','other'),hardware);assert.deepEqual(hardware.body.data.items.map(p=>p.id),['hardware','shared']);
+ const res=response();await list({params:{storeId:'junk'},authUserId:'owner',authRole:'ferreteria',query:{tipoNegocio:'ferreteria'}},res);assert.equal(res.statusCode,400);
+ const normal=response();await list({params:{storeId:'hardware'},authUserId:'other',authRole:'ferreteria',query:{}},normal);assert.deepEqual(normal.body.data.items.map(p=>p.id),['hardware','shared']);
 });
-test('own catalog hides incompatible legacy offers without deleting them and prevents direct additions outside scope',async t=>{
- const f=firestoreFixture(t,seed());const get=handler(storeCatalogRouter,'/ferreterias/:storeId/catalogo');const req={params:{storeId:'junk'},authUserId:'owner',authRole:'ferreteria'};
- const list=response();await get(req,list);assert.deepEqual(list.body.data.map(o=>o.id),['valid']);assert(f.get('productosFerreteria','wrong'));
- const admin=response();await get({...req,authRole:'admin'},admin);assert.equal(admin.body.data.length,2);
- const post=handler(storeCatalogRouter,'/ferreterias/:storeId/catalogo','post');
- const invalid=response();await post({...req,body:{productoMaestroId:'hardware',ambitoComercial:'ambos',precio:1000,stock:1}},invalid);assert.equal(invalid.statusCode,400);
- const shared=response();await post({...req,body:{productoMaestroId:'shared',precio:1000,stock:1}},shared);assert.equal(shared.statusCode,201);
- const patch=response();await handler(storeCatalogRouter,'/ferreterias/:storeId/catalogo/:offerId','patch')({...req,params:{storeId:'junk',offerId:'wrong'},body:{stock:10}},patch);assert.equal(patch.statusCode,400);
+test('historical automotive offers stay stored but are absent from the active local catalog',async t=>{
+ const f=firestoreFixture(t,seed());const list=response();await handler(storeCatalogRouter,'/ferreterias/:storeId/catalogo')({params:{storeId:'junk'},authUserId:'owner',authRole:'ferreteria'},list);
+ assert.deepEqual(list.body.data,[]);assert.equal(f.rows('productosFerreteria').length,2);
 });
-test('admin master writes reject invalid product classifications before changing the catalog',async t=>{
- const f=firestoreFixture(t,seed());const create=response();await handler(masterProductsRouter,'/productos-maestro','post')({authUserId:'admin',body:{ambitoComercial:'todo'}},create);assert.equal(create.statusCode,400);
- const patch=response();await handler(masterProductsRouter,'/productos-maestro/:id','patch')({params:{id:'car'},authUserId:'admin',body:{ambitoComercial:'todo'}},patch);assert.equal(patch.statusCode,400);assert.equal(f.get('productosMaestro','car').ambitoComercial,'desarmaduria');
-});
-
-test('real stores cannot select or directly link simulated master products',async t=>{
- const data=seed();data.productosMaestro.simulated={nombre:'D Herramienta simulada',categoriaId:'cat-herramientas-y-consumibles',ambitoComercial:'ambos',estado:'activo',esPrueba:true};
- const f=firestoreFixture(t,data);
- const req={params:{storeId:'junk'},authUserId:'owner',authRole:'ferreteria',query:{}};
- const list=response();await handler(masterProductsRouter,'/ferreterias/:storeId/productos-disponibles')(req,list);
- assert.equal(list.body.data.items.some(p=>p.id==='simulated'),false);
- const denied=response();await handler(storeCatalogRouter,'/ferreterias/:storeId/catalogo','post')({...req,body:{productoMaestroId:'simulated',precio:1000,stock:1}},denied);
- assert.equal(denied.statusCode,400);assert.equal(denied.body.error.code,'TEST_PRODUCT_NOT_ALLOWED');
- assert.equal(f.rows('productosFerreteria').length,2);
+test('real hardware stores cannot directly link simulated products',async t=>{
+ const data=seed();data.contratosFerreteria.b={...data.contratosFerreteria.a,ferreteriaId:'hardware'};data.productosMaestro.simulated={nombre:'Herramienta simulada',categoriaId:'cat-herramientas-y-consumibles',estado:'activo',esPrueba:true};firestoreFixture(t,data);
+ const denied=response();await handler(storeCatalogRouter,'/ferreterias/:storeId/catalogo','post')({params:{storeId:'hardware'},authUserId:'other',authRole:'ferreteria',body:{productoMaestroId:'simulated',precio:1000,stock:1}},denied);assert.equal(denied.statusCode,400);assert.equal(denied.body.error.code,'TEST_PRODUCT_NOT_ALLOWED');
 });

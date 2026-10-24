@@ -1,3 +1,4 @@
+import { isHardwareStore } from '../domain/market-scope.js';
 import { db } from '../lib/firebase.js';
 import { normalizeBusinessType } from '../domain/business-type.js';
 import { rows, row } from '../repositories/firestore.repository.js';
@@ -26,13 +27,13 @@ export function ratingSummary(reviews: any[]) {
 export async function directoryStores() {
   const [stores, users] = await Promise.all([rows(COLLECTIONS.stores), rows(COLLECTIONS.users)]);
   const owners = new Map(users.map(user => [user.id, user]));
-  return stores.filter(store => storeCanPublish(store) && owners.get(store.usuarioDuenoId)?.estadoCuenta === 'activo')
+  return stores.filter(store => isHardwareStore(store) && storeCanPublish(store) && owners.get(store.usuarioDuenoId)?.estadoCuenta === 'activo')
     .map(store => publicStore(store, owners.get(store.usuarioDuenoId)))
     .sort((a, b) => a.name.localeCompare(b.name, 'es') || a.id.localeCompare(b.id));
 }
 export async function directoryStore(id: string) {
   const store = await row(COLLECTIONS.stores, id);
-  if (!store || !storeCanPublish(store)) return null;
+  if (!store || !isHardwareStore(store) || !storeCanPublish(store)) return null;
   const owner = await row(COLLECTIONS.users, store.usuarioDuenoId);
   return owner?.estadoCuenta === 'activo' ? publicStore(store, owner) : null;
 }

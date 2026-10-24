@@ -1,8 +1,11 @@
+import {normalizeWorkBudget,calculatePainting,workBudgetTotals,type WorkBudget,type PaintingPlan} from './work-budget.util';
 import { offerConditionLabel } from './offer-condition.util';
 import { ProjectQuotationView, SearchProximity } from '../models/app.models';
 
 export interface QuotationPdfInput {
   projectName: string;
+  workBudget?: WorkBudget;
+  paintingPlan?: PaintingPlan;
   projectAddress?: string;
   projectDescription?: string;
   pilot?: boolean;
@@ -16,11 +19,12 @@ export interface QuotationPdfInput {
 }
 
 export function buildQuotationPdfFile(input: QuotationPdfInput): File {
-  if (!input.quotation.lines.length || input.quotation.lines.some(line => line.unitPrice <= 0)) throw new Error('Revisa los productos sin oferta disponible antes de exportar.');
+  const budget=normalizeWorkBudget(input.workBudget);
+  if ((!input.quotation.lines.length && (!budget.enabled || workBudgetTotals(0,budget).total <= 0)) || input.quotation.lines.some(line => line.unitPrice <= 0)) throw new Error('Revisa los productos sin oferta disponible antes de exportar.');
   const exportedAt = input.exportedAt || new Date();
   const lines = buildQuotationPdfLines(input, exportedAt);
   const blob = buildPdfBlob(lines);
-  const filename = `${toFileSafeName(input.projectName || 'cotizacion')}-${buildFilenameDate(exportedAt)}.pdf`;
+  const filename = `${budget.enabled ? 'presupuesto-' : ''}${toFileSafeName(input.projectName || 'cotizacion')}-${buildFilenameDate(exportedAt)}.pdf`;
   return new File([blob], filename, { type: 'application/pdf' });
 }
 
@@ -28,7 +32,7 @@ export async function shareQuotationPdf(input: QuotationPdfInput): Promise<'shar
   const file = buildQuotationPdfFile(input);
   const shareData: ShareData = {
     title: `Cotizacion - ${input.projectName || 'Trovio'}`,
-    text: `Cotizacion de productos ${input.projectName ? `- ${input.projectName}` : ''}`,
+    text: `${input.workBudget?.enabled ? 'Presupuesto de trabajo' : 'Cotizacion de productos'} ${input.projectName ? `- ${input.projectName}` : ''}`,
     files: [file]
   };
 
@@ -54,6 +58,7 @@ export function downloadQuotationPdf(input: QuotationPdfInput): void {
 }
 
 function buildQuotationPdfLines(input: QuotationPdfInput, exportedAt: Date): string[] {
+  if(input.workBudget?.enabled)return buildWorkBudgetPdfLines(input,exportedAt);
   const lines: string[] = [];
   const totalWithIva = input.quotation.optimalTotal;
 
@@ -118,6 +123,47 @@ function buildQuotationPdfLines(input: QuotationPdfInput, exportedAt: Date): str
   return lines.flatMap((line) => wrapLine(line, 95));
 }
 
+
+function buildWorkBudgetPdfLines(input:QuotationPdfInput,exportedAt:Date):string[]{
+ const budget=normalizeWorkBudget(input.workBudget);
+ const totals=workBudgetTotals(input.quotation.optimalTotal,budget);
+ const lines=['PRESUPUESTO DE TRABAJO'];
+ if(budget.discloseCosts)lines.push('DESGLOSE INTERNO DE COSTOS Y RECARGO');
+ if(input.pilot||input.quotation.lines.some(line=>line.bestStoreName.includes('(Prueba)')))lines.push('SOLO PRUEBA: locales ficticios; precios y stock simulados.');
+ lines.push(`Proyecto: ${input.projectName || 'Sin titulo'}`,`Preparado por: ${input.maestroName || 'Maestro'}`,`Cliente: ${budget.clientName || 'Sin especificar'}`,`Fecha: ${formatExportDate(exportedAt)}`);
+ if(input.projectAddress?.trim())lines.push(`Direccion: ${input.projectAddress.trim()}`);
+ if(input.projectDescription?.trim())lines.push(`Descripcion: ${input.projectDescription.trim()}`);
+ if(budget.scope)lines.push('','ALCANCE DEL TRABAJO',budget.scope);
+ lines.push('','MATERIALES');
+ if(!input.quotation.lines.length)lines.push('Sin materiales incluidos en esta cotizacion.');
+ input.quotation.lines.forEach((line,index)=>{
+  lines.push(`${index+1}. ${line.productName} - Cantidad: ${line.quantity}`);
+  if(budget.discloseCosts)lines.push(`Local: ${line.bestStoreName} | Costo unitario: ${formatCurrency(line.unitPrice)} | Subtotal: ${formatCurrency(line.subtotal)}`);
+ });
+ if(input.paintingPlan){
+  const p=input.paintingPlan,c=calculatePainting(p);
+  lines.push('','ESTIMACION DE PINTURA',`${p.productName}: ${c.area.toFixed(2)} m2, ${p.coats} manos.`,`Rendimiento ingresado: ${p.coverage} m2/L por mano. Adicional: ${p.wastePercent}%.`,`Estimacion: ${c.liters.toFixed(2)} L; ${c.packages} envase(s) de ${p.packLiters} L.`,`Medidas: ${p.length} x ${p.height} m; ${p.surfaces} superficie(s); descuento: ${p.openings} m2.`,`Estimacion inicial; revisa las cantidades finales del detalle. Confirma rendimiento y uso con la ficha del producto.`);
+ }
+ for(const [title,entries]of [['MANO DE OBRA',budget.labor],['OTROS GASTOS',budget.expenses]] as const){
+  if(!entries.length)continue;
+  lines.push('',title);
+  entries.forEach(row=>{lines.push(`${row.description}: ${row.quantity} ${row.unit}(s)`);if(budget.discloseCosts)lines.push(`Costo unitario: ${formatCurrency(row.unitPrice)} | Subtotal: ${formatCurrency(Math.round(row.quantity*row.unitPrice))}`);});
+ }
+ lines.push('','RESUMEN DEL PRESUPUESTO');
+ if(budget.discloseCosts)lines.push(`Costo materiales: ${formatCurrency(totals.materials)}`,`Costo mano de obra: ${formatCurrency(totals.labor)}`,`Otros gastos: ${formatCurrency(totals.expenses)}`,`Costo total: ${formatCurrency(totals.cost)}`,`Recargo sobre costos (${budget.markupPercent}%): ${formatCurrency(totals.markup)}`);
+ lines.push(`Total presupuestado: ${formatCurrency(totals.total)}`);
+ if(budget.terms)lines.push('','CONDICIONES DEL TRABAJO',budget.terms);
+ if(input.quotation.lines.length){
+  lines.push('','REFERENCIA DE MATERIALES');
+  if(input.verificationCode)lines.push(`Codigo de verificacion de materiales: ${input.verificationCode}`);
+  if(input.pricesCapturedAt)lines.push(`Precios de materiales registrados: ${formatExportDate(new Date(input.pricesCapturedAt))}`);
+  if(input.validUntil)lines.push(`Compra orientativa de materiales hasta: ${formatExportDate(new Date(input.validUntil))}`);
+  lines.push('El codigo verifica materiales; no valida mano de obra, gastos ni el presupuesto.');
+ }
+ lines.push('Los materiales incluyen IVA; no se agrega otro impuesto automaticamente.','Documento del maestro: confirma condiciones y stock. No reserva materiales.');
+ return lines.flatMap(line=>line.split(/\r?\n/).flatMap(part=>wrapLine(part,95)));
+}
+
 function buildPdfBlob(lines: string[]): Blob {
   const pageChunks = chunkLines(lines, 44);
   const objects: string[] = [];
@@ -131,7 +177,7 @@ function buildPdfBlob(lines: string[]): Blob {
     const contentObjectId = pageObjectId + 1;
     pageObjectIds.push(pageObjectId);
 
-    const pageContent = buildPdfPageContent(pageLines, index + 1, pageChunks.length, lines.some(line => line.startsWith('SOLO PRUEBA:')));
+    const pageContent = buildPdfPageContent(pageLines, index + 1, pageChunks.length, lines.some(line => line.startsWith('SOLO PRUEBA:')),lines.includes('PRESUPUESTO DE TRABAJO'));
     objects.push(
       `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 ${3 + (pageChunks.length * 2)} 0 R /F2 ${4 + (pageChunks.length * 2)} 0 R >> >> /Contents ${contentObjectId} 0 R >>`
     );
@@ -164,7 +210,7 @@ function buildPdfBlob(lines: string[]): Blob {
   return new Blob([documentContent], { type: 'application/pdf' });
 }
 
-function buildPdfPageContent(lines: string[], pageNumber: number, pageCount: number, pilot = false): string {
+function buildPdfPageContent(lines: string[], pageNumber: number, pageCount: number, pilot = false, workBudget = false): string {
   const navy = '0.059 0.176 0.290';
   const orange = '1 0.478 0';
   const gray = '0.420 0.447 0.502';
@@ -181,15 +227,15 @@ function buildPdfPageContent(lines: string[], pageNumber: number, pageCount: num
 
   lines.forEach((line, index) => {
     const y = 727 - index * 14;
-    const heading = ['COTIZACION DE PRODUCTOS', 'DETALLE DE ARTICULOS', 'RESUMEN DE COTIZACION', 'TOTALES POR LOCAL'].includes(line);
-    const total = line.startsWith('Total final (IVA incluido):');
+    const heading = ['COTIZACION DE PRODUCTOS', 'DETALLE DE ARTICULOS', 'RESUMEN DE COTIZACION', 'TOTALES POR LOCAL','PRESUPUESTO DE TRABAJO','ALCANCE DEL TRABAJO','MATERIALES','MANO DE OBRA','OTROS GASTOS','RESUMEN DEL PRESUPUESTO','CONDICIONES DEL TRABAJO','ESTIMACION DE PINTURA','REFERENCIA DE MATERIALES'].includes(line);
+    const total = line.startsWith('Total final (IVA incluido):') || line.startsWith('Total presupuestado:');
     if (total) commands.push('q 1 0.950 0.890 rg', roundedPdfRect(39, y - 3, 517, 14, 4), 'f Q');
     commands.push(`BT /${heading || total ? 'F2' : 'F1'} ${heading ? 11 : 10} Tf ${heading || total ? navy : gray} rg 44 ${y} Td (${escapePdfText(line)}) Tj ET`);
   });
 
   commands.push(
     'q 0.86 0.89 0.92 RG 0.5 w 40 60 m 555 60 l S Q',
-    `BT /F1 8 Tf ${gray} rg 44 42 Td (${pilot ? 'Trovio - SOLO PRUEBA. Precios simulados; no disponible para compra.' : 'Trovio - Cotizacion referencial. Compra directamente en el local.'}) Tj ET`,
+    `BT /F1 8 Tf ${gray} rg 44 42 Td (${pilot ? 'Trovio - SOLO PRUEBA. Precios simulados; no disponible para compra.' : workBudget ? 'Trovio - Presupuesto preparado por el maestro.' : 'Trovio - Cotizacion referencial. Compra directamente en el local.'}) Tj ET`,
     `BT /F1 8 Tf ${gray} rg 485 42 Td (Pagina ${pageNumber} / ${pageCount}) Tj ET`
   );
   return commands.join('\n');

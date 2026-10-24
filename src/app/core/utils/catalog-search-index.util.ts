@@ -15,6 +15,15 @@ const tokensOf = (query: string) => normalizeSearch(query).split(' ').filter(Boo
 const usableBrand = (brand: string) => !!brand.trim() && !['sin marca', 'por especificar', 'generico', 'sin especificar'].includes(normalizeSearch(brand));
 
 export function prepareCatalogIndex(snapshot: SearchIndexSnapshot) {
+  // Old IndexedDB snapshots must obey the current market even while offline.
+  const automotive = 'cat-repuestos-automotrices';
+  const excludedSubcategories = new Set(snapshot.subcategories.filter(item=>item.categoryId===automotive).map(item=>item.id));
+  const excludedFamilies = new Set(snapshot.families.filter(item=>excludedSubcategories.has(item.subcategoryId || '')).map(item=>item.id));
+  snapshot = {...snapshot,
+    products:snapshot.products.filter(item=>item.categoryId!==automotive && !excludedSubcategories.has(item.subcategoryId || '') && !excludedFamilies.has(item.familyId)),
+    categories:snapshot.categories.filter(item=>item.id!==automotive),
+    subcategories:snapshot.subcategories.filter(item=>!excludedSubcategories.has(item.id)),
+    families:snapshot.families.filter(item=>!excludedFamilies.has(item.id))};
   const categories = new Map(snapshot.categories.map(item => [item.id, item]));
   const subcategories = new Map(snapshot.subcategories.map(item => [item.id, item]));
   const families = new Map(snapshot.families.map(item => [item.id, item]));

@@ -19,7 +19,7 @@ test('landing pages include only published products and useful families/brands',
 test('sitemap includes base products with no offers; collection HTML has crawlable links, canonical and real missing-page status',async t=>{
  firestoreFixture(t,{productosMaestro:Object.fromEntries(products.map(p=>[p.id,p])),categorias:{c:catalog[1][0]},subcategorias:{s:catalog[2][0]},familias:{f:catalog[3][0],empty:catalog[3][1]},marcas:{[brand.id]:brand},cachePublico:{'catalog-revision':{revision:99}}});
  const map=response();await handler(publicCatalogRouter,'/sitemap.xml')({},map);assert.match(map.body,/\/productos\/destornillador-stanley/);assert.match(map.body,/\/familias\/destornilladores/);assert.match(map.body,/\/marcas\/stanley/);assert.doesNotMatch(map.body,/inactivo|vacia|producto-ficticio|<lastmod>/);
- const h=handler(publicPagesRouter,['/repuestos','/:kind(categorias|familias|marcas|marcas-vehiculos|vehiculos)/:slug']);
+ const h=handler(publicPagesRouter,'/:kind(categorias|familias|marcas)/:slug');
  const page=response();await h({path:'/familias/destornilladores'},page,e=>{throw e;});assert.equal(page.statusCode,200);assert.match(page.body,/<h1>Destornilladores<\/h1>/);assert.match(page.body,/href="\/productos\/destornillador-stanley"/);assert.match(page.body,/CollectionPage/);assert.match(page.body,/rel="canonical" href="https:\/\/trovio.cl\/familias\/destornilladores"/);
  const missing=response();await h({path:'/familias/vacia'},missing,e=>{throw e;});assert.equal(missing.statusCode,404);assert.equal(missing.headers['X-Robots-Tag'],'noindex');
 });
@@ -58,43 +58,7 @@ const automotiveCatalog=()=>[[
  {id:'hidden',nombre:'Pieza retirada',categoriaId:automotiveCategory,estado:'inactivo',compatibilidadVehiculos:[{...fitment,modeloId:'hidden',modeloNombre:'Hidden'}]}
 ],[{id:automotiveCategory,nombre:'Repuestos automotrices'}],[{id:'motor',nombre:'Motor',categoriaId:automotiveCategory}],[{id:'radiadores',nombre:'Radiadores',subcategoriaId:'motor'},{id:'espejos',nombre:'Espejos',subcategoriaId:'motor'}],[]];
 
-test('automotive navigation uses actual master compatibility, deduplicates years, and excludes invented vehicle pages',()=>{
+test('automotive collections are absent from SEO navigation even when legacy records remain stored',()=>{
  const pages=catalogLandings(automotiveCatalog());
- assert.equal(pages.find(p=>p.path==='/repuestos').products.length,4);
- const model=pages.find(p=>p.path==='/vehiculos/hyundai-accent');
- assert.equal(model.products.length,2);
- assert.deepEqual(model.filters,{rubro:'repuestos',categoria:automotiveCategory,vehiculoMarcaId:'hyundai',vehiculoModeloId:'accent'});
- assert.equal(pages.filter(p=>p.path.startsWith('/vehiculos/')).length,1);
- assert.ok(pages.find(p=>p.path==='/marcas-vehiculos/hyundai'));
- assert.match(pages.find(p=>p.path==='/familias/radiadores').title,/repuestos de autos/);
- assert.ok(!pages.some(p=>/simulada|demo|hidden|toyota/.test(p.path)));
+ assert.deepEqual(pages,[]);
 });
-
-test('automotive pages, metadata API and sitemap share canonical URLs and legacy category redirects',async t=>{
- const catalog=automotiveCatalog();
- firestoreFixture(t,{productosMaestro:Object.fromEntries(catalog[0].map(p=>[p.id,p])),categorias:{[automotiveCategory]:catalog[1][0]},subcategorias:{motor:catalog[2][0]},familias:Object.fromEntries(catalog[3].map(f=>[f.id,f])),cachePublico:{'catalog-revision':{revision:701}}});
- const h=handler(publicPagesRouter,['/repuestos','/:kind(categorias|familias|marcas|marcas-vehiculos|vehiculos)/:slug']);
- const page=response();await h({path:'/repuestos'},page,e=>{throw e;});
- assert.equal(page.statusCode,200);assert.match(page.body,/rel="canonical" href="https:\/\/trovio.cl\/repuestos"/);
- assert.match(page.body,/href="\/vehiculos\/hyundai-accent"/);assert.doesNotMatch(page.body,/Pieza demo/);
- const model=response();await h({path:'/vehiculos/hyundai-accent'},model,e=>{throw e;});
- assert.match(model.body,/Radiador Hyundai Accent/);assert.doesNotMatch(model.body,/Pieza referencial/);
- const legacy=response();legacy.redirect=(code,url)=>{legacy.statusCode=code;legacy.location=url;return legacy;};
- await h({path:'/categorias/repuestos-automotrices'},legacy,e=>{throw e;});assert.equal(legacy.statusCode,301);assert.equal(legacy.location,'/repuestos');
- const filtered=response();filtered.redirect=(code,url)=>{filtered.statusCode=code;filtered.location=url;return filtered;};
- await h({path:'/categorias/repuestos-automotrices',originalUrl:'/categorias/repuestos-automotrices?q=radiador&ferreteriaId=local'},filtered,e=>{throw e;});assert.equal(filtered.location,'/repuestos?q=radiador&ferreteriaId=local');
- const missing=response();await h({path:'/vehiculos/toyota-yaris'},missing,e=>{throw e;});assert.equal(missing.statusCode,404);
- const api=response();await handler(publicCatalogRouter,'/catalogo-seo/:kind/:slug')({params:{kind:'repuestos',slug:'inicio'}},api,e=>{throw e;});
- assert.equal(api.body.data.path,'/repuestos');assert.equal(api.body.data.count,4);
- const sitemap=response();await handler(publicCatalogRouter,'/sitemap.xml')({},sitemap);
- assert.match(sitemap.body,/<loc>https:\/\/trovio.cl\/repuestos<\/loc>/);assert.match(sitemap.body,/\/vehiculos\/hyundai-accent/);
- assert.doesNotMatch(sitemap.body,/\/categorias\/repuestos-automotrices|\/vehiculos\/simulada|\/productos\/pieza-demo/);
-});
-
- test('automotive entry stays available but unindexed while only reference inventory exists',()=>{
- const catalog=automotiveCatalog();catalog[0]=catalog[0].filter(p=>p.esPrueba);
- const pages=catalogLandings(catalog),root=pages.find(p=>p.path==='/repuestos');
- assert.equal(root.index,false);assert.equal(root.products.length,1);
- assert.ok(!pages.some(p=>p.path.startsWith('/vehiculos/')||p.path.startsWith('/marcas-vehiculos/')));
- assert.equal(catalogLandings([[],[],[],[],[]]).find(p=>p.path==='/repuestos').index,false);
- });

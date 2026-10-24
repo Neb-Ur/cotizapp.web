@@ -1,3 +1,4 @@
+import { hardwareCatalog } from '../domain/market-scope.js';
 import { pilotStoresEnabled, publicRecordVisible } from '../services/pilot-stores.service.js';
 import { catalogLandings, relatedCatalogLandings, seoProductSlug, productSeoSlugIndex } from '../domain/catalog-seo.js';
 import { FieldValue } from 'firebase-admin/firestore';
@@ -23,7 +24,7 @@ export async function getStaticCatalog(): Promise<any[][]> {
     const request = Promise.all([
       rows(COLLECTIONS.masterProducts), rows(COLLECTIONS.categories),
       rows(COLLECTIONS.subcategories), rows(COLLECTIONS.families), rows(COLLECTIONS.brands)
-    ]).then(([products,...taxonomy]) => [products.filter(publicRecordVisible),...taxonomy]);
+    ]).then(([products,...taxonomy]) => hardwareCatalog([products.filter(publicRecordVisible),...taxonomy]));
     catalog = { expires: Date.now() + TTL, request };
     catalogs.set(mode, catalog);
     void request.catch(() => { if (catalogs.get(mode)?.request === request) catalogs.delete(mode); });
@@ -50,7 +51,7 @@ export async function getProductSheet(name: string, slug: string): Promise<any |
       const labels = new Map(definitions.docs.map(doc => [doc.id, doc.data()['etiqueta']]));
       // Explicit public fields; internal review and rights records are never cached in the browser.
       const fields = ['esPrueba', 'id', 'nombre', 'categoriaId', 'subcategoriaId', 'familiaId', 'marca', 'marcaId', 'tipoProducto',
-        'unidadVenta', 'presentacion', 'descripcionCorta', 'descripcionLarga', 'imagenPrincipalUrl', 'imagenStorageUrl', 'imagenMiniaturaUrl', 'imagenExternaUrl', 'galeriaJson', 'origenImagen', 'imagenReferencial', 'catalogoNivel', 'caracteristicasDestacadas','nombrePieza','detalleVariante','compatibilidadVehiculos','compatibilidadReferencial'];
+        'unidadVenta', 'presentacion', 'descripcionCorta', 'descripcionLarga', 'imagenPrincipalUrl', 'imagenStorageUrl', 'imagenMiniaturaUrl', 'imagenExternaUrl', 'galeriaJson', 'origenImagen', 'imagenReferencial', 'catalogoNivel', 'caracteristicasDestacadas'];
       return {
         relatedCatalog: relatedCatalogLandings(catalogLandings(catalog),[product]).map(({path,name})=>({path,name})),
         productoMaestro: {...Object.fromEntries(fields.filter(field => product[field] !== undefined).map(field => [field, product[field]])),seoPath:`/productos/${seoProductSlug(product,products)}`},

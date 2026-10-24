@@ -1,3 +1,4 @@
+import { hardwareTaxonomy, AUTOMOTIVE_CATEGORY_ID } from '../domain/market-scope.js';
 import { invalidateStaticCatalog } from '../lib/product-sheet-cache.js';
 import { markPublicCatalogDirty } from '../lib/public-catalog-cache.js';
 import { Router } from 'express';
@@ -18,7 +19,7 @@ export const taxonomyRouter = Router();
 const categoryIcons = new Set(['building', 'home', 'bolt', 'wrench', 'filter', 'sun', 'palette', 'th-large', 'shield', 'box', 'truck', 'cog', 'sitemap', 'cloud', 'objects-column', 'hashtag']);
 const iconOf = (value: unknown) => categoryIcons.has(String(value)) ? String(value) : 'box';
 
-taxonomyRouter.get('/categorias', async (_req, res) => ok(res, (await rows(COLLECTIONS.categories)).sort((a, b) => a.nombre.localeCompare(b.nombre))));
+taxonomyRouter.get('/categorias', async (_req, res) => ok(res, (await rows(COLLECTIONS.categories)).filter(item=>item.id!==AUTOMOTIVE_CATEGORY_ID).sort((a, b) => a.nombre.localeCompare(b.nombre))));
 
 taxonomyRouter.post('/categorias', requireAuth, requireRole('admin'), async (req, res) => {
   const nombre = normalizeText(req.body?.nombre);
@@ -43,7 +44,7 @@ taxonomyRouter.delete('/categorias/:id', requireAuth, requireRole('admin'), asyn
 taxonomyRouter.get('/subcategorias', async (req, res) => {
   const categoryId = normalizeText(req.query['categoriaId']);
   const data = (await rows(COLLECTIONS.subcategories))
-    .filter((item) => !categoryId || item.categoriaId === categoryId)
+    .filter((item) => item.categoriaId !== AUTOMOTIVE_CATEGORY_ID && (!categoryId || item.categoriaId === categoryId))
     .sort((a, b) => a.nombre.localeCompare(b.nombre));
   return ok(res, data);
 });
@@ -71,24 +72,22 @@ taxonomyRouter.delete('/subcategorias/:id', requireAuth, requireRole('admin'), a
 
 taxonomyRouter.get('/familias', async (req, res) => {
   const subcategoryId = normalizeText(req.query['subcategoriaId']);
-  const data = (await rows(COLLECTIONS.families))
+  const allowed = hardwareTaxonomy([], await rows(COLLECTIONS.subcategories), await rows(COLLECTIONS.families));
+  const data = allowed.families
     .filter((item) => !subcategoryId || item.subcategoriaId === subcategoryId)
     .sort((a, b) => a.nombre.localeCompare(b.nombre));
   return ok(res, data);
 });
 
 taxonomyRouter.post('/familias', requireAuth, requireRole('admin'), async (req, res) => {
-  if (req.body?.permiteVehiculos !== undefined && typeof req.body.permiteVehiculos !== 'boolean') return fail(res, 'FAMILY_VEHICLE_CAPABILITY_INVALID', 'La habilitación de vehículos debe ser sí o no.', 400);
   const nombre = normalizeText(req.body?.nombre);
   const subcategoriaId = normalizeText(req.body?.subcategoriaId);
   if (!nombre || !subcategoriaId) return fail(res, 'TAXONOMIA_INVALID_PAYLOAD', 'Subcategoria y nombre son requeridos.', 400);
-  return ok(res, await createRow(COLLECTIONS.families, { nombre, subcategoriaId, permiteVehiculos: req.body?.permiteVehiculos === true }), 201);
+  return ok(res, await createRow(COLLECTIONS.families, { nombre, subcategoriaId }), 201);
 });
 
 taxonomyRouter.patch('/familias/:id', requireAuth, requireRole('admin'), async (req, res) => {
-  if (req.body?.permiteVehiculos !== undefined && typeof req.body.permiteVehiculos !== 'boolean') return fail(res, 'FAMILY_VEHICLE_CAPABILITY_INVALID', 'La habilitación de vehículos debe ser sí o no.', 400);
   const patch: Record<string, unknown> = {};
-  if (req.body?.permiteVehiculos !== undefined) patch['permiteVehiculos'] = req.body.permiteVehiculos;
   if (req.body?.nombre !== undefined) patch['nombre'] = normalizeText(req.body.nombre);
   if (req.body?.subcategoriaId !== undefined) patch['subcategoriaId'] = normalizeText(req.body.subcategoriaId);
   const updated = await patchRow(COLLECTIONS.families, req.params.id, patch);

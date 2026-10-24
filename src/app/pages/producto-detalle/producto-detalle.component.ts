@@ -86,13 +86,10 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
     private readonly seoService: SeoService
   ) {}
 
-  private vehicleFilters: Pick<SearchFilters, 'vehicleBrandId' | 'vehicleModelId' | 'vehicleYear'> = {};
 
-  protected get vehicleFilterApplied(): boolean { return !!this.vehicleFilters.vehicleBrandId; }
 
   ngOnInit(): void {
     this.routeSubscription = combineLatest([this.route.paramMap, this.route.queryParamMap]).subscribe(async ([routeParams, params]) => {
-      this.vehicleFilters = {vehicleBrandId:params.get('vehiculoMarcaId') || undefined, vehicleModelId:params.get('vehiculoModeloId') || undefined, vehicleYear:params.get('vehiculoAnio') ? Number(params.get('vehiculoAnio')) : undefined};
       this.requestedProjectId = (params.get('projectTarget') || '').replace(/^local:/, '');
       const generation = ++this.loadGeneration;
       this.requestedStoreName = params.get('ferreteria') || '';
@@ -191,9 +188,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
     this.offersLoading = true;
     this.offersError = '';
     try {
-      const detail = this.vehicleFilters.vehicleBrandId
-        ? await this.apiService.loadProductOffers(sheet, this.vehicleFilters)
-        : await this.apiService.loadProductOffers(sheet);
+      const detail = await this.apiService.loadProductOffers(sheet);
       if (generation !== this.loadGeneration || requestId !== this.offersRequestId) return;
       this.detail = detail;
       this.selectedImageIndex=Math.min(this.selectedImageIndex,Math.max(0,this.galleryImages.length-1));

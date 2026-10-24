@@ -10,7 +10,6 @@ interface AccountDataSnapshot {
   profile: Record<string, unknown> | null;
   stores: Record<string, unknown>[];
   storeProducts: Record<string, unknown>[];
-  donorVehicles: Record<string, unknown>[];
   priceHistory: Record<string, unknown>[];
   storeAgreements: Record<string, unknown>[];
   projects: Record<string, unknown>[];
@@ -36,7 +35,7 @@ async function accountRows(userId: string, email: string): Promise<AccountDataSn
     ? authUser.email.toLowerCase() : null;
   const belongsToAccount = (item: any, recordEmail: unknown) => item.usuarioId === userId
     || (!!verifiedEmail && String(recordEmail || '').toLowerCase() === verifiedEmail);
-  const [userDoc, stores, storeProducts, priceHistory, storeAgreements, projects, productRequests, contacts, consents, privacyRequests, ipReports, priceReports, storeReviews, donorVehicles] = await Promise.all([
+  const [userDoc, stores, storeProducts, priceHistory, storeAgreements, projects, productRequests, contacts, consents, privacyRequests, ipReports, priceReports, storeReviews] = await Promise.all([
     db.collection(COLLECTIONS.users).doc(userId).get(),
     rows(COLLECTIONS.stores),
     rows(COLLECTIONS.storeProducts),
@@ -50,7 +49,6 @@ async function accountRows(userId: string, email: string): Promise<AccountDataSn
     rows(COLLECTIONS.intellectualPropertyReports),
     rows(COLLECTIONS.priceReports),
     rows(COLLECTIONS.storeReviews),
-    rows(COLLECTIONS.donorVehicles)
   ]);
   const ownedStores = stores.filter((item) => item.usuarioDuenoId === userId);
   const storeIds = new Set(ownedStores.map((item) => item.id));
@@ -60,7 +58,6 @@ async function accountRows(userId: string, email: string): Promise<AccountDataSn
     emailLinkedRecordsIncluded: !!verifiedEmail,
     profile: userDoc.exists ? { id: userDoc.id, ...userDoc.data() } : null,
     stores: ownedStores,
-    donorVehicles: donorVehicles.filter(item=>storeIds.has(item.ferreteriaId)),
     storeProducts: storeProducts.filter((item) => storeIds.has(item.ferreteriaId)),
     priceHistory: priceHistory.filter((item) => item.actorId === userId || storeIds.has(item.ferreteriaId)),
     storeAgreements: storeAgreements.filter((item) => item.usuarioFirmanteId === userId || storeIds.has(item.ferreteriaId)),
@@ -129,10 +126,8 @@ export async function deleteAccountData(userId: string, email: string, deleteAut
     deleteRowsByIds(COLLECTIONS.privacyRequests, snapshot.privacyRequests.map((item) => String(item['id'])))
   ]);
 
-  // Offers reference their private donor and donors reference the store.
-  await deleteRowsByIds(COLLECTIONS.donorVehicles,snapshot.donorVehicles.map(item=>String(item['id'])));
   await deleteRowsByIds(COLLECTIONS.stores,snapshot.stores.map(item=>String(item['id'])));
-  const photos=[...storeOffers.flatMap((offer:any)=>offer.fotosPublicacion||[]),...snapshot.donorVehicles.flatMap((donor:any)=>[...(donor.fotosVehiculo||[]),...(donor.piezas||[]).flatMap((p:any)=>p.fotosPublicacion||[])])];
+  const photos=storeOffers.flatMap((offer:any)=>offer.fotosPublicacion||[]);
   await Promise.allSettled(photos.map(photo=>deleteOfferImageFiles(photo)));
   await db.collection(COLLECTIONS.users).doc(userId).delete();
 
@@ -151,7 +146,6 @@ export async function deleteAccountData(userId: string, email: string, deleteAut
     profiles: snapshot.profile ? 1 : 0,
     stores: snapshot.stores.length,
     offers: storeOffers.length,
-    donorVehicles: snapshot.donorVehicles.length,
     priceHistoryMinimized: snapshot.priceHistory.length,
     storeAgreementsMinimized: snapshot.storeAgreements.length,
     storeReviews: reviewsToDelete.length,

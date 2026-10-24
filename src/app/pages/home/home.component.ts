@@ -1,9 +1,9 @@
+import { isHardwareProduct } from '../../../../functions/src/domain/market-scope';
 import { ProductImageDirective } from '../../shared/directives/product-image.directive';
 import { productSlug } from '../../core/utils/product-url.util';
 import { categoryIcon } from '../../core/utils/category-icon.util';
 import { FormsModule } from '@angular/forms';
 import { HomeDiscoveryStateService } from '../../core/services/home-discovery-state.service';
-import { VehicleCatalogService, VehicleCatalog } from '../../core/services/vehicle-catalog.service';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, signal, inject, Injector, ElementRef, ViewChild, HostListener, afterNextRender, ChangeDetectorRef } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
@@ -31,16 +31,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   @ViewChild('discoverySearch') private searchForm?: ElementRef<HTMLElement>;
   protected readonly areas = [
     {id:'',label:'Todos',icon:'pi pi-th-large'}, {id:'materiales',label:'Materiales',icon:'pi pi-box'},
-    {id:'herramientas',label:'Herramientas',icon:'pi pi-wrench'}, {id:'repuestos',label:'Repuestos',icon:'pi pi-car'}
+    {id:'herramientas',label:'Herramientas',icon:'pi pi-wrench'}
   ];
-  protected area: SearchFilters['area'] = this.state.value.area;
-  protected vehicleBrand = this.state.value.brand;
-  protected vehicleModel = this.state.value.model;
-  protected vehicleYear = this.state.value.year;
-  protected vehicleCatalog: VehicleCatalog = {brands:[],models:[]};
-  protected vehicleLoading = false;
-  protected vehicleError = '';
-  protected readonly years = Array.from({length:new Date().getFullYear()+2-1886},(_,i)=>String(new Date().getFullYear()+1-i));
+  protected area: SearchFilters['area'] = ['materiales','herramientas'].includes(this.state.value.area || '') ? this.state.value.area : undefined;
   protected query = '';
   protected suggestions: FamilyProductRow[] = [];
   protected suggestionsOpen = false;
@@ -63,41 +56,19 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.suggestionHeight = Math.max(0,(viewport?.offsetTop || 0)+(viewport?.height ?? window.innerHeight)-this.suggestionTop-12);
     this.changeDetector.markForCheck();
   };
-  protected get modelOptions() { return this.vehicleCatalog.models.filter(m=>m.activo!==false && m.marcaId===this.vehicleBrand); }
-  protected get searchLabel(): string { return this.area==='repuestos'?'Buscar repuestos':this.area==='herramientas'?'Buscar herramientas':this.area==='materiales'?'Buscar materiales':'Buscar productos'; }
-  protected get searchParams(): Record<string,string|undefined> {
-    return {q:this.query.trim() || undefined,rubro:this.area,
-      ...(this.area==='repuestos'?{vehiculoMarcaId:this.vehicleBrand || undefined,vehiculoModeloId:this.vehicleModel || undefined,vehiculoAnio:this.vehicleYear || undefined}:{})};
-  }
-  protected get previewTitle(): string {
-    const model=this.modelOptions.find(m=>m.id===this.vehicleModel);
-    return this.area==='repuestos'?(model?'Repuestos para tu '+model.nombre:'Repuestos automotrices')
-      :this.area==='herramientas'?'Herramientas y consumibles':this.area==='materiales'?'Materiales para tu proyecto':'Explora el catálogo';
-  }
-  private get discoveryFilters(): SearchFilters {
-    return {area:this.area,...(this.area==='repuestos'?{vehicleBrandId:this.vehicleBrand || undefined,vehicleModelId:this.vehicleModel || undefined,vehicleYear:this.vehicleYear?Number(this.vehicleYear):undefined}:{})};
-  }
+  protected get searchLabel(): string { return this.area==='herramientas'?'Buscar herramientas':this.area==='materiales'?'Buscar materiales':'Buscar productos'; }
+  protected get searchParams(): Record<string,string|undefined> { return {q:this.query.trim() || undefined,rubro:this.area}; }
+  protected get previewTitle(): string { return this.area==='herramientas'?'Herramientas y consumibles':this.area==='materiales'?'Materiales para tu proyecto':'Explora el catálogo'; }
+  private get discoveryFilters(): SearchFilters { return {area:this.area}; }
   protected selectArea(value: string): void {
-    this.area = value as SearchFilters['area'] || undefined;
+    this.area = value === 'materiales' || value === 'herramientas' ? value : undefined;
     this.criteriaChanged();
-    if (this.area==='repuestos') void this.loadVehicles();
   }
-  protected changeVehicleBrand(value:string):void {this.vehicleBrand=value;this.vehicleModel='';this.vehicleYear='';this.criteriaChanged();}
-  protected changeVehicleModel(value:string):void {this.vehicleModel=value;this.vehicleYear='';this.criteriaChanged();}
-  protected changeVehicleYear(value:string):void {this.vehicleYear=value;this.criteriaChanged();}
-  protected clearVehicle():void {this.vehicleBrand='';this.vehicleModel='';this.vehicleYear='';this.criteriaChanged();}
   private criteriaChanged():void {
-    this.state.value={area:this.area,brand:this.vehicleBrand,model:this.vehicleModel,year:this.vehicleYear};
+    this.state.value={area:this.area,brand:'',model:'',year:''};
     this.closeSuggestions();
     if(!this.area){this.previewRequest++;this.areaLoading.set(false);this.syncCatalogView();}
     else void this.loadAreaPreview();
-  }
-  protected async loadVehicles():Promise<void> {
-    if(this.vehicleLoading || this.vehicleCatalog.brands.length) return;
-    this.vehicleLoading=true;this.vehicleError='';
-    try {const catalog=await this.injector.get(VehicleCatalogService).publicCatalog();if(!this.destroyed)this.vehicleCatalog=catalog;}
-    catch {if(!this.destroyed)this.vehicleError='No pudimos cargar los vehículos. Puedes buscar por nombre o reintentar.';}
-    finally {this.vehicleLoading=false;this.changeDetector.markForCheck();}
   }
   private async loadAreaPreview():Promise<void> {
     const request=++this.previewRequest;this.featuredProducts.set([]);this.areaLoading.set(true);this.catalogError='';
@@ -184,14 +155,14 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     void this.loadCatalog();
-    if(this.area){void this.loadAreaPreview();if(this.area==='repuestos')void this.loadVehicles();}
+    if(this.area)void this.loadAreaPreview();
   }
 
   protected openProduct(product: FamilyProductRow): void {
     void this.router.navigateByUrl(product.seoPath || productPath(product.productName));
   }
 
-  protected categoryPath(name:string):string {return /repuestos.*automotr/i.test(name) ? '/repuestos' : `/categorias/${productSlug(name)}`;}
+  protected categoryPath(name:string):string {return `/categorias/${productSlug(name)}`;}
   protected openCategory(category: HomeCategory): void {
     void this.router.navigateByUrl(this.categoryPath(category.name));
   }
@@ -227,11 +198,11 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   private syncCatalogView(): void {
     const categories=this.preview?.categories.length?this.preview.categories:this.dataService.getCategoryOptions(false).slice(0,8);
-    this.featuredCategories=categories.map(category=>({...category,icon:categoryIcon(category)}));
+    this.featuredCategories=categories.filter(category=>category.id!=='cat-repuestos-automotrices').map(category=>({...category,icon:categoryIcon(category)}));
     if(this.area)return;
     const rows=this.dataService.getPopularProductRows('', Number.MAX_SAFE_INTEGER, undefined, false);
     if(this.preview?.products.length){
-      this.featuredProducts.set(this.preview.products);
-    }else this.featuredProducts.set(rows.slice(0,4));
+      this.featuredProducts.set(this.preview.products.filter(isHardwareProduct));
+    }else this.featuredProducts.set(rows.filter(isHardwareProduct).slice(0,4));
   }
 }

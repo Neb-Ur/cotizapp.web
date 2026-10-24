@@ -1,3 +1,4 @@
+import {normalizeWorkBudget, normalizePaintingPlan, WorkBudgetError} from '../domain/work-budget.js';
 import { verificationSnapshot, newVerificationCode } from '../services/quotation-verification.service.js';
 import { buildSearchRows } from '../services/catalog-search.service.js';
 import { Router } from 'express';
@@ -11,6 +12,13 @@ import { canAccessOwner } from '../lib/ownership.js';
 import { normalizeItems, optimizeItems, projectView, captureProjectPricing } from '../services/quotation.service.js';
 import { captureQuotationPricing } from '../domain/quotation-validity.js';
 export const projectsRouter = Router();
+projectsRouter.use((req,res,next)=>{
+ try {
+  if(req.body?.workBudget!==undefined)req.body.workBudget=normalizeWorkBudget(req.body.workBudget);
+  if(req.body?.paintingPlan!==undefined)req.body.paintingPlan=normalizePaintingPlan(req.body.paintingPlan) ?? null;
+  next();
+ }catch(error){if(error instanceof WorkBudgetError)return fail(res,'WORK_BUDGET_INVALID',error.message,400);next(error);}
+});
 
 // Backfill legacy quotations once, using the latest stored content and preserving saved prices.
 async function ensureProjectVerification(project: any, offers?: Awaited<ReturnType<typeof buildSearchRows>>): Promise<any | null> {
@@ -50,6 +58,8 @@ projectsRouter.post('/maestros/:ownerId/proyectos', requireAuth, requireRole('ma
   if (!name) return fail(res, 'PROYECTO_INVALID_PAYLOAD', 'Nombre de cotizacion requerido.', 400);
   const payload = {
     ownerId: req.params.ownerId,
+    workBudget: req.body?.workBudget ?? normalizeWorkBudget(undefined),
+    paintingPlan: req.body?.paintingPlan ?? null,
     name,
     address: normalizeText(req.body?.direccionObra),
     description: normalizeText(req.body?.descripcion).slice(0, 2000),
@@ -59,6 +69,7 @@ projectsRouter.post('/maestros/:ownerId/proyectos', requireAuth, requireRole('ma
     singleStoreId: normalizeText(req.body?.ferreteriaUnicaId) || null,
     createdAt: nowIso()
   };
+  if(payload.paintingPlan && !payload.items.some(item=>item.productoMaestroId===payload.paintingPlan.productId))payload.paintingPlan=null;
   Object.assign(payload, await captureProjectPricing(payload));
   const ref = db.collection(COLLECTIONS.projects).doc();
   const code = newVerificationCode();
@@ -100,8 +111,11 @@ projectsRouter.put('/maestros/:ownerId/proyectos/:projectId', requireAuth, requi
     proximity: normalizeProjectProximity(req.body?.proximidad) || null,
     singleStoreName: normalizeText(req.body?.ferreteriaUnica) || null,
     singleStoreId: normalizeText(req.body?.ferreteriaUnicaId) || null,
+    workBudget: req.body?.workBudget ?? project.workBudget ?? normalizeWorkBudget(undefined),
+    paintingPlan: req.body?.paintingPlan === undefined ? (project.paintingPlan ?? null) : req.body.paintingPlan,
     updatedAt: nowIso()
   };
+  if(patch.paintingPlan && !patch.items.some(item=>item.productoMaestroId===patch.paintingPlan.productId))patch.paintingPlan=null;
   const pricedPatch={...patch,...await captureProjectPricing({...project,...patch},project,renew)};
   const code=newVerificationCode();
   const updated=await db.runTransaction(async tx=>{

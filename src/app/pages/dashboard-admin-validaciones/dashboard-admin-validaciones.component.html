@@ -207,7 +207,7 @@
             <thead><tr><th>Producto</th><th>SKU</th><th>Precio</th><th>Stock</th><th>Publicado</th></tr></thead>
             <tbody>
               <tr *ngFor="let product of paginatedSelectedStoreCatalog">
-                <td>{{ product.name }} <button type="button" *ngIf="product.vehicleApplicationsEditable || product.vehicleApplications?.length" (click)="vehicleOffer=product">Vehículos</button></td>
+                <td>{{ product.name }}</td>
                 <td>{{ product.sku || '-' }}</td>
                 <td>{{ formatCurrency(product.price) }}</td>
                 <td>{{ product.stock }}</td>
@@ -362,10 +362,7 @@
               <button pButton type="button" [icon]="familyEditingId ? 'pi pi-check' : 'pi pi-plus'" [label]="familyEditingId ? 'Guardar' : 'Crear'" (click)="saveFamily()" [disabled]="!selectedTaxSubcategoryId"></button>
               <button pButton type="button" icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" *ngIf="familyEditingId" (click)="resetTaxonomyDrafts()" aria-label="Cancelar"></button>
             </div>
-            <label class="taxonomy-check-card">
-              <p-checkbox [(ngModel)]="familySupportsVehicles" [binary]="true" inputId="family-vehicle-capability" [disabled]="!selectedTaxSubcategoryId" />
-              <span><strong>Permite asociar vehículos</strong><small>Solo las familias habilitadas admitirán marca, modelo y año de vehículo.</small></span>
-            </label>
+
             <div class="taxonomy-list">
               <article class="taxonomy-item" *ngFor="let family of selectedTaxFamilies" [class.active]="selectedTaxFamilyId === family.id">
                 <button type="button" class="taxonomy-item-main" (click)="selectTaxFamily(family.id)">
@@ -503,7 +500,7 @@
           </p-card>
         </div>
       </div>
-      <app-vehicle-catalog-admin />
+
     </article>
 
     <article class="panel master-catalog-panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'productos' && catalogAdminView === 'productos'">
@@ -823,7 +820,7 @@
             <option value="en_revision">En revisión</option>
             <option value="retiro_preventivo">Retiro preventivo</option>
             <option value="esperando_respuesta">Esperando respuesta</option>
-            <option value="repuesto">Repuestos</option>
+            <option value="repuesto">Restituidos</option>
             <option value="retiro_definitivo">Retiro definitivo</option>
             <option value="rechazada">Rechazadas</option>
             <option value="all">Todas</option>
@@ -1126,17 +1123,13 @@
           <h3 class="form-section-title"><i class="pi pi-box" aria-hidden="true"></i> Identidad y clasificación</h3>
           <div class="toolbar modal-form-grid">
             <label>Clasificación del producto<select [(ngModel)]="masterDetailDraft.businessScope" (ngModelChange)="masterBusinessScopeTouched = true" [disabled]="masterDetailReadonly"><option *ngFor="let scope of productBusinessScopes" [value]="scope">{{ productBusinessScopeLabel(scope) }}</option></select><small>Determina qué locales pueden agregarlo a su catálogo.</small></label>
-            <ng-container *ngIf="masterDetailDraft.categoryId === 'cat-repuestos-automotrices'">
-              <label>Pieza<input [(ngModel)]="masterDetailDraft.partName" (ngModelChange)="updateMasterVehicleName()" [disabled]="masterDetailReadonly" placeholder="Radiador, alternador..." /></label>
-              <label>Especificación de la variante<input [(ngModel)]="masterDetailDraft.variantLabel" (ngModelChange)="updateMasterVehicleName()" [disabled]="masterDetailReadonly" placeholder="Motor, transmisión, posición o código" /></label>
-              <app-product-vehicle-fields [applications]="masterDetailDraft.vehicleCompatibility" (applicationsChange)="updateMasterVehicleName($event)" [disabled]="masterDetailReadonly" />
-            </ng-container>
+
             <label class="product-name-field">
-              {{masterDetailDraft.vehicleCompatibility.length ? 'Nombre automático' : 'Nombre'}}
-              <input type="text" [(ngModel)]="masterDetailDraft.name" [disabled]="masterDetailReadonly || masterDetailDraft.vehicleCompatibility.length > 0" />
+              Nombre
+              <input type="text" [(ngModel)]="masterDetailDraft.name" [disabled]="masterDetailReadonly" />
             </label>
             <label>
-              Fabricante del repuesto
+              Marca o fabricante
               <input type="text" [(ngModel)]="masterDetailDraft.brand" list="master-brand-options" maxlength="120" [disabled]="masterDetailReadonly" />
             </label>
             <label>
@@ -1509,5 +1502,3 @@
 </main>
 
 <datalist id="master-brand-options"><option *ngFor="let brand of brandOptions" [value]="brand.name"></option></datalist>
-
-<app-ui-modal [open]="!!vehicleOffer" title="Vehículos de la publicación" [closeDisabled]="vehicleOfferSaving" [closeOnBackdrop]="!vehicleOfferSaving" (closed)="closeVehicleOffer()"><app-offer-vehicle-applications *ngIf="vehicleOffer" [storeId]="selectedStore?.ferreteriaId || ''" [offerId]="vehicleOffer.id" (busyChange)="vehicleOfferSaving=$event" /></app-ui-modal>

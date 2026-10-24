@@ -41,7 +41,7 @@ export async function reconcileFinalSource(client:import('./codec.js').SqlClient
  const snapshots=new Map<string,Map<string,any>>();
  // Exclude derived caches and transient locks. All application source records
  // are reconciled once; normal SQL requests never consult Firestore afterwards.
- const priority=['users','categories','subcategories','families','brands','vehicleModels','familyDefinitions','masterProducts','masterAttributes','stores','donorVehicles','storeProducts','storeAgreements','storeReviews','projects','quotationVerifications','productRequests','contactRequests','consentRecords','marketingSuppressions','intellectualPropertyReports','priceReports','priceHistory','privacyRequests','deletionReceipts','adminAuditLogs','securityIncidents','governanceEvidence','storeMetrics','storeDailyAnalytics','analyticsJobs'];
+ const priority=['users','categories','subcategories','families','brands','familyDefinitions','masterProducts','masterAttributes','stores','storeProducts','storeAgreements','storeReviews','projects','quotationVerifications','productRequests','contactRequests','consentRecords','marketingSuppressions','intellectualPropertyReports','priceReports','priceHistory','privacyRequests','deletionReceipts','adminAuditLogs','securityIncidents','governanceEvidence','storeMetrics','storeDailyAnalytics','analyticsJobs'];
  for(const [collection,mapping]of [...mappingByCollection].sort((a,b)=>priority.indexOf(a[1].key)-priority.indexOf(b[1].key))){
   if(['publicCache','projectOwnerLocks'].includes(mapping.key))continue;
   const source=await firestore.collection(collection).get();

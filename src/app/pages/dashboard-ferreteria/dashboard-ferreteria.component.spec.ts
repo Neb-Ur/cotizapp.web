@@ -52,9 +52,9 @@ it('rejects a negative measurement quantity instead of silently clearing it on s
 it('limits category choices to the business type and keeps tools in hardware stores',()=>{
  const {component,api}=fixture();api.getCategoryOptions=()=>[{id:'materials'},{id:'tools'},{id:'cat-repuestos-automotrices'}];
  component.authService.currentUser=()=>({id:'owner',businessType:'desarmaduria'});
- expect(component.categoryOptions.map((c:any)=>c.id)).toEqual(['cat-repuestos-automotrices']);
+ expect(component.categoryOptions).toEqual([]);
  component.authService.currentUser=()=>({id:'owner',businessType:'repuestos'});
- expect(component.categoryOptions.map((c:any)=>c.id)).toEqual(['cat-repuestos-automotrices']);
+ expect(component.categoryOptions).toEqual([]);
  component.authService.currentUser=()=>({id:'owner',businessType:'ferreteria'});
  expect(component.categoryOptions.map((c:any)=>c.id)).toEqual(['materials','tools']);
 });

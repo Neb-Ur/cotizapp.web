@@ -103,8 +103,7 @@
       "nombre": "families.name",
       "subcategoriaId": "families.subcategory_id",
       "catalogoPlanVersion": "families.api_payload.catalogoPlanVersion (compatibility metadata)",
-      "catalogoPlanFecha": "families.api_payload.catalogoPlanFecha (compatibility metadata)",
-      "permiteVehiculos": "families.supports_vehicle_applications"
+      "catalogoPlanFecha": "families.api_payload.catalogoPlanFecha (compatibility metadata)"
     },
     "notes": "",
     "sourceCollection": "familias",
@@ -157,8 +156,7 @@
       "content_rights",
       "media_assets",
       "product_media",
-      "seo_routes",
-      "product_vehicle_applications"
+      "seo_routes"
     ],
     "fields": {
       "nombre": "products.name",
@@ -204,9 +202,6 @@
       "evidenciaCatalogo": "products.catalog_evidence",
       "catalogoPlanFecha": "products.api_payload.catalogoPlanFecha (compatibility metadata)",
       "catalogoPlanVersion": "products.api_payload.catalogoPlanVersion (compatibility metadata)",
-      "nombrePieza": "products.part_name",
-      "detalleVariante": "products.variant_label",
-      "compatibilidadVehiculos": "product_vehicle_applications by product_id; ordered model/brand/year ranges",
       "ambitoComercial": "products.api_payload.ambitoComercial (ferreteria, desarmaduria or ambos; editable classification)"
     },
     "notes": "Image and description rights are distinct records. Preserve current generic bases as products; model parent optional. Existing paths must be imported into seo_routes, including hashed duplicate-name URLs.",
@@ -235,8 +230,7 @@
   },
   "storeProducts": {
     "tables": [
-      "offers",
-      "offer_vehicle_applications"
+      "offers"
     ],
     "fields": {
       "ferreteriaId": "offers.store_id",
@@ -261,10 +255,7 @@
       "propiedadIntelectualReporteId": "offers.ip_report_id",
       "creadoEn": "offers.created_at",
       "actualizadoEn": "offers.updated_at",
-      "asociacionesVehiculos": "offer_vehicle_applications ordered rows",
-      "fotosPublicacion": "offers.api_payload.fotosPublicacion (bounded owned gallery with CDN URLs and storage keys)",
-      "vehiculoDonanteId": "offers.donor_vehicle_id",
-      "piezaDonanteId": "offers.donor_item_id"
+      "fotosPublicacion": "offers.api_payload.fotosPublicacion (bounded owned gallery with CDN URLs and storage keys)"
     },
     "notes": "One offer per store/product. Zero prices and zero stock remain representable; public eligibility excludes zero prices and purchasing eligibility excludes zero stock. Invalid old VAT flags require audit, not blind conversion.",
     "sourceCollection": "real_productosFerreteria",
@@ -344,7 +335,9 @@
       "ferreteriaUnica": "quotations.single_store_name_snapshot (legacy alias)",
       "items": "quotation_items ordered rows",
       "status": "quotations.status",
-      "estado": "quotations.status (legacy alias)"
+      "estado": "quotations.status (legacy alias)",
+      "workBudget": "quotations.api_payload.workBudget (versioned labor, expenses, markup and client presentation)",
+      "paintingPlan": "quotations.api_payload.paintingPlan (versioned measures, coverage, pack size and selected product)"
     },
     "notes": "Nested items preserve productName,quantity,storeId,storeName,productoFerreteriaId,productoMaestroId in snapshot/reference + nullable FK columns. Totals are live derived, not stored at import as fixed prices.",
     "sourceCollection": "real_proyectos",
@@ -371,7 +364,6 @@
       "notasAdmin": "product_requests.admin_notes",
       "fechaCreacion": "product_requests.created_at",
       "fechaResolucion": "product_requests.resolved_at",
-      "vehiculoDonanteId": "product_requests.api_payload.vehiculoDonanteId",
       "piezaDonanteId": "product_requests.api_payload.piezaDonanteId"
     },
     "notes": "",
@@ -719,48 +711,5 @@
       "updatedAt": "store_reviews.updated_at"
     },
     "sourceCollection": "real_resenasFerreteria"
-  },
-  "vehicleModels": {
-    "tables": [
-      "vehicle_models"
-    ],
-    "fields": {
-      "marcaId": "vehicle_models.brand_id",
-      "nombre": "vehicle_models.name",
-      "nombreNormalizado": "vehicle_models.normalized_name",
-      "activo": "vehicle_models.active",
-      "creadoEn": "vehicle_models.created_at",
-      "actualizadoEn": "vehicle_models.updated_at"
-    },
-    "notes": "Vehicle model identity is independent of product_models and references a brand with vehicle use.",
-    "sourceCollection": "modelosVehiculo",
-    "idStrategy": "Preserve ID; normalized name unique within vehicle brand."
-  },
-  "donorVehicles": {
-    "tables": [
-      "donor_vehicles"
-    ],
-    "fields": {
-      "ferreteriaId": "donor_vehicles.store_id",
-      "marcaId": "donor_vehicles.brand_id",
-      "modeloId": "donor_vehicles.model_id",
-      "anio": "donor_vehicles.year",
-      "estado": "donor_vehicles.status",
-      "creadoEn": "donor_vehicles.created_at",
-      "actualizadoEn": "donor_vehicles.updated_at",
-      "piezas": "donor_vehicles.api_payload.piezas (private drafts, revision and server-owned links)",
-      "motor": "donor_vehicles.api_payload.motor",
-      "patente": "donor_vehicles.api_payload.patente",
-      "vin": "donor_vehicles.api_payload.vin",
-      "transmision": "donor_vehicles.api_payload.transmision",
-      "codigoInterno": "donor_vehicles.api_payload.codigoInterno",
-      "revision": "donor_vehicles.api_payload.revision",
-      "marcaNombre": "donor_vehicles.api_payload.marcaNombre",
-      "modeloNombre": "donor_vehicles.api_payload.modeloNombre",
-      "fotosVehiculo": "donor_vehicles.api_payload.fotosVehiculo"
-    },
-    "notes": "Private inventory. Never included in public catalog snapshots. Donor provenance does not establish fitment.",
-    "sourceCollection": "real_vehiculosDonantes",
-    "idStrategy": "Client UUID for safe retries; scoped ownership checked on every operation."
   }
 }

@@ -17,7 +17,7 @@ const handler=(router,path,method='get')=>router.stack.find(l=>l.route?.path===p
 const response=()=>({statusCode:200,status(code){this.statusCode=code;return this;},set(){return this;},type(){return this;},send(body){this.body=body;return this;},json(body){this.body=body;return this;}});
 test('admin explicitly creates and edits test stores, validates booleans and preserves the flag on other edits',async t=>{
  const f=firestoreFixture(t);let creates=0;t.mock.method(adminAuth,'createUser',async()=>({uid:'owner-'+(++creates)}));
- const body={rol:'ferreteria',tipoNegocio:'desarmaduria',password:'Test123!',nombre:'Contacto',correo:'test@example.test',ciudad:'Santiago',comuna:'Maipú',direccion:'Prueba',latitud:-33.5,longitud:-70.6,estadoCuenta:'activo'};
+ const body={rol:'ferreteria',tipoNegocio:'ferreteria',password:'Test123!',nombre:'Contacto',correo:'test@example.test',ciudad:'Santiago',comuna:'Maipú',direccion:'Prueba',latitud:-33.5,longitud:-70.6,estadoCuenta:'activo'};
  const post=handler(adminUsersRouter,'/admin/usuarios','post');
  for(const value of ['true',1,null]){const res=response();await post({body:{...body,esPrueba:value}},res);assert.equal(res.statusCode,400);}
  assert.equal(creates,0);

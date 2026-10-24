@@ -10,7 +10,6 @@ import { Subscription } from 'rxjs';
 import { FamilyProductRow, SearchFilters, SearchProximity, SessionUser, TaxonomyOption } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
 import { FirebaseDataService } from '../../core/services/firebase-data.service';
-import { VehicleCatalogService, VehicleCatalog } from '../../core/services/vehicle-catalog.service';
 import { StoreDirectoryService } from '../../core/services/store-directory.service';
 import {
   GeoCoordinates,
@@ -61,14 +60,6 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
     return !!this.selectedStoreId && !this.storeOptions.some(store => store.id === this.selectedStoreId);
   }
   protected storeFilterError = '';
-  protected selectedVehicleBrandId = '';
-  protected selectedVehicleModelId = '';
-  protected selectedVehicleYear = '';
-  protected vehicleCatalog: VehicleCatalog = {brands:[],models:[]};
-  protected vehicleCatalogError = '';
-  protected vehicleYearError = '';
-  private vehicleCatalogLoaded = false;
-  private vehicleCatalogLoading = false;
   protected selectedBrand = '';
   protected selectedBrandId = '';
   protected selectedCategoryId = '';
@@ -116,8 +107,7 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly storeDirectory: StoreDirectoryService | null = null,
-    private readonly changeDetector: ChangeDetectorRef | null = null,
-    private readonly vehicles: VehicleCatalogService | null = null
+    private readonly changeDetector: ChangeDetectorRef | null = null
   ) {}
 
   ngOnInit(): void {
@@ -156,25 +146,19 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
       const requestedBrand = params.get('marca') || this.landing?.filters['marca'] || '';
       const requestedBrandId = params.get('marcaId') || this.landing?.filters['marcaId'] || '';
       const area = params.get('rubro') || this.landing?.filters['rubro'] || '';
-      const requestedArea = ['materiales','herramientas','repuestos'].includes(area) ? area as SearchFilters['area'] : undefined;
-      const requestedVehicleBrand = params.get('vehiculoMarcaId') || this.landing?.filters['vehiculoMarcaId'] || '';
-      const requestedVehicleModel = params.get('vehiculoModeloId') || this.landing?.filters['vehiculoModeloId'] || '';
-      const requestedVehicleYear = params.get('vehiculoAnio') || '';
+      const requestedArea = ['materiales','herramientas'].includes(area) ? area as SearchFilters['area'] : undefined;
       const requestedCategory = params.get('categoria') || this.landing?.filters['categoria'] || '';
       const requestedSubcategory = params.get('subcategoria') || this.landing?.filters['subcategoria'] || '';
       const requestedFamily = params.get('familia') || this.landing?.filters['familia'] || '';
       if (
-        requestedArea !== this.selectedArea || requestedVehicleBrand !== this.selectedVehicleBrandId || requestedVehicleModel !== this.selectedVehicleModelId
-        || requestedVehicleYear !== this.selectedVehicleYear || requestedStoreId !== this.selectedStoreId || requestedStoreName !== this.selectedStoreName
+        requestedArea !== this.selectedArea
+        || requestedStoreId !== this.selectedStoreId || requestedStoreName !== this.selectedStoreName
         || requestedBrand !== this.selectedBrand || requestedBrandId !== this.selectedBrandId
         || requestedCategory !== this.selectedCategoryId
         || requestedSubcategory !== this.selectedSubcategoryId
         || requestedFamily !== this.selectedFamilyId
       ) {
         this.selectedArea = requestedArea;
-        this.selectedVehicleBrandId = requestedVehicleBrand;
-        this.selectedVehicleModelId = requestedVehicleModel;
-        this.selectedVehicleYear = requestedVehicleYear;
         this.selectedStoreId = requestedStoreId;
         this.selectedStoreName = requestedStoreName;
         this.selectedBrand = requestedBrand;
@@ -205,68 +189,6 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
   protected get user(): SessionUser | null {
     const currentUser = this.authService.currentUser();
     return currentUser?.role === 'maestro' ? currentUser : null;
-  }
-
-  protected get showVehicleFilters(): boolean {
-    return this.selectedArea === 'repuestos' || this.selectedCategoryId === 'cat-repuestos-automotrices'
-      || /repuesto|automotriz|automotrices/i.test(this.tableProductSearch)
-      || !!this.selectedVehicleBrandId || !!this.selectedVehicleModelId || !!this.selectedVehicleYear
-      || this.familyOptions.some(f => f.id === this.selectedFamilyId && f.supportsVehicleApplications)
-      || this.productRows.some(p => p.categoryId === 'cat-repuestos-automotrices');
-  }
-
-  protected get vehicleModelOptions() {
-    return this.vehicleCatalog.models.filter(model => model.marcaId === this.selectedVehicleBrandId);
-  }
-
-  protected async loadVehicleCatalog(): Promise<void> {
-    if (!this.vehicles || this.vehicleCatalogLoaded || this.vehicleCatalogLoading) return;
-    this.vehicleCatalogLoading = true;
-    try {
-      const catalog = await this.vehicles.publicCatalog();
-      if (this.destroyed) return;
-      this.vehicleCatalog = catalog;
-      this.vehicleCatalogLoaded = true;
-      this.vehicleCatalogError = '';
-    } catch { this.vehicleCatalogError = 'No se pudieron cargar las marcas y modelos de vehículos.'; }
-    finally { this.vehicleCatalogLoading = false; this.changeDetector?.markForCheck(); }
-  }
-
-  protected onVehicleBrandChange(id: string): void {
-    this.selectedVehicleBrandId = id;
-    this.selectedVehicleModelId = '';
-    this.selectedVehicleYear = '';
-    this.applyVehicleFilters();
-  }
-
-  protected onVehicleModelChange(id: string): void {
-    this.selectedVehicleModelId = id;
-    this.selectedVehicleYear = '';
-    this.applyVehicleFilters();
-  }
-
-  protected onVehicleYearChange(value: string | number | null): void {
-    this.selectedVehicleYear = value === null ? '' : String(value);
-    const year = Number(this.selectedVehicleYear);
-    this.vehicleYearError = this.selectedVehicleYear && (!Number.isInteger(year) || year < 1886 || year > 2100)
-      ? 'Indica un año entre 1886 y 2100.' : '';
-    if (!this.vehicleYearError) this.applyVehicleFilters();
-  }
-
-  private resetVehicleFilters(): void {
-    this.selectedVehicleBrandId = this.selectedVehicleModelId = this.selectedVehicleYear = '';
-    this.vehicleYearError = '';
-  }
-
-  protected clearVehicleFilters(): void {
-    this.resetVehicleFilters();
-    this.applyVehicleFilters();
-  }
-
-  private applyVehicleFilters(): void {
-    this.vehicleYearError = '';
-    this.currentPage = 1;
-    this.refreshProductRows(true);
   }
 
   protected get categoryOptions(): TaxonomyOption[] {
@@ -319,7 +241,7 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
   }
 
   protected get taxonomyFilterCount(): number {
-    return [this.selectedArea, this.selectedStoreId, this.selectedCategoryId, this.selectedSubcategoryId, this.selectedFamilyId, this.selectedBrand, this.selectedVehicleBrandId, this.selectedVehicleModelId, this.selectedVehicleYear]
+    return [this.selectedArea, this.selectedStoreId, this.selectedCategoryId, this.selectedSubcategoryId, this.selectedFamilyId, this.selectedBrand]
       .filter(Boolean).length;
   }
 
@@ -401,7 +323,6 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
   protected onAreaChange(area: SearchFilters['area']): void {
     this.selectedArea = area || undefined;
     this.selectedCategoryId = ''; this.selectedSubcategoryId = ''; this.selectedFamilyId = '';
-    if (area !== 'repuestos') { this.selectedVehicleBrandId = ''; this.selectedVehicleModelId = ''; this.selectedVehicleYear = ''; }
     this.currentPage = 1; this.refreshProductRows(true);
   }
 
@@ -414,7 +335,7 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
 
   private syncStoreFilterUrl(): void {
     void this.router.navigate([], {relativeTo:this.route, queryParamsHandling:'merge', replaceUrl:true,
-      queryParams: {rubro:this.selectedArea || null,vehiculoMarcaId:this.selectedVehicleBrandId || null, vehiculoModeloId:this.selectedVehicleModelId || null, vehiculoAnio:this.selectedVehicleYear || null, ferreteriaId:this.selectedStoreId || null, ferreteria:this.selectedStoreName || null,
+      queryParams: {rubro:this.selectedArea || null,ferreteriaId:this.selectedStoreId || null, ferreteria:this.selectedStoreName || null,
         marca:this.selectedBrand || null, marcaId:this.selectedBrandId || null,
         categoria:this.selectedCategoryId || null, subcategoria:this.selectedSubcategoryId || null,
         familia:this.selectedFamilyId || null, q:this.tableProductSearch || null}});
@@ -424,8 +345,6 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
     this.categorySearch = value;
     const match = this.findByName(this.categoryOptions, value);
     this.selectedCategoryId = match?.id || '';
-    const clearVehicle = this.selectedCategoryId !== 'cat-repuestos-automotrices' && !!(this.selectedVehicleBrandId || this.selectedVehicleModelId || this.selectedVehicleYear);
-    if (clearVehicle) this.resetVehicleFilters();
     this.selectedSubcategoryId = '';
     this.selectedFamilyId = '';
     this.subcategorySearch = '';
@@ -466,7 +385,6 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
   }
 
   protected clearCategoryFilter(): void {
-    this.resetVehicleFilters();
     this.categorySearch = '';
     this.subcategorySearch = '';
     this.familySearch = '';
@@ -522,9 +440,6 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
     if (this.draftProjectName) params.set('draftName', this.draftProjectName);
     if (this.draftProjectAddress) params.set('draftAddress', this.draftProjectAddress);
     if (this.selectedStoreId) { params.set('ferreteriaId',this.selectedStoreId); params.set('ferreteria',this.selectedStoreName); }
-    if (this.selectedVehicleBrandId) params.set('vehiculoMarcaId',this.selectedVehicleBrandId);
-    if (this.selectedVehicleModelId) params.set('vehiculoModeloId',this.selectedVehicleModelId);
-    if (this.selectedVehicleYear && !this.vehicleYearError) params.set('vehiculoAnio',this.selectedVehicleYear);
     return params.size ? `${path}?${params}` : path;
   }
 
@@ -553,7 +468,6 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
     try {
       const taxonomy=this.apiService.refreshSearchTaxonomy(force);
       if (this.storeDirectory) void this.loadStoreOptions();
-      if (this.showVehicleFilters) void this.loadVehicleCatalog();
       this.searchReady = true;
       const [,loaded]=await Promise.all([taxonomy,this.fetchProductPage()]);
       this.syncTaxonomySearchLabels();
@@ -571,9 +485,9 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
 
   private refreshProductRows(syncUrl = false): void {
     if (this.landing && this.searchReady) {
-      const selected: Record<string, string> = {rubro:this.selectedArea || '',vehiculoMarcaId:this.selectedVehicleBrandId,vehiculoModeloId:this.selectedVehicleModelId,familia:this.selectedFamilyId,categoria:this.selectedCategoryId,subcategoria:this.selectedSubcategoryId,marca:this.selectedBrand,marcaId:this.selectedBrandId};
+      const selected: Record<string, string> = {rubro:this.selectedArea || '',familia:this.selectedFamilyId,categoria:this.selectedCategoryId,subcategoria:this.selectedSubcategoryId,marca:this.selectedBrand,marcaId:this.selectedBrandId};
       if (Object.entries(this.landing.filters).some(([key, value]) => value && selected[key] !== value)) {
-        void this.router.navigate(['/buscar'], {queryParams:{...selected,rubro:this.selectedArea || undefined,q:this.tableProductSearch || undefined,vehiculoMarcaId:this.selectedVehicleBrandId || undefined,vehiculoModeloId:this.selectedVehicleModelId || undefined,vehiculoAnio:this.selectedVehicleYear || undefined,ferreteriaId:this.selectedStoreId || undefined,ferreteria:this.selectedStoreName || undefined,projectTarget:this.projectTarget || undefined}});
+        void this.router.navigate(['/buscar'], {queryParams:{...selected,rubro:this.selectedArea || undefined,q:this.tableProductSearch || undefined,ferreteriaId:this.selectedStoreId || undefined,ferreteria:this.selectedStoreName || undefined,projectTarget:this.projectTarget || undefined}});
         return;
       }
     }
@@ -583,37 +497,24 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
   }
 
   private async fetchProductPage(): Promise<boolean> {
-    const vehicleYear = this.selectedVehicleYear ? Number(this.selectedVehicleYear) : undefined;
-    this.vehicleYearError = vehicleYear !== undefined && (!Number.isInteger(vehicleYear) || vehicleYear < 1886 || vehicleYear > 2100)
-      ? 'Indica un año entre 1886 y 2100.' : '';
-    if (this.vehicleYearError) {
-      this.searchRequestId++;
-      this.isPublicCatalogRefreshing = false;
-      return false;
-    }
     const requestId = ++this.searchRequestId;
     this.syncTaxonomySearchLabels();
     this.isPublicCatalogRefreshing = true;
     this.catalogError = '';
     try {
       const result = await this.apiService.searchProductPage({
-        ...(this.landing && /^\/(repuestos|vehiculos|marcas-vehiculos)(\/|$)/.test(this.landing.path) ? {seoOnly:this.landing.index !== false} : {}),
         area: this.selectedArea,
         query: this.tableProductSearch.trim(),
         categoryId: this.selectedCategoryId,
         subcategoryId: this.selectedSubcategoryId,
         familyId: this.selectedFamilyId,
         brand: this.selectedBrand,
-        ...(this.selectedVehicleBrandId ? {vehicleBrandId:this.selectedVehicleBrandId} : {}),
-        ...(this.selectedVehicleModelId ? {vehicleModelId:this.selectedVehicleModelId} : {}),
-        ...(this.selectedVehicleYear ? {vehicleYear:Number(this.selectedVehicleYear)} : {}),
         ...(this.selectedStoreId ? {storeId:this.selectedStoreId} : {}),
         ...(this.selectedBrandId ? {brandId:this.selectedBrandId} : {})
       }, this.currentPage, this.pageSize, this.productSort, this.currentProximity);
       if (requestId !== this.searchRequestId) return false;
       this.hasProductPage = true;
       this.productRows = result.items;
-      if (this.showVehicleFilters) void this.loadVehicleCatalog();
       this.totalProducts = result.total;
       this.currentPage = result.page;
       this.pageSize = result.size;

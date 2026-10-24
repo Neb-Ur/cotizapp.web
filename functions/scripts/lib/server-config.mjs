@@ -1,4 +1,4 @@
-const preservedKeys = new Set(['ALLOWED_ORIGINS','REQUIRE_ADMIN_MFA','VEHICLE_APPLICATIONS_ENABLED','VEHICLE_APPLICATION_PILOT_STORE_IDS','PILOT_STORES_ENABLED','IMAGE_STORAGE_PROVIDER','R2_ACCOUNT_ID','R2_BUCKET','R2_PUBLIC_BASE_URL']);
+const preservedKeys = new Set(['ALLOWED_ORIGINS','REQUIRE_ADMIN_MFA','PILOT_STORES_ENABLED','IMAGE_STORAGE_PROVIDER','R2_ACCOUNT_ID','R2_BUCKET','R2_PUBLIC_BASE_URL']);
 export function preserveServerConfig(existing,project,requestedSql) {
  const selected=requestedSql||existing.USE_SQL_DATABASE||'false';
  if(!['true','false'].includes(selected))throw new Error('USE_SQL_DATABASE must be true or false');

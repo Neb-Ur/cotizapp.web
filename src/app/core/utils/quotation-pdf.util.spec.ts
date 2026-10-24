@@ -39,3 +39,22 @@ it('includes the server-issued code used to verify the PDF',async()=>{
  const file=buildQuotationPdfFile({...input,verificationCode:'FND-AAAA-BBBB-CCCC-DDDD'});
  const text=await new Promise<string>(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.readAsText(file);});expect(text).toContain('FND-AAAA-BBBB-CCCC-DDDD');
 });
+
+describe('work budget PDF',()=>{
+ const budget:any={version:1,enabled:true,clientName:'Cliente de prueba',scope:'Pintar living y reparar superficie',terms:'Plazo acordado: tres jornadas',labor:[{description:'Preparar y pintar',quantity:2,unit:'jornada',unitPrice:50000}],expenses:[{description:'Traslado',quantity:1,unit:'trabajo',unitPrice:10000}],markupPercent:25,discloseCosts:false};
+ const read=(file:File)=>new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=reject;reader.readAsText(file);});
+ it('shows scope and sale total without embedding private unit costs, supplier prices or markup',async()=>{
+  const text=await read(buildQuotationPdfFile({...input,workBudget:budget,verificationCode:'TRV-TEST'}));
+  expect(text).toContain('PRESUPUESTO DE TRABAJO');expect(text).toContain('Cliente de prueba');expect(text).toContain('140.000');
+  expect(text).not.toContain('50.000');expect(text).not.toContain('10.000');expect(text).not.toContain('Recargo sobre costos');expect(text).not.toContain('Ferreter');
+  expect(text).toContain('verificacion de materiales');expect(text).toContain('no valida mano de obra');
+ });
+ it('includes the private breakdown only when the maestro explicitly enables it',async()=>{
+  const text=await read(buildQuotationPdfFile({...input,workBudget:{...budget,discloseCosts:true}}));
+  expect(text).toContain('DESGLOSE INTERNO');expect(text).toContain('50.000');expect(text).toContain('28.000');expect(text).toContain('Recargo sobre costos');
+ });
+ it('allows a labor-only budget and blocks any material with no available price',()=>{
+  const empty=buildQuotationOptimization([],[]);expect(buildQuotationPdfFile({...input,quotation:empty,workBudget:budget}).type).toBe('application/pdf');
+  expect(()=>buildQuotationPdfFile({...input,quotation:buildQuotationOptimization([{productName:'Missing',quantity:1}],[]),workBudget:budget})).toThrow('sin oferta');
+ });
+});

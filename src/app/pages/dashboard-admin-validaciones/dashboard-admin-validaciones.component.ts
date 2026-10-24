@@ -1,9 +1,4 @@
 import { allowedProductAreas, productAreaLabel, type ProductArea } from '../../core/utils/business-type.util';
-import {ProductVehicleFieldsComponent} from '../../shared/components/product-vehicle-fields/product-vehicle-fields.component';
-import {VehicleApplication} from '../../core/services/vehicle-catalog.service';
-import { UiModalComponent } from '../../shared/components/ui-modal/ui-modal.component';
-import { OfferVehicleApplicationsComponent } from '../../shared/components/offer-vehicle-applications/offer-vehicle-applications.component';
-import { VehicleCatalogAdminComponent } from '../../shared/components/vehicle-catalog-admin/vehicle-catalog-admin.component';
 import { BUSINESS_TYPES, businessTypeLabel, normalizeBusinessType, PRODUCT_BUSINESS_SCOPES, normalizeProductBusinessScope, productBusinessScopeLabel, type ProductBusinessScope, type BusinessType } from '../../core/utils/business-type.util';
 import {AdminMetricsComponent} from '../../shared/components/admin-metrics/admin-metrics.component';
 import {AdminMetricsService,AdminMetrics} from '../../core/services/admin-metrics.service';
@@ -67,9 +62,6 @@ type AdminSection = 'inicio' | 'ferreterias' | 'productos' | 'solicitudes' | 'co
 
 interface MasterProductDraft {
   businessScope: ProductBusinessScope;
-  partName: string;
-  variantLabel: string;
-  vehicleCompatibility: VehicleApplication[];
   storageImageUrl?: string;
   storageImagePath?: string;
   thumbnailImageUrl?: string;
@@ -159,10 +151,6 @@ interface AdminSectionMeta {
   selector: 'app-dashboard-admin-validaciones',
   standalone: true,
   imports: [
-    ProductVehicleFieldsComponent,
-    VehicleCatalogAdminComponent,
-    OfferVehicleApplicationsComponent,
-    UiModalComponent,
     AdminMetricsComponent,
     ProductImageUploadComponent,
     PasswordFieldComponent,
@@ -255,9 +243,6 @@ export class DashboardAdminValidacionesComponent implements OnInit, OnDestroy {
       description: 'Gestiona las cuentas y sus estados de acceso.'
     }
   ];
-  protected vehicleOffer: CatalogProduct | null = null;
-  protected vehicleOfferSaving = false;
-  protected closeVehicleOffer():void { if(!this.vehicleOfferSaving)this.vehicleOffer=null; }
   protected currentSection: AdminSection = 'inicio';
   protected metrics: AdminMetrics | null = null;
   protected catalogAdminView: 'productos' | 'taxonomia' = 'productos';
@@ -323,7 +308,6 @@ export class DashboardAdminValidacionesComponent implements OnInit, OnDestroy {
   protected categoryEditingId: string | null = null;
   protected subcategoryDraftName = '';
   protected subcategoryEditingId: string | null = null;
-  protected familySupportsVehicles = false;
   protected familyDraftName = '';
   protected familyEditingId: string | null = null;
   protected definitionDraft: AdminDefinitionDraft = this.createEmptyDefinitionDraft();
@@ -816,7 +800,6 @@ export class DashboardAdminValidacionesComponent implements OnInit, OnDestroy {
   protected editFamily(family: TaxonomyOption): void {
     this.familyEditingId = family.id;
     this.familyDraftName = family.name;
-    this.familySupportsVehicles = family.supportsVehicleApplications === true;
     this.selectedTaxSubcategoryId = family.parentId || this.selectedTaxSubcategoryId;
     this.selectTaxSubcategory(this.selectedTaxSubcategoryId);
     this.selectTaxFamily(family.id);
@@ -846,7 +829,6 @@ export class DashboardAdminValidacionesComponent implements OnInit, OnDestroy {
     this.subcategoryDraftName = '';
     this.familyEditingId = null;
     this.familyDraftName = '';
-    this.familySupportsVehicles = false;
     this.resetDefinitionDraft();
   }
 
@@ -903,12 +885,11 @@ export class DashboardAdminValidacionesComponent implements OnInit, OnDestroy {
 
       try {
         const family = this.familyEditingId
-          ? await this.apiService.updateFamily(this.familyEditingId, this.selectedTaxSubcategoryId, this.familyDraftName, this.familySupportsVehicles)
-          : await this.apiService.createFamily(this.selectedTaxSubcategoryId, this.familyDraftName, this.familySupportsVehicles);
+          ? await this.apiService.updateFamily(this.familyEditingId, this.selectedTaxSubcategoryId, this.familyDraftName)
+          : await this.apiService.createFamily(this.selectedTaxSubcategoryId, this.familyDraftName);
         this.selectedTaxFamilyId = family.id;
         this.notice = this.familyEditingId ? 'Familia actualizada.' : 'Familia creada.';
         this.familyDraftName = '';
-        this.familySupportsVehicles = false;
         this.familyEditingId = null;
       } catch (error) {
         this.error = error instanceof Error ? error.message : 'No fue posible guardar la familia.';
@@ -1055,14 +1036,12 @@ export class DashboardAdminValidacionesComponent implements OnInit, OnDestroy {
 
   protected async openMasterProductVariant(product: CatalogProduct): Promise<void> {
     await this.openMasterProductEdit(product);
-    if(this.masterDetailDraft.vehicleCompatibility?.length){this.masterDetailDraft.imageUrl='';this.masterDetailDraft.storageImageUrl='';this.masterDetailDraft.thumbnailImageUrl='';this.masterDetailDraft.galleryText='';this.masterDetailDraft.storageImagePath='';this.masterDetailDraft.thumbnailImagePath='';}
     this.selectedMasterProduct = null;
     this.masterDetailDraft.masterProductId = '';
     this.masterDetailDraft.name = '';
-    if(this.masterDetailDraft.vehicleCompatibility?.length)this.updateMasterVehicleName();
     this.masterDetailDraft.barcode = '';
     this.masterDetailDraft.isPublished = false;
-    this.notice = this.masterDetailDraft.vehicleCompatibility?.length ? 'Nueva variante: cambia vehículo, años o especificaciones y carga la imagen de esta pieza.' : 'Nueva variante: completa el nombre comercial y revisa color, medidas, acabado y presentación.';
+    this.notice = 'Nueva variante: completa el nombre comercial y revisa color, medidas, acabado y presentación.';
   }
 
   protected async openMasterProductCreate(): Promise<void> {
@@ -1126,22 +1105,12 @@ export class DashboardAdminValidacionesComponent implements OnInit, OnDestroy {
     this.changeDetector.detectChanges();
   }
 
-  protected updateMasterVehicleName(applications = this.masterDetailDraft.vehicleCompatibility): void {
-    this.masterDetailDraft.vehicleCompatibility=applications;
-    const first=applications[0];
-    if(!first)return;
-    const sameModel=applications.every(a=>a.marcaId===first.marcaId&&a.modeloId===first.modeloId);
-    const years=(sameModel?applications:[first]).map(a=>a.anioDesde===a.anioHasta?String(a.anioDesde ?? ''):`${a.anioDesde ?? ''}–${a.anioHasta ?? ''}`).join(', ');
-    this.masterDetailDraft.name=[this.masterDetailDraft.partName,first.marcaNombre,first.modeloNombre,years].filter(Boolean).join(' ')+(this.masterDetailDraft.variantLabel?' · '+this.masterDetailDraft.variantLabel:'')+(!sameModel&&applications.length>1?' (+'+(applications.length-1)+' aplicaciones)':'');
-  }
-
   protected async saveMasterProduct(): Promise<void> {
     await this.writeFeedback.run('dashboard-admin-validaciones:saveMasterProduct', async () => {
       if (this.masterDetailReadonly || this.masterDetailLoading || this.masterDetailSaving || this.imageUploadBusy) {
         return;
       }
 
-      if(this.masterDetailDraft.categoryId==='cat-repuestos-automotrices' && (!this.masterDetailDraft.partName.trim() || !this.masterDetailDraft.vehicleCompatibility?.length || this.masterDetailDraft.vehicleCompatibility.some(a=>!a.marcaId || !a.modeloId || a.anioDesde===null || a.anioHasta===null || a.anioDesde>a.anioHasta))){this.error='Completa pieza, vehículo y rango de años del producto maestro.';return;}
       const name = this.masterDetailDraft.name.trim();
       const brand = this.masterDetailDraft.brand.trim();
       if (name.length < 3) {
@@ -1184,7 +1153,6 @@ export class DashboardAdminValidacionesComponent implements OnInit, OnDestroy {
           name,
           barcode: this.masterDetailDraft.barcode,
           brand,
-          ...(this.masterDetailDraft.vehicleCompatibility?.length ? {partName:this.masterDetailDraft.partName,variantLabel:this.masterDetailDraft.variantLabel,vehicleCompatibility:this.masterDetailDraft.vehicleCompatibility} : {}),
           productType: this.masterDetailDraft.productType.trim() || 'Producto ferretero',
           categoryId: this.masterDetailDraft.categoryId,
           subcategoryId: this.masterDetailDraft.subcategoryId,
@@ -2150,7 +2118,7 @@ export class DashboardAdminValidacionesComponent implements OnInit, OnDestroy {
   private createEmptyMasterProductDraft(): MasterProductDraft {
     return {
       businessScope: 'ferreteria',
-      partName: '', variantLabel: '', vehicleCompatibility: [],
+
       isPublished: false,
       masterProductId: '',
       name: '',
@@ -2246,7 +2214,7 @@ export class DashboardAdminValidacionesComponent implements OnInit, OnDestroy {
 
     return {
       businessScope: normalizeProductBusinessScope(product.businessScope, product.categoryId),
-      partName: product.partName || '', variantLabel: product.variantLabel || '', vehicleCompatibility: structuredClone(product.vehicleCompatibility || []),
+
       isPublished: product.isPublished,
       masterProductId: product.masterProductId || product.id,
       name: product.name,

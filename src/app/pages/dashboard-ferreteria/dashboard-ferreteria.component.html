@@ -4,7 +4,7 @@
     <p>{{ dataLoadError }}</p>
     <button type="button" (click)="retryDataLoad()">Reintentar carga</button>
   </div>
-  <header class="store-header" *ngIf="!donorEditing">
+  <header class="store-header">
     <div class="store-photo" aria-hidden="true">
       <svg viewBox="0 0 24 24" focusable="false">
         <path d="M3 9.2 5.1 4h13.8L21 9.2V11a3 3 0 0 1-1 2.2V21h-7v-6h-2v6H4v-7.8A3 3 0 0 1 3 11V9.2Zm3.5-3.1L5.3 9h13.4l-1.2-2.9h-11ZM6 14v5h3v-6h6v6h3v-5.1a3 3 0 0 1-2.5-1.1 3 3 0 0 1-5 0A3 3 0 0 1 6 14Z" />
@@ -35,7 +35,6 @@
       <p class="flush-copy">Puedes preparar tu catálogo, pero tus precios no participan en el comparador hasta que Trovio active la cuenta.</p>
     </article>
 
-    <article class="panel" *ngIf="onboardingReady && supportsDonors && currentSection === 'vehiculos'"><app-donor-inventory (editingChange)="donorEditing=$event" [storeId]="user?.ferreteriaId || ''" (editOffer)="editDonorOffer($event)" (changed)="donorCatalogChanged()" /></article>
 
     <article class="panel" *ngIf="onboardingReady && currentSection === 'cotizaciones'"><app-store-quotation-verifier [storeId]="user?.ferreteriaId || ''" /></article>
 
@@ -81,7 +80,6 @@
         </div>
         <div class="form-actions">
           <button type="button" class="secondary" (click)="goToExcelImport()">Actualizar por Excel</button>
-          <button type="button" class="secondary" *ngIf="supportsDonors" (click)="setSection('vehiculos')">Agregar por vehículo</button>
           <button type="button" (click)="openAddProducts('buscar')">Agregar producto individual</button>
         </div>
       </div>
@@ -327,8 +325,8 @@
     eyebrow="Catálogo"
     title="Editar producto y fotos"
     size="sm"
-    [closeDisabled]="catalogEditSaving || catalogVehicleSaving || catalogPhotosBusy"
-    [closeOnBackdrop]="!catalogEditSaving && !catalogVehicleSaving && !catalogPhotosBusy"
+    [closeDisabled]="catalogEditSaving || catalogPhotosBusy"
+    [closeOnBackdrop]="!catalogEditSaving && !catalogPhotosBusy"
     (closed)="closeCatalogEdit()"
   >
     <section *ngIf="catalogEditCandidate as product" class="catalog-edit-modal">
@@ -392,15 +390,14 @@
         </span>
       </label>
 
-      <app-offer-vehicle-applications *ngIf="product.vehicleApplicationsEditable || product.vehicleApplications?.length" [storeId]="user?.ferreteriaId || ''" [offerId]="product.id" [disabled]="catalogEditSaving" (busyChange)="catalogVehicleSaving=$event" />
 
-      <app-offer-photo-manager [storeId]="user?.ferreteriaId || ''" [offerId]="product.id" [photos]="product.offerPhotos || []" [disabled]="catalogEditSaving || catalogVehicleSaving" (busyChange)="catalogPhotosBusy=$event" (photosChange)="onOfferPhotosChanged($event)" />
+      <app-offer-photo-manager [storeId]="user?.ferreteriaId || ''" [offerId]="product.id" [photos]="product.offerPhotos || []" [disabled]="catalogEditSaving" (busyChange)="catalogPhotosBusy=$event" (photosChange)="onOfferPhotosChanged($event)" />
 
       <p *ngIf="catalogEditError" class="catalog-edit-error">{{ catalogEditError }}</p>
 
       <div class="confirm-delete-actions">
-        <button type="button" class="btn btn-outline" (click)="closeCatalogEdit()" [disabled]="catalogEditSaving || catalogVehicleSaving || catalogPhotosBusy">Cancelar</button>
-        <button type="button" class="btn btn-primary" (click)="saveCatalogEdit()" [disabled]="catalogEditSaving || catalogVehicleSaving || catalogPhotosBusy">
+        <button type="button" class="btn btn-outline" (click)="closeCatalogEdit()" [disabled]="catalogEditSaving || catalogPhotosBusy">Cancelar</button>
+        <button type="button" class="btn btn-primary" (click)="saveCatalogEdit()" [disabled]="catalogEditSaving || catalogPhotosBusy">
           {{ catalogEditSaving ? 'Guardando...' : 'Guardar cambios' }}
         </button>
       </div>

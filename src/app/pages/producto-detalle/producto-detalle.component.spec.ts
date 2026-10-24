@@ -52,13 +52,13 @@ describe('product detail loading',()=>{
   expect(component.displayStores[0].storeId).toBe('new');
   expect(component.offersLoading).toBe(false);
  });
- it('retains the selected vehicle when loading and retrying offers',async()=>{
+ it('ignores retired vehicle parameters when loading and retrying hardware offers',async()=>{
   const {fixture,resolvers,api,vehicleParams,component}=await setup();
   vehicleParams.next(convertToParamMap({vehiculoMarcaId:'toyota',vehiculoModeloId:'corolla',vehiculoAnio:'2010'}));
   resolvers[1](detail);await Promise.resolve();fixture.detectChanges();
-  expect(api.loadProductOffers).toHaveBeenCalledWith(detail,{vehicleBrandId:'toyota',vehicleModelId:'corolla',vehicleYear:2010});
-  expect(fixture.nativeElement.textContent).toContain('Ofertas filtradas por el vehículo seleccionado');
-  component.retryOffers();expect(api.loadProductOffers).toHaveBeenLastCalledWith(detail,{vehicleBrandId:'toyota',vehicleModelId:'corolla',vehicleYear:2010});
+  expect(api.loadProductOffers).toHaveBeenCalledWith(detail);
+  expect(fixture.nativeElement.textContent).not.toContain('Ofertas filtradas por el vehículo seleccionado');
+  component.retryOffers();expect(api.loadProductOffers).toHaveBeenLastCalledWith(detail);
  });
  it('requests only the route product and replaces the skeleton with the detail',async()=>{
   const {fixture,resolvers,api}=await setup();
