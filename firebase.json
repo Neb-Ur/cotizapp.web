@@ -12,6 +12,7 @@
   },
   "hosting": {
     "public": "dist/cotizacion-web/browser",
+    "trailingSlash": false,
     "predeploy": [
       "node scripts/preserve-hosted-bundles.mjs"
     ],

@@ -5,7 +5,6 @@
   overflow-wrap: anywhere;
 }
 
-.quotation-code,
 .quotation-validity {
   display: block;
   margin-top: 0.2rem;
@@ -82,11 +81,6 @@
     overflow: hidden;
   }
 
-  .quotation-code {
-    margin-top: 0.3rem;
-    font-size: 0.6875rem;
-    line-height: 1.4;
-  }
 
   .quotation-total {
     grid-column: 2;
@@ -105,3 +99,42 @@
   }
 }
 
+
+.quotation-code {
+  display: grid;
+  justify-items: start;
+  gap: 0.4rem;
+  margin-block: 0.65rem;
+  padding: 0.7rem;
+  border: 1px solid var(--border-med);
+  border-radius: var(--r-sm);
+  background: var(--orange-muted);
+}
+
+.quotation-code-label {
+  font-size: 0.75rem;
+  color: var(--ink-700);
+}
+
+.quotation-code strong {
+  max-width: 100%;
+  color: var(--navy-900);
+  font-family: ui-monospace, monospace;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.quotation-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-block: 0.2rem;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 760px) {
+  .quotations-table .quotation-identity { grid-column: 1 / -1; grid-row: 1; }
+  .quotations-table .quotation-total { grid-column: 1; grid-row: 2; text-align: left; }
+  .quotations-table .quotation-actions-cell { grid-column: 2; grid-row: 2; }
+}

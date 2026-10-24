@@ -22,7 +22,9 @@ test('legacy product routes preserve quotation parameters and product metadata u
  assert.equal(res.location,'/productos/cemento-gris-25-kg?ferreteriaId=south&cantidad=3&crearCotizacion=1');
  const empty=response();await handler('/producto')({path:'/producto',originalUrl:'/producto'},empty,error=>{throw error;});assert.equal(empty.location,'/buscar');
  const page=response();await handler('/productos/:slug')({path:'/productos/cemento-gris-25-kg',params:{slug:'cemento-gris-25-kg'}},page,error=>{throw error;});
- assert.match(page.body,/<p role="status">Cargando precios de los locales…<\/p>/);
+ assert.match(page.body,/No hay ofertas vigentes de locales para este producto/);
+ assert.doesNotMatch(page.body,/"@type":"Product"/);
+ assert.match(page.body,/"@type":"WebPage"/);
  assert.doesNotMatch(page.body,/AggregateOffer/);
  assert.match(page.body,/<meta property="og:image" content="https:\/\/example.test\/cemento.webp">/);
  assert.match(page.body,/<link rel="canonical" href="https:\/\/trovio.cl\/productos\/cemento-gris-25-kg">/);
@@ -61,6 +63,7 @@ test('test product HTML preserves noindex and escapes metadata and JSON-LD',asyn
  const serialized=page.body.match(/<script[^>]*type="application\/ld\+json">(.*?)<\/script>/s)[1];
  assert.ok(!serialized.includes('<'));
  assert.equal(JSON.parse(serialized)['@graph'][0].name,demo.nombre);
+ assert.doesNotMatch(serialized,/"@type":"Product"/);
  const collection=response();
  await handler(['/repuestos','/:kind(categorias|familias|marcas|marcas-vehiculos|vehiculos)/:slug'])({path:'/repuestos'},collection,error=>{throw error;});
  assert.equal(collection.statusCode,200);
@@ -77,5 +80,8 @@ test('initial product HTML exposes real price, stock, condition and explicit fit
  assert.equal(page.statusCode,200);assert.match(page.body,/\$25\.000/);assert.match(page.body,/Stock: 1 · Estado: Usado/);assert.match(page.body,/Hyundai Accent · 2015–2018/);assert.match(page.body,/href="\/vehiculos\/hyundai-accent"/);
  assert.doesNotMatch(page.body,/Local simulado|Local agotado/);
  const schema=JSON.parse(page.body.match(/<script[^>]*type="application\/ld\+json">(.*?)<\/script>/s)[1]);
+ assert.equal((page.body.match(/type="application\/ld\+json"/g)||[]).length,1);
+ assert.equal(schema['@graph'].filter(item=>item['@type']==='Product').length,1);
+ assert.equal(schema['@graph'][0]['@id'],'https://trovio.cl/productos/radiador-hyundai-accent#product');
  assert.equal(schema['@graph'][0].offers.lowPrice,25000);assert.equal(schema['@graph'][0].offers.offers[0].itemCondition,'https://schema.org/UsedCondition');
 });

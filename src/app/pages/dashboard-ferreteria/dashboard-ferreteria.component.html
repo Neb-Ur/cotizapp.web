@@ -73,7 +73,7 @@
       <div class="overview-actions"><button type="button" class="secondary" (click)="goToExcelImport()"><i class="pi pi-upload" aria-hidden="true"></i> Actualizar por Excel</button><button type="button" class="secondary" (click)="setSection('perfil')"><i class="pi pi-user" aria-hidden="true"></i> Completar mi perfil</button></div>
     </article>
 
-    <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'catalogo' && catalogView === 'maintain'">
+    <article class="panel catalog-panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'catalogo' && catalogView === 'maintain'">
       <div class="projects-topbar">
         <div>
           <h3>Mantener precios y stock</h3>
@@ -94,20 +94,26 @@
       <p class="saved" *ngIf="catalogNotice">{{ catalogNotice }}</p>
       <p *ngIf="catalogError" class="error-text">{{ catalogError }}</p>
 
-      <div class="table-wrap" *ngIf="filteredCatalog.length > 0; else emptyCatalog">
-        <table>
-          <thead><tr><th>Producto</th><th>SKU</th><th>Precio</th><th>Stock</th><th>Estado</th><th>Fotos</th><th>Publicado</th><th>Actualizado</th><th>Acciones</th></tr></thead>
+      <div class="table-wrap catalog-table-wrap" *ngIf="filteredCatalog.length > 0; else emptyCatalog" tabindex="0" role="region" aria-label="Productos de mi catálogo">
+        <table class="catalog-table">
+          <colgroup><col class="catalog-col-product" /><col class="catalog-col-price" /><col class="catalog-col-stock" /><col class="catalog-col-status" /><col class="catalog-col-photos" /><col class="catalog-col-updated" /><col class="catalog-col-actions" /></colgroup>
+          <thead><tr><th scope="col">Producto</th><th scope="col" class="catalog-price">Precio</th><th scope="col" class="catalog-stock">Stock</th><th scope="col">Estado</th><th scope="col">Fotos</th><th scope="col">Actualizado</th><th scope="col">Acciones</th></tr></thead>
           <tbody>
             <tr *ngFor="let product of paginatedCatalog">
-              <td>{{ product.name }}<small class="helper-text"> · {{ productTypeLabel(product) }}</small></td>
-              <td>{{ product.sku || '-' }}</td>
-              <td>{{ formatCurrency(product.price) }}</td>
-              <td>{{ product.stock }}</td>
-              <td>{{ conditionLabel(product.condition) }}</td>
-              <td><button type="button" class="ghost" (click)="openCatalogEdit(product)">Fotos ({{ product.offerPhotos?.length || 0 }})</button></td>
-              <td>{{ product.isPublished ? 'Si' : 'No' }}</td>
-              <td>{{ product.updatedAt ? (product.updatedAt | date:'dd/MM/yyyy HH:mm') : '-' }}</td>
-              <td class="actions">
+              <td class="catalog-product">
+                <strong class="catalog-product-name">{{ product.name }}</strong>
+                <small class="catalog-product-type">{{ productTypeLabel(product) }}</small>
+                <small class="catalog-sku" [attr.title]="product.sku || null">SKU: {{ product.sku || 'Sin SKU' }}</small>
+              </td>
+              <td class="catalog-price">{{ formatCurrency(product.price) }}</td>
+              <td class="catalog-stock"><span [class.catalog-no-stock]="product.stock === 0">{{ product.stock }}</span></td>
+              <td>
+                <span class="catalog-condition">{{ conditionLabel(product.condition) }}</span>
+                <span class="catalog-publication" [class.catalog-publication--hidden]="!product.isPublished">{{ product.isPublished ? 'Publicado' : 'No publicado' }}</span>
+              </td>
+              <td><button type="button" class="ghost catalog-photos" [attr.aria-label]="'Editar fotos de ' + product.name + ' (' + (product.offerPhotos?.length || 0) + ')'" (click)="openCatalogEdit(product)"><i class="pi pi-image" aria-hidden="true"></i> {{ product.offerPhotos?.length || 0 }}</button></td>
+              <td class="catalog-updated"><span>{{ product.updatedAt ? (product.updatedAt | date:'dd/MM/yyyy') : 'Sin fecha' }}</span><small *ngIf="product.updatedAt">{{ product.updatedAt | date:'HH:mm' }}</small></td>
+              <td><div class="actions">
                 <button
                   type="button"
                   class="table-action-button table-action-button--edit"
@@ -130,7 +136,7 @@
                     <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm-2 6h10l-.7 11H7.7L7 9Zm3 2v7h2v-7h-2Zm4 0v7h2v-7h-2Z" />
                   </svg>
                 </button>
-              </td>
+              </div></td>
             </tr>
           </tbody>
         </table>

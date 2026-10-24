@@ -67,3 +67,10 @@ test('deploy preservation retains custom SQL connection settings and replication
   const preserved = preserveServerConfig(existing, 'test-project');
   for (const [key, value] of Object.entries(existing)) assert.equal(preserved[key], value, key);
 });
+
+test('prerendered sitemap pages use URLs without trailing-slash redirects', () => {
+  const config = readJson('firebase.json');
+  assert.equal(config.hosting.trailingSlash, false);
+  const routes = readFileSync(new URL('prerender-routes.txt', root), 'utf8').trim().split(/\r?\n/);
+  assert.ok(routes.every(path => path === '/' || !path.endsWith('/')));
+});

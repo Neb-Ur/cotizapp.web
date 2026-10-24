@@ -169,6 +169,121 @@
   overflow: auto;
 }
 
+
+// Keep long catalog identifiers from squeezing operational columns.
+.catalog-panel {
+  min-width: 0;
+
+  .projects-topbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  h3 { margin: 0 0 0.35rem; }
+
+  .form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+  }
+
+  .top-product-search { max-width: 36rem; }
+}
+
+.catalog-table-wrap {
+  margin-top: 1rem;
+  border: 1px solid var(--border-soft);
+
+  &:focus-visible {
+    outline: 2px solid var(--navy-800);
+    outline-offset: 3px;
+  }
+}
+
+.catalog-table {
+  table-layout: fixed;
+  min-width: 940px;
+  font-size: 0.875rem;
+
+  .catalog-col-product { width: auto; }
+  .catalog-col-price { width: 110px; }
+  .catalog-col-stock { width: 64px; }
+  .catalog-col-status { width: 120px; }
+  .catalog-col-photos { width: 76px; }
+  .catalog-col-updated { width: 112px; }
+  .catalog-col-actions { width: 124px; }
+
+  th, td { padding: 0.85rem 0.75rem; vertical-align: middle; }
+  th { white-space: nowrap; font-size: 0.68rem; letter-spacing: 0.05em; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover { background: var(--ink-50); }
+
+  .catalog-product-name {
+    display: block;
+    color: var(--navy-900);
+    font-weight: 600;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .catalog-product-type, .catalog-sku {
+    display: block;
+    margin-top: 0.25rem;
+    color: var(--ink-500);
+    font-size: 0.75rem;
+  }
+
+  .catalog-sku {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .catalog-price { text-align: right; white-space: nowrap; font-weight: 650; color: var(--navy-900); }
+  .catalog-stock { text-align: center; white-space: nowrap; }
+  .catalog-no-stock { color: var(--red); font-weight: 700; }
+  .catalog-condition { display: block; white-space: nowrap; }
+
+  .catalog-publication {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.35rem;
+    font-size: 0.72rem;
+    color: var(--emerald);
+    white-space: nowrap;
+
+    &::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    &--hidden { color: var(--ink-500); }
+  }
+
+  .catalog-photos {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-width: 48px;
+    min-height: 36px;
+    padding: 0.4rem;
+    white-space: nowrap;
+  }
+
+  .catalog-updated {
+    white-space: nowrap;
+    font-size: 0.8rem;
+
+    small { display: block; margin-top: 0.25rem; color: var(--ink-500); }
+  }
+
+  .actions { width: auto; min-width: 0; }
+  .actions .table-action-button { width: 44px; height: 44px; flex-basis: 44px; }
+}
+
 .catalog-filters-grid {
   margin-top: 0.65rem;
   display: grid;

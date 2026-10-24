@@ -1,10 +1,16 @@
 import assert from 'node:assert/strict';
 const probeVersion = `smoke-${Date.now()}`;
 const canonicalBase = 'https://trovio.cl';
-const base = process.env.PRODUCTION_URL || 'https://cotizapp-d71c8.web.app';
+const base = process.env.PRODUCTION_URL || canonicalBase;
 async function get(path) {
- const res = await fetch(`${base}${path}`, { headers: { Accept:'text/html, application/json' }, signal:AbortSignal.timeout(45000) });
+ const res = await fetch(`${base}${path}`, { redirect:'manual', headers: { Accept:'text/html, application/json' }, signal:AbortSignal.timeout(45000) });
  return { status:res.status, body:await res.text(), headers:res.headers };
+}
+// Canonical pages must respond directly; following redirects hides sitemap errors.
+for (const path of ['/buscar', '/maestros', '/ferreterias', '/contacto', '/preguntas-frecuentes', '/terminos-condiciones', '/privacidad', '/propiedad-intelectual']) {
+ const response = await get(path);
+ assert.equal(response.status, 200, `${path}: canonical URL must not redirect (${response.headers.get('location') || 'no Location'})`);
+ assert.ok(response.body.includes(`rel="canonical" href="${canonicalBase}${path}"`), `${path}: canonical must agree with sitemap`);
 }
 const home = await get('/'); assert.equal(home.status,200); assert.match(home.body,/<app-root/);
 const {data:catalog} = JSON.parse((await get(`/api/catalogo-publico?v=${probeVersion}`)).body);

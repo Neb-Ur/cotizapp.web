@@ -101,7 +101,8 @@ export class SeoService {
     const path = product.seoPath || productPath(product.productName);
     const description = this.productDescription(product);
     const image = this.validImage(product.imageUrl) ? product.imageUrl : undefined;
-    const realOffers = product.stores.filter(store => !store.pilot && store.price > 0 && store.stock > 0);
+    const realOffers = product.stores.filter(store => !store.pilot && Number.isFinite(store.price) && store.price > 0 && Number.isFinite(store.stock) && store.stock > 0);
+    const hasRichProduct = !product.isTestProduct && realOffers.length > 0;
     const page: SeoPage = {
       title: `${product.productName}: precios en locales | Trovio`,
       index: product.isTestProduct !== true,
@@ -111,8 +112,10 @@ export class SeoService {
     this.applyPage(page, path, 'product', image);
     this.setStructuredData({
       '@context': 'https://schema.org',
-      '@graph': [{
+      '@graph': [hasRichProduct ? {
         '@type': 'Product',
+        '@id': `${SITE_URL}${path}#product`,
+        url: `${SITE_URL}${path}`,
         name: product.productName,
         image: image ? [image] : undefined,
         description,
@@ -129,6 +132,12 @@ export class SeoService {
           offers: realOffers.map(store=>({'@type':'Offer',priceCurrency:'CLP',price:store.price,availability:'https://schema.org/InStock',url:`${SITE_URL}${path}`,seller:store.storeName ? {'@type':'Organization',name:store.storeName,...(store.storeId ? {url:`${SITE_URL}/ferreterias/${encodeURIComponent(store.storeId)}`} : {})} : undefined,itemCondition:({nuevo:'https://schema.org/NewCondition',usado:'https://schema.org/UsedCondition',reacondicionado:'https://schema.org/RefurbishedCondition',para_reparar:'https://schema.org/DamagedCondition'} as Record<string,string>)[store.condition || '']})),
           url: `${SITE_URL}${path}`
         } : undefined
+      } : {
+        '@type': 'WebPage',
+        '@id': `${SITE_URL}${path}#webpage`,
+        url: `${SITE_URL}${path}`,
+        name: product.productName,
+        description
       }, {
         '@type': 'BreadcrumbList',
         itemListElement: [
@@ -244,6 +253,6 @@ export class SeoService {
   }
 
   private removeStructuredData(): void {
-    this.document.getElementById(STRUCTURED_DATA_ID)?.remove();
+    this.document.querySelectorAll(`script[id="${STRUCTURED_DATA_ID}"]`).forEach(script => script.remove());
   }
 }

@@ -15,7 +15,7 @@ describe('public SEO identity and real offers', () => {
   function schema() { return JSON.parse(document.getElementById('cotizapp-page-structured-data')!.textContent!); }
   it('escapes script delimiters for SSR without changing structured data values', () => {
     const productName = 'Radiador </script><script>alert(1)</script>';
-    setup().updateProduct(product({productName}));
+    setup().updateProduct(product({productName,stores:[{price:1000,stock:1}]}));
     expect(document.getElementById('cotizapp-page-structured-data')!.textContent).not.toContain('<');
     expect(schema()['@graph'][0].name).toBe(productName);
   });
@@ -27,7 +27,28 @@ describe('public SEO identity and real offers', () => {
   it('keeps test products out of the index and never marks their prices as offers', () => {
     setup().updateProduct(product({isTestProduct:true,stores:[{price:200,stock:1}]}));
     expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toContain('noindex');
-    expect(schema()['@graph'][0].offers).toBeUndefined();
+    expect(schema()['@graph'].some((item: any) => item['@type'] === 'Product')).toBe(false);
+    expect(schema()['@graph'][0]['@type']).toBe('WebPage');
+  });
+  it('keeps an informational page without invalid product markup when all offers are missing or unavailable', () => {
+    setup().updateProduct(product({stores:[{price:100,stock:1,pilot:true},{price:100,stock:0},{price:0,stock:2},{price:Infinity,stock:1}]}));
+    expect(schema()['@graph'].map((item: any) => item['@type'])).toEqual(['WebPage', 'BreadcrumbList']);
+    expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe('index, follow');
+  });
+  it('replaces server markup and removes duplicate owned scripts when offers change', () => {
+    const seo = setup();
+    for (let i = 0; i < 2; i++) {
+      const script = document.createElement('script');
+      script.id = 'cotizapp-page-structured-data';
+      script.type = 'application/ld+json';
+      script.textContent = JSON.stringify({'@type':'Product',name:'Old product'});
+      document.head.appendChild(script);
+    }
+    seo.updateProduct(product({stores:[{price:1000,stock:1}]}));
+    expect(document.querySelectorAll('script[id="cotizapp-page-structured-data"]').length).toBe(1);
+    expect(schema()['@graph'][0]['@id']).toBe('https://trovio.cl/productos/radiador-kuv100#product');
+    seo.updateProduct(product());
+    expect(schema()['@graph'].some((item: any) => item['@type'] === 'Product')).toBe(false);
   });
   it('does not index collections made exclusively of test products', () => {
     setup().updateCollection({title:'Prueba',description:'Catálogo de prueba',path:'/categorias/prueba',name:'Prueba',index:false});

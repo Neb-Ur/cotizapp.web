@@ -136,6 +136,16 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
     this.router.navigate(['/dashboard/maestro/cotizaciones', projectId]);
   }
 
+  protected async copyQuotationCode(project: ProjectSummary): Promise<void> {
+    if (!project.verificationCode) return;
+    try {
+      await navigator.clipboard.writeText(project.verificationCode);
+      this.quotationNotice = 'Código copiado. Preséntalo en el local para verificar tu cotización.';
+    } catch {
+      this.quotationNotice = 'No se pudo copiar automáticamente. Selecciona el código visible y cópialo para presentarlo en el local.';
+    }
+  }
+
   protected async shareProject(project: ProjectSummary): Promise<void> {
     const quotation = this.apiService.buildProjectQuotation(
       project.items,

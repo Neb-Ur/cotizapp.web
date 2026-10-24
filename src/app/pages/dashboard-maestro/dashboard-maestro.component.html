@@ -27,7 +27,7 @@
         <button type="button" (click)="goToNewProject()" [disabled]="!canCreateQuotation">Nueva cotización</button>
       </div>
       <p class="quota-text">{{ quotationLimitText }}</p>
-      <p class="saved" *ngIf="quotationNotice">{{ quotationNotice }}</p>
+      <p class="saved" *ngIf="quotationNotice" role="status">{{ quotationNotice }}</p>
       <div class="stats-grid">
         <section><h3>Cotizaciones guardadas</h3><p>{{ projects.length }}</p></section>
         <section><h3>Ahorro estimado acumulado</h3><p>{{ formatCurrency(totalEstimatedSaving) }}</p></section>
@@ -60,14 +60,23 @@
         </div>
         <button type="button" (click)="goToNewProject()" [disabled]="!canCreateQuotation">Nueva cotización</button>
       </div>
-      <p class="saved" *ngIf="quotationNotice">{{ quotationNotice }}</p>
+      <p class="saved" *ngIf="quotationNotice" role="status">{{ quotationNotice }}</p>
       <div class="table-wrap quotations-wrap" *ngIf="projects.length > 0; else emptyQuotes">
         <table class="quotations-table">
           <caption class="visually-hidden">Cotizaciones guardadas</caption>
           <thead><tr><th>Cotización</th><th class="quotation-desktop">Fecha</th><th class="quotation-desktop">Ítems</th><th>Total óptimo</th><th class="quotation-desktop">Ahorro</th><th>Acciones</th></tr></thead>
           <tbody>
             <tr *ngFor="let project of projects">
-              <td class="quotation-identity"><span class="quotation-name" [title]="project.name">{{ project.name }}</span><small *ngIf="project.verificationCode" class="quotation-code">{{ project.verificationCode }}</small><small *ngIf="project.validUntil" class="quotation-desktop quotation-validity">{{ project.expired ? 'Más de 10 días' : 'Compra recomendada hasta' }} · {{ project.validUntil | date:'dd/MM/yyyy' }}</small></td>
+              <td class="quotation-identity">
+                <span class="quotation-name" [title]="project.name">{{ project.name }}</span>
+                <div class="quotation-code" *ngIf="project.verificationCode; else missingCode">
+                  <span class="quotation-code-label">Código para presentar en el local</span>
+                  <strong>{{ project.verificationCode }}</strong>
+                  <button type="button" class="secondary quotation-copy" [attr.aria-label]="'Copiar código de ' + project.name" (click)="copyQuotationCode(project)"><i class="pi pi-copy" aria-hidden="true"></i> Copiar código</button>
+                </div>
+                <ng-template #missingCode><button type="button" class="secondary quotation-copy" (click)="goToProjectDetail(project.id)">Ver código en la cotización</button></ng-template>
+                <small *ngIf="project.validUntil" class="quotation-desktop quotation-validity">{{ project.expired ? 'Más de 10 días' : 'Compra recomendada hasta' }} · {{ project.validUntil | date:'dd/MM/yyyy' }}</small>
+              </td>
               <td class="quotation-desktop">{{ project.createdAt | date:'short' }}</td>
               <td class="quotation-desktop">{{ project.items.length }}</td>
               <td class="quotation-total">{{ project.availabilityStatus === 'incomplete' ? 'Incompleta: revisar ofertas' : formatCurrency(project.totalOptimal) }}</td>
