@@ -1,5 +1,5 @@
 import {quotationStatus,type QuotationStatus} from '../utils/quotation-workflow.util';
-import {normalizeWorkBudget, normalizePaintingPlan, type WorkBudget, type PaintingPlan} from '../utils/work-budget.util';
+import {normalizeWorkBudget, normalizePaintingPlan, normalizeTilePlan, type WorkBudget, type PaintingPlan, type TilePlan} from '../utils/work-budget.util';
 import { hardwareSnapshot, isHardwareProduct } from '../../../../functions/src/domain/market-scope';
 import { normalizeOfferCondition } from '../utils/offer-condition.util';
 import { productArea, isProductArea, allowedProductAreas, type ProductArea, normalizeBusinessType, productMatchesBusinessType, normalizeProductBusinessScope, type BusinessType } from '../utils/business-type.util';
@@ -1360,7 +1360,8 @@ export class FirebaseDataService {
     singleStoreId?: string,
     description = '',
     workBudget?: WorkBudget,
-    paintingPlan?: PaintingPlan | null
+    paintingPlan?: PaintingPlan | null,
+    tilePlan?: TilePlan | null
   ): Promise<ProjectSummary> {
     try {
       const created = await this.apiClient.post<any>(`/maestros/${ownerId}/proyectos`, {
@@ -1369,6 +1370,7 @@ export class FirebaseDataService {
         descripcion: description.trim(),
         ...(workBudget !== undefined ? {workBudget:normalizeWorkBudget(workBudget)} : {}),
         ...(paintingPlan !== undefined ? {paintingPlan:paintingPlan === null ? null : normalizePaintingPlan(paintingPlan)} : {}),
+        ...(tilePlan !== undefined ? {tilePlan:tilePlan === null ? null : normalizeTilePlan(tilePlan)} : {}),
         proximidad: proximity ? {
           latitude: proximity.latitude,
           longitude: proximity.longitude,
@@ -1404,7 +1406,8 @@ export class FirebaseDataService {
     description = '',
     renewPrices = false,
     workBudget?: WorkBudget,
-    paintingPlan?: PaintingPlan | null
+    paintingPlan?: PaintingPlan | null,
+    tilePlan?: TilePlan | null
   ): Promise<ProjectSummary | null> {
     try {
       const updated = await this.apiClient.put<any>(`/maestros/${ownerId}/proyectos/${projectId}`, {
@@ -1414,6 +1417,7 @@ export class FirebaseDataService {
         ...(workBudget !== undefined ? {workBudget:normalizeWorkBudget(workBudget)} : {}),
         ...(paintingPlan !== undefined ? {paintingPlan:paintingPlan === null ? null : normalizePaintingPlan(paintingPlan)} : {}),
         renovarPrecios: renewPrices,
+        ...(tilePlan !== undefined ? {tilePlan:tilePlan === null ? null : normalizeTilePlan(tilePlan)} : {}),
         proximidad: proximity ? {
           latitude: proximity.latitude,
           longitude: proximity.longitude,
@@ -2365,6 +2369,7 @@ export class FirebaseDataService {
         description: row.description || '',
         workBudget: normalizeWorkBudget(row.workBudget),
         paintingPlan: normalizePaintingPlan(row.paintingPlan),
+        tilePlan: normalizeTilePlan(row.tilePlan),
         name: row.name,
         address: row.address || '',
         proximity: this.mapSearchProximity(row.proximity),

@@ -63,3 +63,9 @@ it('blocks an unfinished painting template before creating a client PDF',()=>{
  expect(()=>buildQuotationPdfFile({...input,workBudget})).toThrow('Completa los costos');
  workBudget.labor[0].unitPrice=50000;expect(()=>buildQuotationPdfFile({...input,workBudget})).not.toThrow();
 });
+it('includes ceramic measurements and box assumptions in material and work PDFs while keeping internal costs private',async()=>{
+ const tilePlan={version:1 as const,priceUnitConfirmed:true as const,spaces:[{name:'Cocina',length:4,width:3,excludedArea:1}],wastePercent:10,coveragePerBox:2,productId:'tile',productName:'Cerámica de piso'};
+ const workBudget={version:1 as const,enabled:true,templateId:'tiles-v1' as const,clientName:'Cliente',scope:'Instalar revestimiento',terms:'Acordar fecha',labor:[{description:'Instalación',unit:'trabajo' as const,quantity:1,unitPrice:50000}],expenses:[],markupPercent:25,discloseCosts:false};
+ const read=(file:File)=>new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=reject;reader.readAsText(file);});
+ for(const budget of [undefined,workBudget]){const text=await read(buildQuotationPdfFile({...input,tilePlan,workBudget:budget}));expect(text).toContain('ESTIMACION DE CERAMICAS');expect(text).toContain('Cocina');expect(text).toContain('7 caja');expect(text).toContain('2 m2/caja');if(budget){expect(text).not.toContain('Costo unitario:');expect(text).not.toContain('Recargo sobre costos');}}
+});

@@ -48,7 +48,7 @@ describe('guided home search',()=>{
   expect(fixture.nativeElement.querySelector('.discovery-areas')).toBeNull();
   expect(fixture.nativeElement.querySelector('h1').textContent).toContain('Compara precios para tu obra');
   expect(fixture.nativeElement.querySelectorAll('.discovery-shortcut').length).toBe(2);
-  expect(fixture.nativeElement.querySelector('[href="/cotizaciones/nueva?herramienta=pintura"]')).not.toBeNull();
+  expect(fixture.nativeElement.querySelector('[href="/cotizaciones/nueva?herramienta=materiales"]')).not.toBeNull();
   component.query='taladro';component.focusDiscovery();await fixture.whenStable();
   expect(data.searchProductPage).toHaveBeenLastCalledWith({query:'taladro'},1,6,'relevance');
   const navigate=vi.spyOn(router,'navigate').mockResolvedValue(true);component.submitDiscovery();

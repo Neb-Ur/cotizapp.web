@@ -28,9 +28,14 @@
       <div><span>{{ workBudget.enabled ? 'Verificación de materiales' : 'Código de cotización' }}</span><strong>{{ verificationCode }}</strong></div>
       <button type="button" class="secondary" (click)="copyVerificationCode()"><i class="pi pi-copy" aria-hidden="true"></i> Copiar código</button>
     </section>
-    <details class="painting-tool" [open]="showPaintingCalculator">
-      <summary><span><i class="pi pi-calculator" aria-hidden="true"></i> Calcular pintura</span><small>{{ paintingPlan ? 'Cálculo guardado: revisar o actualizar' : 'De medidas a envases del catálogo' }}</small></summary>
-      <app-painting-calculator [products]="paintProducts" [plan]="paintingPlan" [busy]="isSaving" (applyPlan)="applyPaintingPlan($event)" />
+    <details class="painting-tool" [open]="showMaterialsCalculator">
+      <summary><span><i class="pi pi-calculator" aria-hidden="true"></i> Calcular materiales</span><small>{{ paintingPlan || tilePlan ? 'Cálculos guardados: revisar o actualizar' : 'De medidas a productos para tu obra' }}</small></summary>
+      <div class="calculator-choices" role="group" aria-label="Elegir calculadora">
+        <button type="button" [attr.aria-pressed]="selectedCalculator === 'painting'" (click)="selectedCalculator='painting'" [disabled]="isSaving || statusBusy">Pintura</button>
+        <button type="button" [attr.aria-pressed]="selectedCalculator === 'tiles'" (click)="selectedCalculator='tiles'" [disabled]="isSaving || statusBusy">Cerámicas y porcelanatos</button>
+      </div>
+      <div class="calculator-content" [hidden]="selectedCalculator !== 'painting'"><app-painting-calculator [products]="paintProducts" [plan]="paintingPlan" [busy]="isSaving || statusBusy" (applyPlan)="applyPaintingPlan($event)" /></div>
+      <div class="calculator-content" [hidden]="selectedCalculator !== 'tiles'"><app-tile-calculator [products]="paintProducts" [plan]="tilePlan" [busy]="isSaving || statusBusy" (applyPlan)="applyTilePlan($event)" /></div>
     </details>
     <article class="summary">
         <div class="summary-heading">
@@ -97,7 +102,7 @@
                 <p class="line-meta">{{ getRowBestStore(item) }} · {{ getRowCondition(item) }}</p>
               </td>
               <td class="quantity-cell" data-label="Cantidad">
-                <input [attr.aria-label]="'Cantidad de ' + (item.productName || 'producto')" [(ngModel)]="item.quantity" (ngModelChange)="persistDraftIfNeeded()" type="number" min="1" placeholder="Cantidad" />
+                <input [attr.aria-label]="'Cantidad de ' + (item.productName || 'producto')" [(ngModel)]="item.quantity" (ngModelChange)="persistDraftIfNeeded()" type="number" min="1" placeholder="Cantidad" /><small *ngIf="item.calculationSource === 'tiles'">cajas</small>
               </td>
               <td class="unit-price-cell" data-label="Precio unitario">{{ formatCurrency(getRowUnitPrice(item)) }}</td>
               <td class="total-cell" data-label="Total">{{ formatCurrency(getRowTotal(item)) }}</td>

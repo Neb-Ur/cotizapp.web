@@ -1,6 +1,6 @@
 import {QuotationStatusComponent} from '../../shared/components/quotation-status/quotation-status.component';
 import {quotationStatus,type QuotationStatus} from '../../core/utils/quotation-workflow.util';
-import {normalizeWorkBudget,workBudgetTotals,paintingTemplatePending} from '../../core/utils/work-budget.util';
+import {normalizeWorkBudget,workBudgetTotals,workTemplatePending} from '../../core/utils/work-budget.util';
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -182,7 +182,7 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
   }
 
   protected async shareProject(project: ProjectSummary): Promise<void> {
-    if(project.workBudget && paintingTemplatePending(project.workBudget)){this.quotationNotice='Completa los costos de la plantilla o quita las partidas que no correspondan antes de enviar.';return;}
+    if(project.workBudget && workTemplatePending(project.workBudget)){this.quotationNotice='Completa los costos de la plantilla o quita las partidas que no correspondan antes de enviar.';return;}
     const quotation = this.apiService.buildProjectQuotation(
       project.items,
       project.proximity,
@@ -208,6 +208,7 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
         projectDescription: project.description || '',
         workBudget:project.workBudget,
         paintingPlan:project.paintingPlan,
+        tilePlan:project.tilePlan,
         pricesCapturedAt: project.pricesCapturedAt,
         validUntil: project.validUntil,
         verificationCode: project.verificationCode,

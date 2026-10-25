@@ -1,4 +1,4 @@
-import {normalizeWorkBudget,paintingTemplatePending,calculatePainting,workBudgetTotals,type WorkBudget,type PaintingPlan} from './work-budget.util';
+import {normalizeWorkBudget,workTemplatePending,calculatePainting,workBudgetTotals,normalizeTilePlan,calculateTiles,type TilePlan,type WorkBudget,type PaintingPlan} from './work-budget.util';
 import { offerConditionLabel } from './offer-condition.util';
 import { ProjectQuotationView, SearchProximity } from '../models/app.models';
 
@@ -6,6 +6,7 @@ export interface QuotationPdfInput {
   projectName: string;
   workBudget?: WorkBudget;
   paintingPlan?: PaintingPlan;
+  tilePlan?: TilePlan;
   projectAddress?: string;
   projectDescription?: string;
   pilot?: boolean;
@@ -20,7 +21,7 @@ export interface QuotationPdfInput {
 
 export function buildQuotationPdfFile(input: QuotationPdfInput): File {
   const budget=normalizeWorkBudget(input.workBudget);
-  if(paintingTemplatePending(budget))throw new Error('Completa los costos de la plantilla o quita las partidas que no correspondan antes de exportar.');
+  if(workTemplatePending(budget))throw new Error('Completa los costos de la plantilla o quita las partidas que no correspondan antes de exportar.');
   if ((!input.quotation.lines.length && (!budget.enabled || workBudgetTotals(0,budget).total <= 0)) || input.quotation.lines.some(line => line.unitPrice <= 0)) throw new Error('Revisa los productos sin oferta disponible antes de exportar.');
   const exportedAt = input.exportedAt || new Date();
   const lines = buildQuotationPdfLines(input, exportedAt);
@@ -101,6 +102,7 @@ function buildQuotationPdfLines(input: QuotationPdfInput, exportedAt: Date): str
     lines.push('');
   });
 
+  lines.push(...tileCalculationLines(input.tilePlan));
   lines.push('RESUMEN DE COTIZACION');
   lines.push(`Total final (IVA incluido): ${formatCurrency(totalWithIva)}`);
   lines.push(`Ahorro estimado: ${formatCurrency(input.quotation.mixedSaving)}`);
@@ -145,6 +147,7 @@ function buildWorkBudgetPdfLines(input:QuotationPdfInput,exportedAt:Date):string
   const p=input.paintingPlan,c=calculatePainting(p);
   lines.push('','ESTIMACION DE PINTURA',`${p.productName}: ${c.area.toFixed(2)} m2, ${p.coats} manos.`,`Rendimiento ingresado: ${p.coverage} m2/L por mano. Adicional: ${p.wastePercent}%.`,`Estimacion: ${c.liters.toFixed(2)} L; ${c.packages} envase(s) de ${p.packLiters} L.`,`Medidas: ${p.length} x ${p.height} m; ${p.surfaces} superficie(s); descuento: ${p.openings} m2.`,`Estimacion inicial; revisa las cantidades finales del detalle. Confirma rendimiento y uso con la ficha del producto.`);
  }
+ lines.push(...tileCalculationLines(input.tilePlan));
  for(const [title,entries]of [['MANO DE OBRA',budget.labor],['OTROS GASTOS',budget.expenses]] as const){
   if(!entries.length)continue;
   lines.push('',title);
@@ -163,6 +166,18 @@ function buildWorkBudgetPdfLines(input:QuotationPdfInput,exportedAt:Date):string
  }
  lines.push('Los materiales incluyen IVA; no se agrega otro impuesto automaticamente.','Documento del maestro: confirma condiciones y stock. No reserva materiales.');
  return lines.flatMap(line=>line.split(/\r?\n/).flatMap(part=>wrapLine(part,95)));
+}
+
+function tileCalculationLines(value:TilePlan|undefined):string[]{
+ const plan=normalizeTilePlan(value);if(!plan)return [];
+ const estimate=calculateTiles(plan);
+ return ['', 'ESTIMACION DE CERAMICAS Y PORCELANATOS',plan.productName,
+  ...estimate.spaces.map(space=>`${space.name}: ${space.length} x ${space.width} m; descuento ${space.excludedArea} m2; neto ${space.area.toFixed(2)} m2.`),
+  `Superficie neta: ${estimate.area.toFixed(2)} m2. Adicional por cortes: ${plan.wastePercent}%.`,
+  `Superficie con adicional: ${estimate.requiredArea.toFixed(2)} m2. Cobertura ingresada: ${plan.coveragePerBox} m2/caja.`,
+  `Estimacion: ${estimate.boxes} caja(s); ${estimate.purchasedArea.toFixed(2)} m2 comprados.`,
+  'Cobertura y venta por caja confirmadas por el usuario.',
+  'Estimacion inicial; revisa las cantidades finales del detalle. Adhesivo y frague se agregan por separado.', ''];
 }
 
 function buildPdfBlob(lines: string[]): Blob {
@@ -228,7 +243,7 @@ function buildPdfPageContent(lines: string[], pageNumber: number, pageCount: num
 
   lines.forEach((line, index) => {
     const y = 727 - index * 14;
-    const heading = ['COTIZACION DE PRODUCTOS', 'DETALLE DE ARTICULOS', 'RESUMEN DE COTIZACION', 'TOTALES POR LOCAL','PRESUPUESTO DE TRABAJO','ALCANCE DEL TRABAJO','MATERIALES','MANO DE OBRA','OTROS GASTOS','RESUMEN DEL PRESUPUESTO','CONDICIONES DEL TRABAJO','ESTIMACION DE PINTURA','REFERENCIA DE MATERIALES'].includes(line);
+    const heading = ['COTIZACION DE PRODUCTOS', 'DETALLE DE ARTICULOS', 'RESUMEN DE COTIZACION', 'TOTALES POR LOCAL','PRESUPUESTO DE TRABAJO','ALCANCE DEL TRABAJO','MATERIALES','MANO DE OBRA','OTROS GASTOS','RESUMEN DEL PRESUPUESTO','CONDICIONES DEL TRABAJO','ESTIMACION DE PINTURA','ESTIMACION DE CERAMICAS Y PORCELANATOS','REFERENCIA DE MATERIALES'].includes(line);
     const total = line.startsWith('Total final (IVA incluido):') || line.startsWith('Total presupuestado:');
     if (total) commands.push('q 1 0.950 0.890 rg', roundedPdfRect(39, y - 3, 517, 14, 4), 'f Q');
     commands.push(`BT /${heading || total ? 'F2' : 'F1'} ${heading ? 11 : 10} Tf ${heading || total ? navy : gray} rg 44 ${y} Td (${escapePdfText(line)}) Tj ET`);

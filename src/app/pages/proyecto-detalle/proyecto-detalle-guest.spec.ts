@@ -55,7 +55,7 @@ describe('guest quotation and PDF account requirement', () => {
     const guest=new GuestQuotationService();const quote=guest.create('Cocina','Dirección',[{productName:'Cemento',quantity:3,productoFerreteriaId:'o'}]);
     const {component,api}=setup({id:'maestro',role:'maestro'},false,{cotizacionLocal:quote.id,descargar:'1'});
     await component.loadQuotation('nuevo');
-    expect(api.saveProject).toHaveBeenCalledWith('maestro','Cocina',quote.items,'Dirección',undefined,undefined,undefined,'',expect.objectContaining({enabled:false}),null);
+    expect(api.saveProject).toHaveBeenCalledWith('maestro','Cocina',quote.items,'Dirección',undefined,undefined,undefined,'',expect.objectContaining({enabled:false}),null,null);
     expect(downloadQuotationPdf).toHaveBeenCalledOnce();expect(downloadQuotationPdf).toHaveBeenCalledWith(expect.objectContaining({verificationCode:'code',validUntil:'2026-10-20'}));
     expect(new GuestQuotationService().get(quote.id)).toBeNull();
   });

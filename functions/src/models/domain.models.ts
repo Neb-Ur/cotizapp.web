@@ -1,7 +1,7 @@
 
 export type UserRole = 'maestro' | 'ferreteria' | 'admin';
 export type ProjectItem = {
-  calculationSource?: 'painting';
+  calculationSource?: 'painting' | 'tiles';
   productName: string;
   quantity: number;
   storeId?: string;

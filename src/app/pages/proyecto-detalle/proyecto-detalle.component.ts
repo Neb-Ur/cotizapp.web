@@ -1,8 +1,9 @@
+import {TileCalculatorComponent} from '../../shared/components/tile-calculator/tile-calculator.component';
 import {QuotationStatusComponent} from '../../shared/components/quotation-status/quotation-status.component';
 import {quotationStatus,type QuotationStatus} from '../../core/utils/quotation-workflow.util';
 import {WorkBudgetEditorComponent} from '../../shared/components/work-budget-editor/work-budget-editor.component';
 import {PaintingCalculatorComponent} from '../../shared/components/painting-calculator/painting-calculator.component';
-import {emptyWorkBudget,restoreWorkBudgetDraft,normalizeWorkBudget,normalizePaintingPlan,calculatePainting,workBudgetTotals,paintingTemplatePending,type WorkBudget,type PaintingPlan} from '../../core/utils/work-budget.util';
+import {emptyWorkBudget,restoreWorkBudgetDraft,normalizeWorkBudget,normalizePaintingPlan,calculatePainting,workBudgetTotals,workTemplatePending,normalizeTilePlan,calculateTiles,type TilePlan,type WorkBudget,type PaintingPlan} from '../../core/utils/work-budget.util';
 import { productPath } from '../../core/utils/product-url.util';
 import { offerConditionLabel } from '../../core/utils/offer-condition.util';
 import { GuestQuotationService } from '../../core/services/guest-quotation.service';
@@ -38,7 +39,7 @@ import { QuotationPdfService } from '../../core/services/quotation-pdf.service';
 @Component({
   selector: 'app-proyecto-detalle',
   standalone: true,
-  imports: [QuotationStatusComponent,WorkBudgetEditorComponent, PaintingCalculatorComponent, UiLoaderComponent, InfoPanelComponent, CommonModule, FormsModule],
+  imports: [TileCalculatorComponent,QuotationStatusComponent,WorkBudgetEditorComponent, PaintingCalculatorComponent, UiLoaderComponent, InfoPanelComponent, CommonModule, FormsModule],
   templateUrl: './proyecto-detalle.component.html',
   styleUrl: './proyecto-detalle.component.scss'
 })
@@ -86,13 +87,15 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
   protected projectDescription = '';
   protected workBudget:WorkBudget=emptyWorkBudget();
   protected paintingPlan?:PaintingPlan;
+  protected tilePlan?:TilePlan;
+  protected selectedCalculator:'painting'|'tiles'='painting';
   protected get paintProducts(){return this.apiService.getMasterCatalogProducts?.() || [];}
-  protected get showPaintingCalculator(){return this.route.snapshot?.queryParamMap?.get('herramienta') === 'pintura';}
+  protected get showMaterialsCalculator(){return ['pintura','ceramicas','materiales'].includes(this.route.snapshot?.queryParamMap?.get('herramienta') || '');}
   protected get budgetTotals(){try{return workBudgetTotals(this.totalWithIva,this.workBudget);}catch{return null;}}
   protected get budgetError(){try{normalizeWorkBudget(this.workBudget);return '';}catch(error){return error instanceof Error?error.message:'Revisa el presupuesto.';}}
   protected get customerTotal(){return this.workBudget.enabled ? this.budgetTotals?.total || 0 : this.totalWithIva;}
   protected async applyPaintingPlan(plan:PaintingPlan):Promise<void>{
-    if(this.isSaving)return;
+    if(this.isSaving || this.statusBusy)return;
     const normalized=normalizePaintingPlan(plan)!;
     const calculation=calculatePainting(normalized);
     this.paintingPlan=normalized;
@@ -102,12 +105,21 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
     if(!this.isNewProject&&!this.isLocalQuotation)await this.saveProject(false,false);
   }
 
+  protected async applyTilePlan(plan:TilePlan):Promise<void>{
+    if(this.isSaving || this.statusBusy)return;
+    const normalized=normalizeTilePlan(plan)!;
+    this.tilePlan=normalized;
+    this.projectItems=[...this.projectItems.filter(item=>item.calculationSource!=='tiles'),{productName:normalized.productName,productoMaestroId:normalized.productId,quantity:calculateTiles(normalized).boxes,calculationSource:'tiles'}];
+    this.persistDraftIfNeeded();this.saveNotice='Cajas agregadas. Revisa presentación, precio por caja y disponibilidad.';
+    if(!this.isNewProject&&!this.isLocalQuotation)await this.saveProject(false,false);
+  }
+
   protected pricingOffers?: SavedQuotationOffer[];
   protected validUntil = '';
   protected pricesCapturedAt = '';
   protected verificationCode = '';
   private savedFingerprint = '';
-  private quotationFingerprint():string {return JSON.stringify([this.projectName,this.projectAddress,this.projectDescription,this.workBudget,this.paintingPlan,this.projectItems,this.projectProximity,this.selectedSingleStoreName,this.selectedSingleStoreId]);}
+  private quotationFingerprint():string {return JSON.stringify([this.projectName,this.projectAddress,this.projectDescription,this.workBudget,this.paintingPlan,this.tilePlan,this.projectItems,this.projectProximity,this.selectedSingleStoreName,this.selectedSingleStoreId]);}
   protected get hasUnsavedChanges():boolean {return !this.isNewProject && this.savedFingerprint !== this.quotationFingerprint();}
   protected async copyVerificationCode():Promise<void>{try{await navigator.clipboard.writeText(this.verificationCode);this.saveNotice='Código copiado.';}catch{this.saveNotice='Puedes seleccionar y copiar el código visible.';}}
   protected get quotationExpired(): boolean { return !!this.validUntil && Date.parse(this.validUntil) <= Date.now(); }
@@ -169,6 +181,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       else await this.apiService.refreshPublicCatalogSection(true);
       if (generation !== this.loadGeneration) return;
       await this.loadProject(incomingId, draftName, draftAddress);
+      if(!this.route.snapshot?.queryParamMap?.get('herramienta') && this.tilePlan && !this.paintingPlan)this.selectedCalculator='tiles';
       if (generation !== this.loadGeneration) return;
       if (addProduct.trim()) {
         const projectTarget = `${this.isLocalQuotation ? 'local:' : ''}${this.isNewProject ? 'nuevo' : this.projectId}`;
@@ -246,7 +259,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
 
 
   protected get hasQuotation(): boolean {
-    return !this.budgetError && !paintingTemplatePending(this.workBudget) && (this.quotation.lines.length > 0 || (this.workBudget.enabled && this.customerTotal > 0))
+    return !this.budgetError && !workTemplatePending(this.workBudget) && (this.quotation.lines.length > 0 || (this.workBudget.enabled && this.customerTotal > 0))
       && this.quotation.lines.every((line) => line.unitPrice > 0);
   }
 
@@ -275,6 +288,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
 
   protected removeProjectItem(index: number): void {
     if(this.projectItems[index]?.calculationSource==='painting')this.paintingPlan=undefined;
+    if(this.projectItems[index]?.calculationSource==='tiles')this.tilePlan=undefined;
     this.projectItems = this.projectItems.filter((_, itemIndex) => itemIndex !== index);
     this.saveNotice = '';
     this.persistDraftIfNeeded();
@@ -285,6 +299,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
     item.productoMaestroId=product?.masterProductId || product?.id;
     item.productoFerreteriaId=undefined;item.storeId=undefined;item.storeName=undefined;
     if(item.calculationSource==='painting'){item.calculationSource=undefined;this.paintingPlan=undefined;}
+    if(item.calculationSource==='tiles'){item.calculationSource=undefined;this.tilePlan=undefined;}
     this.persistDraftIfNeeded();
   }
 
@@ -320,7 +335,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       if (this.isLocalQuotation || !currentUser) {
         if (!this.guestQuotations) return;
         const data = { workflowStatus:'draft' as const, name: this.projectName.trim() || 'Mi cotización', address: this.projectAddress,
-          description: this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan, items: this.projectItems, proximity: this.projectProximity,
+          description: this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan, tilePlan:this.tilePlan, items: this.projectItems, proximity: this.projectProximity,
           singleStoreName: this.selectedSingleStoreName, singleStoreId: this.selectedSingleStoreId,
           totalOptimal: this.totalWithIva, saving: this.quotation.mixedSaving };
         if (this.isNewProject) {
@@ -351,7 +366,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
             this.projectProximity,
             this.quotation.appliedStoreName,
             this.quotation.appliedStoreId,
-            this.projectDescription, this.workBudget, this.paintingPlan ?? null
+            this.projectDescription, this.workBudget, this.paintingPlan ?? null, this.tilePlan ?? null
           );
           this.saveNotice = 'Cotizacion creada correctamente.';
           this.clearDraft();
@@ -381,7 +396,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
         this.quotation.appliedStoreName,
         this.quotation.appliedStoreId,
         this.projectDescription,
-        renewPrices, this.workBudget, this.paintingPlan ?? null
+        renewPrices, this.workBudget, this.paintingPlan ?? null, this.tilePlan ?? null
       );
       if (!updated) {
         this.saveNotice = 'No se pudo actualizar la cotizacion.';
@@ -524,7 +539,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       const result = await this.pdf.share({
         projectName: this.projectName.trim() || 'Cotizacion',
         projectAddress: this.projectAddress,
-      projectDescription: this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan,
+      projectDescription: this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan, tilePlan:this.tilePlan,
       validUntil: this.validUntil || undefined,
       verificationCode: this.verificationCode || undefined,
       pricesCapturedAt: this.pricesCapturedAt || undefined,
@@ -549,7 +564,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
     if (!this.user || this.isLocalQuotation || !this.hasQuotation || this.isNewProject || this.hasUnsavedChanges) return;
     try {
       const url = quotationWhatsappUrl(this.whatsappNumber, this.projectName, this.formatCurrency(this.customerTotal), this.pilot?.enabled() === true, this.validUntil || undefined, this.verificationCode || undefined, this.workBudget.enabled);
-      this.pdf.download({projectName:this.projectName, projectAddress:this.projectAddress, projectDescription:this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan, verificationCode:this.verificationCode || undefined, validUntil:this.validUntil || undefined, pricesCapturedAt:this.pricesCapturedAt || undefined,
+      this.pdf.download({projectName:this.projectName, projectAddress:this.projectAddress, projectDescription:this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan, tilePlan:this.tilePlan, verificationCode:this.verificationCode || undefined, validUntil:this.validUntil || undefined, pricesCapturedAt:this.pricesCapturedAt || undefined,
         maestroName:this.user?.displayName || '', quotation:this.quotation, proximity:this.projectProximity, pilot:this.pilot?.enabled() === true});
       window.open(url, '_blank', 'noopener,noreferrer');
       this.shareNotice = 'PDF descargado. Adjunta el archivo en WhatsApp y revisa el mensaje antes de enviarlo.';
@@ -564,7 +579,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       this.pdf.download({
       projectName: this.projectName.trim() || 'Cotizacion',
       projectAddress: this.projectAddress,
-      projectDescription: this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan,
+      projectDescription: this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan, tilePlan:this.tilePlan,
       validUntil: this.validUntil || undefined,
       verificationCode: this.verificationCode || undefined,
       pricesCapturedAt: this.pricesCapturedAt || undefined,
@@ -584,7 +599,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       this.persistDraftIfNeeded();
       let guestId = this.isLocalQuotation && !this.isNewProject ? this.projectId : this.importedGuestId;
       const data = { workflowStatus:'draft' as const, name: this.projectName.trim() || 'Mi cotización', address: this.projectAddress,
-        description: this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan, items: this.projectItems, proximity: this.projectProximity,
+        description: this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan, tilePlan:this.tilePlan, items: this.projectItems, proximity: this.projectProximity,
         singleStoreName: this.selectedSingleStoreName, singleStoreId: this.selectedSingleStoreId };
       if (!guestId) guestId = this.guestQuotations.create(data.name, data.address, data.items).id;
       this.guestQuotations.update(guestId, data);
@@ -613,6 +628,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
     this.saveNotice = '';
     this.importedGuestId = '';
     this.workflowStatus='draft';this.workflowUpdatedAt='';this.workflowNotice='';
+    this.selectedCalculator=this.route.snapshot?.queryParamMap?.get('herramienta')==='ceramicas'?'tiles':'painting';
     this.projectId = projectId;
     this.isNewProject = projectId === 'nuevo';
 
@@ -623,7 +639,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       this.importedGuestId = importedId;
       this.workflowStatus=quotationStatus(localQuote.workflowStatus);this.workflowUpdatedAt=localQuote.workflowUpdatedAt || '';
       this.projectName = localQuote.name; this.projectAddress = localQuote.address || ''; this.projectDescription = localQuote.description || '';
-      this.workBudget=restoreWorkBudgetDraft(localQuote.workBudget);this.paintingPlan=normalizePaintingPlan(localQuote.paintingPlan);
+      this.workBudget=restoreWorkBudgetDraft(localQuote.workBudget);this.paintingPlan=normalizePaintingPlan(localQuote.paintingPlan);this.tilePlan=normalizeTilePlan(localQuote.tilePlan);
       this.projectItems = localQuote.items.map(item => ({ ...item })); this.projectProximity = localQuote.proximity;
       this.selectedSingleStoreName = localQuote.singleStoreName || ''; this.selectedSingleStoreId = localQuote.singleStoreId || '';
       this.pricingOffers = undefined; this.verificationCode = ''; this.validUntil = ''; this.pricesCapturedAt = '';
@@ -637,7 +653,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       this.projectName = draftName || draft?.name || '';
       this.projectAddress = draftAddress || draft?.address || '';
       this.projectDescription = draft?.description || '';
-      this.workBudget=restoreWorkBudgetDraft(draft?.workBudget);this.paintingPlan=normalizePaintingPlan(draft?.paintingPlan);
+      this.workBudget=restoreWorkBudgetDraft(draft?.workBudget);this.paintingPlan=normalizePaintingPlan(draft?.paintingPlan);this.tilePlan=normalizeTilePlan(draft?.tilePlan);
       this.projectItems = (draft?.items || []).map((item) => ({
         ...item,
           productName: item.productName,
@@ -661,7 +677,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
     this.projectName = project.name;
     this.projectAddress = project.address || '';
     this.projectDescription = project.description || '';
-    this.workBudget=normalizeWorkBudget(project.workBudget);this.paintingPlan=normalizePaintingPlan(project.paintingPlan);
+    this.workBudget=normalizeWorkBudget(project.workBudget);this.paintingPlan=normalizePaintingPlan(project.paintingPlan);this.tilePlan=normalizeTilePlan(project.tilePlan);
     this.pricingOffers = project.pricingOffers; this.validUntil = project.validUntil || ''; this.pricesCapturedAt = project.pricesCapturedAt || ''; this.verificationCode = project.verificationCode || '';
     this.projectProximity = project.proximity;
     this.selectedSingleStoreName = project.singleStoreName || '';
@@ -680,10 +696,10 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
   protected persistDraftIfNeeded(): void {
     if (typeof window === 'undefined') return;
     if (this.importedGuestId && this.isNewProject && this.guestQuotations?.get(this.importedGuestId)) {
-      this.guestQuotations.update(this.importedGuestId, { name: this.projectName, address: this.projectAddress, description: this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan, items: this.projectItems, proximity: this.projectProximity, singleStoreName: this.selectedSingleStoreName, singleStoreId: this.selectedSingleStoreId });
+      this.guestQuotations.update(this.importedGuestId, { name: this.projectName, address: this.projectAddress, description: this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan, tilePlan:this.tilePlan, items: this.projectItems, proximity: this.projectProximity, singleStoreName: this.selectedSingleStoreName, singleStoreId: this.selectedSingleStoreId });
     }
     if (this.isLocalQuotation && !this.isNewProject && this.guestQuotations) {
-      const updated=this.guestQuotations.update(this.projectId, { name: this.projectName, address: this.projectAddress, description: this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan, items: this.projectItems, proximity: this.projectProximity, singleStoreName: this.selectedSingleStoreName, singleStoreId: this.selectedSingleStoreId });
+      const updated=this.guestQuotations.update(this.projectId, { name: this.projectName, address: this.projectAddress, description: this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan, tilePlan:this.tilePlan, items: this.projectItems, proximity: this.projectProximity, singleStoreName: this.selectedSingleStoreName, singleStoreId: this.selectedSingleStoreId });
       this.workflowStatus=quotationStatus(updated.workflowStatus);this.workflowUpdatedAt=updated.workflowUpdatedAt || '';
       this.savedFingerprint = this.quotationFingerprint(); return;
     }
@@ -694,7 +710,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
     const payload = {
       name: this.projectName,
       address: this.projectAddress,
-      description: this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan,
+      description: this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan, tilePlan:this.tilePlan,
       items: this.projectItems,
       proximity: this.projectProximity,
       singleStoreId: this.quotation.appliedStoreId,
@@ -707,7 +723,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
     name: string;
     address: string;
     description?: string;
-    workBudget?:WorkBudget; paintingPlan?:PaintingPlan;
+    workBudget?:WorkBudget; paintingPlan?:PaintingPlan; tilePlan?:TilePlan;
     items: ProjectItem[];
     proximity?: SearchProximity;
     singleStoreName?: string;
@@ -725,7 +741,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
         name: string;
         address: string;
         description?: string;
-        workBudget?:WorkBudget; paintingPlan?:PaintingPlan;
+        workBudget?:WorkBudget; paintingPlan?:PaintingPlan; tilePlan?:TilePlan;
         items: ProjectItem[];
         proximity?: SearchProximity;
         singleStoreName?: string;
@@ -756,7 +772,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       this.projectProximity,
       this.quotation.appliedStoreName,
       this.quotation.appliedStoreId,
-      this.projectDescription, false, this.workBudget, this.paintingPlan ?? null
+      this.projectDescription, false, this.workBudget, this.paintingPlan ?? null, this.tilePlan ?? null
     );
 
     if(updated){

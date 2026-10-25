@@ -1,5 +1,5 @@
 import type {QuotationStatus} from '../utils/quotation-workflow.util';
-import type {WorkBudget, PaintingPlan} from '../utils/work-budget.util';
+import type {WorkBudget, PaintingPlan, TilePlan} from '../utils/work-budget.util';
 import type { BusinessType } from '../utils/business-type.util';
 import type { OfferCondition } from '../utils/offer-condition.util';
 export type UserRole = 'maestro' | 'ferreteria' | 'admin';
@@ -387,7 +387,7 @@ export interface ProductDetailView {
 }
 
 export interface ProjectItem {
-  calculationSource?: 'painting';
+  calculationSource?: 'painting' | 'tiles';
   productName: string;
   quantity: number;
   storeId?: string;
@@ -408,6 +408,7 @@ export interface ProjectSummary {
   workflowUpdatedAt?: string;
   workBudget?: WorkBudget;
   paintingPlan?: PaintingPlan;
+  tilePlan?: TilePlan;
   verificationCode?: string;
   pricesCapturedAt?: string;
   validUntil?: string;

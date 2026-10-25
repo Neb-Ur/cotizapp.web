@@ -207,3 +207,13 @@ it('persists tracking through the dedicated authenticated endpoint and caches a 
  api.post.mockResolvedValueOnce({...saved,id:'copy',workflowStatus:'draft'} as any);
  const copy=await service.duplicateProject('user','project');expect(api.post).toHaveBeenCalledWith('/maestros/user/proyectos/project/duplicar',{},true);expect(copy.id).toBe('copy');expect(service.getProjects('user').map(p=>p.id).sort()).toEqual(['copy','project']);
 });
+it('sends, maps and explicitly clears tile assumptions without changing the original project API arguments',async()=>{
+ const {service,api}=fixture();const tilePlan={version:1 as const,priceUnitConfirmed:true as const,spaces:[{name:'Cocina',length:3,width:2,excludedArea:0}],wastePercent:10,coveragePerBox:2,productId:'tile',productName:'Cerámica'};
+ const items=[{productName:'Cerámica',productoMaestroId:'tile',quantity:4,calculationSource:'tiles' as const}];
+ const row={id:'tiles',name:'Cocina',createdAt:'2026-10-25',items,tilePlan};api.post.mockResolvedValueOnce(row as any);
+ const created=await service.saveProject('user','Cocina',items,'',undefined,undefined,undefined,'',undefined,undefined,tilePlan);
+ expect(api.post).toHaveBeenCalledWith('/maestros/user/proyectos',expect.objectContaining({tilePlan,items}),true);expect(created.tilePlan).toEqual(tilePlan);
+ const put=vi.fn(async()=>({...row,tilePlan:null}));(api as any).put=put;
+ const updated=await service.updateProject('user','tiles','Cocina',items,'',undefined,undefined,undefined,'',false,undefined,undefined,null);
+ expect(put).toHaveBeenCalledWith('/maestros/user/proyectos/tiles',expect.objectContaining({tilePlan:null}),true);expect(updated?.tilePlan).toBeUndefined();
+});

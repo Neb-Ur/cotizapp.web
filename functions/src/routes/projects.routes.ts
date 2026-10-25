@@ -1,5 +1,6 @@
+import {normalizeTilePlan} from '../domain/tile-calculator.js';
 import {isQuotationStatus,quotationStatus} from '../domain/quotation-workflow.js';
-import {paintingTemplatePending} from '../domain/work-budget.js';
+import {workTemplatePending} from '../domain/work-budget.js';
 import {normalizeWorkBudget, normalizePaintingPlan, WorkBudgetError} from '../domain/work-budget.js';
 import { verificationSnapshot, newVerificationCode } from '../services/quotation-verification.service.js';
 import { buildSearchRows } from '../services/catalog-search.service.js';
@@ -18,6 +19,7 @@ projectsRouter.use((req,res,next)=>{
  try {
   if(req.body?.workBudget!==undefined)req.body.workBudget=normalizeWorkBudget(req.body.workBudget);
   if(req.body?.paintingPlan!==undefined)req.body.paintingPlan=normalizePaintingPlan(req.body.paintingPlan) ?? null;
+  if(req.body?.tilePlan!==undefined)req.body.tilePlan=normalizeTilePlan(req.body.tilePlan) ?? null;
   next();
  }catch(error){if(error instanceof WorkBudgetError)return fail(res,'WORK_BUDGET_INVALID',error.message,400);next(error);}
 });
@@ -64,6 +66,7 @@ projectsRouter.post('/maestros/:ownerId/proyectos', requireAuth, requireRole('ma
     workflowUpdatedAt: nowIso(),
     workBudget: req.body?.workBudget ?? normalizeWorkBudget(undefined),
     paintingPlan: req.body?.paintingPlan ?? null,
+    tilePlan: req.body?.tilePlan ?? null,
     name,
     address: normalizeText(req.body?.direccionObra),
     description: normalizeText(req.body?.descripcion).slice(0, 2000),
@@ -74,6 +77,7 @@ projectsRouter.post('/maestros/:ownerId/proyectos', requireAuth, requireRole('ma
     createdAt: nowIso()
   };
   if(payload.paintingPlan && !payload.items.some(item=>item.productoMaestroId===payload.paintingPlan.productId))payload.paintingPlan=null;
+  if(payload.tilePlan && !payload.items.some(item=>item.productoMaestroId===payload.tilePlan.productId))payload.tilePlan=null;
   Object.assign(payload, await captureProjectPricing(payload));
   const ref = db.collection(COLLECTIONS.projects).doc();
   const code = newVerificationCode();
@@ -117,11 +121,13 @@ projectsRouter.put('/maestros/:ownerId/proyectos/:projectId', requireAuth, requi
     singleStoreId: normalizeText(req.body?.ferreteriaUnicaId) || null,
     workBudget: req.body?.workBudget ?? project.workBudget ?? normalizeWorkBudget(undefined),
     paintingPlan: req.body?.paintingPlan === undefined ? (project.paintingPlan ?? null) : req.body.paintingPlan,
+    tilePlan: req.body?.tilePlan === undefined ? (project.tilePlan ?? null) : req.body.tilePlan,
     workflowStatus: 'draft',
     workflowUpdatedAt: nowIso(),
     updatedAt: nowIso()
   };
   if(patch.paintingPlan && !patch.items.some(item=>item.productoMaestroId===patch.paintingPlan.productId))patch.paintingPlan=null;
+  if(patch.tilePlan && !patch.items.some(item=>item.productoMaestroId===patch.tilePlan.productId))patch.tilePlan=null;
   const pricedPatch={...patch,...await captureProjectPricing({...project,...patch},project,renew)};
   const code=newVerificationCode();
   const updated=await db.runTransaction(async tx=>{
@@ -172,7 +178,7 @@ projectsRouter.patch('/maestros/:ownerId/proyectos/:projectId/estado', requireAu
   if(quotationStatus(project.workflowStatus)!==req.body.estadoAnterior || (project.verificationCode && project.verificationCode!==req.body.codigoVerificacion))return {error:'changed'};
   if(req.body.estado==='sent'||req.body.estado==='accepted'){
    const view=await projectView({...project,id:ref.id});
-   if(view.availabilityStatus!=='ready'||paintingTemplatePending(view.workBudget))return {error:'incomplete'};
+   if(view.availabilityStatus!=='ready'||workTemplatePending(view.workBudget))return {error:'incomplete'};
   }
   const patch={workflowStatus:req.body.estado,workflowUpdatedAt:nowIso(),updatedAt:nowIso()};
   tx.update(ref,patch);
@@ -190,7 +196,7 @@ projectsRouter.post('/maestros/:ownerId/proyectos/:projectId/duplicar', requireA
  if(!project||project.ownerId!==req.params.ownerId)return fail(res,'PROYECTO_NOT_FOUND','No existe la cotización indicada.',404);
  const budget={...normalizeWorkBudget(project.workBudget),clientName:''};
  const payload={ownerId:req.params.ownerId,name:`Copia de ${project.name || 'Cotización'}`.slice(0,200),address:'',description:project.description || '',
-  items:normalizeItems(project.items),workBudget:budget,paintingPlan:normalizePaintingPlan(project.paintingPlan) ?? null,
+  items:normalizeItems(project.items),workBudget:budget,paintingPlan:normalizePaintingPlan(project.paintingPlan) ?? null,tilePlan:normalizeTilePlan(project.tilePlan) ?? null,
   proximity:null,singleStoreName:project.singleStoreName || null,singleStoreId:project.singleStoreId || null,
   workflowStatus:'draft',workflowUpdatedAt:nowIso(),createdAt:nowIso()};
  Object.assign(payload,await captureProjectPricing(payload));

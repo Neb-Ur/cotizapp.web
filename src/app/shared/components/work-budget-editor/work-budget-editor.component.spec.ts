@@ -18,3 +18,10 @@ it('adds painting tasks once without overwriting existing client costs and flags
  expect(c.budget.enabled).toBe(true);expect(c.budget.scope).toBe('Solo cocina');expect(c.budget.clientName).toBe('Cliente');expect(c.budget.labor[0].unitPrice).toBe(30000);expect(c.budget.labor.length).toBe(4);expect(c.templatePending).toBe(true);expect(button.disabled).toBe(true);
  expect(fixture.nativeElement.textContent).toContain('no agrega materiales ni cantidades');fixture.destroy();
 });
+it('offers ceramic tasks without losing the existing painting template or duplicating cleanup and transport',async()=>{
+ const fixture=TestBed.createComponent(WorkBudgetEditorComponent);const c:any=fixture.componentInstance;c.budget=emptyWorkBudget();fixture.detectChanges();
+ const buttons=()=>Array.from(fixture.nativeElement.querySelectorAll('.template-start button')) as HTMLButtonElement[];
+ buttons().find(button=>button.textContent?.includes('Usar plantilla de pintura'))!.click();fixture.detectChanges();
+ buttons().find(button=>button.textContent?.includes('Usar plantilla de cerámicas'))!.click();fixture.detectChanges();
+ expect(c.budget.templateIds).toEqual(['painting-v1','tiles-v1']);expect(c.budget.labor.filter((row:any)=>row.description==='Limpieza final')).toHaveLength(1);expect(c.budget.expenses.filter((row:any)=>row.description==='Traslado')).toHaveLength(1);expect(c.templatePending).toBe(true);expect(buttons().every(button=>button.disabled)).toBe(true);fixture.destroy();
+});

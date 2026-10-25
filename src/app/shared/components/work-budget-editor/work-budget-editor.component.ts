@@ -1,7 +1,7 @@
 import {Component,Input,Output,EventEmitter} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {WorkBudget,CostEntry,workBudgetTotals,paintingBudgetTemplate,paintingTemplatePending} from '../../../core/utils/work-budget.util';
+import {WorkBudget,CostEntry,workBudgetTotals,applyWorkTemplate,hasWorkTemplate,workTemplatePending,type WorkTemplateId} from '../../../core/utils/work-budget.util';
 @Component({selector:'app-work-budget-editor',standalone:true,imports:[CommonModule,FormsModule],templateUrl:'./work-budget-editor.component.html',styleUrl:'./work-budget-editor.component.scss'})
 export class WorkBudgetEditorComponent {
  @Input({required:true}) budget!:WorkBudget;
@@ -9,9 +9,10 @@ export class WorkBudgetEditorComponent {
  @Input() incomplete=false;
  @Output() changed=new EventEmitter<void>();
  protected templateError='';
- protected get templatePending(){return paintingTemplatePending(this.budget);}
- protected applyPaintingTemplate(){
-  try{Object.assign(this.budget,paintingBudgetTemplate(this.budget));this.templateError='';this.changed.emit();}
+ protected get templatePending(){return workTemplatePending(this.budget);}
+ protected hasTemplate(id:WorkTemplateId){return hasWorkTemplate(this.budget,id);}
+ protected applyTemplate(id:WorkTemplateId){
+  try{Object.assign(this.budget,applyWorkTemplate(this.budget,id));this.templateError='';this.changed.emit();}
   catch(error){this.templateError=error instanceof Error?error.message:'No se pudo agregar la plantilla.';}
  }
  protected get totals(){try{return workBudgetTotals(this.materials,this.budget);}catch{return null;}}
