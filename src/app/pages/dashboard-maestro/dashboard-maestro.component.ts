@@ -1,4 +1,4 @@
-import {MAX_SAVED_QUOTATIONS} from '../../../../functions/src/domain/professional-tools';
+import {savedQuotationLimit} from '../../../../functions/src/domain/professional-tools';
 import {ProfessionalToolsComponent} from '../../shared/components/professional-tools/professional-tools.component';
 import {QuotationStatusComponent} from '../../shared/components/quotation-status/quotation-status.component';
 import {quotationStatus,type QuotationStatus} from '../../core/utils/quotation-workflow.util';
@@ -45,7 +45,7 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
     await this.ensureSectionData(this.currentSection, true).catch(() => undefined);
   }
 
-  protected readonly maxSavedQuotations = MAX_SAVED_QUOTATIONS;
+  protected get maxSavedQuotations():number {return savedQuotationLimit(this.user);}
   protected readonly sections: MaestroSectionMeta[] = [
     { id: 'inicio', label: 'Inicio', description: 'Revisa tus cotizaciones recientes y el ahorro estimado.' },
     { id: 'buscar', label: 'Buscar productos', description: 'Busca materiales y compara precios entre ferreterias activas.' },
@@ -130,7 +130,7 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
   protected goToNewProject(): void {
     if (!this.user) return;
     if (!this.canCreateQuotation) {
-      this.quotationNotice = 'Ya tienes 50 cotizaciones guardadas. Elimina una para crear otra.';
+      this.quotationNotice = `Ya tienes ${this.maxSavedQuotations} cotizaciones guardadas. Elimina una para crear otra.`;
       return;
     }
     this.quotationNotice = '';
@@ -157,7 +157,7 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
   }
   protected async duplicateProject(project:ProjectSummary):Promise<void>{
     if(!this.user || this.duplicatingId || this.statusBusyId)return;
-    if(!this.canCreateQuotation){this.quotationNotice='Ya tienes 50 cotizaciones. Elimina una para guardar una copia.';return;}
+    if(!this.canCreateQuotation){this.quotationNotice=`Ya tienes ${this.maxSavedQuotations} cotizaciones. Elimina una para guardar una copia.`;return;}
     const ownerId=this.user.id;
     this.duplicatingId=project.id;this.quotationNotice='';
     try{

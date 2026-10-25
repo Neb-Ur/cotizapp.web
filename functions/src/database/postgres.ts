@@ -65,10 +65,11 @@ export class PostgresDatabase implements Database {
    for(const [field,op,value]of filters){if(!['==','<'].includes(op))throw new Error('SQL_QUERY_OPERATOR_UNSUPPORTED');params.push(field,JSON.stringify(value));clauses.push(`payload -> $${params.length-1} ${op==='=='?'=':op} $${params.length}::jsonb`);}
   }else clauses.push(...conditions(collection,filters,params));
   const distinct=meta.latest?`DISTINCT ON (${quote(meta.idColumn)}) `:'';
-  const sql=`SELECT ${distinct}${quote(meta.idColumn)} AS id,${meta.payload} AS data FROM findi.${quote(meta.table)} WHERE ${clauses.join(' AND ')} ORDER BY ${quote(meta.idColumn)}${meta.latest?',local_date DESC':''}${limit!==undefined?' LIMIT '+Math.max(0,Math.floor(limit)):''}`;
+  const sql=`SELECT ${distinct}${quote(meta.idColumn)} AS id,${meta.payload} AS data${meta.key==='users'?',quotation_limit AS quotation_limit':''} FROM findi.${quote(meta.table)} WHERE ${clauses.join(' AND ')} ORDER BY ${quote(meta.idColumn)}${meta.latest?',local_date DESC':''}${limit!==undefined?' LIMIT '+Math.max(0,Math.floor(limit)):''}`;
   const result=await client.query(sql,params);
   const docs=result.rows.map(value=>{
-   const ref=new SqlDocument(this,collection,value.id),data=value.data;
+   // The SQL quota is authoritative; payloads may still contain a legacy value.
+   const ref=new SqlDocument(this,collection,value.id),data=meta.key==='users'?{...value.data,quotationLimit:value.quotation_limit}:value.data;
    return {id:value.id,ref,exists:true,data:()=>structuredClone(data)};
   });return {docs,size:docs.length,empty:docs.length===0};
  }

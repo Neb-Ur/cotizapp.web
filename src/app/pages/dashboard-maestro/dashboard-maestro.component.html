@@ -55,14 +55,14 @@
       <div class="projects-topbar">
         <div>
           <h3>Mis cotizaciones</h3>
-          <p class="section-copy">Puedes guardar hasta 50 cotizaciones, reutilizarlas y registrar su estado.</p>
+          <p class="section-copy">Puedes guardar hasta {{ maxSavedQuotations }} cotizaciones, reutilizarlas y registrar su estado.</p>
           <p class="quota-text">{{ quotationLimitText }}</p>
         </div>
         <button type="button" (click)="goToNewProject()" [disabled]="!canCreateQuotation">Nueva cotización</button>
       </div>
       <p class="saved" *ngIf="quotationNotice" role="status">{{ quotationNotice }}</p>
       <p class="section-copy">Actualiza el seguimiento después de hablar con tu cliente. Enviar o descargar un PDF no cambia el estado.</p>
-      <p class="quota-text" *ngIf="!canCreateQuotation">Para duplicar una cotización, libera un cupo de tus 50 cotizaciones guardadas.</p>
+      <p class="quota-text" *ngIf="!canCreateQuotation">Para duplicar una cotización, libera un cupo de tus {{ maxSavedQuotations }} cotizaciones guardadas.</p>
       <div class="table-wrap quotations-wrap" *ngIf="projects.length > 0; else emptyQuotes">
         <table class="quotations-table">
           <caption class="visually-hidden">Cotizaciones guardadas</caption>

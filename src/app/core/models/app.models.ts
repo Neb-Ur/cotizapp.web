@@ -6,6 +6,7 @@ export type UserRole = 'maestro' | 'ferreteria' | 'admin';
 export type AccountStatus = 'activo' | 'bloqueado' | 'pendiente';
 
 export interface SessionUser {
+  quotationLimit?: number;
   isTestStore?: boolean;
   businessType?: BusinessType;
   id: string;

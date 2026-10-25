@@ -22,3 +22,9 @@ Un producto genérico no representa una caja o envase de tamaño único. No se i
 La agenda y la presentación viven en `users.api_payload.professionalTools`; el presupuesto, sus copias de contacto y cálculos viven en `quotations.api_payload.workBudget`; los movimientos viven en `quotations.api_payload.ledger`. Esos campos no requieren tablas nuevas. La migración `024-professional-quotation-limit.sql` amplía a 50 el cupo predeterminado y las cuentas con el cupo anterior de dos; conserva otros límites personalizados. La exportación y eliminación de cuenta ya abarcan esos registros completos. Los locales solo acceden a la evidencia de materiales permitida por el verificador, nunca a la agenda ni a la contabilidad del maestro.
 
 Las rutas nuevas requieren sesión y rol. Las rutas de maestro validan también el propietario; las de revisión técnica requieren administrador. Agenda y movimientos aplican un número de revisión para rechazar escrituras obsoletas.
+
+## Correcciones de calculadoras y cupos — 25 de octubre de 2026
+
+Al alternar entre piso, tabique y radier se conservan las medidas aún no aplicadas de cada formulario. Cambiar el estado de guardado tampoco restaura valores anteriores. Abrir otro presupuesto carga sus propios cálculos.
+
+Crear y duplicar cotizaciones respeta el cupo de cada cuenta, incluido cero y valores superiores a 50. En PostgreSQL se toma `users.quotation_limit` como autoridad, aunque el JSON del usuario conserve un valor antiguo. El perfil de sesión, el panel y la ficha de producto usan ese mismo cupo; 50 sigue siendo el valor predeterminado para cuentas sin cupo explícito. No se modifican cupos existentes ni migraciones históricas.

@@ -325,3 +325,12 @@ it('selects the originating guest quotation in the detail without adding an item
  expect(component.guestQuotations.get(quote.id).items).toHaveLength(0);
  TestBed.resetTestingModule();localStorage.clear();
 });
+
+it('uses the account quota in product detail, including more than two quotations and zero allowance',async()=>{
+ const {component,fixture}=await setup();const currentUser=vi.spyOn(TestBed.inject(AuthService),'currentUser');
+ currentUser.mockReturnValue({id:'m',role:'maestro',quotationLimit:75} as never);
+ component.projects=Array.from({length:50},(_,i)=>({id:`q${i}`}));
+ expect(component.canCreateQuotation).toBe(true);expect(component.quotationLimitMessage).toContain('75');
+ currentUser.mockReturnValue({id:'m',role:'maestro',quotationLimit:0} as never);
+ expect(component.canCreateQuotation).toBe(false);expect(component.quotationLimitMessage).toContain('0');fixture.destroy();
+});

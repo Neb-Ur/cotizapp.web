@@ -423,3 +423,22 @@ test('SQL publishes proposed hardware tools with retry protection and rejects re
  await assert.rejects(publishProposedProduct('store','store-owner',{name:'Pieza retirada',area:'repuestos',price:20000,stock:1}),error=>error.code==='PRODUCT_AREA_INVALID');
 
 });
+
+test('SQL quota column controls API creation, duplication and session profile even when payload disagrees',async t=>{
+ const {db,pg}=await fixture(t);await catalog(db);
+ const firebase=await import('../lib/lib/firebase.js');
+ for(const method of ['collection','runTransaction','batch'])t.mock.method(firebase.db,method,db[method].bind(db));
+ await pg.query("UPDATE findi.users SET quotation_limit=75,api_payload=api_payload || '{\"quotationLimit\":2}' WHERE id='master'");
+ for(let i=0;i<50;i++)await db.collection('real_proyectos').doc(`quota-${i}`).set({ownerId:'master',name:'Obra',items:[],createdAt:'2026-10-25T12:00:00Z'});
+ const {authUserResponse}=await import('../lib/services/user.service.js');assert.equal((await authUserResponse('master')).quotationLimit,75);
+ const {projectsRouter}=await import('../lib/routes/projects.routes.js');
+ const handler=(method,path)=>projectsRouter.stack.find(l=>l.route?.path===path&&l.route.methods[method]).route.stack.at(-1).handle;
+ const create=handler('post','/maestros/:ownerId/proyectos'),duplicate=handler('post','/maestros/:ownerId/proyectos/:projectId/duplicar');
+ const req={authUserId:'master',authRole:'maestro',params:{ownerId:'master',projectId:'quota-0'},body:{nombre:'Nueva',items:[]}};
+ const response=()=>({statusCode:200,status(c){this.statusCode=c;return this;},json(body){this.body=body;return this;}});
+ for(const action of [create,duplicate]){const res=response();await action(req,res);assert.equal(res.statusCode,201);}
+ await pg.query("UPDATE findi.users SET quotation_limit=52 WHERE id='master'");
+ for(const action of [create,duplicate]){const res=response();await action(req,res);assert.equal(res.statusCode,409);assert.match(res.body.error.message,/52/);}
+ await db.collection('usuarios').doc('master').update({nombre:'Nombre actualizado'});
+ assert.equal((await pg.query("SELECT quotation_limit FROM findi.users WHERE id='master'")).rows[0].quotation_limit,52);
+});

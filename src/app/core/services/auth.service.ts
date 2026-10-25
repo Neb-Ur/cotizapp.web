@@ -49,6 +49,7 @@ interface ApiEnvelope<T> {
 }
 
 interface ApiAuthUser {
+  quotationLimit?: number;
   esPrueba?: boolean;
   tipoNegocio?: BusinessType;
   id: string;
@@ -758,6 +759,7 @@ export class AuthService implements OnDestroy {
 
   private mapApiUser(user: ApiAuthUser): SessionUser {
     return {
+      quotationLimit: user.quotationLimit,
       id: user.id,
       ferreteriaId: user.ferreteriaId,
       isTestStore: user.rol === 'ferreteria' ? user.esPrueba === true : undefined,
@@ -793,6 +795,7 @@ export class AuthService implements OnDestroy {
 
   private mapSessionUserToApiUser(user: SessionUser): ApiAuthUser {
     return {
+      quotationLimit: user.quotationLimit,
       id: user.id,
       ferreteriaId: user.ferreteriaId,
       rol: user.role,

@@ -144,3 +144,12 @@ describe('quotation tracking and reuse',()=>{
   await c.duplicateProject(project);expect(api.duplicateProject).toHaveBeenCalledTimes(1);expect(c.quotationNotice).toContain('50 cotizaciones');
  });
 });
+
+it('uses the account quota for the counter and creation instead of a fixed fifty',()=>{
+ const {component,router,authService}=createComponent();
+ authService.currentUser=()=>({id:'maestro-1',role:'maestro',displayName:'Ana',email:'ana@test.cl',quotationLimit:75});
+ component['projects']=Array.from({length:50},(_,i)=>({id:`p${i}`})) as never;
+ expect(component['quotationLimitText']).toBe('50/75 cotizaciones guardadas');component['goToNewProject']();expect(router.navigate).toHaveBeenCalled();
+ authService.currentUser=()=>({id:'maestro-1',role:'maestro',displayName:'Ana',email:'ana@test.cl',quotationLimit:0});
+ expect(component['canCreateQuotation']).toBe(false);
+});

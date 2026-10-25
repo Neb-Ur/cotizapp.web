@@ -1,3 +1,4 @@
+import {savedQuotationLimit} from '../../../../functions/src/domain/professional-tools';
 import { offerConditionLabel } from '../../core/utils/offer-condition.util';
 import { StoreWhatsappComponent } from '../../shared/components/store-whatsapp/store-whatsapp.component';
 import { GUEST_QUOTATION_LIMIT_MESSAGE, GuestQuotationService } from '../../core/services/guest-quotation.service';
@@ -354,8 +355,8 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
     this.quoteFeedback = '';
   }
 
-  protected get canCreateQuotation(): boolean { return this.user ? this.projects.length < 2 : this.guestQuotations.canCreate(); }
-  protected get quotationLimitMessage(): string { return this.user ? 'Puedes guardar hasta 2 cotizaciones. Elimina una para crear otra.' : GUEST_QUOTATION_LIMIT_MESSAGE; }
+  protected get canCreateQuotation(): boolean { return this.user ? this.projects.length < savedQuotationLimit(this.user) : this.guestQuotations.canCreate(); }
+  protected get quotationLimitMessage(): string { return this.user ? `Puedes guardar hasta ${savedQuotationLimit(this.user)} cotizaciones. Elimina una para crear otra.` : GUEST_QUOTATION_LIMIT_MESSAGE; }
 
   protected openCreateQuotationModal(): void {
     if (!this.canUseQuotations) return;

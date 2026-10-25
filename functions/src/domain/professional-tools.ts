@@ -1,5 +1,9 @@
 /** Private, owner-scoped business information. Never included in store verification. */
 export const MAX_SAVED_QUOTATIONS = 50;
+export function savedQuotationLimit(user?:{quotationLimit?:unknown}|null):number {
+ const limit=user?.quotationLimit;
+ return typeof limit==='number'&&Number.isSafeInteger(limit)&&limit>=0?limit:MAX_SAVED_QUOTATIONS;
+}
 export interface ClientContact {id:string;name:string;phone:string;email:string;address:string;}
 export interface ProfessionalProfile {businessName:string;phone:string;email:string;address:string;defaultTerms:string;logo?:{data:string;width:number;height:number};}
 export interface ProfessionalTools {version:1;revision:number;clients:ClientContact[];profile:ProfessionalProfile;}

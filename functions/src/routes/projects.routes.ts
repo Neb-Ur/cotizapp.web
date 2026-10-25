@@ -1,4 +1,4 @@
-import {MAX_SAVED_QUOTATIONS,normalizeProfessionalTools,normalizeWorkLedger,ProfessionalToolsError} from '../domain/professional-tools.js';
+import {savedQuotationLimit,normalizeProfessionalTools,normalizeWorkLedger,ProfessionalToolsError} from '../domain/professional-tools.js';
 import sharp from 'sharp';
 import {normalizeTilePlan} from '../domain/tile-calculator.js';
 import {isQuotationStatus,quotationStatus} from '../domain/quotation-workflow.js';
@@ -85,17 +85,19 @@ projectsRouter.post('/maestros/:ownerId/proyectos', requireAuth, requireRole('ma
   const code = newVerificationCode();
   Object.assign(payload, {verificationCode:code});
   const verification = verificationSnapshot({...payload,id:ref.id},code);
+  let limit=savedQuotationLimit();
   const created = await db.runTransaction(async tx => {
     const lock = db.collection(COLLECTIONS.projectOwnerLocks).doc(req.params.ownerId);
     await tx.get(lock);
+    limit=savedQuotationLimit((await tx.get(db.collection(COLLECTIONS.users).doc(req.params.ownerId))).data());
     const existing = await tx.get(db.collection(COLLECTIONS.projects).where('ownerId', '==', req.params.ownerId));
-    if (existing.size >= MAX_SAVED_QUOTATIONS) return null;
+    if (existing.size >= limit) return null;
     tx.set(lock, { updatedAt: nowIso() });
     tx.create(ref, payload);
     tx.create(db.collection(COLLECTIONS.quotationVerifications).doc(code), verification);
     return { id: ref.id, ...payload };
   });
-  if (!created) return fail(res, 'COTIZACION_LIMIT_REACHED', 'Puedes guardar un maximo de 50 cotizaciones. Elimina una para crear otra.', 409);
+  if (!created) return fail(res, 'COTIZACION_LIMIT_REACHED', `Puedes guardar un máximo de ${limit} cotizaciones. Elimina una para crear otra.`, 409);
   return ok(res, await projectView(created), 201);
 });
 
@@ -208,14 +210,15 @@ projectsRouter.post('/maestros/:ownerId/proyectos/:projectId/duplicar', requireA
   const lock=db.collection(COLLECTIONS.projectOwnerLocks).doc(req.params.ownerId);await tx.get(lock);
   const source=await tx.get(db.collection(COLLECTIONS.projects).doc(req.params.projectId));
   if(!source.exists||source.data()?.ownerId!==req.params.ownerId)return {error:'missing'};
+  const limit=savedQuotationLimit((await tx.get(db.collection(COLLECTIONS.users).doc(req.params.ownerId))).data());
   const existing=await tx.get(db.collection(COLLECTIONS.projects).where('ownerId','==',req.params.ownerId));
-  if(existing.size>=MAX_SAVED_QUOTATIONS)return {error:'limit'};
+  if(existing.size>=limit)return {error:'limit',limit};
   tx.set(lock,{updatedAt:nowIso()});tx.create(ref,payload);
   tx.create(db.collection(COLLECTIONS.quotationVerifications).doc(code),verificationSnapshot({...payload,id:ref.id},code));
   return {data:{...payload,id:ref.id}};
  });
  if(created.error==='missing')return fail(res,'PROYECTO_NOT_FOUND','No existe la cotización indicada.',404);
- if(created.error==='limit')return fail(res,'COTIZACION_LIMIT_REACHED','Puedes guardar un máximo de 50 cotizaciones. Elimina una para duplicar otra.',409);
+ if(created.error==='limit')return fail(res,'COTIZACION_LIMIT_REACHED',`Puedes guardar un máximo de ${created.limit} cotizaciones. Elimina una para duplicar otra.`,409);
  return ok(res,await projectView(created.data),201);
 });
 
