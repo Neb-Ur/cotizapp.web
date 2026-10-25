@@ -25,7 +25,7 @@ export class TileCalculatorComponent implements OnChanges {
  protected get error(){try{calculateTiles(this.form);return '';}catch(error){return error instanceof Error?error.message:'Revisa las medidas.';}}
  protected get alreadyApplied(){return this.applied===JSON.stringify(this.form);}
  protected clearSelection(){this.form.productId='';this.form.productName='';this.form.coveragePerBox=null;this.form.priceUnitConfirmed=false;}
- protected selectProduct(){this.form.productName=this.selected?.name || '';this.form.coveragePerBox=null;this.form.priceUnitConfirmed=false;}
+ protected selectProduct(){this.form.productName=this.selected?.name || '';this.form.coveragePerBox=this.selected?.calculationSpecs?.saleUnit==='caja' ? this.selected.calculationSpecs.coveragePerPackage : null;this.form.priceUnitConfirmed=false;}
  protected addSpace(){if(this.form.spaces.length<30)this.form.spaces.push({name:`Espacio ${this.form.spaces.length+1}`,length:null,width:null,excludedArea:0});}
  protected removeSpace(index:number){if(this.form.spaces.length>1)this.form.spaces.splice(index,1);}
  protected add(){if(!this.selected||!this.result||!this.form.priceUnitConfirmed||this.busy||this.alreadyApplied)return;

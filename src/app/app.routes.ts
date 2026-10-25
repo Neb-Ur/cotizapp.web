@@ -26,12 +26,14 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard/maestro/cotizaciones/nuevo',
+    canDeactivate: [(component: {canLeave:()=>boolean})=>component.canLeave()],
     loadComponent: () => import('./pages/proyecto-detalle/proyecto-detalle.component').then((module) => module.ProyectoDetalleComponent),
     canActivate: [authGuard, legalAcceptanceGuard, roleGuard],
     data: { role: 'maestro' }
   },
   {
     path: 'dashboard/maestro/cotizaciones/:projectId',
+    canDeactivate: [(component: {canLeave:()=>boolean})=>component.canLeave()],
     loadComponent: () => import('./pages/proyecto-detalle/proyecto-detalle.component').then((module) => module.ProyectoDetalleComponent),
     canActivate: [authGuard, legalAcceptanceGuard, roleGuard],
     data: { role: 'maestro' }
@@ -66,8 +68,10 @@ export const routes: Routes = [
       { path: 'productos/:slug', loadComponent: () => import('./pages/producto-detalle/producto-detalle.component').then((module) => module.ProductoDetalleComponent) },
       { path: 'lista', redirectTo: 'cotizaciones', pathMatch: 'full' },
       { path: 'cotizaciones', canActivate: [publicQuotationGuard], loadComponent: () => import('./pages/guest-quotations/guest-quotations.component').then(module => module.GuestQuotationsComponent) },
-      { path: 'cotizaciones/nueva', canActivate: [publicQuotationGuard], loadComponent: () => import('./pages/proyecto-detalle/proyecto-detalle.component').then(module => module.ProyectoDetalleComponent), data: { localQuotation: true } },
-      { path: 'cotizaciones/local/:projectId', canActivate: [publicQuotationGuard], loadComponent: () => import('./pages/proyecto-detalle/proyecto-detalle.component').then(module => module.ProyectoDetalleComponent), data: { localQuotation: true } },
+      { path: 'cotizaciones/nueva', canActivate: [publicQuotationGuard], canDeactivate: [(component: {canLeave:()=>boolean})=>component.canLeave()],
+    loadComponent: () => import('./pages/proyecto-detalle/proyecto-detalle.component').then(module => module.ProyectoDetalleComponent), data: { localQuotation: true } },
+      { path: 'cotizaciones/local/:projectId', canActivate: [publicQuotationGuard], canDeactivate: [(component: {canLeave:()=>boolean})=>component.canLeave()],
+    loadComponent: () => import('./pages/proyecto-detalle/proyecto-detalle.component').then(module => module.ProyectoDetalleComponent), data: { localQuotation: true } },
       { path: 'maestros', loadComponent: () => import('./pages/public/maestros/maestros.component').then((module) => module.MaestrosComponent) },
       { path: 'ferreterias/:storeId', loadComponent: () => import('./pages/public/ferreterias/ferreterias.component').then((module) => module.FerreteriasComponent) },
       { path: 'ferreterias', loadComponent: () => import('./pages/public/ferreterias/ferreterias.component').then((module) => module.FerreteriasComponent) },

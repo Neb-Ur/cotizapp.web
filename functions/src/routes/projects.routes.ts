@@ -1,3 +1,5 @@
+import {MAX_SAVED_QUOTATIONS,normalizeProfessionalTools,normalizeWorkLedger,ProfessionalToolsError} from '../domain/professional-tools.js';
+import sharp from 'sharp';
 import {normalizeTilePlan} from '../domain/tile-calculator.js';
 import {isQuotationStatus,quotationStatus} from '../domain/quotation-workflow.js';
 import {workTemplatePending} from '../domain/work-budget.js';
@@ -87,13 +89,13 @@ projectsRouter.post('/maestros/:ownerId/proyectos', requireAuth, requireRole('ma
     const lock = db.collection(COLLECTIONS.projectOwnerLocks).doc(req.params.ownerId);
     await tx.get(lock);
     const existing = await tx.get(db.collection(COLLECTIONS.projects).where('ownerId', '==', req.params.ownerId));
-    if (existing.size >= 2) return null;
+    if (existing.size >= MAX_SAVED_QUOTATIONS) return null;
     tx.set(lock, { updatedAt: nowIso() });
     tx.create(ref, payload);
     tx.create(db.collection(COLLECTIONS.quotationVerifications).doc(code), verification);
     return { id: ref.id, ...payload };
   });
-  if (!created) return fail(res, 'COTIZACION_LIMIT_REACHED', 'Puedes guardar un maximo de 2 cotizaciones. Elimina una para crear otra.', 409);
+  if (!created) return fail(res, 'COTIZACION_LIMIT_REACHED', 'Puedes guardar un maximo de 50 cotizaciones. Elimina una para crear otra.', 409);
   return ok(res, await projectView(created), 201);
 });
 
@@ -194,7 +196,7 @@ projectsRouter.post('/maestros/:ownerId/proyectos/:projectId/duplicar', requireA
  if(!canAccessOwner(req,req.params.ownerId))return fail(res,'AUTH_FORBIDDEN','No tienes permisos para esta cotización.',403);
  const project=await row(COLLECTIONS.projects,req.params.projectId);
  if(!project||project.ownerId!==req.params.ownerId)return fail(res,'PROYECTO_NOT_FOUND','No existe la cotización indicada.',404);
- const budget={...normalizeWorkBudget(project.workBudget),clientName:''};
+ const budget=normalizeWorkBudget(project.workBudget);budget.clientName='';delete budget.client;
  const payload={ownerId:req.params.ownerId,name:`Copia de ${project.name || 'Cotización'}`.slice(0,200),address:'',description:project.description || '',
   items:normalizeItems(project.items),workBudget:budget,paintingPlan:normalizePaintingPlan(project.paintingPlan) ?? null,tilePlan:normalizeTilePlan(project.tilePlan) ?? null,
   proximity:null,singleStoreName:project.singleStoreName || null,singleStoreId:project.singleStoreId || null,
@@ -207,13 +209,13 @@ projectsRouter.post('/maestros/:ownerId/proyectos/:projectId/duplicar', requireA
   const source=await tx.get(db.collection(COLLECTIONS.projects).doc(req.params.projectId));
   if(!source.exists||source.data()?.ownerId!==req.params.ownerId)return {error:'missing'};
   const existing=await tx.get(db.collection(COLLECTIONS.projects).where('ownerId','==',req.params.ownerId));
-  if(existing.size>=2)return {error:'limit'};
+  if(existing.size>=MAX_SAVED_QUOTATIONS)return {error:'limit'};
   tx.set(lock,{updatedAt:nowIso()});tx.create(ref,payload);
   tx.create(db.collection(COLLECTIONS.quotationVerifications).doc(code),verificationSnapshot({...payload,id:ref.id},code));
   return {data:{...payload,id:ref.id}};
  });
  if(created.error==='missing')return fail(res,'PROYECTO_NOT_FOUND','No existe la cotización indicada.',404);
- if(created.error==='limit')return fail(res,'COTIZACION_LIMIT_REACHED','Puedes guardar un máximo de 2 cotizaciones. Elimina una para duplicar otra.',409);
+ if(created.error==='limit')return fail(res,'COTIZACION_LIMIT_REACHED','Puedes guardar un máximo de 50 cotizaciones. Elimina una para duplicar otra.',409);
  return ok(res,await projectView(created.data),201);
 });
 
@@ -242,3 +244,50 @@ projectsRouter.post('/cotizaciones/optimizar', requireAuth, requireRole('maestro
 
 
 // Product creation requests (kept simple for MVP).
+
+// Private business tools are included in account export/deletion with the user payload.
+projectsRouter.get('/maestros/:ownerId/herramientas',requireAuth,requireRole('maestro','admin'),async(req,res)=>{
+ if(!canAccessOwner(req,req.params.ownerId))return fail(res,'AUTH_FORBIDDEN','Sin permiso.',403);
+ const user=await row(COLLECTIONS.users,req.params.ownerId);if(!user)return fail(res,'AUTH_USER_NOT_FOUND','Cuenta no encontrada.',404);
+ return ok(res,normalizeProfessionalTools(user.professionalTools));
+});
+projectsRouter.put('/maestros/:ownerId/herramientas',requireAuth,requireRole('maestro','admin'),async(req,res)=>{
+ if(!canAccessOwner(req,req.params.ownerId))return fail(res,'AUTH_FORBIDDEN','Sin permiso.',403);
+ try{
+  const tools=normalizeProfessionalTools(req.body);
+  if(tools.profile.logo){
+   const image=await sharp(Buffer.from(tools.profile.logo.data.split(',')[1],'base64'),{limitInputPixels:360000}).rotate().resize(600,600,{fit:'inside',withoutEnlargement:true}).flatten({background:'#ffffff'}).jpeg({quality:80}).toBuffer({resolveWithObject:true});
+   if(image.data.length>100000)return fail(res,'TOOLS_INVALID','El logo es demasiado grande.',400);
+   tools.profile.logo={data:'data:image/jpeg;base64,'+image.data.toString('base64'),width:image.info.width,height:image.info.height};
+  }
+  const result=await db.runTransaction(async tx=>{
+   const ref=db.collection(COLLECTIONS.users).doc(req.params.ownerId),snap=await tx.get(ref);
+   if(!snap.exists)return 'missing';
+   if((snap.data()?.professionalTools?.revision || 0)!==tools.revision)return 'changed';
+   tools.revision++;tx.update(ref,{professionalTools:tools});return tools;
+  });
+  if(result==='missing')return fail(res,'AUTH_USER_NOT_FOUND','Cuenta no encontrada.',404);
+  if(result==='changed')return fail(res,'TOOLS_CHANGED','La agenda cambió en otra ventana. Recarga antes de guardar.',409);
+  return ok(res,result);
+ }catch(e){if(e instanceof ProfessionalToolsError)return fail(res,'TOOLS_INVALID',e.message,400);if(req.body?.profile?.logo)return fail(res,'TOOLS_INVALID','No fue posible leer el logo. Usa una imagen JPEG válida.',400);throw e;}
+});
+projectsRouter.get('/maestros/:ownerId/proyectos/:projectId/movimientos',requireAuth,requireRole('maestro','admin'),async(req,res)=>{
+ if(!canAccessOwner(req,req.params.ownerId))return fail(res,'AUTH_FORBIDDEN','Sin permiso.',403);
+ const p=await row(COLLECTIONS.projects,req.params.projectId);if(!p||p.ownerId!==req.params.ownerId)return fail(res,'PROYECTO_NOT_FOUND','Obra no encontrada.',404);
+ return ok(res,normalizeWorkLedger(p.ledger));
+});
+projectsRouter.put('/maestros/:ownerId/proyectos/:projectId/movimientos',requireAuth,requireRole('maestro','admin'),async(req,res)=>{
+ if(!canAccessOwner(req,req.params.ownerId))return fail(res,'AUTH_FORBIDDEN','Sin permiso.',403);
+ try{
+  const ledger=normalizeWorkLedger(req.body);
+  const result=await db.runTransaction(async tx=>{
+   const ref=db.collection(COLLECTIONS.projects).doc(req.params.projectId),snap=await tx.get(ref),p=snap.data();
+   if(!snap.exists||p?.ownerId!==req.params.ownerId)return 'missing';
+   if((p.ledger?.revision || 0)!==ledger.revision)return 'changed';
+   ledger.revision++;tx.update(ref,{ledger});return ledger;
+  });
+  if(result==='missing')return fail(res,'PROYECTO_NOT_FOUND','Obra no encontrada.',404);
+  if(result==='changed')return fail(res,'LEDGER_CHANGED','Los movimientos cambiaron. Recarga antes de guardar.',409);
+  return ok(res,result);
+ }catch(e){if(e instanceof ProfessionalToolsError)return fail(res,'LEDGER_INVALID',e.message,400);throw e;}
+});

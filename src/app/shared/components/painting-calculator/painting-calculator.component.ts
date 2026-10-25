@@ -19,6 +19,6 @@ export class PaintingCalculatorComponent implements OnChanges {
  protected get result(){try{return calculatePainting(this.form);}catch{return null;}}
  protected get error(){try{calculatePainting(this.form);return '';}catch(error){return error instanceof Error?error.message:'Revisa las medidas.';}}
  protected get alreadyApplied(){return this.applied===JSON.stringify(this.form);}
- protected selectProduct(){this.form.productName=this.selected?.name||'';this.form.packLiters=null;this.form.coverage=null;}
+ protected selectProduct(){this.form.productName=this.selected?.name||'';const specs=this.selected?.calculationSpecs;this.form.packLiters=specs?.saleUnit==='envase'?specs.litersPerPackage:null;this.form.coverage=specs?.saleUnit==='envase'?specs.paintCoverage:null;}
  protected add(){const product=this.selected;if(!product||!this.result||this.alreadyApplied||this.busy)return;this.form.productName=product.name;const plan=normalizePaintingPlan(this.form)!;this.applyPlan.emit(plan);this.applied=JSON.stringify(this.form);}
 }

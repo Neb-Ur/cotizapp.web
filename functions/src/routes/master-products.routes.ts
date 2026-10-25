@@ -1,3 +1,4 @@
+import {normalizeCatalogCalculationSpecs} from '../domain/catalog-calculation-specs.js';
 import { brandUses } from '../domain/brand-use.js';
 import { isHardwareProduct, hardwareCatalog } from '../domain/market-scope.js';
 import { productArea, isProductArea, allowedProductAreas } from '../domain/business-type.js';
@@ -238,3 +239,23 @@ masterProductsRouter.delete('/productos-maestro/:id', requireAuth, requireRole('
 });
 
 // Search/comparison.
+
+// Dedicated technical review: no inferred yields for generic base products.
+masterProductsRouter.get('/admin/catalogo/calidad',requireAuth,requireRole('admin'),async(req,res)=>{
+ const products=(await rows(COLLECTIONS.masterProducts)).filter(isHardwareProduct);
+ return ok(res,products.map(p=>({id:p.id,name:p.nombre,unit:p.unidadVenta||'',packaging:p.presentacion||'',specs:p.calculationSpecs||null,reviewedAt:p.calculationSpecsReviewedAt||null})));
+});
+masterProductsRouter.put('/admin/catalogo/:id/calculo',requireAuth,requireRole('admin'),async(req,res)=>{
+ try{
+  const specs=normalizeCatalogCalculationSpecs(req.body?.specs);
+  const ref=db.collection(COLLECTIONS.masterProducts).doc(req.params.id);
+  const result=await db.runTransaction(async tx=>{
+   const snap=await tx.get(ref);if(!snap.exists)return 'missing';
+   if((snap.data()?.calculationSpecsReviewedAt||null)!==(req.body?.reviewedAt||null))return 'changed';
+   const patch={calculationSpecs:specs,calculationSpecsReviewedAt:nowIso(),calculationSpecsReviewedBy:req.authUserId};tx.update(ref,patch);return patch;
+  });
+  if(result==='missing')return fail(res,'PRODUCTO_MAESTRO_NOT_FOUND','Producto no encontrado.',404);
+  if(result==='changed')return fail(res,'CATALOG_CHANGED','La ficha cambió. Recarga antes de guardar.',409);
+  await Promise.all([invalidateStaticCatalog(),markPublicCatalogDirty()]);return ok(res,result);
+ }catch(e){if(e instanceof Error && /Indica unidad|rendimiento|presentación|requiere litros/.test(e.message))return fail(res,'CALCULATION_SPECS_INVALID',e.message,400);throw e;}
+});

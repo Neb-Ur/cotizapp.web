@@ -33,8 +33,10 @@
       <div class="calculator-choices" role="group" aria-label="Elegir calculadora">
         <button type="button" [attr.aria-pressed]="selectedCalculator === 'painting'" (click)="selectedCalculator='painting'" [disabled]="isSaving || statusBusy">Pintura</button>
         <button type="button" [attr.aria-pressed]="selectedCalculator === 'tiles'" (click)="selectedCalculator='tiles'" [disabled]="isSaving || statusBusy">Cerámicas y porcelanatos</button>
+        <button type="button" [attr.aria-pressed]="selectedCalculator === 'construction'" (click)="selectedCalculator='construction'" [disabled]="isSaving || statusBusy">Pisos, tabiques y radier</button>
       </div>
       <div class="calculator-content" [hidden]="selectedCalculator !== 'painting'"><app-painting-calculator [products]="paintProducts" [plan]="paintingPlan" [busy]="isSaving || statusBusy" (applyPlan)="applyPaintingPlan($event)" /></div>
+      <div class="calculator-content" [hidden]="selectedCalculator !== 'construction'"><app-construction-calculator [budget]="workBudget" [busy]="isSaving || statusBusy" (changed)="persistDraftIfNeeded()" /></div>
       <div class="calculator-content" [hidden]="selectedCalculator !== 'tiles'"><app-tile-calculator [products]="paintProducts" [plan]="tilePlan" [busy]="isSaving || statusBusy" (applyPlan)="applyTilePlan($event)" /></div>
     </details>
     <article class="summary">
@@ -128,7 +130,8 @@
         </div>
       </ng-template>
     </section>
-    <app-work-budget-editor class="work-budget-section" [budget]="workBudget" [materials]="totalWithIva" [incomplete]="unavailableItemCount > 0" (changed)="persistDraftIfNeeded()" />
+    <app-work-ledger *ngIf="user && !isLocalQuotation && !isNewProject" [budgetDirty]="hasUnsavedChanges" [ownerId]="user!.id" [projectId]="projectId" [total]="customerTotal" [budgetedCost]="budgetTotals?.cost || totalWithIva" />
+    <app-work-budget-editor class="work-budget-section" [budget]="workBudget" [ownerId]="user?.id || ''" [materials]="totalWithIva" [incomplete]="unavailableItemCount > 0" (changed)="persistDraftIfNeeded()" />
     <article class="editor-panel">
         <h2>Datos de la cotización</h2>
         <div class="validity-note">

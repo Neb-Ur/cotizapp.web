@@ -1,0 +1,15 @@
+<details class="tools"><summary>Control de obra: gastos, jornadas y pagos</summary>
+ <p>Registro privado en CLP. Separa lo gastado de lo cobrado; no se incluye en el PDF del cliente. Usa el total del presupuesto guardado.</p>
+ <p class="error" role="alert" *ngIf="error">{{ error }}</p><p role="status" *ngIf="notice">{{ notice }}</p>
+ <button type="button" (click)="load()" [disabled]="busy">Recargar movimientos guardados</button>
+ <p *ngIf="budgetDirty" role="status">Guarda los cambios del presupuesto para continuar el registro de movimientos. Tus movimientos pendientes siguen aquí.</p>
+ <fieldset *ngIf="loaded" [disabled]="busy || budgetDirty"><legend>Movimientos de la obra</legend>
+ <div *ngIf="!budgetDirty && totals as t" class="fields"><p>Total presupuestado <strong>{{ money(total) }}</strong></p><p>Gasto real <strong>{{ money(t.cost) }}</strong></p><p>Abonos y pagos recibidos <strong>{{ money(t.paid) }}</strong></p><p>Saldo por cobrar <strong>{{ money(t.balance) }}</strong></p><p *ngIf="t.credit">Saldo a favor del cliente <strong>{{ money(t.credit) }}</strong></p><p>{{ t.closed ? 'Resultado final registrado' : 'Resultado proyectado con gastos registrados' }} <strong>{{ money(t.profit) }}</strong></p><p>Diferencia frente al costo presupuestado <strong>{{ money(t.variance) }}</strong></p><p>Flujo de caja (cobros menos gastos) <strong>{{ money(t.cash) }}</strong></p></div>
+ <p *ngIf="!ledger.entries.length">Aún no registras compras ni pagos.</p>
+ <fieldset *ngFor="let e of ledger.entries;let i=index"><legend>Movimiento {{ i+1 }}</legend><div class="fields">
+ <label>Tipo<select aria-label="Tipo de movimiento" [(ngModel)]="e.kind"><option *ngFor="let k of kinds" [value]="k.id">{{ k.name }}</option></select></label><label>Fecha<input type="date" [(ngModel)]="e.date" /></label><label>Descripción<input maxlength="300" [(ngModel)]="e.description" /></label><label>{{ e.kind === 'labor' ? 'Jornadas / cantidad' : 'Cantidad' }}<input type="number" min="0.001" max="1000000" step="0.25" [(ngModel)]="e.quantity" /></label><label>Monto por unidad (CLP)<input type="number" min="1" max="1000000000" step="1" [(ngModel)]="e.unitPrice" /></label></div><button type="button" (click)="remove(i)">Quitar movimiento {{ i+1 }}</button></fieldset>
+ <div class="actions"><button type="button" (click)="add()" [disabled]="ledger.entries.length>=500 || ledger.closed">Agregar movimiento</button></div>
+ <label><span><input style="width:auto;min-height:auto" type="checkbox" [(ngModel)]="ledger.closed" /> Obra terminada: todos los gastos están registrados</span></label><p>Marca terminada cuando hayas registrado el costo completo. Puedes reabrirla para corregir movimientos.</p>
+ <button type="button" (click)="save()">{{ busy ? 'Guardando…' : 'Guardar movimientos' }}</button>
+ </fieldset>
+</details>

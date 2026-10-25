@@ -23,5 +23,5 @@ it('offers ceramic tasks without losing the existing painting template or duplic
  const buttons=()=>Array.from(fixture.nativeElement.querySelectorAll('.template-start button')) as HTMLButtonElement[];
  buttons().find(button=>button.textContent?.includes('Usar plantilla de pintura'))!.click();fixture.detectChanges();
  buttons().find(button=>button.textContent?.includes('Usar plantilla de cerámicas'))!.click();fixture.detectChanges();
- expect(c.budget.templateIds).toEqual(['painting-v1','tiles-v1']);expect(c.budget.labor.filter((row:any)=>row.description==='Limpieza final')).toHaveLength(1);expect(c.budget.expenses.filter((row:any)=>row.description==='Traslado')).toHaveLength(1);expect(c.templatePending).toBe(true);expect(buttons().every(button=>button.disabled)).toBe(true);fixture.destroy();
+ expect(c.budget.templateIds).toEqual(['painting-v1','tiles-v1']);expect(c.budget.labor.filter((row:any)=>row.description==='Limpieza final')).toHaveLength(1);expect(c.budget.expenses.filter((row:any)=>row.description==='Traslado')).toHaveLength(1);expect(c.templatePending).toBe(true);expect(buttons().filter(button=>/pintura|cerámicas/.test(button.textContent||'')).every(button=>button.disabled)).toBe(true);fixture.destroy();
 });

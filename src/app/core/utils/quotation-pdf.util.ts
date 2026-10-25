@@ -1,3 +1,5 @@
+import {calculateConstruction} from '../../../../functions/src/domain/construction-calculator';
+import {ProfessionalProfile} from '../../../../functions/src/domain/professional-tools';
 import {normalizeWorkBudget,workTemplatePending,calculatePainting,workBudgetTotals,normalizeTilePlan,calculateTiles,type TilePlan,type WorkBudget,type PaintingPlan} from './work-budget.util';
 import { offerConditionLabel } from './offer-condition.util';
 import { ProjectQuotationView, SearchProximity } from '../models/app.models';
@@ -25,7 +27,7 @@ export function buildQuotationPdfFile(input: QuotationPdfInput): File {
   if ((!input.quotation.lines.length && (!budget.enabled || workBudgetTotals(0,budget).total <= 0)) || input.quotation.lines.some(line => line.unitPrice <= 0)) throw new Error('Revisa los productos sin oferta disponible antes de exportar.');
   const exportedAt = input.exportedAt || new Date();
   const lines = buildQuotationPdfLines(input, exportedAt);
-  const blob = buildPdfBlob(lines);
+  const blob = buildPdfBlob(lines,budget.professional);
   const filename = `${budget.enabled ? 'presupuesto-' : ''}${toFileSafeName(input.projectName || 'cotizacion')}-${buildFilenameDate(exportedAt)}.pdf`;
   return new File([blob], filename, { type: 'application/pdf' });
 }
@@ -61,7 +63,7 @@ export function downloadQuotationPdf(input: QuotationPdfInput): void {
 
 function buildQuotationPdfLines(input: QuotationPdfInput, exportedAt: Date): string[] {
   if(input.workBudget?.enabled)return buildWorkBudgetPdfLines(input,exportedAt);
-  const lines: string[] = [];
+  const lines: string[] = [...professionalLines(input.workBudget)];
   const totalWithIva = input.quotation.optimalTotal;
 
   lines.push('COTIZACION DE PRODUCTOS');
@@ -102,7 +104,7 @@ function buildQuotationPdfLines(input: QuotationPdfInput, exportedAt: Date): str
     lines.push('');
   });
 
-  lines.push(...tileCalculationLines(input.tilePlan));
+  lines.push(...tileCalculationLines(input.tilePlan),...constructionCalculationLines(input.workBudget));
   lines.push('RESUMEN DE COTIZACION');
   lines.push(`Total final (IVA incluido): ${formatCurrency(totalWithIva)}`);
   lines.push(`Ahorro estimado: ${formatCurrency(input.quotation.mixedSaving)}`);
@@ -130,7 +132,7 @@ function buildQuotationPdfLines(input: QuotationPdfInput, exportedAt: Date): str
 function buildWorkBudgetPdfLines(input:QuotationPdfInput,exportedAt:Date):string[]{
  const budget=normalizeWorkBudget(input.workBudget);
  const totals=workBudgetTotals(input.quotation.optimalTotal,budget);
- const lines=['PRESUPUESTO DE TRABAJO'];
+ const lines=['PRESUPUESTO DE TRABAJO',...professionalLines(budget)];
  if(budget.discloseCosts)lines.push('DESGLOSE INTERNO DE COSTOS Y RECARGO');
  if(input.pilot||input.quotation.lines.some(line=>line.bestStoreName.includes('(Prueba)')))lines.push('SOLO PRUEBA: locales ficticios; precios y stock simulados.');
  lines.push(`Proyecto: ${input.projectName || 'Sin titulo'}`,`Preparado por: ${input.maestroName || 'Maestro'}`,`Cliente: ${budget.clientName || 'Sin especificar'}`,`Fecha: ${formatExportDate(exportedAt)}`);
@@ -147,7 +149,7 @@ function buildWorkBudgetPdfLines(input:QuotationPdfInput,exportedAt:Date):string
   const p=input.paintingPlan,c=calculatePainting(p);
   lines.push('','ESTIMACION DE PINTURA',`${p.productName}: ${c.area.toFixed(2)} m2, ${p.coats} manos.`,`Rendimiento ingresado: ${p.coverage} m2/L por mano. Adicional: ${p.wastePercent}%.`,`Estimacion: ${c.liters.toFixed(2)} L; ${c.packages} envase(s) de ${p.packLiters} L.`,`Medidas: ${p.length} x ${p.height} m; ${p.surfaces} superficie(s); descuento: ${p.openings} m2.`,`Estimacion inicial; revisa las cantidades finales del detalle. Confirma rendimiento y uso con la ficha del producto.`);
  }
- lines.push(...tileCalculationLines(input.tilePlan));
+ lines.push(...tileCalculationLines(input.tilePlan),...constructionCalculationLines(input.workBudget));
  for(const [title,entries]of [['MANO DE OBRA',budget.labor],['OTROS GASTOS',budget.expenses]] as const){
   if(!entries.length)continue;
   lines.push('',title);
@@ -180,10 +182,27 @@ function tileCalculationLines(value:TilePlan|undefined):string[]{
   'Estimacion inicial; revisa las cantidades finales del detalle. Adhesivo y frague se agregan por separado.', ''];
 }
 
-function buildPdfBlob(lines: string[]): Blob {
+function professionalLines(budget:WorkBudget|undefined):string[]{
+ const lines:string[]=[],p=budget?.professional,c=budget?.client;
+ if(p){if(p.businessName)lines.push(`Profesional / empresa: ${p.businessName}`);if(p.phone)lines.push(`Telefono profesional: ${p.phone}`);if(p.email)lines.push(`Correo profesional: ${p.email}`);if(p.address)lines.push(`Direccion profesional: ${p.address}`);}
+ if(c){lines.push(`Contacto del cliente: ${c.name}`);if(c.phone)lines.push(`Telefono cliente: ${c.phone}`);if(c.email)lines.push(`Correo cliente: ${c.email}`);if(c.address)lines.push(`Direccion cliente: ${c.address}`);}
+ return lines;
+}
+function constructionCalculationLines(budget:WorkBudget|undefined):string[]{
+ const lines:string[]=[];
+ for(const p of budget?.constructionPlans||[]){const r=calculateConstruction(p),title=p.kind==='floor'?'PISO FLOTANTE O VINILICO':p.kind==='partition'?'TABIQUE':'RADIER / LOSA';
+ lines.push('',`ESTIMACION DE ${title}`,`Medidas: ${p.length} x ${p.width} m; descuento: ${p.excludedArea} m2.`,`Superficie neta: ${r.area.toFixed(2)} m2. Adicional: ${p.wastePercent}%.`);
+ if(p.kind==='slab')lines.push(`Espesor: ${p.thicknessCm} cm. Volumen con adicional: ${r.volume.toFixed(3)} m3.`,`No determina resistencia, armadura ni dosificacion. Usar especificaciones del proyecto.`);
+ else lines.push(`Cobertura confirmada: ${p.coverage} m2/${p.kind==='partition'?'plancha':'caja'}. Caras: ${p.kind==='partition'?p.faces:1}.`,`Estimacion: ${r.packages} ${r.unit}.`);
+ if(p.note)lines.push(`Referencia: ${p.note}`);lines.push('Estimacion inicial; revisar los productos y cantidades finales del detalle.','');}
+ return lines;
+}
+function buildPdfBlob(lines: string[], professional?:ProfessionalProfile): Blob {
   const pageChunks = chunkLines(lines, 44);
   const objects: string[] = [];
   const pageObjectIds: number[] = [];
+  const logo=professional?.logo;
+  const logoObjectId=5+pageChunks.length*2;
 
   objects.push('<< /Type /Catalog /Pages 2 0 R >>');
   objects.push('');
@@ -193,9 +212,9 @@ function buildPdfBlob(lines: string[]): Blob {
     const contentObjectId = pageObjectId + 1;
     pageObjectIds.push(pageObjectId);
 
-    const pageContent = buildPdfPageContent(pageLines, index + 1, pageChunks.length, lines.some(line => line.startsWith('SOLO PRUEBA:')),lines.includes('PRESUPUESTO DE TRABAJO'));
+    const pageContent = buildPdfPageContent(pageLines, index + 1, pageChunks.length, lines.some(line => line.startsWith('SOLO PRUEBA:')),lines.includes('PRESUPUESTO DE TRABAJO'),professional);
     objects.push(
-      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 ${3 + (pageChunks.length * 2)} 0 R /F2 ${4 + (pageChunks.length * 2)} 0 R >> >> /Contents ${contentObjectId} 0 R >>`
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 ${3 + (pageChunks.length * 2)} 0 R /F2 ${4 + (pageChunks.length * 2)} 0 R >> ${logo?`/XObject << /Logo ${logoObjectId} 0 R >>`:''} >> /Contents ${contentObjectId} 0 R >>`
     );
     objects.push(`<< /Length ${pageContent.length} >>\nstream\n${pageContent}\nendstream`);
   });
@@ -205,6 +224,7 @@ function buildPdfBlob(lines: string[]): Blob {
   objects.push('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
   objects.push('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>');
 
+  if(logo){const raw=atob(logo.data.split(',')[1]),hex=Array.from(raw,c=>c.charCodeAt(0).toString(16).padStart(2,'0')).join('')+'>';objects.push(`<< /Type /XObject /Subtype /Image /Width ${logo.width} /Height ${logo.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter [/ASCIIHexDecode /DCTDecode] /Length ${hex.length} >>\nstream\n${hex}\nendstream`);}
   let documentContent = '%PDF-1.4\n';
   const objectOffsets: number[] = new Array(fontObjectId + 2).fill(0);
 
@@ -226,7 +246,7 @@ function buildPdfBlob(lines: string[]): Blob {
   return new Blob([documentContent], { type: 'application/pdf' });
 }
 
-function buildPdfPageContent(lines: string[], pageNumber: number, pageCount: number, pilot = false, workBudget = false): string {
+function buildPdfPageContent(lines: string[], pageNumber: number, pageCount: number, pilot = false, workBudget = false,professional?:ProfessionalProfile): string {
   const navy = '0.059 0.176 0.290';
   const orange = '1 0.478 0';
   const gray = '0.420 0.447 0.502';
@@ -241,9 +261,11 @@ function buildPdfPageContent(lines: string[], pageNumber: number, pageCount: num
     'Q'
   ];
 
+  if(professional?.logo){const logo=professional.logo,scale=Math.min(105/logo.width,44/logo.height),w=logo.width*scale,h=logo.height*scale;commands.push('q 1 1 1 rg 436 760 116 52 re f Q',`q ${w.toFixed(3)} 0 0 ${h.toFixed(3)} ${(494-w/2).toFixed(3)} ${(786-h/2).toFixed(3)} cm /Logo Do Q`);}
+
   lines.forEach((line, index) => {
     const y = 727 - index * 14;
-    const heading = ['COTIZACION DE PRODUCTOS', 'DETALLE DE ARTICULOS', 'RESUMEN DE COTIZACION', 'TOTALES POR LOCAL','PRESUPUESTO DE TRABAJO','ALCANCE DEL TRABAJO','MATERIALES','MANO DE OBRA','OTROS GASTOS','RESUMEN DEL PRESUPUESTO','CONDICIONES DEL TRABAJO','ESTIMACION DE PINTURA','ESTIMACION DE CERAMICAS Y PORCELANATOS','REFERENCIA DE MATERIALES'].includes(line);
+    const heading = line.startsWith('ESTIMACION DE ') || ['COTIZACION DE PRODUCTOS', 'DETALLE DE ARTICULOS', 'RESUMEN DE COTIZACION', 'TOTALES POR LOCAL','PRESUPUESTO DE TRABAJO','ALCANCE DEL TRABAJO','MATERIALES','MANO DE OBRA','OTROS GASTOS','RESUMEN DEL PRESUPUESTO','CONDICIONES DEL TRABAJO','ESTIMACION DE PINTURA','ESTIMACION DE CERAMICAS Y PORCELANATOS','REFERENCIA DE MATERIALES'].includes(line);
     const total = line.startsWith('Total final (IVA incluido):') || line.startsWith('Total presupuestado:');
     if (total) commands.push('q 1 0.950 0.890 rg', roundedPdfRect(39, y - 3, 517, 14, 4), 'f Q');
     commands.push(`BT /${heading || total ? 'F2' : 'F1'} ${heading ? 11 : 10} Tf ${heading || total ? navy : gray} rg 44 ${y} Td (${escapePdfText(line)}) Tj ET`);

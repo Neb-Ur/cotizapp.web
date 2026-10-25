@@ -30,7 +30,7 @@ export class PreguntasFrecuentesComponent {
     },
     {
       question: 'Que planes tienen para maestros y ferreterias?',
-      answer: 'Los maestros pueden buscar gratis y guardar hasta dos cotizaciones. Las ferreterías ingresan previa aprobación y aceptación del contrato. Las condiciones comerciales se acuerdan directamente; el piloto no tiene cobros automáticos.'
+      answer: 'Los maestros pueden buscar gratis y guardar hasta 50 cotizaciones. Las ferreterías ingresan previa aprobación y aceptación del contrato. Las condiciones comerciales se acuerdan directamente; el piloto no tiene cobros automáticos.'
     },
     {
       question: 'Donde pido soporte?',

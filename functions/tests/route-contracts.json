@@ -415,6 +415,18 @@
   },
   {
     "method": "get",
+    "path": "/admin/catalogo/calidad",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "put",
+    "path": "/admin/catalogo/:id/calculo",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "get",
     "path": "/busqueda",
     "auth": false,
     "middlewareCount": 1
@@ -560,6 +572,30 @@
   {
     "method": "post",
     "path": "/cotizaciones/optimizar",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "get",
+    "path": "/maestros/:ownerId/herramientas",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "put",
+    "path": "/maestros/:ownerId/herramientas",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "get",
+    "path": "/maestros/:ownerId/proyectos/:projectId/movimientos",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "put",
+    "path": "/maestros/:ownerId/proyectos/:projectId/movimientos",
     "auth": true,
     "middlewareCount": 3
   },

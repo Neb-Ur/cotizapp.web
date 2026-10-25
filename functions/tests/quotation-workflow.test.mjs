@@ -1,3 +1,4 @@
+import {db} from '../lib/lib/firebase.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {projectsRouter} from '../lib/routes/projects.routes.js';
@@ -31,7 +32,8 @@ test('duplication starts a new draft without client identity, stale prices or ve
  const f=firestoreFixture(t,{proyectos:{original:{...source,proximity:{latitude:-33,longitude:-70,radiusKm:10},items:[{productName:'Pintura',quantity:2,productoMaestroId:'paint',calculationSource:'painting'}],pricingOffers:[{productName:'Pintura',productoMaestroId:'paint',storeName:'Viejo',price:1,stock:20}]}}});
  const result=response();await handler('post',path+'/duplicar')(request(),result);assert.equal(result.statusCode,201);
  const copy=result.body.data;assert.notEqual(copy.id,'original');assert.equal(copy.workflowStatus,'draft');assert.equal(copy.address,'');assert.equal(copy.workBudget.clientName,'');assert.deepEqual(copy.workBudget.labor,budget.labor);assert.equal(copy.pricingOffers.length,0);assert.equal(copy.totalOptimal,0);assert.equal(copy.availabilityStatus,'incomplete');assert.equal(copy.proximity,undefined);assert.notEqual(copy.verificationCode,source.verificationCode);assert.notEqual(copy.pricesCapturedAt,source.pricesCapturedAt);assert.equal(copy.items[0].calculationSource,'painting');assert.deepEqual(f.get('proyectos','original').workflowStatus,'accepted');
- const limit=response();await handler('post',path+'/duplicar')(request(),limit);assert.equal(limit.statusCode,409);assert.equal(f.rows('proyectos').length,2);assert.equal(f.rows('cotizacionesVerificables').length,1);
+ for(let i=0;i<48;i++)await db.collection(COLLECTIONS.projects).doc(`quota-${i}`).set({ownerId:'master',name:'Existing',items:[]});
+ const limit=response();await handler('post',path+'/duplicar')(request(),limit);assert.equal(limit.statusCode,409);assert.equal(f.rows('proyectos').length,50);assert.equal(f.rows('cotizacionesVerificables').length,1);
 });
 test('editing accepted content returns it to draft and unpriced templates cannot be marked sent',async t=>{
  const f=firestoreFixture(t,{proyectos:{original:source}});

@@ -1,3 +1,5 @@
+import {WorkLedgerComponent} from '../../shared/components/work-ledger/work-ledger.component';
+import {ConstructionCalculatorComponent} from '../../shared/components/construction-calculator/construction-calculator.component';
 import {TileCalculatorComponent} from '../../shared/components/tile-calculator/tile-calculator.component';
 import {QuotationStatusComponent} from '../../shared/components/quotation-status/quotation-status.component';
 import {quotationStatus,type QuotationStatus} from '../../core/utils/quotation-workflow.util';
@@ -14,7 +16,7 @@ import { quotationWhatsappUrl } from '../../core/utils/quotation-whatsapp.util';
 import { WriteFeedbackService } from '../../core/services/write-feedback.service';
 import { DataModeService } from '../../core/services/data-mode.service';
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { combineLatest, Subscription } from 'rxjs';
@@ -39,11 +41,13 @@ import { QuotationPdfService } from '../../core/services/quotation-pdf.service';
 @Component({
   selector: 'app-proyecto-detalle',
   standalone: true,
-  imports: [TileCalculatorComponent,QuotationStatusComponent,WorkBudgetEditorComponent, PaintingCalculatorComponent, UiLoaderComponent, InfoPanelComponent, CommonModule, FormsModule],
+  imports: [WorkLedgerComponent,ConstructionCalculatorComponent,TileCalculatorComponent,QuotationStatusComponent,WorkBudgetEditorComponent, PaintingCalculatorComponent, UiLoaderComponent, InfoPanelComponent, CommonModule, FormsModule],
   templateUrl: './proyecto-detalle.component.html',
   styleUrl: './proyecto-detalle.component.scss'
 })
 export class ProyectoDetalleComponent implements OnInit, OnDestroy {
+  @ViewChild(WorkLedgerComponent) private workLedger?:WorkLedgerComponent;
+  canLeave():boolean {return this.workLedger?.canLeave() ?? true;}
   protected readonly conditionLabel = offerConditionLabel;
   protected isLoading = true;
   protected loadError = '';
@@ -88,7 +92,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
   protected workBudget:WorkBudget=emptyWorkBudget();
   protected paintingPlan?:PaintingPlan;
   protected tilePlan?:TilePlan;
-  protected selectedCalculator:'painting'|'tiles'='painting';
+  protected selectedCalculator:'painting'|'tiles'|'construction'='painting';
   protected get paintProducts(){return this.apiService.getMasterCatalogProducts?.() || [];}
   protected get showMaterialsCalculator(){return ['pintura','ceramicas','materiales'].includes(this.route.snapshot?.queryParamMap?.get('herramienta') || '');}
   protected get budgetTotals(){try{return workBudgetTotals(this.totalWithIva,this.workBudget);}catch{return null;}}

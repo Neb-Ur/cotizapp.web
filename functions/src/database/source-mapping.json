@@ -25,7 +25,8 @@
       "tratamientoBloqueadoEn": "users.blocked_at",
       "tratamientoDesbloqueadoEn": "users.unblocked_at",
       "dataMode": "migration validation: only real",
-      "actualizadoEn": "users.updated_at"
+      "actualizadoEn": "users.updated_at",
+      "professionalTools": "users.api_payload.professionalTools (private versioned agenda, professional profile, bounded sanitized JPEG logo and optimistic revision; included in account export/deletion)"
     },
     "notes": "UID stays primary key. Email verification/password/tokens stay in Firebase Auth. Unknown fields block final reconciliation.",
     "sourceCollection": "usuarios",
@@ -202,7 +203,10 @@
       "evidenciaCatalogo": "products.catalog_evidence",
       "catalogoPlanFecha": "products.api_payload.catalogoPlanFecha (compatibility metadata)",
       "catalogoPlanVersion": "products.api_payload.catalogoPlanVersion (compatibility metadata)",
-      "ambitoComercial": "products.api_payload.ambitoComercial (ferreteria, desarmaduria or ambos; editable classification)"
+      "ambitoComercial": "products.api_payload.ambitoComercial (ferreteria, desarmaduria or ambos; editable classification)",
+      "calculationSpecs": "api_payload.calculationSpecs (reviewed sale unit, measured presentation, paint yield and source)",
+      "calculationSpecsReviewedAt": "api_payload.calculationSpecsReviewedAt (optimistic technical review version)",
+      "calculationSpecsReviewedBy": "api_payload.calculationSpecsReviewedBy (admin audit)"
     },
     "notes": "Image and description rights are distinct records. Preserve current generic bases as products; model parent optional. Existing paths must be imported into seo_routes, including hashed duplicate-name URLs.",
     "sourceCollection": "productosMaestro",
@@ -336,11 +340,12 @@
       "items": "quotation_items ordered rows",
       "status": "quotations.status",
       "estado": "quotations.status (legacy alias)",
-      "workBudget": "quotations.api_payload.workBudget (versioned labor, expenses, markup and client presentation)",
+      "workBudget": "quotations.api_payload.workBudget (versioned cost budget, client/professional snapshots, construction calculations and additive templates)",
       "paintingPlan": "quotations.api_payload.paintingPlan (versioned measures, coverage, pack size and selected product)",
       "workflowStatus": "quotations.api_payload.workflowStatus (manual commercial tracking; independent of availability and price validity)",
       "workflowUpdatedAt": "quotations.api_payload.workflowUpdatedAt",
-      "tilePlan": "quotations.api_payload.tilePlan (versioned spaces, exclusions, cuts, confirmed m2 per box and selected product)"
+      "tilePlan": "quotations.api_payload.tilePlan (versioned spaces, exclusions, cuts, confirmed m2 per box and selected product)",
+      "ledger": "quotations.api_payload.ledger (private actual costs, labor quantities, payments, closure flag and optimistic revision; never copied to verification or client PDF)"
     },
     "notes": "Nested items preserve productName,quantity,storeId,storeName,productoFerreteriaId,productoMaestroId in snapshot/reference + nullable FK columns. Totals are live derived, not stored at import as fixed prices.",
     "sourceCollection": "real_proyectos",

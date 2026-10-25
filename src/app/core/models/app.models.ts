@@ -473,6 +473,7 @@ export interface ProjectComparisonStrategy {
 }
 
 export interface CatalogProduct {
+  calculationSpecs?: import('../../../../functions/src/domain/catalog-calculation-specs').CatalogCalculationSpecs | null;
   businessScope?: import('../utils/business-type.util').ProductBusinessScope;
   offerPhotos?: OfferPhoto[];
   condition?: OfferCondition;

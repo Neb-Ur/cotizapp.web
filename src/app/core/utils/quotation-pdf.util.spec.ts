@@ -69,3 +69,9 @@ it('includes ceramic measurements and box assumptions in material and work PDFs 
  const read=(file:File)=>new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=reject;reader.readAsText(file);});
  for(const budget of [undefined,workBudget]){const text=await read(buildQuotationPdfFile({...input,tilePlan,workBudget:budget}));expect(text).toContain('ESTIMACION DE CERAMICAS');expect(text).toContain('Cocina');expect(text).toContain('7 caja');expect(text).toContain('2 m2/caja');if(budget){expect(text).not.toContain('Costo unitario:');expect(text).not.toContain('Recargo sobre costos');}}
 });
+it('includes saved professional contacts and construction assumptions but excludes private accounting',async()=>{
+ const budget:any={version:1,enabled:true,clientName:'Ana',scope:'Obra',terms:'Anticipo acordado',labor:[{description:'Instalación',unit:'trabajo',quantity:1,unitPrice:100000}],expenses:[],markupPercent:20,discloseCosts:false,client:{id:'c',name:'Ana',phone:'555123',email:'ana@example.com',address:'Calle Cliente'},professional:{businessName:'Constructora Ejemplo',phone:'555456',email:'contacto@example.com',address:'Oficina',defaultTerms:''},constructionPlans:[{version:1,kind:'slab',length:5,width:4,excludedArea:0,wastePercent:10,coverage:1,thicknessCm:10,faces:1,note:'Especificación de proyecto'}],ledger:{entries:[{description:'PRIVATE_PAYMENT'}]}};
+ const file=buildQuotationPdfFile({...input,workBudget:budget});
+ const text=await new Promise<string>(resolve=>{const r=new FileReader();r.onload=()=>resolve(String(r.result));r.readAsText(file);});
+ expect(text).toContain('Constructora Ejemplo');expect(text).toContain('ana@example.com');expect(text).toContain('2.200 m3');expect(text).not.toContain('PRIVATE_PAYMENT');expect(text).not.toContain('Recargo sobre costos');
+});

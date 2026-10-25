@@ -1,6 +1,8 @@
+import {normalizeContact,normalizeProfessionalProfile,type ClientContact,type ProfessionalProfile} from './professional-tools.js';
+import {normalizeConstructionPlan,type ConstructionPlan} from './construction-calculator.js';
 export interface CostEntry { description: string; unit: 'trabajo' | 'hora' | 'jornada' | 'unidad'; quantity: number; unitPrice: number; }
-export type WorkTemplateId='painting-v1'|'tiles-v1';
-export interface WorkBudget { templateId?: WorkTemplateId; templateIds?: WorkTemplateId[]; version: 1; enabled: boolean; clientName: string; scope: string; terms: string; labor: CostEntry[]; expenses: CostEntry[]; markupPercent: number; discloseCosts: boolean; }
+export type WorkTemplateId='painting-v1'|'tiles-v1'|'floor-v1'|'partition-v1'|'slab-v1';
+export interface WorkBudget { client?:ClientContact; professional?:ProfessionalProfile; constructionPlans?:ConstructionPlan[]; templateId?: WorkTemplateId; templateIds?: WorkTemplateId[]; version: 1; enabled: boolean; clientName: string; scope: string; terms: string; labor: CostEntry[]; expenses: CostEntry[]; markupPercent: number; discloseCosts: boolean; }
 export class WorkBudgetError extends Error {}
 export const emptyWorkBudget = (): WorkBudget => ({version:1,enabled:false,clientName:'',scope:'',terms:'',labor:[],expenses:[],markupPercent:0,discloseCosts:false});
 const text=(value:unknown,max:number)=>typeof value==='string'?value.trim().slice(0,max):'';
@@ -13,7 +15,9 @@ export function normalizeWorkBudget(value:unknown): WorkBudget {
  if(typeof value!=='object'||Array.isArray(value))throw new WorkBudgetError('Revisa el presupuesto de trabajo.');
  const v=value as WorkBudget;
  if(v.version!==1||typeof v.enabled!=='boolean'||typeof v.discloseCosts!=='boolean')throw new WorkBudgetError('Formato de presupuesto no válido.');
- if(!v.enabled)return {...emptyWorkBudget(),clientName:text(v.clientName,200),scope:text(v.scope,3000),terms:text(v.terms,2000)};
+ const extras:Partial<WorkBudget>={};
+ try{if(v.client)extras.client=normalizeContact(v.client);if(v.professional)extras.professional=normalizeProfessionalProfile(v.professional);if(v.constructionPlans){if(!Array.isArray(v.constructionPlans)||v.constructionPlans.length>3)throw new Error('Usa hasta tres cálculos de construcción.');extras.constructionPlans=v.constructionPlans.map(normalizeConstructionPlan);}}catch(e){throw new WorkBudgetError(e instanceof Error?e.message:'Revisa los datos profesionales.');}
+ if(!v.enabled)return {...emptyWorkBudget(),...extras,clientName:text(v.clientName,200),scope:text(v.scope,3000),terms:text(v.terms,2000)};
  const entries=(input:unknown):CostEntry[]=>{
   if(!Array.isArray(input)||input.length>50)throw new WorkBudgetError('Usa hasta 50 partidas por sección.');
   return input.map(row=>{
@@ -25,7 +29,7 @@ export function normalizeWorkBudget(value:unknown): WorkBudget {
  };
  const labor=entries(v.labor),expenses=entries(v.expenses);
  if([...labor,...expenses].reduce((sum,row)=>sum+Math.round(row.quantity*row.unitPrice),0)>1_000_000_000_000)throw new WorkBudgetError('El costo del trabajo supera el máximo permitido.');
- return {...templateMetadata(v),version:1,enabled:v.enabled,clientName:text(v.clientName,200),scope:text(v.scope,3000),terms:text(v.terms,2000),labor,expenses,markupPercent:number(v.markupPercent,0,100,'el recargo sobre costos (0 a 100 %)'),discloseCosts:v.discloseCosts};
+ return {...templateMetadata(v),...extras,version:1,enabled:v.enabled,clientName:text(v.clientName,200),scope:text(v.scope,3000),terms:text(v.terms,2000),labor,expenses,markupPercent:number(v.markupPercent,0,100,'el recargo sobre costos (0 a 100 %)'),discloseCosts:v.discloseCosts};
 }
 export function workBudgetTotals(materials:number,budget:WorkBudget) {
  const normalized=normalizeWorkBudget(budget);
@@ -61,7 +65,7 @@ export function normalizePaintingPlan(value:unknown):PaintingPlan|undefined {
  return {version:1,length:v.length,height:v.height,surfaces:v.surfaces,openings:v.openings,coats:v.coats,coverage:v.coverage,wastePercent:v.wastePercent,packLiters:v.packLiters,productId,productName};
 }
 
-const templateIds:WorkTemplateId[]=['painting-v1','tiles-v1'];
+const templateIds:WorkTemplateId[]=['painting-v1','tiles-v1','floor-v1','partition-v1','slab-v1'];
 function templateMetadata(value:WorkBudget):Pick<WorkBudget,'templateId'|'templateIds'>{
  const id=templateIds.includes(value.templateId as WorkTemplateId)?value.templateId:undefined;
  const ids=Array.isArray(value.templateIds)?[...new Set(value.templateIds.filter(id=>templateIds.includes(id)))]:[];
@@ -73,8 +77,9 @@ export function applyWorkTemplate(current:WorkBudget,id:WorkTemplateId):WorkBudg
  const budget=structuredClone(current);
  if(hasWorkTemplate(budget,id))return budget;
  const painting=id==='painting-v1';
- const descriptions=painting?['Protección y preparación de superficies','Aplicación de pintura','Limpieza final']:
-  ['Retiro de revestimiento existente','Preparación de la base','Instalación de cerámicas o porcelanatos','Aplicación de fragüe','Limpieza final'];
+ const extraTasks:Partial<Record<WorkTemplateId,string[]>>={'floor-v1':['Revisión y nivelación de la base','Instalación de piso flotante o vinílico','Instalación de guardapolvos y remates','Limpieza final'],'partition-v1':['Trazado y estructura de tabique','Instalación de aislación','Revestimiento con planchas','Tratamiento de juntas','Limpieza final'],'slab-v1':['Preparación y compactación de terreno','Moldajes y preparación de base','Colocación y terminación de hormigón','Curado y protección','Limpieza final']};
+ const descriptions=extraTasks[id] || (painting?['Protección y preparación de superficies','Aplicación de pintura','Limpieza final']:
+  ['Retiro de revestimiento existente','Preparación de la base','Instalación de cerámicas o porcelanatos','Aplicación de fragüe','Limpieza final']);
  const tasks:CostEntry[]=descriptions.map(description=>({description,unit:'trabajo',quantity:1,unitPrice:0}));
  const expenseNames=painting?['Traslado']:['Traslado','Retiro de escombros'];
  const labor=tasks.filter(task=>!budget.labor.some(row=>row.description===task.description));
@@ -82,7 +87,7 @@ export function applyWorkTemplate(current:WorkBudget,id:WorkTemplateId):WorkBudg
  if(budget.labor.length+labor.length>50 || budget.expenses.length+expenses.length>50)throw new WorkBudgetError('No hay espacio para la plantilla. Quita partidas antes de agregarla.');
  const existing=templateIds.filter(t=>hasWorkTemplate(budget,t));
  return {...budget,enabled:true,templateId:budget.templateId || id,...(existing.length?{templateIds:[...existing,id]}:{}),
-  scope:budget.scope || (painting?'Preparación de superficies, aplicación de pintura y limpieza final. Revisar con el cliente las reparaciones y superficies incluidas.':'Preparación de la base, instalación de cerámicas o porcelanatos, aplicación de fragüe y limpieza final. Acordar retiro del revestimiento anterior, reparaciones y disposición de escombros.'),
+  scope:budget.scope || (extraTasks[id]?extraTasks[id]!.join(', ')+'. Acordar alcance, medidas y especificaciones antes de ejecutar.':painting?'Preparación de superficies, aplicación de pintura y limpieza final. Revisar con el cliente las reparaciones y superficies incluidas.':'Preparación de la base, instalación de cerámicas o porcelanatos, aplicación de fragüe y limpieza final. Acordar retiro del revestimiento anterior, reparaciones y disposición de escombros.'),
   labor:[...budget.labor,...labor],expenses:[...budget.expenses,...expenses]};
 }
 export function paintingBudgetTemplate(current:WorkBudget):WorkBudget{return applyWorkTemplate(current,'painting-v1');}

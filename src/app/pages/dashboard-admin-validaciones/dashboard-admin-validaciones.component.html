@@ -21,6 +21,7 @@
       <app-ui-loader [label]="isInitialLoading ? 'Cargando resumen de administracion...' : 'Cargando seccion...'" />
     </article>
 
+    <app-catalog-quality *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'productos'" />
     <app-admin-metrics *ngIf="currentSection === 'inicio'" [metrics]="metrics" [loading]="isInitialLoading || isSectionLoading" (refresh)="refreshAll()" (sectionSelected)="setSection($any($event))" />
 
     <article class="panel" *ngIf="!isInitialLoading && !isSectionLoading && currentSection === 'ferreterias'">

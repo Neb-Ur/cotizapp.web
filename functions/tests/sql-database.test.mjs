@@ -8,7 +8,7 @@ import {replicateDocument} from '../lib/database/replication.js';
 import {useSqlDatabase} from '../lib/database/config.js';
 async function fixture(t,ready=true,includeCondition=true){
  const pg=new PGlite();
- for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql','013-store-reviews.sql','015-offer-condition.sql','016-store-business-type.sql','017-vehicle-reference-catalog.sql','018-offer-vehicle-applications.sql','019-product-vehicle-applications.sql','020-donor-vehicles.sql','021-donor-trigger-search-path.sql','023-hardware-only.sql'].filter(file=>includeCondition||file!=='015-offer-condition.sql'))await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
+ for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql','013-store-reviews.sql','015-offer-condition.sql','016-store-business-type.sql','017-vehicle-reference-catalog.sql','018-offer-vehicle-applications.sql','019-product-vehicle-applications.sql','020-donor-vehicles.sql','021-donor-trigger-search-path.sql','023-hardware-only.sql','024-professional-quotation-limit.sql'].filter(file=>includeCondition||file!=='015-offer-condition.sql'))await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
  const pool={connect:async()=>({query:pg.query.bind(pg),release(){}})};
  const db=new PostgresDatabase(pool,ready);
  t.after(()=>pg.close());
@@ -98,8 +98,9 @@ test('HTTP quotation lifecycle enforces roles and ownership while persisting fro
  assert.equal((await request('GET',searchPath)).body.data.total,0);
  assert.equal((await request('GET',detailPath)).body.data.stores.length,0);
  assert.equal((await request('POST',path,'master',{nombre:'Segunda',items:[]})).status,201);
- assert.equal((await request('POST',path,'master',{nombre:'Tercera',items:[]})).status,409);
- assert.equal((await request('GET',path,'master')).body.data.length,2);
+ for(let i=3;i<=50;i++)assert.equal((await request('POST',path,'master',{nombre:`Obra ${i}`,items:[]})).status,201);
+ assert.equal((await request('POST',path,'master',{nombre:'Fuera de cupo',items:[]})).status,409);
+ assert.equal((await request('GET',path,'master')).body.data.length,50);
  assert.equal((await request('DELETE',projectPath,'master')).status,200);
  assert.equal((await request('GET',projectPath,'master')).status,404);
  assert.equal((await pg.query('SELECT count(*)::int n FROM findi.quotation_items')).rows[0].n,0);
@@ -166,7 +167,8 @@ test('SQL keeps ordered duplicate quote lines, rolls back a failed batch and enf
  await db.collection('real_proyectos').doc('first').set(input);await db.collection('real_proyectos').doc('second').set({...input,name:'Obra 2'});
  assert.equal((await pg.query('SELECT count(*)::int n FROM findi.quotation_items')).rows[0].n,4);
  assert.deepEqual((await db.collection('real_proyectos').doc('first').get()).data(),input);
- await assert.rejects(db.collection('real_proyectos').doc('third').set(input),/COTIZACION_LIMIT_REACHED/);
+ for(let i=3;i<=50;i++)await db.collection('real_proyectos').doc(`quota-${i}`).set({...input,items:[]});
+ await assert.rejects(db.collection('real_proyectos').doc('over-quota').set(input),/COTIZACION_LIMIT_REACHED/);
  const batch=db.batch();batch.update(db.collection('usuarios').doc('master'),{nombre:'Cambio'});batch.set(db.collection('real_productosFerreteria').doc('invalid'),{ferreteriaId:'store',productoMaestroId:'product',precio:-1,stock:2});await assert.rejects(batch.commit());
  assert.equal((await db.collection('usuarios').doc('master').get()).data().nombre,'Maestro');
 });

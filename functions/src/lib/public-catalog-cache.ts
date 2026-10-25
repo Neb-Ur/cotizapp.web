@@ -106,6 +106,7 @@ async function materializeSnapshot(): Promise<PublicCatalogSnapshot> {
       tipoProducto: item.tipoProducto || '',
       unidadVenta: item.unidadVenta || '',
       presentacion: item.presentacion || '',
+      calculationSpecs: item.calculationSpecs || null,
       marca: item.marca || 'Sin marca',
       marcaId: item.marcaId || null,
       descripcionCorta: item.descripcionCorta || '',

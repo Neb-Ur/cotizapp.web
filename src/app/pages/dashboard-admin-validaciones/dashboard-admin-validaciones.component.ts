@@ -1,3 +1,4 @@
+import {CatalogQualityComponent} from '../../shared/components/catalog-quality/catalog-quality.component';
 import { allowedProductAreas, productAreaLabel, type ProductArea } from '../../core/utils/business-type.util';
 import { BUSINESS_TYPES, businessTypeLabel, normalizeBusinessType, PRODUCT_BUSINESS_SCOPES, normalizeProductBusinessScope, productBusinessScopeLabel, type ProductBusinessScope, type BusinessType } from '../../core/utils/business-type.util';
 import {AdminMetricsComponent} from '../../shared/components/admin-metrics/admin-metrics.component';
@@ -150,7 +151,7 @@ interface AdminSectionMeta {
 @Component({
   selector: 'app-dashboard-admin-validaciones',
   standalone: true,
-  imports: [
+  imports: [CatalogQualityComponent,
     AdminMetricsComponent,
     ProductImageUploadComponent,
     PasswordFieldComponent,

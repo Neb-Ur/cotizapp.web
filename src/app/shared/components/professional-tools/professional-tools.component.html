@@ -1,0 +1,20 @@
+<details class="tools"><summary>Clientes y presentación profesional</summary>
+ <p>Tu agenda es privada. Los datos aplicados quedan como una copia en cada cotización.</p>
+ <p role="alert" class="error" *ngIf="error">{{ error }}</p><p role="status" *ngIf="notice">{{ notice }}</p>
+ <button type="button" [disabled]="busy" (click)="load()">Recargar datos de cuenta</button>
+ <div *ngIf="loaded"><fieldset [disabled]="busy"><legend>Mi presentación en el PDF</legend>
+ <div class="fields"><label>Nombre profesional o empresa<input [(ngModel)]="tools.profile.businessName" maxlength="160" /></label><label>Teléfono profesional<input [(ngModel)]="tools.profile.phone" maxlength="50" /></label><label>Correo profesional<input type="email" [(ngModel)]="tools.profile.email" maxlength="254" /></label><label>Dirección profesional<input [(ngModel)]="tools.profile.address" maxlength="500" /></label></div>
+ <label>Condiciones habituales<textarea [(ngModel)]="tools.profile.defaultTerms" maxlength="2000" rows="3"></textarea></label>
+ <label>Logo (JPEG, PNG o WebP, hasta 5 MB)<input type="file" accept="image/jpeg,image/png,image/webp" (change)="upload($event)" /></label>
+ <div *ngIf="tools.profile.logo"><img class="logo" [src]="tools.profile.logo!.data" alt="Vista previa de tu logo" /><button type="button" (click)="tools.profile.logo=undefined">Quitar logo</button></div>
+ <div class="actions"><button type="button" (click)="saveProfile()">Guardar presentación</button><button type="button" *ngIf="budget" (click)="applyProfile()">Aplicar presentación a esta cotización</button></div>
+ </fieldset>
+ <fieldset [disabled]="busy"><legend>Agenda de clientes · {{ tools.clients.length }}/200</legend>
+ <label>Buscar cliente<input [(ngModel)]="search" placeholder="Nombre, teléfono o dirección" /></label>
+ <ul class="clients"><li *ngFor="let c of matches"><div><strong>{{ c.name }}</strong><small>{{ c.phone }} {{ c.email }}</small><small>{{ c.address }}</small></div><div class="actions"><button type="button" *ngIf="budget" (click)="applyClient(c)">Usar cliente</button><button type="button" (click)="edit(c)">Editar</button></div></li></ul>
+ <p *ngIf="!matches.length">No hay clientes que coincidan.</p>
+ <button type="button" (click)="newContact()">Nuevo cliente</button>
+ <div class="fields"><label>Nombre del cliente<input [(ngModel)]="contact.name" maxlength="200" /></label><label>Teléfono del cliente<input [(ngModel)]="contact.phone" maxlength="50" /></label><label>Correo del cliente<input type="email" [(ngModel)]="contact.email" maxlength="254" /></label><label>Dirección del cliente<input [(ngModel)]="contact.address" maxlength="500" /></label></div>
+ <div class="actions"><button type="button" (click)="saveContact()">{{ contact.id ? 'Guardar cliente' : 'Agregar cliente' }}</button><button type="button" *ngIf="contact.id" (click)="removeContact(contact)">Eliminar de la agenda</button></div><small>Eliminar de la agenda conserva las copias en presupuestos existentes.</small>
+ </fieldset></div>
+</details>

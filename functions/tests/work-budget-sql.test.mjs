@@ -2,15 +2,19 @@ import test from 'node:test';import assert from 'node:assert/strict';import {rea
 import {PostgresDatabase} from '../lib/database/postgres.js';import {emptyWorkBudget} from '../lib/domain/work-budget.js';
 test('versioned work costs and painting assumptions round-trip through the production SQL repository without schema changes',async t=>{
  const pg=new PGlite();t.after(()=>pg.close());
- for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql','015-offer-condition.sql','016-store-business-type.sql','017-vehicle-reference-catalog.sql','018-offer-vehicle-applications.sql','019-product-vehicle-applications.sql','020-donor-vehicles.sql','021-donor-trigger-search-path.sql','023-hardware-only.sql'])await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
+ for(const file of ['001-schema.sql','002-public-views.sql','003-security.sql','005-runtime-compatibility.sql','011-quotation-verification.sql','012-advisory-quotation-period.sql','015-offer-condition.sql','016-store-business-type.sql','017-vehicle-reference-catalog.sql','018-offer-vehicle-applications.sql','019-product-vehicle-applications.sql','020-donor-vehicles.sql','021-donor-trigger-search-path.sql','023-hardware-only.sql','024-professional-quotation-limit.sql'])await pg.exec(await readFile(new URL('../../sql/findi/'+file,import.meta.url),'utf8'));
  await pg.query("INSERT INTO findi.database_migration_state(id,status,source_project) VALUES('firestore-to-sql','verified','test')");
  const db=new PostgresDatabase({connect:async()=>({query:pg.query.bind(pg),release(){}})});
  await db.collection('usuarios').doc('owner').set({rol:'maestro',nombre:'Maestro',correo:'maestro@example.test',estadoCuenta:'activo'});
- const workBudget={...emptyWorkBudget(),enabled:true,clientName:'Cliente',markupPercent:25,labor:[{description:'Pintura',unit:'jornada',quantity:2,unitPrice:50000}]};
+ const professionalTools={version:1,revision:1,clients:[{id:'c',name:'Ana',phone:'123',email:'ana@example.test',address:'Obra'}],profile:{businessName:'Empresa',phone:'',email:'',address:'',defaultTerms:''}};
+ await db.collection('usuarios').doc('owner').update({professionalTools});assert.deepEqual((await db.collection('usuarios').doc('owner').get()).data().professionalTools,professionalTools);
+ const ledger={version:1,revision:1,closed:false,entries:[{id:'a',kind:'payment',description:'Anticipo',date:'2026-10-25',quantity:1,unitPrice:50000}]};
+ const workBudget={client:professionalTools.clients[0],professional:professionalTools.profile,constructionPlans:[{version:1,kind:'slab',length:5,width:4,excludedArea:0,wastePercent:10,coverage:1,thicknessCm:10,faces:1,note:'Proyecto'}],...emptyWorkBudget(),enabled:true,clientName:'Cliente',markupPercent:25,labor:[{description:'Pintura',unit:'jornada',quantity:2,unitPrice:50000}]};
  const paintingPlan={version:1,length:5,height:4,surfaces:1,openings:0,coats:2,coverage:10,wastePercent:10,packLiters:4,productId:'paint',productName:'Pintura'};
  const tilePlan={version:1,priceUnitConfirmed:true,spaces:[{name:'Cocina',length:4,width:3,excludedArea:1}],wastePercent:10,coveragePerBox:2,productId:'tile',productName:'Cerámica'};
  const ref=db.collection('real_proyectos').doc('project');await ref.set({ownerId:'owner',name:'Obra',createdAt:new Date().toISOString(),items:[{productName:'Cerámica',productoMaestroId:'tile',quantity:7,calculationSource:'tiles'}],workBudget:{...workBudget,templateId:'painting-v1'},paintingPlan,tilePlan,workflowStatus:'sent',workflowUpdatedAt:'2026-10-25T12:00:00Z'});
- await ref.update({description:'Nuevo alcance'});
+ await ref.update({description:'Nuevo alcance',ledger});
+ assert.deepEqual((await ref.get()).data().ledger,ledger);
  const saved=(await ref.get()).data();assert.deepEqual(saved.workBudget,{...workBudget,templateId:'painting-v1'});assert.equal(saved.workflowStatus,'sent');assert.equal(saved.workflowUpdatedAt,'2026-10-25T12:00:00Z');assert.deepEqual(saved.paintingPlan,paintingPlan);assert.deepEqual(saved.tilePlan,tilePlan);assert.equal(saved.items[0].calculationSource,'tiles');assert.equal(saved.items[0].quantity,7);
  const raw=(await pg.query("SELECT api_payload FROM findi.quotations WHERE id='project'")).rows[0].api_payload;assert.deepEqual(raw.workBudget,{...workBudget,templateId:'painting-v1'});
  await ref.update({tilePlan:null});assert.equal((await ref.get()).data().tilePlan,null);

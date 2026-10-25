@@ -59,6 +59,7 @@ interface SearchRowExtended extends SearchRow {
 }
 
 interface ProductoMaestroApi {
+  calculationSpecs?: import('../../../../functions/src/domain/catalog-calculation-specs').CatalogCalculationSpecs | null;
   ambitoComercial?: import('../utils/business-type.util').ProductBusinessScope;
   nombrePieza?: string;
   detalleVariante?: string;
@@ -2257,6 +2258,7 @@ export class FirebaseDataService {
       brand: product.marca || 'Sin marca',
       brandId: product.marcaId || null,
       productType: product.tipoProducto || product.descripcionCorta || 'Producto ferretero',
+      calculationSpecs:product.calculationSpecs,
       unitLabel: product.unidadVenta || 'Unidad',
       packagingLabel: product.presentacion || 'Unidad',
       price: minPrice,
