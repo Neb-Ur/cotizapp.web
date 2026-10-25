@@ -1,3 +1,5 @@
+import {isQuotationStatus,quotationStatus} from '../domain/quotation-workflow.js';
+import {paintingTemplatePending} from '../domain/work-budget.js';
 import {normalizeWorkBudget, normalizePaintingPlan, WorkBudgetError} from '../domain/work-budget.js';
 import { verificationSnapshot, newVerificationCode } from '../services/quotation-verification.service.js';
 import { buildSearchRows } from '../services/catalog-search.service.js';
@@ -58,6 +60,8 @@ projectsRouter.post('/maestros/:ownerId/proyectos', requireAuth, requireRole('ma
   if (!name) return fail(res, 'PROYECTO_INVALID_PAYLOAD', 'Nombre de cotizacion requerido.', 400);
   const payload = {
     ownerId: req.params.ownerId,
+    workflowStatus: 'draft',
+    workflowUpdatedAt: nowIso(),
     workBudget: req.body?.workBudget ?? normalizeWorkBudget(undefined),
     paintingPlan: req.body?.paintingPlan ?? null,
     name,
@@ -113,6 +117,8 @@ projectsRouter.put('/maestros/:ownerId/proyectos/:projectId', requireAuth, requi
     singleStoreId: normalizeText(req.body?.ferreteriaUnicaId) || null,
     workBudget: req.body?.workBudget ?? project.workBudget ?? normalizeWorkBudget(undefined),
     paintingPlan: req.body?.paintingPlan === undefined ? (project.paintingPlan ?? null) : req.body.paintingPlan,
+    workflowStatus: 'draft',
+    workflowUpdatedAt: nowIso(),
     updatedAt: nowIso()
   };
   if(patch.paintingPlan && !patch.items.some(item=>item.productoMaestroId===patch.paintingPlan.productId))patch.paintingPlan=null;
@@ -143,7 +149,7 @@ projectsRouter.post('/maestros/:ownerId/proyectos/:projectId/items', requireAuth
     const latest = await tx.get(ref);
     if (!latest.exists || latest.data()?.['ownerId'] !== req.params.ownerId) return null;
     const data = latest.data()!;
-    const patch = { items: [...normalizeItems(data['items']), ...normalizeItems([req.body])], updatedAt: nowIso() };
+    const patch = { items: [...normalizeItems(data['items']), ...normalizeItems([req.body])], workflowStatus:'draft', workflowUpdatedAt:nowIso(), updatedAt: nowIso() };
     Object.assign(patch, captureQuotationPricing({...data, ...patch}, data, offers));
     const code=newVerificationCode();
     Object.assign(patch,{verificationCode:code});
@@ -155,6 +161,55 @@ projectsRouter.post('/maestros/:ownerId/proyectos/:projectId/items', requireAuth
   return ok(res, await projectView(updated), 201);
 });
 
+
+// Commercial tracking is separate from material price validity and verification snapshots.
+projectsRouter.patch('/maestros/:ownerId/proyectos/:projectId/estado', requireAuth, requireRole('maestro','admin'), async(req,res)=>{
+ if(!canAccessOwner(req,req.params.ownerId))return fail(res,'AUTH_FORBIDDEN','No tienes permisos para esta cotización.',403);
+ if(!isQuotationStatus(req.body?.estado)||!isQuotationStatus(req.body?.estadoAnterior))return fail(res,'QUOTATION_STATUS_INVALID','Selecciona un estado válido.',400);
+ const result=await db.runTransaction(async tx=>{
+  const ref=db.collection(COLLECTIONS.projects).doc(req.params.projectId),snapshot=await tx.get(ref),project=snapshot.data();
+  if(!snapshot.exists||project?.ownerId!==req.params.ownerId)return {error:'missing'};
+  if(quotationStatus(project.workflowStatus)!==req.body.estadoAnterior || (project.verificationCode && project.verificationCode!==req.body.codigoVerificacion))return {error:'changed'};
+  if(req.body.estado==='sent'||req.body.estado==='accepted'){
+   const view=await projectView({...project,id:ref.id});
+   if(view.availabilityStatus!=='ready'||paintingTemplatePending(view.workBudget))return {error:'incomplete'};
+  }
+  const patch={workflowStatus:req.body.estado,workflowUpdatedAt:nowIso(),updatedAt:nowIso()};
+  tx.update(ref,patch);
+  return {data:{...project,...patch,id:ref.id}};
+ });
+ if(result.error==='missing')return fail(res,'PROYECTO_NOT_FOUND','No existe la cotización indicada.',404);
+ if(result.error==='changed')return fail(res,'QUOTATION_CHANGED','El estado cambió. Vuelve a cargar la cotización.',409);
+ if(result.error==='incomplete')return fail(res,'QUOTATION_INCOMPLETE','Completa los materiales y los costos de la plantilla antes de marcarla enviada o aceptada.',400);
+ return ok(res,await projectView(result.data));
+});
+
+projectsRouter.post('/maestros/:ownerId/proyectos/:projectId/duplicar', requireAuth, requireRole('maestro','admin'), async(req,res)=>{
+ if(!canAccessOwner(req,req.params.ownerId))return fail(res,'AUTH_FORBIDDEN','No tienes permisos para esta cotización.',403);
+ const project=await row(COLLECTIONS.projects,req.params.projectId);
+ if(!project||project.ownerId!==req.params.ownerId)return fail(res,'PROYECTO_NOT_FOUND','No existe la cotización indicada.',404);
+ const budget={...normalizeWorkBudget(project.workBudget),clientName:''};
+ const payload={ownerId:req.params.ownerId,name:`Copia de ${project.name || 'Cotización'}`.slice(0,200),address:'',description:project.description || '',
+  items:normalizeItems(project.items),workBudget:budget,paintingPlan:normalizePaintingPlan(project.paintingPlan) ?? null,
+  proximity:null,singleStoreName:project.singleStoreName || null,singleStoreId:project.singleStoreId || null,
+  workflowStatus:'draft',workflowUpdatedAt:nowIso(),createdAt:nowIso()};
+ Object.assign(payload,await captureProjectPricing(payload));
+ const ref=db.collection(COLLECTIONS.projects).doc(),code=newVerificationCode();
+ Object.assign(payload,{verificationCode:code});
+ const created=await db.runTransaction(async tx=>{
+  const lock=db.collection(COLLECTIONS.projectOwnerLocks).doc(req.params.ownerId);await tx.get(lock);
+  const source=await tx.get(db.collection(COLLECTIONS.projects).doc(req.params.projectId));
+  if(!source.exists||source.data()?.ownerId!==req.params.ownerId)return {error:'missing'};
+  const existing=await tx.get(db.collection(COLLECTIONS.projects).where('ownerId','==',req.params.ownerId));
+  if(existing.size>=2)return {error:'limit'};
+  tx.set(lock,{updatedAt:nowIso()});tx.create(ref,payload);
+  tx.create(db.collection(COLLECTIONS.quotationVerifications).doc(code),verificationSnapshot({...payload,id:ref.id},code));
+  return {data:{...payload,id:ref.id}};
+ });
+ if(created.error==='missing')return fail(res,'PROYECTO_NOT_FOUND','No existe la cotización indicada.',404);
+ if(created.error==='limit')return fail(res,'COTIZACION_LIMIT_REACHED','Puedes guardar un máximo de 2 cotizaciones. Elimina una para duplicar otra.',409);
+ return ok(res,await projectView(created.data),201);
+});
 
 projectsRouter.delete('/maestros/:ownerId/proyectos/:projectId', requireAuth, requireRole('maestro', 'admin'), async (req, res) => {
   if (!canAccessOwner(req, req.params.ownerId)) return fail(res, 'AUTH_FORBIDDEN', 'No tienes permisos para esta cotizacion.', 403);

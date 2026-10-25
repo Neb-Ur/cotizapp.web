@@ -8,9 +8,9 @@ test('versioned work costs and painting assumptions round-trip through the produ
  await db.collection('usuarios').doc('owner').set({rol:'maestro',nombre:'Maestro',correo:'maestro@example.test',estadoCuenta:'activo'});
  const workBudget={...emptyWorkBudget(),enabled:true,clientName:'Cliente',markupPercent:25,labor:[{description:'Pintura',unit:'jornada',quantity:2,unitPrice:50000}]};
  const paintingPlan={version:1,length:5,height:4,surfaces:1,openings:0,coats:2,coverage:10,wastePercent:10,packLiters:4,productId:'paint',productName:'Pintura'};
- const ref=db.collection('real_proyectos').doc('project');await ref.set({ownerId:'owner',name:'Obra',createdAt:new Date().toISOString(),items:[],workBudget,paintingPlan});
+ const ref=db.collection('real_proyectos').doc('project');await ref.set({ownerId:'owner',name:'Obra',createdAt:new Date().toISOString(),items:[],workBudget:{...workBudget,templateId:'painting-v1'},paintingPlan,workflowStatus:'sent',workflowUpdatedAt:'2026-10-25T12:00:00Z'});
  await ref.update({description:'Nuevo alcance'});
- const saved=(await ref.get()).data();assert.deepEqual(saved.workBudget,workBudget);assert.deepEqual(saved.paintingPlan,paintingPlan);
- const raw=(await pg.query("SELECT api_payload FROM findi.quotations WHERE id='project'")).rows[0].api_payload;assert.deepEqual(raw.workBudget,workBudget);
+ const saved=(await ref.get()).data();assert.deepEqual(saved.workBudget,{...workBudget,templateId:'painting-v1'});assert.equal(saved.workflowStatus,'sent');assert.equal(saved.workflowUpdatedAt,'2026-10-25T12:00:00Z');assert.deepEqual(saved.paintingPlan,paintingPlan);
+ const raw=(await pg.query("SELECT api_payload FROM findi.quotations WHERE id='project'")).rows[0].api_payload;assert.deepEqual(raw.workBudget,{...workBudget,templateId:'painting-v1'});
  await ref.update({paintingPlan:null});assert.equal((await ref.get()).data().paintingPlan,null);
 });

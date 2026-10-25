@@ -540,6 +540,18 @@
     "middlewareCount": 3
   },
   {
+    "method": "patch",
+    "path": "/maestros/:ownerId/proyectos/:projectId/estado",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
+    "method": "post",
+    "path": "/maestros/:ownerId/proyectos/:projectId/duplicar",
+    "auth": true,
+    "middlewareCount": 3
+  },
+  {
     "method": "delete",
     "path": "/maestros/:ownerId/proyectos/:projectId",
     "auth": true,

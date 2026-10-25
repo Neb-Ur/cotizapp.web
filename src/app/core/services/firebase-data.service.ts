@@ -1,3 +1,4 @@
+import {quotationStatus,type QuotationStatus} from '../utils/quotation-workflow.util';
 import {normalizeWorkBudget, normalizePaintingPlan, type WorkBudget, type PaintingPlan} from '../utils/work-budget.util';
 import { hardwareSnapshot, isHardwareProduct } from '../../../../functions/src/domain/market-scope';
 import { normalizeOfferCondition } from '../utils/offer-condition.util';
@@ -1453,6 +1454,24 @@ export class FirebaseDataService {
     }
   }
 
+  async updateProjectStatus(ownerId:string,projectId:string,status:QuotationStatus,previous:QuotationStatus,verificationCode?:string):Promise<ProjectSummary> {
+    try {
+      const updated=await this.apiClient.patch<any>(`/maestros/${ownerId}/proyectos/${projectId}/estado`,{estado:status,estadoAnterior:previous,codigoVerificacion:verificationCode},true);
+      const summary=this.mapProjectRow(updated);
+      this.upsertProjectBucket(this.getOrCreateProjectsBucket(ownerId),summary);this.invalidateMaestroState(ownerId);
+      return summary;
+    } catch(error){throw this.normalizeError(error,'No se pudo actualizar el estado.');}
+  }
+
+  async duplicateProject(ownerId:string,projectId:string):Promise<ProjectSummary> {
+    try {
+      const created=await this.apiClient.post<any>(`/maestros/${ownerId}/proyectos/${projectId}/duplicar`,{},true);
+      const summary=this.mapProjectRow(created);
+      this.upsertProjectBucket(this.getOrCreateProjectsBucket(ownerId),summary);this.invalidateMaestroState(ownerId);
+      return summary;
+    } catch(error){throw this.normalizeError(error,'No se pudo duplicar la cotización.');}
+  }
+
   async deleteProject(ownerId: string, projectId: string): Promise<ProjectSummary[]> {
     await this.apiClient.delete(`/maestros/${ownerId}/proyectos/${projectId}`, true);
     await this.ensureProjectsLoaded(ownerId, true);
@@ -2333,6 +2352,8 @@ export class FirebaseDataService {
   private mapProjectRow(row: any): ProjectSummary {
     if ('name' in row && 'createdAt' in row) {
       return {
+        workflowStatus: quotationStatus(row.workflowStatus),
+        workflowUpdatedAt: row.workflowUpdatedAt,
         availabilityStatus: row.availabilityStatus,
         pricesCheckedAt: row.pricesCheckedAt,
         verificationCode: row.verificationCode,

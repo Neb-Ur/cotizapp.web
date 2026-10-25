@@ -138,3 +138,7 @@
   .quotations-table .quotation-total { grid-column: 1; grid-row: 2; text-align: left; }
   .quotations-table .quotation-actions-cell { grid-column: 2; grid-row: 2; }
 }
+
+@media(max-width:760px){.quotations-table .quotation-actions-cell{grid-column:1 / -1;grid-row:3}.quotation-actions{justify-content:flex-start;gap:var(--space-2)}}
+
+.quotation-actions .quotation-duplicate{width:auto;flex:0 0 auto;padding-inline:var(--space-3);gap:var(--space-2);font-size:var(--text-xs)}

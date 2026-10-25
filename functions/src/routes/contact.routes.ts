@@ -7,7 +7,7 @@ import { rows, createRow, patchRow } from '../repositories/firestore.repository.
 import { CURRENT_TERMS_VERSION, CURRENT_PRIVACY_VERSION } from '../lib/legal.js';
 export const contactRouter = Router();
 
-contactRouter.get('/health', (_req, res) => ok(res, { status: 'ok', service: 'cotizapp-functions', catalogSchema: 'hardware-only-v1', features: {workBudgets:1,paintingCalculator:1} }));
+contactRouter.get('/health', (_req, res) => ok(res, { status: 'ok', service: 'cotizapp-functions', catalogSchema: 'hardware-only-v1', features: {workBudgets:1,paintingCalculator:1,quotationWorkflow:1,quotationDuplication:1,paintingTemplate:1} }));
 
 contactRouter.post('/solicitudes-contacto', async (req, res) => {
   if (normalizeText(req.body?.website)) return ok(res, { received: true }, 201);

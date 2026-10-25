@@ -1,4 +1,6 @@
-import {normalizeWorkBudget,workBudgetTotals} from '../../core/utils/work-budget.util';
+import {QuotationStatusComponent} from '../../shared/components/quotation-status/quotation-status.component';
+import {quotationStatus,type QuotationStatus} from '../../core/utils/quotation-workflow.util';
+import {normalizeWorkBudget,workBudgetTotals,paintingTemplatePending} from '../../core/utils/work-budget.util';
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -30,7 +32,7 @@ interface MaestroProfileDraft {
 @Component({
   selector: 'app-dashboard-maestro',
   standalone: true,
-  imports: [CommonModule, FormsModule, UiLoaderComponent, UiModalComponent, CatalogSearchComponent],
+  imports: [QuotationStatusComponent,CommonModule, FormsModule, UiLoaderComponent, UiModalComponent, CatalogSearchComponent],
   templateUrl: './dashboard-maestro.component.html',
   styleUrls: ['./dashboard-maestro.component.scss', './dashboard-maestro-quotations.scss']
 })
@@ -45,7 +47,7 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
   protected readonly sections: MaestroSectionMeta[] = [
     { id: 'inicio', label: 'Inicio', description: 'Revisa tus cotizaciones recientes y el ahorro estimado.' },
     { id: 'buscar', label: 'Buscar productos', description: 'Busca materiales y compara precios entre ferreterias activas.' },
-    { id: 'cotizaciones', label: 'Mis cotizaciones', description: 'Crea y edita tus listas de materiales.' },
+    { id: 'cotizaciones', label: 'Mis cotizaciones', description: 'Prepara presupuestos y revisa el seguimiento con tus clientes.' },
     { id: 'historial', label: 'Historial', description: 'Consulta todas las cotizaciones que has guardado.' },
     { id: 'perfil', label: 'Perfil', description: 'Mantiene tus datos basicos de contacto.' }
   ];
@@ -137,6 +139,34 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
     this.router.navigate(['/dashboard/maestro/cotizaciones', projectId]);
   }
 
+  protected statusBusyId='';
+  protected duplicatingId='';
+  protected async changeProjectStatus(project:ProjectSummary,status:QuotationStatus):Promise<void>{
+    if(!this.user || this.statusBusyId || this.duplicatingId)return;
+    const ownerId=this.user.id;
+    this.statusBusyId=project.id;this.quotationNotice='';
+    try{
+      const updated=await this.apiService.updateProjectStatus(ownerId,project.id,status,quotationStatus(project.workflowStatus),project.verificationCode);
+      if(this.user?.id!==ownerId)return;
+      this.projects=this.projects.map(row=>row.id===updated.id?updated:row);
+      this.quotationNotice='Estado actualizado. No se envió ningún mensaje al cliente.';
+    }catch(error){this.quotationNotice=error instanceof Error?error.message:'No se pudo cambiar el estado.';}
+    finally{this.statusBusyId='';}
+  }
+  protected async duplicateProject(project:ProjectSummary):Promise<void>{
+    if(!this.user || this.duplicatingId || this.statusBusyId)return;
+    if(!this.canCreateQuotation){this.quotationNotice='Ya tienes 2 cotizaciones. Elimina una para guardar una copia.';return;}
+    const ownerId=this.user.id;
+    this.duplicatingId=project.id;this.quotationNotice='';
+    try{
+      const copy=await this.apiService.duplicateProject(ownerId,project.id);
+      if(this.user?.id!==ownerId)return;
+      this.projects=[copy,...this.projects];
+      await this.router.navigate(['/dashboard/maestro/cotizaciones',copy.id],{queryParams:{duplicada:'1'}});
+    }catch(error){this.quotationNotice=error instanceof Error?error.message:'No se pudo duplicar la cotización.';}
+    finally{this.duplicatingId='';}
+  }
+
   protected async copyQuotationCode(project: ProjectSummary): Promise<void> {
     if (!project.verificationCode) return;
     try {
@@ -152,6 +182,7 @@ export class DashboardMaestroComponent implements OnInit, OnDestroy {
   }
 
   protected async shareProject(project: ProjectSummary): Promise<void> {
+    if(project.workBudget && paintingTemplatePending(project.workBudget)){this.quotationNotice='Completa los costos de la plantilla o quita las partidas que no correspondan antes de enviar.';return;}
     const quotation = this.apiService.buildProjectQuotation(
       project.items,
       project.proximity,

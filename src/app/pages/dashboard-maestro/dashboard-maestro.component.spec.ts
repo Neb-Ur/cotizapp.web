@@ -126,3 +126,20 @@ describe('DashboardMaestroComponent', () => {
     expect(component['loadedSections'].has('cotizaciones')).toBe(false);
   });
 });
+
+describe('quotation tracking and reuse',()=>{
+ it('updates a status only after the server succeeds and retains the previous state on failure',async()=>{
+  const {component,apiService}=createComponent();const c:any=component;const api:any=apiService;
+  const project={id:'p1',name:'Casa',workflowStatus:'draft',verificationCode:'TRV-CODE'};c.projects=[project];
+  api.updateProjectStatus=vi.fn().mockRejectedValueOnce(new Error('Sin conexión')).mockResolvedValueOnce({...project,workflowStatus:'sent'});
+  await c.changeProjectStatus(project,'sent');expect(c.projects[0].workflowStatus).toBe('draft');expect(c.quotationNotice).toContain('Sin conexión');expect(c.statusBusyId).toBe('');
+  await c.changeProjectStatus(project,'sent');expect(c.projects[0].workflowStatus).toBe('sent');expect(api.updateProjectStatus).toHaveBeenCalledWith('maestro-1','p1','sent','draft','TRV-CODE');
+ });
+ it('duplicates once, opens the new draft and respects the existing quota',async()=>{
+  const {component,apiService,router}=createComponent();const c:any=component;const api:any=apiService;const project={id:'p1',name:'Casa'};c.projects=[project];
+  let finish!:(v:any)=>void;api.duplicateProject=vi.fn(()=>new Promise(resolve=>finish=resolve));
+  const pending=c.duplicateProject(project);await c.duplicateProject(project);expect(api.duplicateProject).toHaveBeenCalledTimes(1);
+  finish({id:'copy',name:'Copia de Casa',workflowStatus:'draft'});await pending;expect(router.navigate).toHaveBeenCalledWith(['/dashboard/maestro/cotizaciones','copy'],{queryParams:{duplicada:'1'}});
+  await c.duplicateProject(project);expect(api.duplicateProject).toHaveBeenCalledTimes(1);expect(c.quotationNotice).toContain('2 cotizaciones');
+ });
+});

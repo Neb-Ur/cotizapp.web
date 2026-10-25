@@ -1,6 +1,8 @@
+import {QuotationStatusComponent} from '../../shared/components/quotation-status/quotation-status.component';
+import {quotationStatus,type QuotationStatus} from '../../core/utils/quotation-workflow.util';
 import {WorkBudgetEditorComponent} from '../../shared/components/work-budget-editor/work-budget-editor.component';
 import {PaintingCalculatorComponent} from '../../shared/components/painting-calculator/painting-calculator.component';
-import {emptyWorkBudget,restoreWorkBudgetDraft,normalizeWorkBudget,normalizePaintingPlan,calculatePainting,workBudgetTotals,type WorkBudget,type PaintingPlan} from '../../core/utils/work-budget.util';
+import {emptyWorkBudget,restoreWorkBudgetDraft,normalizeWorkBudget,normalizePaintingPlan,calculatePainting,workBudgetTotals,paintingTemplatePending,type WorkBudget,type PaintingPlan} from '../../core/utils/work-budget.util';
 import { productPath } from '../../core/utils/product-url.util';
 import { offerConditionLabel } from '../../core/utils/offer-condition.util';
 import { GuestQuotationService } from '../../core/services/guest-quotation.service';
@@ -36,7 +38,7 @@ import { QuotationPdfService } from '../../core/services/quotation-pdf.service';
 @Component({
   selector: 'app-proyecto-detalle',
   standalone: true,
-  imports: [WorkBudgetEditorComponent, PaintingCalculatorComponent, UiLoaderComponent, InfoPanelComponent, CommonModule, FormsModule],
+  imports: [QuotationStatusComponent,WorkBudgetEditorComponent, PaintingCalculatorComponent, UiLoaderComponent, InfoPanelComponent, CommonModule, FormsModule],
   templateUrl: './proyecto-detalle.component.html',
   styleUrl: './proyecto-detalle.component.scss'
 })
@@ -52,6 +54,31 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
   protected get isLocalQuotation(): boolean { return this.route.snapshot?.data?.['localQuotation'] === true; }
   private routeSubscription?: Subscription;
   private get draftStorageKey(): string { return `cotizapp-project-draft:${this.dataMode.mode()}:${this.user?.id || 'guest'}`; }
+  protected workflowStatus:QuotationStatus='draft';
+  protected workflowUpdatedAt='';
+  protected statusBusy=false;
+  protected workflowNotice='';
+  protected get copyNotice(){return this.route.snapshot?.queryParamMap?.get('duplicada')==='1' ? 'Esta copia es un borrador con precios actuales. Completa cliente y dirección, y revisa cantidades y costos antes de enviarla.' : '';}
+  protected async changeStatus(status:QuotationStatus):Promise<void>{
+    if(this.isNewProject || this.isSaving || this.statusBusy)return;
+    if(this.hasUnsavedChanges){this.workflowNotice='Guarda los cambios antes de actualizar el seguimiento.';return;}
+    if((status==='sent'||status==='accepted')&&!this.hasQuotation){this.workflowNotice='Completa los materiales y costos antes de marcarla enviada o aceptada.';return;}
+    const requestedProjectId=this.projectId;const ownerId=this.user?.id;
+    this.statusBusy=true;this.workflowNotice='';
+    try{
+      if(this.isLocalQuotation){
+        const updated=this.guestQuotations?.update(this.projectId,{workflowStatus:status});
+        if(!updated)throw new Error('No encontramos esta cotización.');
+        this.workflowStatus=quotationStatus(updated.workflowStatus);this.workflowUpdatedAt=updated.workflowUpdatedAt || '';
+      }else if(this.user){
+        const updated=await this.apiService.updateProjectStatus(this.user.id,this.projectId,status,this.workflowStatus,this.verificationCode);
+        if(this.projectId!==requestedProjectId || this.user?.id!==ownerId)return;
+        this.workflowStatus=quotationStatus(updated.workflowStatus);this.workflowUpdatedAt=updated.workflowUpdatedAt || '';
+      }
+      this.workflowNotice='Estado actualizado. No se envió ningún mensaje al cliente.';
+    }catch(error){this.workflowNotice=error instanceof Error?error.message:'No se pudo cambiar el estado.';}
+    finally{this.statusBusy=false;this.changeDetector?.markForCheck();}
+  }
   protected projectId = '';
   protected isNewProject = true;
   protected projectName = '';
@@ -219,7 +246,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
 
 
   protected get hasQuotation(): boolean {
-    return !this.budgetError && (this.quotation.lines.length > 0 || (this.workBudget.enabled && this.customerTotal > 0))
+    return !this.budgetError && !paintingTemplatePending(this.workBudget) && (this.quotation.lines.length > 0 || (this.workBudget.enabled && this.customerTotal > 0))
       && this.quotation.lines.every((line) => line.unitPrice > 0);
   }
 
@@ -280,7 +307,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
 
   protected async saveProject(renewPrices = false, navigateAfterSave = true): Promise<void> {
     await this.writeFeedback.run('proyecto-detalle:saveProject', async () => {
-      if (this.isSaving) return;
+      if (this.isSaving || this.statusBusy) return;
       if(this.budgetError){this.saveNotice=this.budgetError;return;}
       this.isSaving = true;
       try {
@@ -292,18 +319,20 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       }
       if (this.isLocalQuotation || !currentUser) {
         if (!this.guestQuotations) return;
-        const data = { name: this.projectName.trim() || 'Mi cotización', address: this.projectAddress,
+        const data = { workflowStatus:'draft' as const, name: this.projectName.trim() || 'Mi cotización', address: this.projectAddress,
           description: this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan, items: this.projectItems, proximity: this.projectProximity,
           singleStoreName: this.selectedSingleStoreName, singleStoreId: this.selectedSingleStoreId,
           totalOptimal: this.totalWithIva, saving: this.quotation.mixedSaving };
         if (this.isNewProject) {
           const created = this.guestQuotations.create(data.name, data.address, data.items);
           this.guestQuotations.update(created.id, data); this.clearDraft();
+          this.workflowStatus=quotationStatus(created.workflowStatus);this.workflowUpdatedAt=created.workflowUpdatedAt || '';
           this.projectId = created.id; this.isNewProject = false; this.workBudget=normalizeWorkBudget(created.workBudget ?? this.workBudget);
           this.savedFingerprint = this.quotationFingerprint();
           if (navigateAfterSave) void this.router.navigate(['/cotizaciones/local', created.id]);
         } else { this.guestQuotations.update(this.projectId, data); this.savedFingerprint = this.quotationFingerprint(); }
-        this.saveNotice = 'Cotización guardada en este navegador.';
+        this.workflowStatus='draft';this.workflowUpdatedAt=new Date().toISOString();
+        this.saveNotice = 'Cotización guardada en este navegador como borrador.';
         return;
       }
 
@@ -327,6 +356,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
           this.saveNotice = 'Cotizacion creada correctamente.';
           this.clearDraft();
           if (this.importedGuestId) this.guestQuotations?.remove(this.importedGuestId);
+          this.workflowStatus=quotationStatus(created.workflowStatus);this.workflowUpdatedAt=created.workflowUpdatedAt || '';
           this.projectId = created.id; this.isNewProject = false;
           this.verificationCode = created.verificationCode || ''; this.validUntil = created.validUntil || '';
           this.pricesCapturedAt = created.pricesCapturedAt || ''; this.pricingOffers = created.pricingOffers;
@@ -358,6 +388,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
         return;
       }
 
+      this.workflowStatus=quotationStatus(updated.workflowStatus);this.workflowUpdatedAt=updated.workflowUpdatedAt || '';
       this.workBudget=normalizeWorkBudget(updated.workBudget ?? this.workBudget);
       this.verificationCode = updated.verificationCode || "";
       this.pricingOffers = updated.pricingOffers;
@@ -547,12 +578,12 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
   }
 
   private async preparePdf(): Promise<boolean> {
-    if (this.isSaving || !this.hasQuotation) return false;
+    if (this.isSaving || this.statusBusy || !this.hasQuotation) return false;
     if (!this.user || this.isLocalQuotation) {
       if (!this.guestQuotations) return false;
       this.persistDraftIfNeeded();
       let guestId = this.isLocalQuotation && !this.isNewProject ? this.projectId : this.importedGuestId;
-      const data = { name: this.projectName.trim() || 'Mi cotización', address: this.projectAddress,
+      const data = { workflowStatus:'draft' as const, name: this.projectName.trim() || 'Mi cotización', address: this.projectAddress,
         description: this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan, items: this.projectItems, proximity: this.projectProximity,
         singleStoreName: this.selectedSingleStoreName, singleStoreId: this.selectedSingleStoreId };
       if (!guestId) guestId = this.guestQuotations.create(data.name, data.address, data.items).id;
@@ -581,6 +612,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
   private async loadProject(projectId: string, draftName = '', draftAddress = ''): Promise<void> {
     this.saveNotice = '';
     this.importedGuestId = '';
+    this.workflowStatus='draft';this.workflowUpdatedAt='';this.workflowNotice='';
     this.projectId = projectId;
     this.isNewProject = projectId === 'nuevo';
 
@@ -589,6 +621,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
     if ((this.isLocalQuotation && !this.isNewProject) || importedId) {
       if (!localQuote) throw new Error('No encontramos esta cotización en tu navegador.');
       this.importedGuestId = importedId;
+      this.workflowStatus=quotationStatus(localQuote.workflowStatus);this.workflowUpdatedAt=localQuote.workflowUpdatedAt || '';
       this.projectName = localQuote.name; this.projectAddress = localQuote.address || ''; this.projectDescription = localQuote.description || '';
       this.workBudget=restoreWorkBudgetDraft(localQuote.workBudget);this.paintingPlan=normalizePaintingPlan(localQuote.paintingPlan);
       this.projectItems = localQuote.items.map(item => ({ ...item })); this.projectProximity = localQuote.proximity;
@@ -624,6 +657,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
     const project = this.apiService.getProjectById(currentUser.id, projectId);
     if (!project) throw new Error('No encontramos esta cotización. Vuelve a mis cotizaciones o reintenta la carga.');
 
+    this.workflowStatus=quotationStatus(project.workflowStatus);this.workflowUpdatedAt=project.workflowUpdatedAt || '';
     this.projectName = project.name;
     this.projectAddress = project.address || '';
     this.projectDescription = project.description || '';
@@ -649,7 +683,8 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       this.guestQuotations.update(this.importedGuestId, { name: this.projectName, address: this.projectAddress, description: this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan, items: this.projectItems, proximity: this.projectProximity, singleStoreName: this.selectedSingleStoreName, singleStoreId: this.selectedSingleStoreId });
     }
     if (this.isLocalQuotation && !this.isNewProject && this.guestQuotations) {
-      this.guestQuotations.update(this.projectId, { name: this.projectName, address: this.projectAddress, description: this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan, items: this.projectItems, proximity: this.projectProximity, singleStoreName: this.selectedSingleStoreName, singleStoreId: this.selectedSingleStoreId });
+      const updated=this.guestQuotations.update(this.projectId, { name: this.projectName, address: this.projectAddress, description: this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan, items: this.projectItems, proximity: this.projectProximity, singleStoreName: this.selectedSingleStoreName, singleStoreId: this.selectedSingleStoreId });
+      this.workflowStatus=quotationStatus(updated.workflowStatus);this.workflowUpdatedAt=updated.workflowUpdatedAt || '';
       this.savedFingerprint = this.quotationFingerprint(); return;
     }
     if (!this.isNewProject) {
@@ -725,6 +760,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
     );
 
     if(updated){
+      this.workflowStatus=quotationStatus(updated.workflowStatus);this.workflowUpdatedAt=updated.workflowUpdatedAt || '';
       this.verificationCode=updated.verificationCode || '';
       this.pricingOffers=updated.pricingOffers;
       this.validUntil=updated.validUntil || '';

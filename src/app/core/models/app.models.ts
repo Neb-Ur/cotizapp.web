@@ -1,3 +1,4 @@
+import type {QuotationStatus} from '../utils/quotation-workflow.util';
 import type {WorkBudget, PaintingPlan} from '../utils/work-budget.util';
 import type { BusinessType } from '../utils/business-type.util';
 import type { OfferCondition } from '../utils/offer-condition.util';
@@ -403,6 +404,8 @@ export interface SavedQuotationOffer extends SearchRow {
 }
 
 export interface ProjectSummary {
+  workflowStatus?: QuotationStatus;
+  workflowUpdatedAt?: string;
   workBudget?: WorkBudget;
   paintingPlan?: PaintingPlan;
   verificationCode?: string;

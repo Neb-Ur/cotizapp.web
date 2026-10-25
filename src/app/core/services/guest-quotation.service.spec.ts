@@ -89,3 +89,9 @@ describe('guest quotations in the browser', () => {
     expect(new GuestQuotationService().all().map(quote => quote.id)).toEqual(['valid']);
   });
 });
+it('keeps manual tracking across reloads and returns edited local content to draft',()=>{
+ localStorage.clear();const service=new GuestQuotationService();const quote=service.create('Pintura');
+ service.update(quote.id,{workflowStatus:'accepted'});expect(new GuestQuotationService().get(quote.id)?.workflowStatus).toBe('accepted');
+ service.update(quote.id,{name:'Pintura'});expect(service.get(quote.id)?.workflowStatus).toBe('accepted');
+ service.update(quote.id,{name:'Otro alcance'});expect(new GuestQuotationService().get(quote.id)?.workflowStatus).toBe('draft');
+});

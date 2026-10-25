@@ -337,7 +337,9 @@
       "status": "quotations.status",
       "estado": "quotations.status (legacy alias)",
       "workBudget": "quotations.api_payload.workBudget (versioned labor, expenses, markup and client presentation)",
-      "paintingPlan": "quotations.api_payload.paintingPlan (versioned measures, coverage, pack size and selected product)"
+      "paintingPlan": "quotations.api_payload.paintingPlan (versioned measures, coverage, pack size and selected product)",
+      "workflowStatus": "quotations.api_payload.workflowStatus (manual commercial tracking; independent of availability and price validity)",
+      "workflowUpdatedAt": "quotations.api_payload.workflowUpdatedAt"
     },
     "notes": "Nested items preserve productName,quantity,storeId,storeName,productoFerreteriaId,productoMaestroId in snapshot/reference + nullable FK columns. Totals are live derived, not stored at import as fixed prices.",
     "sourceCollection": "real_proyectos",

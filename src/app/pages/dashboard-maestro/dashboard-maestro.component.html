@@ -55,12 +55,14 @@
       <div class="projects-topbar">
         <div>
           <h3>Mis cotizaciones</h3>
-          <p class="section-copy">Puedes guardar hasta 2 cotizaciones y enviarlas directamente a tus clientes.</p>
+          <p class="section-copy">Puedes guardar hasta 2 cotizaciones, reutilizarlas y registrar su estado.</p>
           <p class="quota-text">{{ quotationLimitText }}</p>
         </div>
         <button type="button" (click)="goToNewProject()" [disabled]="!canCreateQuotation">Nueva cotización</button>
       </div>
       <p class="saved" *ngIf="quotationNotice" role="status">{{ quotationNotice }}</p>
+      <p class="section-copy">Actualiza el seguimiento después de hablar con tu cliente. Enviar o descargar un PDF no cambia el estado.</p>
+      <p class="quota-text" *ngIf="!canCreateQuotation">Para duplicar una cotización, libera uno de los dos cupos guardados.</p>
       <div class="table-wrap quotations-wrap" *ngIf="projects.length > 0; else emptyQuotes">
         <table class="quotations-table">
           <caption class="visually-hidden">Cotizaciones guardadas</caption>
@@ -68,7 +70,8 @@
           <tbody>
             <tr *ngFor="let project of projects">
               <td class="quotation-identity">
-                <span class="quotation-name" [title]="project.name">{{ project.name }}</span><small *ngIf="project.workBudget?.enabled">Presupuesto de trabajo</small>
+                <span class="quotation-name" [title]="project.name">{{ project.name }}</span>
+                <app-quotation-status [value]="project.workflowStatus" [name]="project.name" [busy]="statusBusyId === project.id" [disabled]="!!duplicatingId || (!!statusBusyId && statusBusyId !== project.id)" (statusChange)="changeProjectStatus(project,$event)" /><small *ngIf="project.workBudget?.enabled">Presupuesto de trabajo</small>
                 <ng-container *ngIf="!project.workBudget?.enabled || project.items.length > 0"><div class="quotation-code" *ngIf="project.verificationCode; else missingCode">
                   <span class="quotation-code-label">{{ project.workBudget?.enabled ? 'Verificación de materiales' : 'Código para presentar en el local' }}</span>
                   <strong>{{ project.verificationCode }}</strong>
@@ -83,6 +86,7 @@
               <td class="quotation-desktop">{{ formatCurrency(project.saving) }}</td>
               <td class="quotation-actions-cell">
                 <div class="row-actions quotation-actions">
+                  <button type="button" class="secondary quotation-duplicate" title="Duplicar con precios actuales" [attr.aria-label]="'Duplicar cotización ' + project.name" [disabled]="!canCreateQuotation || !!duplicatingId || !!statusBusyId" (click)="duplicateProject(project)"><i class="pi pi-copy" aria-hidden="true"></i> Duplicar</button>
                   <button type="button" class="secondary" title="Editar cotización" [attr.aria-label]="'Editar cotización ' + project.name" (click)="goToProjectDetail(project.id)"><i class="pi pi-pencil" aria-hidden="true"></i></button>
                   <button type="button" class="quotation-share" title="Enviar al cliente" [attr.aria-label]="'Enviar cotización ' + project.name + ' al cliente'" (click)="shareProject(project)"><i class="pi pi-send" aria-hidden="true"></i></button>
                   <button type="button" class="danger" title="Eliminar cotización" [attr.aria-label]="'Eliminar cotización ' + project.name" (click)="deleteProject(project.id)"><i class="pi pi-trash" aria-hidden="true"></i></button>
@@ -99,7 +103,7 @@
       <h3>Historial de cotizaciones</h3>
       <div class="history-grid" *ngIf="projects.length > 0; else emptyHistory">
         <article *ngFor="let project of projects">
-          <h4>{{ project.name }}</h4><p *ngIf="project.validUntil">{{ project.expired ? 'Más de 10 días' : 'Compra recomendada hasta' }} · {{ project.validUntil | date:'dd/MM/yyyy' }}</p>
+          <h4>{{ project.name }}</h4><p>Seguimiento: {{ project.workflowStatus === 'sent' ? 'Enviado' : project.workflowStatus === 'accepted' ? 'Aceptado' : project.workflowStatus === 'rejected' ? 'Rechazado' : 'Borrador' }}</p><p *ngIf="project.validUntil">{{ project.expired ? 'Más de 10 días' : 'Compra recomendada hasta' }} · {{ project.validUntil | date:'dd/MM/yyyy' }}</p>
           <p>{{ project.createdAt | date:'short' }}</p>
           <p>Items: {{ project.items.length }}</p>
           <p>{{ project.workBudget?.enabled ? 'Total presupuesto' : 'Total materiales' }}: {{ project.availabilityStatus === 'incomplete' ? 'Incompleta: revisar ofertas' : formatCurrency(projectTotal(project)) }}</p>

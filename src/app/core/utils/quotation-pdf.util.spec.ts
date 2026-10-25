@@ -58,3 +58,8 @@ describe('work budget PDF',()=>{
   expect(()=>buildQuotationPdfFile({...input,quotation:buildQuotationOptimization([{productName:'Missing',quantity:1}],[]),workBudget:budget})).toThrow('sin oferta');
  });
 });
+it('blocks an unfinished painting template before creating a client PDF',()=>{
+ const workBudget={version:1 as const,enabled:true,templateId:'painting-v1' as const,clientName:'',scope:'Pintura',terms:'',markupPercent:0,discloseCosts:false,labor:[{description:'Aplicar pintura',unit:'trabajo' as const,quantity:1,unitPrice:0}],expenses:[]};
+ expect(()=>buildQuotationPdfFile({...input,workBudget})).toThrow('Completa los costos');
+ workBudget.labor[0].unitPrice=50000;expect(()=>buildQuotationPdfFile({...input,workBudget})).not.toThrow();
+});

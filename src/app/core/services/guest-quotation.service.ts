@@ -1,3 +1,4 @@
+import {quotationStatus} from '../utils/quotation-workflow.util';
 import { Injectable } from '@angular/core';
 import { ProjectItem, ProjectSummary } from '../models/app.models';
 
@@ -16,7 +17,7 @@ export class GuestQuotationService {
   create(name: string, address = '', items: ProjectItem[] = []): GuestQuotation {
     this.restore(true);
     if (this.quotes.length >= 1) throw new Error(GUEST_QUOTATION_LIMIT_MESSAGE);
-    const quote: GuestQuotation = { id: crypto.randomUUID(), name: name.trim() || 'Mi cotización', address, items: this.normalizeItems(items), createdAt: new Date().toISOString(), totalOptimal: 0, saving: 0 };
+    const quote: GuestQuotation = { id: crypto.randomUUID(), name: name.trim() || 'Mi cotización', address, items: this.normalizeItems(items), createdAt: new Date().toISOString(), totalOptimal: 0, saving: 0, workflowStatus:'draft', workflowUpdatedAt:new Date().toISOString() };
     this.restore(); this.quotes.unshift(quote); this.persist(); return structuredClone(quote);
   }
   update(id: string, changes: Partial<Omit<GuestQuotation, 'id' | 'createdAt'>>): GuestQuotation {
@@ -24,6 +25,9 @@ export class GuestQuotationService {
     if (!quote) throw new Error('No encontramos esta cotización en tu navegador.');
     const normalized = structuredClone(changes);
     if (normalized.items) normalized.items = this.normalizeItems(normalized.items, quote.items);
+    if(Object.keys(normalized).some(key=>key!=='workflowStatus'&&key!=='workflowUpdatedAt'&&JSON.stringify(normalized[key as keyof typeof normalized])!==JSON.stringify(quote[key as keyof typeof quote]))){
+      normalized.workflowStatus='draft';normalized.workflowUpdatedAt=new Date().toISOString();
+    }else if(normalized.workflowStatus){normalized.workflowStatus=quotationStatus(normalized.workflowStatus);normalized.workflowUpdatedAt=new Date().toISOString();}
     Object.assign(quote, normalized); this.persist(); return structuredClone(quote);
   }
   add(id: string, item: ProjectItem): GuestQuotation {

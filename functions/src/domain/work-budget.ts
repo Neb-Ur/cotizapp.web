@@ -1,5 +1,5 @@
 export interface CostEntry { description: string; unit: 'trabajo' | 'hora' | 'jornada' | 'unidad'; quantity: number; unitPrice: number; }
-export interface WorkBudget { version: 1; enabled: boolean; clientName: string; scope: string; terms: string; labor: CostEntry[]; expenses: CostEntry[]; markupPercent: number; discloseCosts: boolean; }
+export interface WorkBudget { templateId?: 'painting-v1'; version: 1; enabled: boolean; clientName: string; scope: string; terms: string; labor: CostEntry[]; expenses: CostEntry[]; markupPercent: number; discloseCosts: boolean; }
 export class WorkBudgetError extends Error {}
 export const emptyWorkBudget = (): WorkBudget => ({version:1,enabled:false,clientName:'',scope:'',terms:'',labor:[],expenses:[],markupPercent:0,discloseCosts:false});
 const text=(value:unknown,max:number)=>typeof value==='string'?value.trim().slice(0,max):'';
@@ -24,7 +24,7 @@ export function normalizeWorkBudget(value:unknown): WorkBudget {
  };
  const labor=entries(v.labor),expenses=entries(v.expenses);
  if([...labor,...expenses].reduce((sum,row)=>sum+Math.round(row.quantity*row.unitPrice),0)>1_000_000_000_000)throw new WorkBudgetError('El costo del trabajo supera el máximo permitido.');
- return {version:1,enabled:v.enabled,clientName:text(v.clientName,200),scope:text(v.scope,3000),terms:text(v.terms,2000),labor,expenses,markupPercent:number(v.markupPercent,0,100,'el recargo sobre costos (0 a 100 %)'),discloseCosts:v.discloseCosts};
+ return {...(v.templateId==='painting-v1'?{templateId:'painting-v1' as const}:{}),version:1,enabled:v.enabled,clientName:text(v.clientName,200),scope:text(v.scope,3000),terms:text(v.terms,2000),labor,expenses,markupPercent:number(v.markupPercent,0,100,'el recargo sobre costos (0 a 100 %)'),discloseCosts:v.discloseCosts};
 }
 export function workBudgetTotals(materials:number,budget:WorkBudget) {
  const normalized=normalizeWorkBudget(budget);
@@ -58,4 +58,22 @@ export function normalizePaintingPlan(value:unknown):PaintingPlan|undefined {
  const productId=text(v.productId,200),productName=text(v.productName,200);
  if(!productId||!productName)throw new WorkBudgetError('Selecciona una pintura del catálogo.');
  return {version:1,length:v.length,height:v.height,surfaces:v.surfaces,openings:v.openings,coats:v.coats,coverage:v.coverage,wastePercent:v.wastePercent,packLiters:v.packLiters,productId,productName};
+}
+
+/** Start with editable tasks, never invented supplier prices or material quantities. */
+export function paintingBudgetTemplate(current: WorkBudget): WorkBudget {
+ const budget=structuredClone(current);
+ if(budget.templateId==='painting-v1')return budget;
+ const tasks: CostEntry[]=[
+  {description:'Protección y preparación de superficies',unit:'trabajo',quantity:1,unitPrice:0},
+  {description:'Aplicación de pintura',unit:'trabajo',quantity:1,unitPrice:0},
+  {description:'Limpieza final',unit:'trabajo',quantity:1,unitPrice:0}
+ ];
+ const labor=tasks.filter(task=>!budget.labor.some(row=>row.description===task.description));
+ const expenses=budget.expenses.some(row=>row.description==='Traslado')?[]:[{description:'Traslado',unit:'trabajo' as const,quantity:1,unitPrice:0}];
+ if(budget.labor.length+labor.length>50 || budget.expenses.length+expenses.length>50)throw new WorkBudgetError('No hay espacio para la plantilla. Quita partidas antes de agregarla.');
+ return {...budget,enabled:true,templateId:'painting-v1',scope:budget.scope || 'Preparación de superficies, aplicación de pintura y limpieza final. Revisar con el cliente las reparaciones y superficies incluidas.',labor:[...budget.labor,...labor],expenses:[...budget.expenses,...expenses]};
+}
+export function paintingTemplatePending(budget: WorkBudget): boolean {
+ return budget.enabled && budget.templateId==='painting-v1' && [...budget.labor,...budget.expenses].some(row=>!(row.unitPrice>0));
 }

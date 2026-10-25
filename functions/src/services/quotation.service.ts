@@ -1,3 +1,4 @@
+import {quotationStatus} from '../domain/quotation-workflow.js';
 import {normalizeWorkBudget, normalizePaintingPlan, workBudgetTotals} from '../domain/work-budget.js';
 import { captureQuotationPricing, quotationExpired } from '../domain/quotation-validity.js';
 import { buildQuotationOptimization } from '../domain/quotation.js';
@@ -52,6 +53,8 @@ export async function projectView(project: any, offers?: Awaited<ReturnType<type
   const optimization = await optimizeItems(items, proximity, requestedStoreName, pricing, normalizeText(project.singleStoreId ?? project.ferreteriaUnicaId));
   return {
     id: project.id,
+    workflowStatus: quotationStatus(project.workflowStatus),
+    workflowUpdatedAt: project.workflowUpdatedAt,
     verificationCode: project.verificationCode,
     name: project.name || project.nombre || 'Cotizacion',
     address: project.address || project.direccionObra || '',

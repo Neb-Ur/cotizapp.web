@@ -10,3 +10,11 @@ it('updates the total through editable work costs and keeps PDF disclosure off b
  const input=label.querySelector('input')!;input.value='50000';input.dispatchEvent(new Event('input',{bubbles:true}));fixture.detectChanges();await fixture.whenStable();
  expect(c.budget.labor[0].unitPrice).toBe(50000);expect(c.totals.total).toBe(187500);expect(c.budget.discloseCosts).toBe(false);expect(fixture.nativeElement.textContent).toContain('Total presupuestado');fixture.destroy();
 });
+it('adds painting tasks once without overwriting existing client costs and flags costs still to review',async()=>{
+ await TestBed.configureTestingModule({imports:[WorkBudgetEditorComponent]}).compileComponents();
+ const fixture=TestBed.createComponent(WorkBudgetEditorComponent);const c:any=fixture.componentInstance;
+ c.budget={...emptyWorkBudget(),clientName:'Cliente',scope:'Solo cocina',labor:[{description:'Reparación propia',quantity:1,unit:'trabajo',unitPrice:30000}]};fixture.detectChanges();
+ const button=Array.from(fixture.nativeElement.querySelectorAll('button')).find((b:any)=>b.textContent.includes('Usar plantilla')) as HTMLButtonElement;button.click();fixture.detectChanges();
+ expect(c.budget.enabled).toBe(true);expect(c.budget.scope).toBe('Solo cocina');expect(c.budget.clientName).toBe('Cliente');expect(c.budget.labor[0].unitPrice).toBe(30000);expect(c.budget.labor.length).toBe(4);expect(c.templatePending).toBe(true);expect(button.disabled).toBe(true);
+ expect(fixture.nativeElement.textContent).toContain('no agrega materiales ni cantidades');fixture.destroy();
+});

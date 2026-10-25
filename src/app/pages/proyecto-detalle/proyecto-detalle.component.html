@@ -16,6 +16,13 @@
   } @else if (loadError) {
     <section class="detail-card" role="alert"><p>{{ loadError }}</p><button type="button" (click)="retryLoad()">Reintentar</button></section>
   } @else {
+  <p class="saved" *ngIf="copyNotice" role="status">{{ copyNotice }}</p>
+  <section class="workflow-panel" *ngIf="!isNewProject" aria-label="Seguimiento del presupuesto">
+    <app-quotation-status [value]="workflowStatus" [name]="projectName" [busy]="statusBusy" [disabled]="isSaving || hasUnsavedChanges" (statusChange)="changeStatus($event)" />
+    <p>Registra lo acordado con tu cliente. Exportar o compartir no cambia este estado. Guardar cambios devuelve el presupuesto a Borrador.</p>
+    <p class="saved" role="status" *ngIf="workflowNotice">{{ workflowNotice }}</p>
+    <small *ngIf="workflowUpdatedAt">Último cambio: {{ workflowUpdatedAt | date:'dd/MM/yyyy HH:mm' }}</small>
+  </section>
   <article class="detail-card quotation-content">
     <section class="verification-code" *ngIf="verificationCode && (!workBudget.enabled || projectItems.length > 0)" aria-label="Código de cotización">
       <div><span>{{ workBudget.enabled ? 'Verificación de materiales' : 'Código de cotización' }}</span><strong>{{ verificationCode }}</strong></div>
@@ -128,7 +135,7 @@
           <p *ngIf="validUntil">Generada el {{ pricesCapturedAt | date:'dd/MM/yyyy HH:mm' }} · Válida hasta: {{ validUntil | date:'dd/MM/yyyy HH:mm' }}.</p>
           <p *ngIf="quotationExpired">La vigencia ha terminado. Consulta los precios y el stock actuales con el local.</p>
           <p *ngIf="!validUntil">Al guardarla en tu cuenta para descargar, obtendrás el código de verificación.</p>
-          <button *ngIf="!isNewProject" type="button" class="secondary" (click)="saveProject(true)" [disabled]="isSaving">{{ isSaving ? 'Guardando…' : 'Actualizar precios actuales' }}</button>
+          <button *ngIf="!isNewProject" type="button" class="secondary" (click)="saveProject(true)" [disabled]="isSaving || statusBusy">{{ isSaving ? 'Guardando…' : 'Actualizar precios actuales' }}</button>
           <p *ngIf="hasUnsavedChanges">Guarda los cambios para obtener un código actualizado antes de descargar o enviar.</p>
         </section>
         <section class="quotation-nearby-card">
@@ -187,13 +194,13 @@
         </p>
 
         <div class="actions">
-          <button type="button" (click)="saveProject()" [disabled]="isSaving">
+          <button type="button" (click)="saveProject()" [disabled]="isSaving || statusBusy">
             <i *ngIf="isSaving" class="pi pi-spin pi-spinner" aria-hidden="true"></i>{{ isSaving ? 'Guardando…' : (isNewProject ? 'Crear cotización' : 'Guardar cambios') }}
           </button>
-          <button type="button" class="export" [disabled]="!hasQuotation || isSaving || isPreparingPdf" (click)="exportQuotation()">
+          <button type="button" class="export" [disabled]="!hasQuotation || isSaving || statusBusy || isPreparingPdf" (click)="exportQuotation()">
             {{ isPreparingPdf ? 'Preparando PDF…' : 'Descargar PDF' }}
           </button>
-          <button *ngIf="user && !isLocalQuotation && !isNewProject" type="button" [disabled]="!hasQuotation || hasUnsavedChanges" (click)="shareQuotation()">
+          <button *ngIf="user && !isLocalQuotation && !isNewProject" type="button" [disabled]="!hasQuotation || hasUnsavedChanges || statusBusy" (click)="shareQuotation()">
             Enviar al cliente
           </button>
         </div>
@@ -205,12 +212,12 @@
           <p>Descarga el PDF y abre un mensaje para tu cliente. Adjunta el archivo en WhatsApp antes de enviarlo.</p>
           <div class="whatsapp-share-actions">
             <label>Número del destinatario<input type="tel" [(ngModel)]="whatsappNumber" autocomplete="tel" placeholder="+56 9 1234 5678" /></label>
-            <button type="button" class="secondary" (click)="sendViaWhatsapp()" [disabled]="!whatsappNumber.trim() || hasUnsavedChanges"><i class="pi pi-whatsapp" aria-hidden="true"></i> Preparar envío</button>
+            <button type="button" class="secondary" (click)="sendViaWhatsapp()" [disabled]="!whatsappNumber.trim() || hasUnsavedChanges || statusBusy"><i class="pi pi-whatsapp" aria-hidden="true"></i> Preparar envío</button>
           </div>
           <p role="status" *ngIf="shareNotice">{{ shareNotice }}</p>
         </details>
         <p class="section-note" *ngIf="isLocalQuotation">Guardada en este navegador. Para descargar el PDF, inicia sesión o crea tu cuenta de maestro.</p>
-        <p class="saved" *ngIf="saveNotice">{{ saveNotice }}</p>
+        <p class="saved" role="status" *ngIf="saveNotice">{{ saveNotice }}</p>
       </article>
     <section class="same-store-card" *ngIf="hasItemsInTable">
       <div class="same-store-header">

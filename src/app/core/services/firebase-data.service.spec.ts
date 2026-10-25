@@ -198,3 +198,12 @@ it('rejects repeated SKUs in an initial Excel before publishing either product',
  await expect(service.importCatalogBatch('user','Local','nombre,sku,precio,stock\nPerno largo,REPETIDO,1000,2\nTuerca M8,REPETIDO,2000,4',{...options,area:'materiales'})).rejects.toThrow('repetid');
  expect(writes).toHaveLength(0);
 });
+it('persists tracking through the dedicated authenticated endpoint and caches a distinct duplicated draft',async()=>{
+ const {service,api}=fixture();
+ const saved={id:'project',name:'Obra',createdAt:'2026-10-01',workflowStatus:'sent',workflowUpdatedAt:'2026-10-25',verificationCode:'TRV-CODE',items:[]};
+ const patch=vi.fn(async()=>saved);(api as any).patch=patch;
+ const result=await service.updateProjectStatus('user','project','sent','draft','TRV-CODE');
+ expect(patch).toHaveBeenCalledWith('/maestros/user/proyectos/project/estado',{estado:'sent',estadoAnterior:'draft',codigoVerificacion:'TRV-CODE'},true);expect(result.workflowStatus).toBe('sent');
+ api.post.mockResolvedValueOnce({...saved,id:'copy',workflowStatus:'draft'} as any);
+ const copy=await service.duplicateProject('user','project');expect(api.post).toHaveBeenCalledWith('/maestros/user/proyectos/project/duplicar',{},true);expect(copy.id).toBe('copy');expect(service.getProjects('user').map(p=>p.id).sort()).toEqual(['copy','project']);
+});

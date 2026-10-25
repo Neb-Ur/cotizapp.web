@@ -1,4 +1,4 @@
-import {normalizeWorkBudget,calculatePainting,workBudgetTotals,type WorkBudget,type PaintingPlan} from './work-budget.util';
+import {normalizeWorkBudget,paintingTemplatePending,calculatePainting,workBudgetTotals,type WorkBudget,type PaintingPlan} from './work-budget.util';
 import { offerConditionLabel } from './offer-condition.util';
 import { ProjectQuotationView, SearchProximity } from '../models/app.models';
 
@@ -20,6 +20,7 @@ export interface QuotationPdfInput {
 
 export function buildQuotationPdfFile(input: QuotationPdfInput): File {
   const budget=normalizeWorkBudget(input.workBudget);
+  if(paintingTemplatePending(budget))throw new Error('Completa los costos de la plantilla o quita las partidas que no correspondan antes de exportar.');
   if ((!input.quotation.lines.length && (!budget.enabled || workBudgetTotals(0,budget).total <= 0)) || input.quotation.lines.some(line => line.unitPrice <= 0)) throw new Error('Revisa los productos sin oferta disponible antes de exportar.');
   const exportedAt = input.exportedAt || new Date();
   const lines = buildQuotationPdfLines(input, exportedAt);

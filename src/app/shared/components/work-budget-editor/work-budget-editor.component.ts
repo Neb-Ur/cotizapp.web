@@ -1,13 +1,19 @@
 import {Component,Input,Output,EventEmitter} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {WorkBudget,CostEntry,workBudgetTotals} from '../../../core/utils/work-budget.util';
+import {WorkBudget,CostEntry,workBudgetTotals,paintingBudgetTemplate,paintingTemplatePending} from '../../../core/utils/work-budget.util';
 @Component({selector:'app-work-budget-editor',standalone:true,imports:[CommonModule,FormsModule],templateUrl:'./work-budget-editor.component.html',styleUrl:'./work-budget-editor.component.scss'})
 export class WorkBudgetEditorComponent {
  @Input({required:true}) budget!:WorkBudget;
  @Input() materials=0;
  @Input() incomplete=false;
  @Output() changed=new EventEmitter<void>();
+ protected templateError='';
+ protected get templatePending(){return paintingTemplatePending(this.budget);}
+ protected applyPaintingTemplate(){
+  try{Object.assign(this.budget,paintingBudgetTemplate(this.budget));this.templateError='';this.changed.emit();}
+  catch(error){this.templateError=error instanceof Error?error.message:'No se pudo agregar la plantilla.';}
+ }
  protected get totals(){try{return workBudgetTotals(this.materials,this.budget);}catch{return null;}}
  protected get error(){try{workBudgetTotals(this.materials,this.budget);return '';}catch(error){return error instanceof Error?error.message:'Revisa los costos.';}}
  protected money(value:number){return new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0}).format(value);}

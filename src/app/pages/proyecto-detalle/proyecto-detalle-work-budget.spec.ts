@@ -35,3 +35,9 @@ it('restores an unfinished local cost input for correction instead of blocking t
  const other=fixture().component;await other.loadProject('nuevo');expect(other.workBudget.labor[0].unitPrice).toBeNull();expect(other.budgetError).toBeTruthy();
  other.workBudget.labor[0].unitPrice=50000;expect(other.budgetError).toBe('');
 });
+it('records manual local status without changing work costs and resets status after editing',async()=>{
+ const {component,guest}=fixture();component.projectName='Pintura';component.workBudget={...emptyWorkBudget(),enabled:true,labor:[{description:'Pintura',unit:'trabajo',quantity:1,unitPrice:50000}]};
+ await component.saveProject(false,false);await component.changeStatus('sent');expect(guest.get(component.projectId)?.workflowStatus).toBe('sent');expect(component.workflowStatus).toBe('sent');
+ component.persistDraftIfNeeded();expect(guest.get(component.projectId)?.workflowStatus).toBe('sent');expect(component.workflowStatus).toBe('sent');
+ component.projectDescription='Nuevo alcance';component.persistDraftIfNeeded();expect(guest.get(component.projectId)?.workflowStatus).toBe('draft');expect(component.workflowStatus).toBe('draft');
+});
