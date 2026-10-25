@@ -25,3 +25,8 @@ it('offers ceramic tasks without losing the existing painting template or duplic
  buttons().find(button=>button.textContent?.includes('Usar plantilla de cerámicas'))!.click();fixture.detectChanges();
  expect(c.budget.templateIds).toEqual(['painting-v1','tiles-v1']);expect(c.budget.labor.filter((row:any)=>row.description==='Limpieza final')).toHaveLength(1);expect(c.budget.expenses.filter((row:any)=>row.description==='Traslado')).toHaveLength(1);expect(c.templatePending).toBe(true);expect(buttons().filter(button=>/pintura|cerámicas/.test(button.textContent||'')).every(button=>button.disabled)).toBe(true);fixture.destroy();
 });
+
+it('clears a copied contact if the quotation client name is replaced manually',()=>{
+ const c:any=new WorkBudgetEditorComponent();c.budget={...emptyWorkBudget(),clientName:'Ana',client:{id:'c',name:'Ana',phone:'555',email:'ana@example.com',address:'Casa Ana'}};
+ c.clientNameChanged();expect(c.budget.client).toBeDefined();c.budget.clientName='Pedro';c.clientNameChanged();expect(c.budget.client).toBeUndefined();
+});

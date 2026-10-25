@@ -10,6 +10,7 @@ export class WorkBudgetEditorComponent {
  @Input() materials=0;
  @Input() incomplete=false;
  @Output() changed=new EventEmitter<void>();
+ protected clientNameChanged(){if(this.budget.client && this.budget.client.name!==this.budget.clientName)this.budget.client=undefined;this.changed.emit();}
  protected templateError='';
  protected get templatePending(){return workTemplatePending(this.budget);}
  protected hasTemplate(id:WorkTemplateId){return hasWorkTemplate(this.budget,id);}
