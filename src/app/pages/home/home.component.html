@@ -2,23 +2,16 @@
   <section class="discovery-section" aria-labelledby="home-title">
     <div class="discovery-grid">
       <div class="discovery-copy">
-        <h1 id="home-title">¿Qué estás buscando?</h1>
-        <p>Cotiza materiales y herramientas para tu obra o reparación.</p>
+        <h1 id="home-title">Compara precios para tu obra</h1>
+        <p>Encuentra lo que necesitas, compara ferreterías y arma tu cotización.</p>
       </div>
-      <div class="discovery-areas" role="group" aria-label="Tipo de producto">
-        <button type="button" *ngFor="let option of areas" [class.selected]="(area || '') === option.id"
-          [attr.aria-pressed]="(area || '') === option.id" (click)="selectArea(option.id)">
-          <i [class]="option.icon" aria-hidden="true"></i>{{ option.label }}
-        </button>
-      </div>
-
       <form #discoverySearch class="discovery-search" role="search" aria-label="Buscar productos" (ngSubmit)="submitDiscovery()" (focusout)="onDiscoveryFocusOut($event)">
         <div class="discovery-input-wrap">
           <label for="discovery-query" class="visually-hidden">Nombre del material o herramienta</label>
           <i class="pi pi-search discovery-search-icon" aria-hidden="true"></i>
           <input id="discovery-query" name="discoveryQuery" type="search" autocomplete="off" [(ngModel)]="query"
             (ngModelChange)="onDiscoveryInput()" (focus)="focusDiscovery()" (keydown)="onDiscoveryKeydown($event)"
-            [placeholder]="area === 'herramientas' ? 'Ej: taladro, alicate o martillo' : area === 'materiales' ? 'Ej: cemento, madera o pintura' : '¿Qué producto necesitas?'"
+            placeholder="Busca cemento, pintura, taladro…"
             role="combobox" aria-autocomplete="list" [attr.aria-expanded]="suggestionsOpen" aria-controls="discovery-options"
             [attr.aria-activedescendant]="suggestionsOpen && activeSuggestion >= 0 ? 'discovery-option-' + activeSuggestion : null" />
           <section *ngIf="suggestionsOpen" class="discovery-suggestions" aria-label="Sugerencias de productos"
@@ -33,14 +26,24 @@
             </div>
             <p *ngIf="suggestionsLoading" role="status">Buscando productos…</p>
             <p *ngIf="suggestionsError" role="status">{{ suggestionsError }}</p>
-            <p *ngIf="!suggestionsLoading && !suggestionsError && !suggestions.length" role="status">{{ query.trim().length >= 2 ? 'No encontramos coincidencias con estos filtros.' : 'Escribe el nombre del producto que necesitas.' }}</p>
+            <p *ngIf="!suggestionsLoading && !suggestionsError && !suggestions.length" role="status">{{ query.trim().length >= 2 ? 'No encontramos productos con ese nombre.' : 'Escribe el nombre del producto que necesitas.' }}</p>
             <button type="button" class="discovery-all-results" (click)="submitDiscovery()">Ver todos los resultados <i class="pi pi-arrow-right" aria-hidden="true"></i></button>
           </section>
         </div>
-        <button type="submit" class="discovery-submit">{{ searchLabel }} <i class="pi pi-arrow-right" aria-hidden="true"></i></button>
+        <button type="submit" class="discovery-submit">Buscar productos <i class="pi pi-arrow-right" aria-hidden="true"></i></button>
       </form>
-      <div class="discovery-links"><a class="discovery-quotation" routerLink="/cotizaciones/nueva" [queryParams]="{herramienta:'pintura'}">Calcular pintura <i class="pi pi-calculator" aria-hidden="true"></i></a>
-      <a class="discovery-quotation" routerLink="/cotizaciones/nueva">Crear una cotización <i class="pi pi-arrow-right" aria-hidden="true"></i></a></div>
+      <nav class="discovery-links" aria-label="Herramientas para tu proyecto">
+        <a class="discovery-shortcut" routerLink="/cotizaciones/nueva">
+          <i class="pi pi-file-edit" aria-hidden="true"></i>
+          <span><strong>Crear una cotización</strong><small>Reúne los productos de tu proyecto</small></span>
+          <i class="pi pi-arrow-right" aria-hidden="true"></i>
+        </a>
+        <a class="discovery-shortcut" routerLink="/cotizaciones/nueva" [queryParams]="{herramienta:'pintura'}">
+          <i class="pi pi-calculator" aria-hidden="true"></i>
+          <span><strong>Calcular pintura</strong><small>Estima litros y envases para pintar</small></span>
+          <i class="pi pi-arrow-right" aria-hidden="true"></i>
+        </a>
+      </nav>
     </div>
   </section>
 
@@ -48,7 +51,7 @@
     <div class="section-heading">
       <div>
         <span>Catálogo de Trovio</span>
-        <h2 id="featured-products-title">{{ previewTitle }}</h2>
+        <h2 id="featured-products-title">Explora el catálogo</h2>
         <p>Encuentra productos y compara precios entre ferreterías con ofertas disponibles.</p>
       </div>
       <a routerLink="/buscar" [queryParams]="searchParams">Ver todos <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
@@ -70,7 +73,7 @@
         <span class="home-product-stores" *ngIf="product.storeCount > 0"><i class="pi pi-shop" aria-hidden="true"></i> {{ product.storeCount }} {{ product.storeCount === 1 ? 'local' : 'locales' }}</span>
       </a>
     </div>
-    } @else if (catalogLoading() || areaLoading()) {
+    } @else if (catalogLoading()) {
       <div class="product-skeletons" aria-label="Cargando productos">
         <div *ngFor="let item of [1,2,3,4]">
           <p-skeleton height="11rem" styleClass="product-skeleton-image" />
@@ -87,7 +90,7 @@
   <section class="category-section" aria-labelledby="featured-categories-title" *ngIf="featuredCategories.length > 0">
     <div class="section-heading compact">
       <div>
-        <span>Explora por área</span>
+        <span>Explora por categoría</span>
         <h2 id="featured-categories-title">Encuentra lo que necesitas</h2>
       </div>
       <a routerLink="/buscar">Ver todas <i class="pi pi-arrow-right" aria-hidden="true"></i></a>

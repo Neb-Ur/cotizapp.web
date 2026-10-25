@@ -1,6 +1,5 @@
 import {TestBed} from '@angular/core/testing';
 import {vi} from 'vitest';
-import {HomeDiscoveryStateService} from '../../core/services/home-discovery-state.service';
 import {provideRouter, Router} from '@angular/router';
 import {HomeComponent} from './home.component';
 import {FirebaseDataService} from '../../core/services/firebase-data.service';
@@ -44,17 +43,16 @@ describe('guided home search',()=>{
   TestBed.configureTestingModule({imports:[HomeComponent],providers:[provideRouter([]),{provide:FirebaseDataService,useValue:data}]});
   const fixture=TestBed.createComponent(HomeComponent);fixture.autoDetectChanges();await fixture.whenStable();return {fixture,component:fixture.componentInstance as any,data,router:TestBed.inject(Router)};
  }
- it('connects hardware areas to suggestions without exposing a retired vehicle flow',async()=>{
+ it('searches the whole catalog directly and keeps project tools separate',async()=>{
   const {fixture,component,data,router}=await setupDiscovery();
-  expect(fixture.nativeElement.textContent).not.toContain('Repuestos');
-  component.selectArea('herramientas');await fixture.whenStable();
-  expect(data.searchProductPage).toHaveBeenCalledWith({area:'herramientas'},1,24,'relevance');
+  expect(fixture.nativeElement.querySelector('.discovery-areas')).toBeNull();
+  expect(fixture.nativeElement.querySelector('h1').textContent).toContain('Compara precios para tu obra');
+  expect(fixture.nativeElement.querySelectorAll('.discovery-shortcut').length).toBe(2);
+  expect(fixture.nativeElement.querySelector('[href="/cotizaciones/nueva?herramienta=pintura"]')).not.toBeNull();
   component.query='taladro';component.focusDiscovery();await fixture.whenStable();
-  expect(data.searchProductPage).toHaveBeenLastCalledWith({area:'herramientas',query:'taladro'},1,6,'relevance');
+  expect(data.searchProductPage).toHaveBeenLastCalledWith({query:'taladro'},1,6,'relevance');
   const navigate=vi.spyOn(router,'navigate').mockResolvedValue(true);component.submitDiscovery();
-  expect(navigate).toHaveBeenCalledWith(['/buscar'],{queryParams:{rubro:'herramientas',q:'taladro'}});
-  component.selectArea('repuestos');expect(component.area).toBeUndefined();
-  expect(TestBed.inject(HomeDiscoveryStateService).value.brand).toBe('');
+  expect(navigate).toHaveBeenCalledWith(['/buscar'],{queryParams:{q:'taladro'}});
  });
  it('aligns the focused search below the mobile header and adapts suggestions to the keyboard',async()=>{
   vi.stubGlobal('innerWidth',390);const viewport=Object.assign(new EventTarget(),{height:600,offsetTop:0});vi.stubGlobal('visualViewport',viewport);

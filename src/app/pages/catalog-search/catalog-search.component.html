@@ -5,12 +5,6 @@
   </div>
 
   <article class="panel">
-    <label class="area-filter">¿Qué buscas?
-      <select [ngModel]="selectedArea || ''" (ngModelChange)="onAreaChange($event)">
-        <option value="">Todos los productos</option><option value="materiales">Materiales</option>
-        <option value="herramientas">Herramientas</option>
-      </select>
-    </label>
     <section class="search-primary" aria-labelledby="product-search-label">
       <div class="public-search-main"><h1 id="product-search-label">{{ tableProductSearch ? 'Resultados para “' + tableProductSearch + '”' : (landing?.name || 'Productos') }}</h1></div>
       <p>{{ landing?.description || 'Explora el catálogo y compara las ofertas disponibles. Usa los filtros para acotar tu búsqueda.' }}</p>

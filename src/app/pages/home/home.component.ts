@@ -3,12 +3,11 @@ import { ProductImageDirective } from '../../shared/directives/product-image.dir
 import { productSlug } from '../../core/utils/product-url.util';
 import { categoryIcon } from '../../core/utils/category-icon.util';
 import { FormsModule } from '@angular/forms';
-import { HomeDiscoveryStateService } from '../../core/services/home-discovery-state.service';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, signal, inject, Injector, ElementRef, ViewChild, HostListener, afterNextRender, ChangeDetectorRef } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { SkeletonModule } from 'primeng/skeleton';
-import { FamilyProductRow, SearchFilters, TaxonomyOption } from '../../core/models/app.models';
+import { FamilyProductRow, TaxonomyOption } from '../../core/models/app.models';
 import { FirebaseDataService } from '../../core/services/firebase-data.service';
 import { productPath } from '../../core/utils/product-url.util';
 import { STORE_ACCESS_WHATSAPP_URL } from '../../core/config/legal-identity.config';
@@ -25,15 +24,9 @@ interface HomeCategory extends TaxonomyOption {
   styleUrl: './home.component.scss'
 })
 export class HomeComponent implements OnInit, OnDestroy {
-  private readonly state = inject(HomeDiscoveryStateService);
   private readonly injector = inject(Injector);
   private readonly changeDetector = inject(ChangeDetectorRef);
   @ViewChild('discoverySearch') private searchForm?: ElementRef<HTMLElement>;
-  protected readonly areas = [
-    {id:'',label:'Todos',icon:'pi pi-th-large'}, {id:'materiales',label:'Materiales',icon:'pi pi-box'},
-    {id:'herramientas',label:'Herramientas',icon:'pi pi-wrench'}
-  ];
-  protected area: SearchFilters['area'] = ['materiales','herramientas'].includes(this.state.value.area || '') ? this.state.value.area : undefined;
   protected query = '';
   protected suggestions: FamilyProductRow[] = [];
   protected suggestionsOpen = false;
@@ -42,10 +35,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   protected activeSuggestion = -1;
   protected suggestionTop = 0;
   protected suggestionHeight = 300;
-  protected readonly areaLoading = signal(false);
   private suggestionTimer?: ReturnType<typeof setTimeout>;
   private suggestionRequest = 0;
-  private previewRequest = 0;
   private destroyed = false;
   private focusFrame?: number;
   private readonly positionSuggestions = (): void => {
@@ -56,29 +47,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.suggestionHeight = Math.max(0,(viewport?.offsetTop || 0)+(viewport?.height ?? window.innerHeight)-this.suggestionTop-12);
     this.changeDetector.markForCheck();
   };
-  protected get searchLabel(): string { return this.area==='herramientas'?'Buscar herramientas':this.area==='materiales'?'Buscar materiales':'Buscar productos'; }
-  protected get searchParams(): Record<string,string|undefined> { return {q:this.query.trim() || undefined,rubro:this.area}; }
-  protected get previewTitle(): string { return this.area==='herramientas'?'Herramientas y consumibles':this.area==='materiales'?'Materiales para tu proyecto':'Explora el catálogo'; }
-  private get discoveryFilters(): SearchFilters { return {area:this.area}; }
-  protected selectArea(value: string): void {
-    this.area = value === 'materiales' || value === 'herramientas' ? value : undefined;
-    this.criteriaChanged();
-  }
-  private criteriaChanged():void {
-    this.state.value={area:this.area,brand:'',model:'',year:''};
-    this.closeSuggestions();
-    if(!this.area){this.previewRequest++;this.areaLoading.set(false);this.syncCatalogView();}
-    else void this.loadAreaPreview();
-  }
-  private async loadAreaPreview():Promise<void> {
-    const request=++this.previewRequest;this.featuredProducts.set([]);this.areaLoading.set(true);this.catalogError='';
-    try {
-      const page=await this.dataService.searchProductPage(this.discoveryFilters,1,24,'relevance');
-      if(this.destroyed || request!==this.previewRequest)return;
-      this.featuredProducts.set([...page.items.filter(p=>p.imageUrl),...page.items.filter(p=>!p.imageUrl)].slice(0,4));
-    }catch {if(request===this.previewRequest)this.catalogError='No pudimos cargar esta selección. Puedes continuar con Buscar.';}
-    finally {if(request===this.previewRequest)this.areaLoading.set(false);}
-  }
+  protected get searchParams(): Record<string,string|undefined> { return {q:this.query.trim() || undefined}; }
   protected focusDiscovery():void {
     document.body.classList.add('discovery-search-open');
     this.suggestionsOpen=true;this.refreshSuggestions();this.positionSuggestions();
@@ -103,7 +72,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     clearTimeout(this.suggestionTimer);const request=++this.suggestionRequest;this.suggestionsError='';
     if(this.query.trim().length<2){this.suggestions=this.featuredProducts();this.suggestionsLoading=false;return;}
     this.suggestionsLoading=true;
-    void this.dataService.searchProductPage({...this.discoveryFilters,query:this.query.trim()},1,6,'relevance').then(page=>{
+    void this.dataService.searchProductPage({query:this.query.trim()},1,6,'relevance').then(page=>{
       if(!this.destroyed && request===this.suggestionRequest)this.suggestions=page.items;
     }).catch(()=>{if(!this.destroyed && request===this.suggestionRequest){this.suggestions=[];this.suggestionsError='No pudimos cargar sugerencias. Puedes continuar con Buscar.';}})
       .finally(()=>{if(!this.destroyed && request===this.suggestionRequest){this.suggestionsLoading=false;this.changeDetector.markForCheck();}});
@@ -126,7 +95,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   protected onOutsideDiscovery(event:MouseEvent):void {if(!this.searchForm?.nativeElement.contains(event.target as Node))this.closeSuggestions();}
   ngOnDestroy():void {
     if(typeof document!=='undefined')document.body.classList.remove('discovery-search-open');
-    this.destroyed=true;clearTimeout(this.suggestionTimer);this.previewRequest++;this.suggestionRequest++;
+    this.destroyed=true;clearTimeout(this.suggestionTimer);this.suggestionRequest++;
     if(typeof window!=='undefined'){
       if(this.focusFrame!==undefined)window.cancelAnimationFrame(this.focusFrame);
       window.visualViewport?.removeEventListener('resize',this.positionSuggestions);
@@ -155,7 +124,6 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     void this.loadCatalog();
-    if(this.area)void this.loadAreaPreview();
   }
 
   protected openProduct(product: FamilyProductRow): void {
@@ -199,7 +167,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   private syncCatalogView(): void {
     const categories=this.preview?.categories.length?this.preview.categories:this.dataService.getCategoryOptions(false).slice(0,8);
     this.featuredCategories=categories.filter(category=>category.id!=='cat-repuestos-automotrices').map(category=>({...category,icon:categoryIcon(category)}));
-    if(this.area)return;
     const rows=this.dataService.getPopularProductRows('', Number.MAX_SAFE_INTEGER, undefined, false);
     if(this.preview?.products.length){
       this.featuredProducts.set(this.preview.products.filter(isHardwareProduct));

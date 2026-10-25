@@ -738,7 +738,5 @@ input:disabled {
   }
 }
 
-.area-filter { display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; margin-bottom: 1rem; font-weight: 700; color: var(--ink-900); }
-.area-filter select { min-height: 44px; max-width: 100%; padding: .5rem .8rem; font: inherit; border: 1px solid var(--border); border-radius: 10px; background: white; color: var(--ink-900); }
 
 .catalog-loading { padding: .5rem 0; min-width: 0; }.catalog-loading app-ui-loader { display:block; padding:.75rem 0; }.product-skeletons { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr)); gap:.85rem; }.product-skeleton { border:1px solid var(--border-soft); border-radius:12px; overflow:hidden; padding-bottom:1rem; }.product-skeleton span { display:block; height:170px; background:var(--ink-50); }.product-skeleton i { display:block; height:14px; margin:1rem .85rem 0; border-radius:4px; background:#e4e9ef; }.product-skeleton i:last-child { width:45%; height:22px; }

@@ -34,7 +34,7 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
   private get scopedSearchFilters(): SearchFilters {
     if(this.router.url.split(/[?#]/)[0]!=='/buscar')return {};
     const p=this.router.parseUrl(this.router.url).queryParams;
-    return {area:['materiales','herramientas'].includes(p['rubro'])?p['rubro']:undefined,categoryId:p['categoria'] || undefined,subcategoryId:p['subcategoria'] || undefined,
+    return {categoryId:p['categoria'] || undefined,subcategoryId:p['subcategoria'] || undefined,
       familyId:p['familia'] || undefined,brand:p['marca'] || undefined,brandId:p['marcaId'] || undefined,
       storeId:p['ferreteriaId'] || undefined};
   }
@@ -205,9 +205,8 @@ export class SiteNavbarComponent implements OnInit, OnDestroy {
     this.closeSearch();this.closeMenu();this.closeTaxonomy();
     const query=this.searchValue.trim();
     const context=this.router.url.split(/[?#]/)[0]==='/buscar'?this.router.parseUrl(this.router.url).queryParams:{};
-    const rubro=context['rubro'];
     const activeContext=Object.fromEntries(['categoria','subcategoria','familia','marca','marcaId','ferreteriaId','ferreteria','projectTarget','draftName','draftAddress','latitude','longitude','radiusKm','sort','page'].filter(key=>context[key] !== undefined).map(key=>[key,context[key]]));
-    void this.router.navigate(['/buscar'],{queryParams:{...activeContext,...(['materiales','herramientas'].includes(rubro)?{rubro}:{}),q:query || undefined}});
+    void this.router.navigate(['/buscar'],{queryParams:{...activeContext,q:query || undefined}});
   }
   protected onSearchFocusOut(event:FocusEvent):void {
     if(!this.searchShell?.nativeElement.contains(event.relatedTarget as Node|null)) this.closeSearch();

@@ -7,7 +7,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faArrowDownWideShort, faChevronDown, faLocationDot, faSliders, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import { Subscription } from 'rxjs';
-import { FamilyProductRow, SearchFilters, SearchProximity, SessionUser, TaxonomyOption } from '../../core/models/app.models';
+import { FamilyProductRow, SearchProximity, SessionUser, TaxonomyOption } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
 import { FirebaseDataService } from '../../core/services/firebase-data.service';
 import { StoreDirectoryService } from '../../core/services/store-directory.service';
@@ -48,7 +48,6 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
   protected readonly faChevronDown = faChevronDown;
   protected readonly faRemove = faXmark;
 
-  protected selectedArea: SearchFilters['area'] = undefined;
   protected categorySearch = '';
   protected subcategorySearch = '';
   protected familySearch = '';
@@ -145,20 +144,16 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
       const requestedStoreName = params.get('ferreteria') || '';
       const requestedBrand = params.get('marca') || this.landing?.filters['marca'] || '';
       const requestedBrandId = params.get('marcaId') || this.landing?.filters['marcaId'] || '';
-      const area = params.get('rubro') || this.landing?.filters['rubro'] || '';
-      const requestedArea = ['materiales','herramientas'].includes(area) ? area as SearchFilters['area'] : undefined;
       const requestedCategory = params.get('categoria') || this.landing?.filters['categoria'] || '';
       const requestedSubcategory = params.get('subcategoria') || this.landing?.filters['subcategoria'] || '';
       const requestedFamily = params.get('familia') || this.landing?.filters['familia'] || '';
       if (
-        requestedArea !== this.selectedArea
-        || requestedStoreId !== this.selectedStoreId || requestedStoreName !== this.selectedStoreName
+        requestedStoreId !== this.selectedStoreId || requestedStoreName !== this.selectedStoreName
         || requestedBrand !== this.selectedBrand || requestedBrandId !== this.selectedBrandId
         || requestedCategory !== this.selectedCategoryId
         || requestedSubcategory !== this.selectedSubcategoryId
         || requestedFamily !== this.selectedFamilyId
       ) {
-        this.selectedArea = requestedArea;
         this.selectedStoreId = requestedStoreId;
         this.selectedStoreName = requestedStoreName;
         this.selectedBrand = requestedBrand;
@@ -241,7 +236,7 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
   }
 
   protected get taxonomyFilterCount(): number {
-    return [this.selectedArea, this.selectedStoreId, this.selectedCategoryId, this.selectedSubcategoryId, this.selectedFamilyId, this.selectedBrand]
+    return [this.selectedStoreId, this.selectedCategoryId, this.selectedSubcategoryId, this.selectedFamilyId, this.selectedBrand]
       .filter(Boolean).length;
   }
 
@@ -320,12 +315,6 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
     finally { if (!this.destroyed) this.changeDetector?.markForCheck(); }
   }
 
-  protected onAreaChange(area: SearchFilters['area']): void {
-    this.selectedArea = area || undefined;
-    this.selectedCategoryId = ''; this.selectedSubcategoryId = ''; this.selectedFamilyId = '';
-    this.currentPage = 1; this.refreshProductRows(true);
-  }
-
   protected onStoreFilterChange(id: string): void {
     this.selectedStoreId = id;
     this.selectedStoreName = this.storeOptions.find(store => store.id === id)?.name || '';
@@ -335,7 +324,7 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
 
   private syncStoreFilterUrl(): void {
     void this.router.navigate([], {relativeTo:this.route, queryParamsHandling:'merge', replaceUrl:true,
-      queryParams: {rubro:this.selectedArea || null,ferreteriaId:this.selectedStoreId || null, ferreteria:this.selectedStoreName || null,
+      queryParams: {rubro:null,ferreteriaId:this.selectedStoreId || null, ferreteria:this.selectedStoreName || null,
         marca:this.selectedBrand || null, marcaId:this.selectedBrandId || null,
         categoria:this.selectedCategoryId || null, subcategoria:this.selectedSubcategoryId || null,
         familia:this.selectedFamilyId || null, q:this.tableProductSearch || null}});
@@ -396,7 +385,6 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
   }
 
   protected clearAllFilters(): void {
-    this.selectedArea = undefined;
     this.selectedStoreId = '';
     this.selectedStoreName = '';
     this.selectedBrand = '';
@@ -485,9 +473,9 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
 
   private refreshProductRows(syncUrl = false): void {
     if (this.landing && this.searchReady) {
-      const selected: Record<string, string> = {rubro:this.selectedArea || '',familia:this.selectedFamilyId,categoria:this.selectedCategoryId,subcategoria:this.selectedSubcategoryId,marca:this.selectedBrand,marcaId:this.selectedBrandId};
+      const selected: Record<string, string> = {familia:this.selectedFamilyId,categoria:this.selectedCategoryId,subcategoria:this.selectedSubcategoryId,marca:this.selectedBrand,marcaId:this.selectedBrandId};
       if (Object.entries(this.landing.filters).some(([key, value]) => value && selected[key] !== value)) {
-        void this.router.navigate(['/buscar'], {queryParams:{...selected,rubro:this.selectedArea || undefined,q:this.tableProductSearch || undefined,ferreteriaId:this.selectedStoreId || undefined,ferreteria:this.selectedStoreName || undefined,projectTarget:this.projectTarget || undefined}});
+        void this.router.navigate(['/buscar'], {queryParams:{...selected,q:this.tableProductSearch || undefined,ferreteriaId:this.selectedStoreId || undefined,ferreteria:this.selectedStoreName || undefined,projectTarget:this.projectTarget || undefined}});
         return;
       }
     }
@@ -503,7 +491,6 @@ export class CatalogSearchComponent implements OnInit, OnDestroy {
     this.catalogError = '';
     try {
       const result = await this.apiService.searchProductPage({
-        area: this.selectedArea,
         query: this.tableProductSearch.trim(),
         categoryId: this.selectedCategoryId,
         subcategoryId: this.selectedSubcategoryId,
