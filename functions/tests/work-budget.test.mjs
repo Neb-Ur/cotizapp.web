@@ -32,3 +32,14 @@ test('optional observations and exclusions survive normalization, disabled budge
  assert.equal(normalizeWorkBudget({...current,observations:'x'.repeat(3500)}).observations.length,3000);
  const cleared=normalizeWorkBudget({...current,observations:' ',exclusions:''});assert.equal(cleared.observations,undefined);assert.equal(cleared.exclusions,undefined);
 });
+
+test('a complete project combines all trades without losing costs, terms or duplicating common tasks',()=>{
+ let b={...emptyWorkBudget(),clientName:'Cliente',observations:'Acceso coordinado',exclusions:'No incluye permisos',terms:'Pago por avance'};
+ for(const id of ['painting-v1','tiles-v1','partition-v1','floor-v1','slab-v1'])b=applyWorkTemplate(b,id);
+ for(const label of ['Pintura:','Cerámicas y porcelanatos:','Tabiques:','Pisos flotantes o vinílicos:','Radier / losa:'])assert.ok(b.scope.includes(label),label);
+ assert.equal(b.labor.filter(row=>row.description==='Limpieza final').length,1);assert.equal(b.expenses.filter(row=>row.description==='Traslado').length,1);
+ b.labor=b.labor.map(row=>({...row,unitPrice:1000}));b.expenses=b.expenses.map(row=>({...row,unitPrice:2000}));
+ const saved=normalizeWorkBudget(b);assert.equal(workBudgetTotals(10000,saved).total,10000+saved.labor.length*1000+saved.expenses.length*2000);
+ assert.equal(saved.terms,'Pago por avance');assert.equal(saved.exclusions,'No incluye permisos');assert.deepEqual(applyWorkTemplate(saved,'painting-v1'),saved);
+ const custom=applyWorkTemplate({...saved,templateIds:['painting-v1'],templateId:'painting-v1',scope:'Solo pintar el dormitorio.'},'tiles-v1');assert.equal(custom.scope,'Solo pintar el dormitorio.');
+});

@@ -2,7 +2,7 @@ import { STRONG_PASSWORD_PATTERN } from '../../../core/utils/password-policy.uti
 import { PasswordFieldComponent } from '../../../shared/components/password-field/password-field.component';
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink, UrlTree } from '@angular/router';
 import { RegisterPayload } from '../../../core/models/app.models';
 import { AuthService } from '../../../core/services/auth.service';
@@ -34,13 +34,14 @@ export class RegisterComponent {
       Validators.maxLength(128),
       Validators.pattern(RegisterComponent.STRONG_PASSWORD)
     ]],
+    confirmPassword: ['', Validators.required],
     phone: [''],
     commune: [''],
     termsAccepted: [false, Validators.requiredTrue],
     privacyAcknowledged: [false, Validators.requiredTrue],
     ageConfirmed: [false, Validators.requiredTrue],
     marketingConsent: [false]
-  });
+  },{validators:(group:AbstractControl)=>group.get('password')?.value===group.get('confirmPassword')?.value?null:{passwordMismatch:true}});
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -54,6 +55,8 @@ export class RegisterComponent {
     if (this.isCompletingProfile) {
       this.form.controls.email.setValue(this.route.snapshot.queryParamMap.get('email') || '');
       this.form.controls.password.clearValidators();
+      this.form.controls.confirmPassword.clearValidators();
+      this.form.controls.confirmPassword.updateValueAndValidity();
       this.form.controls.password.updateValueAndValidity();
     }
   }
@@ -72,6 +75,7 @@ export class RegisterComponent {
 
   protected async submit(): Promise<void> {
     this.errorMessage = '';
+    if(this.isSubmitting)return;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -116,7 +120,7 @@ export class RegisterComponent {
     }
   }
 
-  protected hasError(controlName: 'name' | 'email' | 'password' | 'phone' | 'commune'): boolean {
+  protected hasError(controlName: 'name' | 'email' | 'password' | 'confirmPassword' | 'phone' | 'commune'): boolean {
     const control = this.form.controls[controlName];
     return control.invalid && (control.touched || control.dirty);
   }

@@ -1,0 +1,16 @@
+import {TestBed} from '@angular/core/testing';import {FormBuilder} from '@angular/forms';import {ActivatedRoute,convertToParamMap,provideRouter} from '@angular/router';import {RegisterComponent} from './register.component';import {AuthService} from '../../../core/services/auth.service';import {vi,it,expect} from 'vitest';
+function fixture(completing=false){
+ const returnUrl='/dashboard/maestro/cotizaciones/nuevo?cotizacionLocal=guest-123&guardarEnCuenta=1';
+ const auth={register:vi.fn().mockResolvedValue({id:'m',role:'maestro'}),completeProfile:vi.fn().mockResolvedValue({id:'m',role:'maestro'}),dashboardRouteForUser:()=>'/dashboard/maestro'};
+ const router={navigateByUrl:vi.fn(),createUrlTree:vi.fn(),parseUrl:vi.fn()};
+ const c:any=new RegisterComponent(new FormBuilder(),auth as any,{snapshot:{queryParamMap:convertToParamMap({returnUrl,...(completing?{completarPerfil:'1',email:'m@example.com'}:{})})}} as any,router as any);
+ c.form.patchValue({name:'Maestro Ejemplo',email:'m@example.com',password:'Segura123!',confirmPassword:'Segura123!',termsAccepted:true,privacyAcknowledged:true,ageConfirmed:true});return {c,auth,router,returnUrl};
+}
+it('creates a maestro session and resumes the saved local budget after successful registration',async()=>{const {c,auth,router,returnUrl}=fixture();await c.submit();expect(auth.register).toHaveBeenCalledWith(expect.objectContaining({role:'maestro',name:'Maestro Ejemplo',marketingConsent:false}));expect(auth.register.mock.calls[0][0]).not.toHaveProperty('confirmPassword');expect(router.navigateByUrl).toHaveBeenCalledWith(returnUrl);});
+it('requires matching passwords and legal acknowledgements before creating an account',async()=>{const {c,auth}=fixture();c.form.patchValue({confirmPassword:'Otra123!'});await c.submit();expect(c.form.hasError('passwordMismatch')).toBe(true);expect(auth.register).not.toHaveBeenCalled();c.form.patchValue({confirmPassword:'Segura123!',termsAccepted:false});await c.submit();expect(auth.register).not.toHaveBeenCalled();});
+it('shows a registration failure and keeps the local-budget return intent',async()=>{const {c,auth,router,returnUrl}=fixture();auth.register.mockRejectedValueOnce(new Error('Correo ya registrado'));await c.submit();expect(c.errorMessage).toBe('Correo ya registrado');expect(c.returnUrl).toBe(returnUrl);expect(router.navigateByUrl).not.toHaveBeenCalled();expect(c.isSubmitting).toBe(false);});
+it('renders an explicit maestro registration form and password confirmation',async()=>{
+ TestBed.configureTestingModule({imports:[RegisterComponent],providers:[provideRouter([]),{provide:AuthService,useValue:{}},{provide:ActivatedRoute,useValue:{snapshot:{queryParamMap:convertToParamMap({})}}}]});const f=TestBed.createComponent(RegisterComponent);f.detectChanges();expect(f.nativeElement.querySelector('h1').textContent).toContain('Crea tu cuenta de maestro');expect(f.nativeElement.querySelector('#register-confirm-password')).not.toBeNull();f.destroy();
+});
+
+it('completes an existing maestro profile without requiring a new password',async()=>{const {c,auth}=fixture(true);c.form.patchValue({password:'',confirmPassword:''});await c.submit();expect(auth.completeProfile).toHaveBeenCalledOnce();expect(auth.register).not.toHaveBeenCalled();});

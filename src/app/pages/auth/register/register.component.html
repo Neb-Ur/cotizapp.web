@@ -5,8 +5,8 @@
     </a>
     <div class="auth-header">
       <div class="role-pill">{{ isCompletingProfile ? 'Perfil de maestro' : 'Cuenta de maestro' }}</div>
-      <h1>{{ isCompletingProfile ? 'Completa tu cuenta' : 'Crea tu cuenta' }}</h1>
-      <p>{{ isCompletingProfile ? 'Necesitamos estos datos para recuperar tu cuenta y tus cotizaciones.' : (downloadingQuotation ? 'Tu cotización está conservada. Crea tu cuenta de maestro para guardarla y descargar el PDF.' : 'Guarda tus cotizaciones y consulta tu historial de proyectos.') }}</p>
+      <h1>{{ isCompletingProfile ? 'Completa tu cuenta' : 'Crea tu cuenta de maestro' }}</h1>
+      <p>{{ isCompletingProfile ? 'Necesitamos estos datos para recuperar tu cuenta y tus cotizaciones.' : (downloadingQuotation ? 'Tu presupuesto está conservado en este navegador. Crea tu cuenta de maestro para guardarlo en ella y continuar desde otros dispositivos.' : 'Prepara presupuestos de un trabajo o de un proyecto completo. Guarda tus cotizaciones, administra clientes y consulta tus obras.') }}</p>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form auth-form--grid" [attr.aria-busy]="isSubmitting">
@@ -27,6 +27,12 @@
         <app-password-field><input #passwordInput id="register-password" formControlName="password" type="password" placeholder="Crea una contraseña segura" autocomplete="new-password" minlength="6" maxlength="128" [attr.aria-invalid]="hasError('password')" aria-describedby="register-password-help register-password-error" /></app-password-field>
         <small id="register-password-help">Usa 6 o más caracteres, con mayúscula, minúscula, número y símbolo.</small>
         <small id="register-password-error" *ngIf="hasError('password')">La contraseña no cumple los requisitos de seguridad.</small>
+      </div>
+
+      <div class="field" *ngIf="!isCompletingProfile">
+        <label for="register-confirm-password">Confirma tu contraseña</label>
+        <app-password-field><input #passwordInput id="register-confirm-password" formControlName="confirmPassword" type="password" autocomplete="new-password" maxlength="128" [attr.aria-invalid]="(form.controls.confirmPassword.touched || form.touched) && (form.controls.confirmPassword.invalid || form.hasError('passwordMismatch'))" aria-describedby="register-confirm-error" /></app-password-field>
+        <small id="register-confirm-error" [style.visibility]="form.controls.confirmPassword.touched && (form.controls.confirmPassword.invalid || form.hasError('passwordMismatch')) ? 'visible' : 'hidden'">Las contraseñas deben coincidir.</small>
       </div>
 
       <div class="field">
@@ -67,7 +73,7 @@
 
       <div class="field--full form-actions">
         <button class="btn btn-primary btn-full" type="submit" [disabled]="isSubmitting">
-          {{ isSubmitting ? (isCompletingProfile ? 'Guardando perfil...' : 'Creando cuenta...') : (isCompletingProfile ? 'Completar cuenta' : 'Crear cuenta') }}
+          {{ isSubmitting ? (isCompletingProfile ? 'Guardando perfil...' : 'Creando cuenta...') : (isCompletingProfile ? 'Completar cuenta' : 'Crear cuenta de maestro') }}
         </button>
         <p class="form-error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
       </div>

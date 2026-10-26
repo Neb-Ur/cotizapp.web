@@ -50,3 +50,9 @@ it('recognizes only a local quotation PDF return and preserves its public back d
   expect(localQuotationAuthId('/dashboard/maestro/cotizaciones/nuevo?cotizacionLocal=../private&descargar=1')).toBeNull();
   expect(localQuotationAuthId('/producto?cotizacionLocal=guest-123&descargar=1')).toBeNull();
 });
+it('preserves a local budget account-save intent without requiring PDF download',async()=>{
+ const {localQuotationAuthId}=await import('./auth-navigation.util');
+ const url='/dashboard/maestro/cotizaciones/nuevo?cotizacionLocal=guest-123&guardarEnCuenta=1';
+ expect(localQuotationAuthId(url)).toBe('guest-123');expect(resolvePostAuthUrl(maestro,url,'/')).toBe(url);
+ expect(localQuotationAuthId('/dashboard/maestro/cotizaciones/nuevo?cotizacionLocal=../private&guardarEnCuenta=1')).toBeNull();
+});

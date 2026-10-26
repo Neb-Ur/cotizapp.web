@@ -16,6 +16,10 @@
   } @else if (loadError) {
     <section class="detail-card" role="alert"><p>{{ loadError }}</p><button type="button" (click)="retryLoad()">Reintentar</button></section>
   } @else {
+  <section class="account-invitation" *ngIf="isLocalQuotation" aria-labelledby="save-account-title">
+    <div><h2 id="save-account-title">Tu presupuesto se conserva en este navegador</h2><p>Puedes preparar un solo trabajo o reunir pintura, cerámicas, tabiques y otros trabajos en el mismo proyecto. Crea tu cuenta de maestro para guardar el presupuesto en ella y abrirlo desde otros dispositivos.</p><p class="section-note">Si borras los datos del navegador o cambias de dispositivo, el guardado local no estará disponible.</p></div>
+    <div class="account-invitation-actions"><button type="button" (click)="continueWithAccount('registro')" [disabled]="isPreparingAccount || isSaving">{{ isPreparingAccount ? 'Conservando presupuesto…' : (user ? 'Guardar en mi cuenta' : 'Crear cuenta de maestro') }}</button><button type="button" *ngIf="!user" (click)="continueWithAccount('login')" [disabled]="isPreparingAccount || isSaving">Ya tengo cuenta</button></div>
+  </section>
   <p class="saved" *ngIf="copyNotice" role="status">{{ copyNotice }}</p>
   <section class="workflow-panel" *ngIf="!isNewProject" aria-label="Seguimiento del presupuesto">
     <app-quotation-status [value]="workflowStatus" [name]="projectName" [busy]="statusBusy" [disabled]="isSaving || hasUnsavedChanges" (statusChange)="changeStatus($event)" />
@@ -203,7 +207,7 @@
 
         <div class="actions">
           <button type="button" (click)="saveProject()" [disabled]="isSaving || statusBusy">
-            <i *ngIf="isSaving" class="pi pi-spin pi-spinner" aria-hidden="true"></i>{{ isSaving ? 'Guardando…' : (isNewProject ? 'Crear cotización' : 'Guardar cambios') }}
+            <i *ngIf="isSaving" class="pi pi-spin pi-spinner" aria-hidden="true"></i>{{ isSaving ? 'Guardando…' : (isLocalQuotation ? 'Guardar en este navegador' : (isNewProject ? 'Crear cotización' : 'Guardar cambios')) }}
           </button>
           <button type="button" class="export" [disabled]="!hasQuotation || isSaving || statusBusy || isPreparingPdf" (click)="exportQuotation()">
             {{ isPreparingPdf ? 'Preparando PDF…' : 'Descargar PDF' }}
@@ -224,7 +228,7 @@
           </div>
           <p role="status" *ngIf="shareNotice">{{ shareNotice }}</p>
         </details>
-        <p class="section-note" *ngIf="isLocalQuotation">Guardada en este navegador. Para descargar el PDF, inicia sesión o crea tu cuenta de maestro.</p>
+        <p class="section-note" *ngIf="isLocalQuotation">El guardado en este navegador es local. Puedes crear una cuenta de maestro para conservar el presupuesto en tu cuenta y descargar su PDF.</p>
         <p class="saved" role="status" *ngIf="saveNotice">{{ saveNotice }}</p>
       </article>
     <section class="same-store-card" *ngIf="hasItemsInTable">

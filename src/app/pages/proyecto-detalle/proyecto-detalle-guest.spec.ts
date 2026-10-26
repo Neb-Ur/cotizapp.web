@@ -20,6 +20,34 @@ describe('guest quotation and PDF account requirement', () => {
       undefined,null,null,guest,{download:downloadQuotationPdf,share:vi.fn()} as any) as any;
     return {component,guest,api,navigate,navigateByUrl};
   }
+  it('keeps an unfinished multi-work budget locally before opening registration',async()=>{
+    const {component,guest,navigate,api}=setup();component.projectName='Proyecto completo';
+    component.workBudget={version:1,enabled:true,discloseCosts:false,clientName:'Ana',scope:'Pintura y tabiques',terms:'Por avance',observations:'Coordinar acceso',exclusions:'Permisos',markupPercent:20,labor:[{description:'Pintura',unit:'trabajo',quantity:1,unitPrice:null}],expenses:[]};
+    await component.continueWithAccount('registro');const saved=guest.all()[0];
+    expect(saved.workBudget?.observations).toBe('Coordinar acceso');expect(saved.workBudget?.labor[0].unitPrice).toBeNull();
+    expect(api.saveProject).not.toHaveBeenCalled();expect(navigate).toHaveBeenCalledWith(['/registro'],{queryParams:{returnUrl:`/dashboard/maestro/cotizaciones/nuevo?cotizacionLocal=${saved.id}&guardarEnCuenta=1`}});
+  });
+  it('imports a valid saved local budget into an account without downloading and removes the local copy only after success',async()=>{
+    const {component,guest,api}=setup({id:'maestro',role:'maestro'},false,{cotizacionLocal:'local',guardarEnCuenta:'1'});
+    const local=guest.create('Proyecto completo');guest.update(local.id,{workBudget:{version:1,enabled:true,discloseCosts:false,clientName:'Ana',scope:'Pintura y tabiques',terms:'Por avance',observations:'Acceso',exclusions:'Permisos',markupPercent:0,labor:[{description:'Trabajo completo',unit:'trabajo',quantity:1,unitPrice:50000}],expenses:[]}});
+    component.route.snapshot.queryParamMap=convertToParamMap({cotizacionLocal:local.id,guardarEnCuenta:'1'});
+    await component.loadQuotation('nuevo');expect(api.saveProject).toHaveBeenCalledOnce();expect(guest.get(local.id)).toBeNull();expect(downloadQuotationPdf).not.toHaveBeenCalled();expect(component.projectId).toBe('cloud');
+  });
+  it('retains the local budget if account saving fails',async()=>{
+    const {component,guest,api}=setup({id:'maestro',role:'maestro'},false);const local=guest.create('Proyecto');
+    component.route.snapshot.queryParamMap=convertToParamMap({cotizacionLocal:local.id,guardarEnCuenta:'1'});api.saveProject.mockRejectedValueOnce(new Error('Sin conexión'));
+    await component.loadQuotation('nuevo');expect(guest.get(local.id)).not.toBeNull();expect(component.saveNotice).toContain('Sin conexión');
+  });
+  it('keeps incomplete imported work costs for correction instead of losing the local budget',async()=>{
+    const {component,guest,api}=setup({id:'maestro',role:'maestro'},false);const local=guest.create('Obra');
+    guest.update(local.id,{workBudget:{version:1,enabled:true,discloseCosts:false,clientName:'',scope:'Trabajo',terms:'',markupPercent:0,labor:[{description:'Trabajo pendiente',unit:'trabajo',quantity:1,unitPrice:null as any}],expenses:[]}});
+    component.route.snapshot.queryParamMap=convertToParamMap({cotizacionLocal:local.id,guardarEnCuenta:'1'});
+    await component.loadQuotation('nuevo');expect(api.saveProject).not.toHaveBeenCalled();expect(guest.get(local.id)).not.toBeNull();expect(component.budgetError).toBeTruthy();
+  });
+  it('stays on the budget if browser storage cannot preserve the copy before signup',async()=>{
+    const {component,navigate}=setup();const blocked=vi.spyOn(Storage.prototype,'setItem').mockImplementation(()=>{throw new Error('Blocked');});
+    try{await component.continueWithAccount('registro');expect(navigate).not.toHaveBeenCalled();expect(component.saveNotice).toContain('Mantén esta página abierta');}finally{blocked.mockRestore();}
+  });
   it('allows guests to create, open and edit a quotation without navigating to registration',async()=>{
     const {component,guest,api,navigate}=setup();component.projectName='Cocina';component.projectItems=[{productName:'Cemento',quantity:3,storeId:'s'}];
     await component.saveProject();expect(api.saveProject).not.toHaveBeenCalled();

@@ -442,3 +442,16 @@
 }
 
 .field small[id$="-error"], .legal-error { color: var(--danger, #b42318); }
+
+/* Let form controls shrink within the available width, including narrow phones. */
+.register-page,.auth-card,.auth-form {box-sizing:border-box;min-width:0;}
+.auth-form--grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+.field,.field--full,.legal-choices,.check-row span {min-width:0;}
+.legal-choices legend {max-width:100%;white-space:normal;}
+.form-actions button {white-space:normal;min-height:44px;}
+@media(max-width:620px){
+ .register-page{padding:1.5rem 1rem;}
+ .auth-card{padding:1.5rem 1.25rem;}
+ .auth-form--grid{grid-template-columns:minmax(0,1fr);padding:1rem;}
+ .legal-choices{padding:.8rem;}
+}

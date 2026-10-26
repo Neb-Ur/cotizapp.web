@@ -32,3 +32,9 @@ Crear y duplicar cotizaciones respeta el cupo de cada cuenta, incluido cero y va
 ## Observaciones y exclusiones del presupuesto
 
 Todas las plantillas comparten campos opcionales de **Observaciones** y **Qué no incluye el presupuesto**, de hasta 3.000 caracteres cada uno. Se conservan al guardar, restaurar borradores y combinar plantillas. El PDF del presupuesto muestra cada sección si tiene contenido, tanto en la versión para el cliente como en la de costos internos. Las cotizaciones anteriores siguen funcionando sin esos campos.
+
+## Un trabajo o un proyecto con varios trabajos
+
+Las plantillas pueden combinarse en una sola cotización: mantienen partidas, costos, cliente, condiciones, observaciones y exclusiones. La vista enumera los trabajos elegidos. El alcance sugerido se amplía al agregar trabajos mientras conserve el texto sugerido; si el maestro escribió un alcance propio, se respeta y debe revisarlo para incluir los nuevos trabajos. Limpieza y traslado compartidos se agregan una sola vez; el maestro ajusta sus cantidades y costos para el proyecto completo. El límite actual es de 50 partidas de mano de obra y 50 de gastos por presupuesto.
+
+El presupuesto local ofrece **Crear cuenta de maestro** y **Ya tengo cuenta**. Antes de abrir el formulario conserva una copia en el navegador. El registro crea una cuenta y sesión de maestro y conserva el retorno a esa copia. Al regresar intenta guardar la cotización en la cuenta sin descargar automáticamente un PDF. Solo elimina la copia local después de que el servidor confirma el guardado. Si faltan costos válidos o hay problemas de conexión/cupo, se conserva la copia y el usuario puede completar o reintentar el guardado. El registro pide confirmar la contraseña y mantiene las aceptaciones obligatorias y la preferencia de publicidad opcional.

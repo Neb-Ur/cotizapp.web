@@ -1,3 +1,4 @@
+import {apiErrorMessage} from '../../core/utils/api-error.util';
 import {WorkLedgerComponent} from '../../shared/components/work-ledger/work-ledger.component';
 import {ConstructionCalculatorComponent} from '../../shared/components/construction-calculator/construction-calculator.component';
 import {TileCalculatorComponent} from '../../shared/components/tile-calculator/tile-calculator.component';
@@ -54,6 +55,8 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
   private loadGeneration = 0;
   private importedGuestId = '';
   private handledDownloadIntent = false;
+  private handledAccountSaveIntent=false;
+  protected isPreparingAccount=false;
   private pendingQueryCleanupProjectId = '';
   protected isPreparingPdf = false;
   protected get isLocalQuotation(): boolean { return this.route.snapshot?.data?.['localQuotation'] === true; }
@@ -190,6 +193,12 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       if (addProduct.trim()) {
         const projectTarget = `${this.isLocalQuotation ? 'local:' : ''}${this.isNewProject ? 'nuevo' : this.projectId}`;
         void this.router.navigate([productPath(addProduct.trim())], {queryParams:{projectTarget,draftName:this.isNewProject?this.projectName:null,draftAddress:this.isNewProject?this.projectAddress:null}});
+      }
+      if(this.user && this.importedGuestId && this.route.snapshot?.queryParamMap?.get('guardarEnCuenta')==='1' && !this.handledAccountSaveIntent){
+        this.handledAccountSaveIntent=true;
+        this.projectName=this.projectName.trim() || 'Mi presupuesto';
+        await this.saveProject();
+        if(this.isNewProject)this.saveNotice+=' Tu presupuesto sigue conservado en este navegador. Completa los datos o vuelve a intentar guardarlo en tu cuenta.';
       }
       if (this.user && this.route.snapshot?.queryParamMap?.get('descargar') === '1' && !this.handledDownloadIntent) {
         this.handledDownloadIntent = true;
@@ -383,9 +392,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
           this.savedFingerprint = this.quotationFingerprint();
           if (navigateAfterSave) this.router.navigate(['/dashboard/maestro/cotizaciones', created.id]);
         } catch (error) {
-          this.saveNotice = error instanceof Error
-            ? error.message
-            : 'No se pudo guardar la cotizacion.';
+          this.saveNotice = apiErrorMessage(error,'No se pudo guardar la cotización.');
         }
         return;
       }
@@ -594,6 +601,25 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
     });
     } catch (error) { this.saveNotice = error instanceof Error ? error.message : 'No se pudo exportar la cotización.'; }
     finally { this.isPreparingPdf = false; this.changeDetector?.markForCheck(); }
+  }
+
+  protected async continueWithAccount(destination:'registro'|'login'='registro'):Promise<void>{
+    if(this.isSaving || this.isPreparingAccount || this.statusBusy || !this.guestQuotations)return;
+    this.isPreparingAccount=true;this.saveNotice='';
+    try{
+      this.persistDraftIfNeeded();
+      let id=this.isLocalQuotation && !this.isNewProject ? this.projectId : this.importedGuestId;
+      const data={name:this.projectName.trim() || 'Mi presupuesto',address:this.projectAddress,description:this.projectDescription,workBudget:this.workBudget,paintingPlan:this.paintingPlan,tilePlan:this.tilePlan,items:this.projectItems,proximity:this.projectProximity,singleStoreName:this.selectedSingleStoreName,singleStoreId:this.selectedSingleStoreId};
+      if(!id)id=this.guestQuotations.create(data.name,data.address,data.items).id;
+      this.guestQuotations.update(id,data);
+      if(this.isLocalQuotation){this.projectId=id;this.isNewProject=false;}
+      if(this.guestQuotations.storageWarning)throw new Error(this.guestQuotations.storageWarning+' Mantén esta página abierta para conservar tu trabajo.');
+      this.clearDraft();
+      const returnUrl=`/dashboard/maestro/cotizaciones/nuevo?cotizacionLocal=${encodeURIComponent(id)}&guardarEnCuenta=1`;
+      if(this.user)await this.router.navigateByUrl(returnUrl);
+      else await this.router.navigate(['/'+destination],{queryParams:{returnUrl}});
+    }catch(error){this.saveNotice=error instanceof Error?error.message:'No se pudo conservar el presupuesto. Vuelve a intentar.';}
+    finally{this.isPreparingAccount=false;this.changeDetector?.markForCheck();}
   }
 
   private async preparePdf(): Promise<boolean> {

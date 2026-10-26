@@ -66,6 +66,7 @@ export function normalizePaintingPlan(value:unknown):PaintingPlan|undefined {
  return {version:1,length:v.length,height:v.height,surfaces:v.surfaces,openings:v.openings,coats:v.coats,coverage:v.coverage,wastePercent:v.wastePercent,packLiters:v.packLiters,productId,productName};
 }
 
+export const workTemplateLabels:Record<WorkTemplateId,string>={'painting-v1':'Pintura','tiles-v1':'Cerámicas y porcelanatos','floor-v1':'Pisos flotantes o vinílicos','partition-v1':'Tabiques','slab-v1':'Radier / losa'};
 const templateIds:WorkTemplateId[]=['painting-v1','tiles-v1','floor-v1','partition-v1','slab-v1'];
 function templateMetadata(value:WorkBudget):Pick<WorkBudget,'templateId'|'templateIds'>{
  const id=templateIds.includes(value.templateId as WorkTemplateId)?value.templateId:undefined;
@@ -73,6 +74,14 @@ function templateMetadata(value:WorkBudget):Pick<WorkBudget,'templateId'|'templa
  return {...(id?{templateId:id}:{}),...(ids.length?{templateIds:ids}:{})};
 }
 export function hasWorkTemplate(budget:WorkBudget,id:WorkTemplateId):boolean{return budget.templateId===id || budget.templateIds?.includes(id)===true;}
+const workScopes:Record<WorkTemplateId,string>={
+ 'painting-v1':'Preparación de superficies, aplicación de pintura y limpieza final. Revisar con el cliente las reparaciones y superficies incluidas.',
+ 'tiles-v1':'Preparación de la base, instalación de cerámicas o porcelanatos, aplicación de fragüe y limpieza final. Acordar retiro del revestimiento anterior, reparaciones y disposición de escombros.',
+ 'floor-v1':'Revisión y nivelación de la base, instalación de piso flotante o vinílico, instalación de guardapolvos y remates, limpieza final. Acordar alcance, medidas y especificaciones antes de ejecutar.',
+ 'partition-v1':'Trazado y estructura de tabique, instalación de aislación, revestimiento con planchas, tratamiento de juntas, limpieza final. Acordar alcance, medidas y especificaciones antes de ejecutar.',
+ 'slab-v1':'Preparación y compactación de terreno, moldajes y preparación de base, colocación y terminación de hormigón, curado y protección, limpieza final. Acordar alcance, medidas y especificaciones antes de ejecutar.'
+};
+function combinedScope(ids:WorkTemplateId[]):string{ids=[...new Set(ids)].sort((a,b)=>templateIds.indexOf(a)-templateIds.indexOf(b));return ids.length===1?workScopes[ids[0]]:ids.map(id=>`${workTemplateLabels[id]}: ${workScopes[id]}`).join('\n\n');}
 /** Templates only add editable tasks. They never supply prices or material quantities. */
 export function applyWorkTemplate(current:WorkBudget,id:WorkTemplateId):WorkBudget{
  const budget=structuredClone(current);
@@ -88,7 +97,7 @@ export function applyWorkTemplate(current:WorkBudget,id:WorkTemplateId):WorkBudg
  if(budget.labor.length+labor.length>50 || budget.expenses.length+expenses.length>50)throw new WorkBudgetError('No hay espacio para la plantilla. Quita partidas antes de agregarla.');
  const existing=templateIds.filter(t=>hasWorkTemplate(budget,t));
  return {...budget,enabled:true,templateId:budget.templateId || id,...(existing.length?{templateIds:[...existing,id]}:{}),
-  scope:budget.scope || (extraTasks[id]?extraTasks[id]!.join(', ')+'. Acordar alcance, medidas y especificaciones antes de ejecutar.':painting?'Preparación de superficies, aplicación de pintura y limpieza final. Revisar con el cliente las reparaciones y superficies incluidas.':'Preparación de la base, instalación de cerámicas o porcelanatos, aplicación de fragüe y limpieza final. Acordar retiro del revestimiento anterior, reparaciones y disposición de escombros.'),
+  scope:!budget.scope || (existing.length>0 && budget.scope===combinedScope(existing)) ? combinedScope([...existing,id]) : budget.scope,
   labor:[...budget.labor,...labor],expenses:[...budget.expenses,...expenses]};
 }
 export function paintingBudgetTemplate(current:WorkBudget):WorkBudget{return applyWorkTemplate(current,'painting-v1');}
