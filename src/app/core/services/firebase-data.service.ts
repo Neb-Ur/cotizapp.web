@@ -59,6 +59,7 @@ interface SearchRowExtended extends SearchRow {
 }
 
 interface ProductoMaestroApi {
+  seoPath?:string;
   calculationSpecs?: import('../../../../functions/src/domain/catalog-calculation-specs').CatalogCalculationSpecs | null;
   ambitoComercial?: import('../utils/business-type.util').ProductBusinessScope;
   nombrePieza?: string;
@@ -214,7 +215,7 @@ export class FirebaseDataService {
   ) {
     if (typeof localStorage !== 'undefined') {
       try {
-        for (const key of Object.keys(localStorage).filter(key => key.startsWith('cotizapp-product-sheet-v1:'))) {
+        for (const key of Object.keys(localStorage).filter(key => key.startsWith('cotizapp-product-sheet-v'))) {
           const cached = JSON.parse(localStorage.getItem(key) || 'null');
           if (cached?.raw?.productoMaestro && !isHardwareProduct(cached.raw.productoMaestro)) localStorage.removeItem(key);
         }
@@ -1694,6 +1695,7 @@ export class FirebaseDataService {
         storePhotos: Array.isArray(raw.storePhotos) ? raw.storePhotos : [],
         seoPath:master.seoPath,
         productoMaestroId: master.id,
+        calculationSpecs:master.calculationSpecs,
         productName: master.nombre,
         imageUrl: master.imagenStorageUrl || master.imagenPrincipalUrl || master.imagenExternaUrl || '',
       imageFallbackUrl: master.imagenExternaUrl || '',
@@ -1706,8 +1708,8 @@ export class FirebaseDataService {
             ? 'Imagen referencial del tipo de producto. La marca, presentación y medidas son las indicadas en la ficha.'
             : '',
         sku: raw.stores?.[0]?.sku || '',
-        unitLabel: 'Unidad',
-        packagingLabel: master.presentacion || 'Unidad',
+        unitLabel: master.unidadVenta || 'Unidad',
+        packagingLabel: master.presentacion || master.unidadVenta || 'Unidad',
         stock: stores.reduce((acc, item) => acc + item.stock, 0),
         brand: master.marca || 'Sin marca',
         productType: master.tipoProducto || master.descripcionCorta || 'Producto ferretero',
@@ -1739,15 +1741,15 @@ export class FirebaseDataService {
       const previous = localStorage.getItem(marker);
       if (previous !== version) {
         this.productDetailByName.clear(); this.productDetailLoadedAt.clear();
-        const prefix = `cotizapp-product-sheet-v1:${this.dataMode?.mode() || 'real'}:`;
-        for (const key of Object.keys(localStorage)) if (key.startsWith(prefix)) localStorage.removeItem(key);
+        const mode = this.dataMode?.mode() || 'real';
+        for (const key of Object.keys(localStorage)) if (key.startsWith('cotizapp-product-sheet-v') && key.split(':')[1] === mode) localStorage.removeItem(key);
         localStorage.setItem(marker, version);
       }
     } catch { /* Optional browser storage. */ }
   }
 
   async loadProductSheet(productName?: string, slug?: string): Promise<ProductDetailView | null> {
-    const key = `cotizapp-product-sheet-v1:${this.dataMode?.mode() || 'real'}:${slug || productSlug(productName || '')}`;
+    const key = `cotizapp-product-sheet-v2:${this.dataMode?.mode() || 'real'}:${slug || productSlug(productName || '')}`;
     if (typeof localStorage !== 'undefined') {
       try {
         const cached = JSON.parse(localStorage.getItem(key) || 'null');
@@ -2248,6 +2250,7 @@ export class FirebaseDataService {
     return {
       id: product.id,
       masterProductId: product.id,
+      seoPath:product.seoPath,
       businessScope: normalizeProductBusinessScope(product.ambitoComercial, product.categoriaId),
       catalogLevel: product.catalogoNivel,
       name: product.nombre,
@@ -2319,7 +2322,7 @@ export class FirebaseDataService {
       brand: master.marca || 'Sin marca',
       productType: master.tipoProducto || master.descripcionCorta || 'Producto ferretero',
       unitLabel: master.unidadVenta || 'Unidad',
-      packagingLabel: master.presentacion || 'Unidad',
+      packagingLabel: master.presentacion || master.unidadVenta || 'Unidad',
       price: Number(row.precio) || 0,
       condition: normalizeOfferCondition(row.condicion),
       stock: Number(row.stock) || 0,

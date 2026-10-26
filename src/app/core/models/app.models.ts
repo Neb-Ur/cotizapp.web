@@ -356,6 +356,7 @@ export interface ProductGalleryPhoto {
 }
 
 export interface ProductDetailView {
+  calculationSpecs?: import('../../../../functions/src/domain/catalog-calculation-specs').CatalogCalculationSpecs | null;
   relatedCatalog?: {path:string;name:string}[];
   isTestProduct?: boolean;
   storePhotos?: ProductGalleryPhoto[];
@@ -474,6 +475,7 @@ export interface ProjectComparisonStrategy {
 }
 
 export interface CatalogProduct {
+  seoPath?:string;
   calculationSpecs?: import('../../../../functions/src/domain/catalog-calculation-specs').CatalogCalculationSpecs | null;
   businessScope?: import('../utils/business-type.util').ProductBusinessScope;
   offerPhotos?: OfferPhoto[];

@@ -1,3 +1,4 @@
+import {calculateMaterialArea,areaWorkLabels} from '../../../../functions/src/domain/material-area';
 import {calculateConstruction} from '../../../../functions/src/domain/construction-calculator';
 import {ProfessionalProfile} from '../../../../functions/src/domain/professional-tools';
 import {normalizeWorkBudget,workTemplatePending,calculatePainting,workBudgetTotals,normalizeTilePlan,calculateTiles,type TilePlan,type WorkBudget,type PaintingPlan} from './work-budget.util';
@@ -139,6 +140,7 @@ function buildWorkBudgetPdfLines(input:QuotationPdfInput,exportedAt:Date):string
  if(input.projectAddress?.trim())lines.push(`Direccion: ${input.projectAddress.trim()}`);
  if(input.projectDescription?.trim())lines.push(`Descripcion: ${input.projectDescription.trim()}`);
  if(budget.scope)lines.push('','ALCANCE DEL TRABAJO',budget.scope);
+ for(const p of budget.materialPlans||[]){const r=calculateMaterialArea(p);lines.push('',`ESTIMACION DE ${areaWorkLabels[p.kind].toUpperCase()}`,`Superficie neta: ${p.area} m2. Adicional: ${p.wastePercent}%.`);if(p.kind==='painting')lines.push(`Manos: ${p.coats}. Rendimiento: ${p.coverage??'pendiente'} m2/L; envase: ${p.packageSize??'pendiente'} L.`,...(r.liters!=null?[`Pintura estimada: ${r.liters.toFixed(2)} L.`]:[]));if(p.kind==='partition')lines.push(`Caras a revestir: ${p.faces}.`);if(p.kind==='slab')lines.push(`Espesor: ${p.thicknessCm} cm. Hormigon: ${r.volume.toFixed(3)} m3. Rendimiento por unidad: ${p.packageSize??'pendiente'} L.`);if(!['painting','slab'].includes(p.kind))lines.push(`Cobertura por unidad de venta: ${p.coverage??'pendiente'} m2.`);if(p.productName)lines.push(`Material de referencia: ${p.productName}`);if(r.quantity!=null)lines.push(`Cantidad estimada: ${r.quantity} ${r.unit}.`);lines.push('Presentacion y rendimiento ingresados para estimar; revisar cantidades finales y la oferta elegida.');}
  lines.push('','MATERIALES');
  if(!input.quotation.lines.length)lines.push('Sin materiales incluidos en esta cotizacion.');
  input.quotation.lines.forEach((line,index)=>{

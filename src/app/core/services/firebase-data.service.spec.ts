@@ -104,7 +104,7 @@ it('loads detail directly by slug without downloading all master products, offer
 
 
 it('persists only the sheet across service instances and requests offers independently', async () => {
- const key='cotizapp-product-sheet-v1:real:cemento-gris-25-kg';
+ const key='cotizapp-product-sheet-v2:real:cemento-gris-25-kg';
  localStorage.removeItem(key);
  try {
   const first=fixture();

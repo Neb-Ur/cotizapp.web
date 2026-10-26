@@ -1,3 +1,4 @@
+import {MaterialAreaPlan,normalizeMaterialArea} from '../../../../functions/src/domain/material-area';
 import {apiErrorMessage} from '../../core/utils/api-error.util';
 import {WorkLedgerComponent} from '../../shared/components/work-ledger/work-ledger.component';
 import {ConstructionCalculatorComponent} from '../../shared/components/construction-calculator/construction-calculator.component';
@@ -426,6 +427,17 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       finally { this.isSaving = false; }
 
     });
+  }
+
+  protected async compareAreaMaterial(plan:MaterialAreaPlan):Promise<void>{
+    if(this.isSaving || this.statusBusy || !plan.productId)return;
+    try{
+      const p=normalizeMaterialArea(plan);
+      this.persistDraftIfNeeded();
+      if(this.isNewProject || this.hasUnsavedChanges){if(!this.projectName.trim())this.projectName='Mi presupuesto';await this.saveProject(false,false);if(this.isNewProject||this.hasUnsavedChanges)return;}
+      const product=this.paintProducts.find(item=>(item.masterProductId||item.id)===p.productId);
+      await this.router.navigate([product?.seoPath || productPath(p.productName)],{queryParams:{projectTarget:this.isLocalQuotation?'local:'+this.projectId:this.projectId,superficie:JSON.stringify(p)}});
+    }catch(e){this.saveNotice=e instanceof Error?e.message:'No se pudo abrir la comparación.';}
   }
 
   protected async goToSearchForProduct(): Promise<void> {

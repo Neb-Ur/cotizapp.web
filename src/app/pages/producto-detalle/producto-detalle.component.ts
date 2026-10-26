@@ -1,3 +1,5 @@
+import {MaterialAreaCalculatorComponent} from '../../shared/components/material-area-calculator/material-area-calculator.component';
+import {MaterialAreaPlan,normalizeMaterialArea} from '../../../../functions/src/domain/material-area';
 import {savedQuotationLimit} from '../../../../functions/src/domain/professional-tools';
 import { offerConditionLabel } from '../../core/utils/offer-condition.util';
 import { StoreWhatsappComponent } from '../../shared/components/store-whatsapp/store-whatsapp.component';
@@ -27,7 +29,7 @@ import {
 @Component({
   selector: 'app-producto-detalle',
   standalone: true,
-  imports: [InfoPanelComponent, ProductImageDirective, CommonModule, FormsModule, RouterLink, UiModalComponent, StoreWhatsappComponent],
+  imports: [MaterialAreaCalculatorComponent,InfoPanelComponent, ProductImageDirective, CommonModule, FormsModule, RouterLink, UiModalComponent, StoreWhatsappComponent],
   templateUrl: './producto-detalle.component.html',
   styleUrl: './producto-detalle.component.scss'
 })
@@ -55,6 +57,15 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   protected selectedStoreId = '';
   protected selectedOfferId = '';
   protected selectedQuantity = 1;
+  protected areaPlan?:MaterialAreaPlan;
+  protected areaCalculationActive=false;
+  protected areaSelectionConfirmed=false;
+  protected incomingAreaPlan?:MaterialAreaPlan;
+  private cachedAreaProduct?:{id:string;name:string;specs?:ProductDetailView['calculationSpecs']};
+  private cachedAreaDetail?:ProductDetailView;
+  protected get areaProduct(){if(!this.detail)return undefined;if(this.cachedAreaDetail!==this.detail){this.cachedAreaDetail=this.detail;this.cachedAreaProduct={id:this.detail.productoMaestroId||this.detail.productName,name:this.detail.productName,specs:this.detail.calculationSpecs};}return this.cachedAreaProduct;}
+  protected areaChanged(plan:MaterialAreaPlan|undefined){this.areaPlan=plan;this.areaCalculationActive=true;this.areaSelectionConfirmed=false;}
+  protected useAreaOffer(event:{plan:MaterialAreaPlan;store:ProductStoreOfferRow;quantity:number}){this.selectStore(event.store.storeName,this.storeSelectionId(event.store),event.store.offerId);this.selectedQuantity=event.quantity;this.areaPlan=event.plan;this.areaCalculationActive=true;this.areaSelectionConfirmed=true;this.quoteFeedback='Cantidad recomendada aplicada. Selecciona tu presupuesto y agrega el material.';if(typeof document!=='undefined')document.querySelector('.quantity-field')?.scrollIntoView?.({block:'center'});}
   protected selectedProjectId = '';
   protected projects: ProjectSummary[] = [];
   protected readonly createQuotationOptionValue = '__create_quotation__';
@@ -101,7 +112,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
       this.offersLoading = true;
       this.offersError = '';
       this.displayStores = [];
-      this.detail = null;
+      this.detail = null;this.areaPlan=undefined;this.incomingAreaPlan=undefined;this.areaCalculationActive=false;this.areaSelectionConfirmed=false;
       const legacyProductName = params.get('product') || '';
       let productName = legacyProductName;
       const nearbyPreference = readNearbySearchPreference();
@@ -134,6 +145,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
         this.selectedStoreId = '';
         this.selectedOfferId = '';
         this.selectedQuantity = 1;
+        try{const raw=params.get('superficie');if(raw&&raw.length<5000){const p=normalizeMaterialArea(JSON.parse(raw));if(!p.productId||p.productId===this.detail?.productoMaestroId)this.incomingAreaPlan=p;}}catch{}
         this.selectedProjectId = '';
         this.quoteFeedback = '';
         this.storeSort = 'price';
@@ -273,7 +285,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   protected get canUseQuotations(): boolean { const session = this.authService.currentUser(); return !session || session.role === 'maestro'; }
 
   protected get canShowAddToQuotation(): boolean {
-    return this.canUseQuotations && !!this.selectedStore && !!this.selectedProjectId && this.selectedQuantity > 0 && !this.exceedsSelectedStock;
+    return this.canUseQuotations && !!this.selectedStore && !!this.selectedProjectId && this.selectedQuantity > 0 && !this.exceedsSelectedStock && (!this.areaCalculationActive || this.areaSelectionConfirmed);
   }
 
   protected get selectedTotal(): number {
@@ -305,6 +317,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
     this.selectedStoreName = storeName;
     this.selectedStoreId = storeId;
     this.selectedOfferId = offerId;
+    if(this.areaCalculationActive)this.areaSelectionConfirmed=false;
     const photoIndex=this.galleryImages.findIndex(photo=>photo.storeId===storeId&&(!offerId||photo.offerId===offerId));
     if(photoIndex>=0)this.selectedImageIndex=photoIndex;
     void this.apiService.recordOfferEvent(this.selectedStore?.offerId, 'select');
@@ -312,6 +325,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   }
 
   protected onQuantityChange(value: number | string): void {
+    this.areaPlan=undefined;this.areaCalculationActive=false;this.areaSelectionConfirmed=false;
     const parsed = Math.floor(Number(value));
     this.selectedQuantity = Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
     this.quoteFeedback = '';
@@ -427,6 +441,7 @@ export class ProductoDetalleComponent implements OnInit, OnDestroy {
   }
 
   protected async addToQuotation(): Promise<void> {
+    if(this.areaCalculationActive&&!this.areaSelectionConfirmed)return;
     if (this.isAddingToQuotation || !this.detail || !this.selectedProjectId || !this.canShowAddToQuotation) return;
     const generation = this.loadGeneration;
     const currentUser = this.user;

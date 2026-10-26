@@ -135,7 +135,7 @@
       </ng-template>
     </section>
     <app-work-ledger *ngIf="user && !isLocalQuotation && !isNewProject" [budgetDirty]="hasUnsavedChanges" [ownerId]="user!.id" [projectId]="projectId" [total]="customerTotal" [budgetedCost]="budgetTotals?.cost || totalWithIva" />
-    <app-work-budget-editor class="work-budget-section" [budget]="workBudget" [ownerId]="user?.id || ''" [materials]="totalWithIva" [incomplete]="unavailableItemCount > 0" (changed)="persistDraftIfNeeded()" />
+    <app-work-budget-editor class="work-budget-section" [budget]="workBudget" [products]="paintProducts" (compareMaterial)="compareAreaMaterial($event)" [ownerId]="user?.id || ''" [materials]="totalWithIva" [incomplete]="unavailableItemCount > 0" (changed)="persistDraftIfNeeded()" />
     <article class="editor-panel">
         <h2>Datos de la cotización</h2>
         <div class="validity-note">

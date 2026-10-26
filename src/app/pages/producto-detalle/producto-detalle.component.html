@@ -197,6 +197,7 @@
             La cantidad supera el stock informado por {{ selectedStore.storeName }} ({{ selectedStore.stock }}).
           </p>
 
+          <p class="add-quote-hint" *ngIf="areaCalculationActive && !areaSelectionConfirmed">Confirma el cálculo y elige «Usar esta cantidad» en una ferretería. También puedes escribir una cantidad manual.</p>
           <button type="button" class="add-quote-button" *ngIf="canUseQuotations && selectedProjectId" [disabled]="!canShowAddToQuotation || isAddingToQuotation" (click)="addToQuotation()">
             <i [class]="isAddingToQuotation ? 'pi pi-spin pi-spinner' : 'pi pi-plus'" aria-hidden="true"></i>{{ isAddingToQuotation ? 'Agregando…' : 'Agregar a cotización' }}
           </button>
@@ -205,6 +206,8 @@
         </section>
       </aside>
     </section>
+
+<app-material-area-calculator [product]="areaProduct" [offers]="displayStores" [initialPlan]="incomingAreaPlan" (planChange)="areaChanged($event)" (offerSelected)="useAreaOffer($event)" />
 
     <section class="product-information">
       <details class="information-section" open>

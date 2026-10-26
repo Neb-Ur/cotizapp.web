@@ -1,12 +1,18 @@
+import {MaterialAreaCalculatorComponent} from '../material-area-calculator/material-area-calculator.component';
+import {MaterialAreaPlan,AreaWorkKind} from '../../../../../functions/src/domain/material-area';
+import {CatalogProduct} from '../../../core/models/app.models';
 import {ProfessionalToolsComponent} from '../professional-tools/professional-tools.component';
 import {Component,Input,Output,EventEmitter} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {WorkBudget,CostEntry,workTemplateLabels,workBudgetTotals,applyWorkTemplate,hasWorkTemplate,workTemplatePending,type WorkTemplateId} from '../../../core/utils/work-budget.util';
-@Component({selector:'app-work-budget-editor',standalone:true,imports:[CommonModule,FormsModule,ProfessionalToolsComponent],templateUrl:'./work-budget-editor.component.html',styleUrl:'./work-budget-editor.component.scss'})
+@Component({selector:'app-work-budget-editor',standalone:true,imports:[CommonModule,FormsModule,ProfessionalToolsComponent,MaterialAreaCalculatorComponent],templateUrl:'./work-budget-editor.component.html',styleUrl:'./work-budget-editor.component.scss'})
 export class WorkBudgetEditorComponent {
  @Input({required:true}) budget!:WorkBudget;
  @Input() ownerId='';
+ @Input() products:CatalogProduct[]=[];
+ @Output() compareMaterial=new EventEmitter<MaterialAreaPlan>();
+ protected areaKind?:AreaWorkKind;
  @Input() materials=0;
  @Input() incomplete=false;
  @Output() changed=new EventEmitter<void>();
@@ -16,7 +22,7 @@ export class WorkBudgetEditorComponent {
  protected get templatePending(){return workTemplatePending(this.budget);}
  protected hasTemplate(id:WorkTemplateId){return hasWorkTemplate(this.budget,id);}
  protected applyTemplate(id:WorkTemplateId){
-  try{Object.assign(this.budget,applyWorkTemplate(this.budget,id));this.templateError='';this.changed.emit();}
+  try{Object.assign(this.budget,applyWorkTemplate(this.budget,id));this.areaKind=({'painting-v1':'painting','tiles-v1':'tiles','floor-v1':'floor','partition-v1':'partition','slab-v1':'slab'} as const)[id];this.templateError='';this.changed.emit();}
   catch(error){this.templateError=error instanceof Error?error.message:'No se pudo agregar la plantilla.';}
  }
  protected get totals(){try{return workBudgetTotals(this.materials,this.budget);}catch{return null;}}

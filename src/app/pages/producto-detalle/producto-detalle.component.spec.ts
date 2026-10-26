@@ -334,3 +334,10 @@ it('uses the account quota in product detail, including more than two quotations
  currentUser.mockReturnValue({id:'m',role:'maestro',quotationLimit:0} as never);
  expect(component.canCreateQuotation).toBe(false);expect(component.quotationLimitMessage).toContain('0');fixture.destroy();
 });
+it('applies the recommended area quantity and requires a fresh choice after changing the estimate',async()=>{
+ const {component,api,resolvers,fixture}=await setup();(api as any).recordOfferEvent=vi.fn();resolvers[0]({...detail,productoMaestroId:'p'});await Promise.resolve();await Promise.resolve();
+ const store={offerId:'offer',storeId:'s',storeName:'Local',price:10000,stock:20};component.displayStores=[store];component.selectedProjectId='q';component.areaCalculationActive=true;component.areaPlan={version:1,kind:'tiles',area:20,wastePercent:10,coats:1,faces:1,thicknessCm:1,coverage:2,packageSize:null,confirmed:true,productId:'p',productName:'Cerámica'};
+ component.areaChanged(component.areaPlan);expect(component.canShowAddToQuotation).toBe(false);component.useAreaOffer({plan:component.areaPlan,store,quantity:11});expect(component.selectedQuantity).toBe(11);expect(component.selectedTotal).toBe(110000);expect(component.canShowAddToQuotation).toBe(true);
+ component.selectStore(store.storeName,store.storeId,store.offerId);expect(component.canShowAddToQuotation).toBe(false);component.useAreaOffer({plan:component.areaPlan,store,quantity:11});
+ component.areaChanged({...component.areaPlan,area:30});expect(component.canShowAddToQuotation).toBe(false);component.onQuantityChange(2);expect(component.canShowAddToQuotation).toBe(true);expect(component.selectedQuantity).toBe(2);fixture.destroy();
+});

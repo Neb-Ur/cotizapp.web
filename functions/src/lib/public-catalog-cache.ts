@@ -1,3 +1,4 @@
+import {productSeoSlugIndex} from '../domain/catalog-seo.js';
 import { hardwareSnapshot, hardwareTaxonomy, isHardwareProduct } from '../domain/market-scope.js';
 import { pilotStoresEnabled, publicRecordVisible } from '../services/pilot-stores.service.js';
 import { catalogCacheIsFresh, nextCatalogTransition } from '../domain/catalog-cache-validity.js';
@@ -31,7 +32,7 @@ export type PublicCatalogSnapshot = {
 
 const META_ID = 'meta';
 const CHUNK_SIZE = 150;
-const CACHE_POLICY = `data-modes-v9-hardware:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}`;
+const CACHE_POLICY = `data-modes-v10-area:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}`;
 function fresh(meta:any):boolean {return catalogCacheIsFresh(meta,`${CACHE_POLICY}:pilot=${pilotStoresEnabled()}`);}
 const rebuildPromises = new Map<string, Promise<PublicCatalogSnapshot>>();
 const memorySnapshots = new Map<string, PublicCatalogSnapshot>();
@@ -93,10 +94,12 @@ async function materializeSnapshot(): Promise<PublicCatalogSnapshot> {
   const searchRows = await buildSearchRows([offers, products, stores, users, categories, subcategories, families],asOf);
   const nextTransitionAt=nextCatalogTransition(offers,asOf);
 
+  const productPaths=productSeoSlugIndex(products.filter(isHardwareProduct));
   const activeProducts = products
     .filter((item) => item.estado !== 'inactivo' && publicRecordVisible(item) && isHardwareProduct(item))
     .map((item) => ({
       id: item.id,
+      seoPath:'/productos/'+productPaths.get(item.id),
       esPrueba: item.esPrueba === true,
       ambitoComercial: item.ambitoComercial,
       categoriaId: item.categoriaId,

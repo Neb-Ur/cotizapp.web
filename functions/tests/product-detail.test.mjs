@@ -9,8 +9,8 @@ function response(){return {statusCode:200,set(){return this;},status(code){this
 test('direct slug detail returns taxonomy and only attributes from its product and family without offers',async t=>{
  const product={id:'base',nombre:'Abrazadera metálica',categoriaId:'cat',subcategoriaId:'sub',familiaId:'fam',estado:'activo'};
  firestoreFixture(t,{
-  cachePublico:{meta:{dirty:false,version:'detail-fixture',updatedAt:new Date().toISOString(),policy:`data-modes-v9-hardware:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']},products:{items:[product]},offers:{items:[]},taxonomy:{categories:[{id:'cat',nombre:'Fijaciones'}],subcategories:[{id:'sub',nombre:'Amarre'}],families:[{id:'fam',nombre:'Amarres'}]}},
-  productosMaestro:{base:{nombre:'Abrazadera metálica',categoriaId:'cat',subcategoriaId:'sub',familiaId:'fam',estado:'activo'}},
+  cachePublico:{meta:{dirty:false,version:'detail-fixture',updatedAt:new Date().toISOString(),policy:`data-modes-v10-area:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']},products:{items:[product]},offers:{items:[]},taxonomy:{categories:[{id:'cat',nombre:'Fijaciones'}],subcategories:[{id:'sub',nombre:'Amarre'}],families:[{id:'fam',nombre:'Amarres'}]}},
+  productosMaestro:{base:{calculationSpecs:{saleUnit:'unidad',coveragePerPackage:2,litersPerPackage:null,paintCoverage:null,source:'Ficha del fabricante'},reviewedBy:'private-reviewer',nombre:'Abrazadera metálica',categoriaId:'cat',subcategoriaId:'sub',familiaId:'fam',estado:'activo'}},
   categorias:{cat:{nombre:'Fijaciones'}},subcategorias:{sub:{nombre:'Amarre'}},familias:{fam:{nombre:'Amarres'}},
   atributosProductoMaestro:{right:{productoMaestroId:'base',definicionAtributoId:'material',valorTexto:'Acero'},wrong:{productoMaestroId:'other',definicionAtributoId:'foreign',valorTexto:'No corresponde'}},
   definicionesAtributoFamilia:{material:{familiaId:'fam',etiqueta:'Material'},foreign:{familiaId:'other',etiqueta:'Ajeno'}}
@@ -21,6 +21,7 @@ test('direct slug detail returns taxonomy and only attributes from its product a
  assert.deepEqual(res.body.data.stores,[]);assert.equal(res.body.data.atributosProducto.length,1);assert.equal(res.body.data.atributosProducto[0].etiqueta,'Material');
  const sheet=response();await handler({query:{slug:'abrazadera-metalica',vista:'ficha'}},sheet);
  assert.equal(sheet.body.data.productoMaestro.nombre,'Abrazadera metálica');
+ assert.equal(sheet.body.data.productoMaestro.calculationSpecs.coveragePerPackage,2);assert.equal(sheet.body.data.productoMaestro.reviewedBy,undefined);
  assert.equal(sheet.body.data.atributosProducto[0].etiqueta,'Material');
  assert.equal(sheet.body.data.stores,undefined);assert.equal(sheet.body.data.minPrice,undefined);
  const offers=response();await handler({query:{slug:'abrazadera-metalica',vista:'ofertas'}},offers);
@@ -32,7 +33,7 @@ test('direct slug detail returns taxonomy and only attributes from its product a
 test('product offers carry the public WhatsApp number and pilot flag through the cached API',async t=>{
  const product={id:'base',nombre:'Foco Mahindra KUV 100 2016-2020',estado:'activo'};
  const rows=[{productoMaestroId:'base',productoFerreteriaId:'offer',productName:product.nombre,storeId:'store',storeName:'Desarmaduría (Prueba)',storePhone:'private-legacy',storeWhatsappPhone:'+56991036780',storePilot:true,price:25000,stock:2}];
- firestoreFixture(t,{cachePublico:{meta:{dirty:false,version:'whatsapp-detail',updatedAt:new Date().toISOString(),policy:`data-modes-v9-hardware:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']},products:{items:[product]},offers:{items:rows},taxonomy:{categories:[],subcategories:[],families:[]}},productosMaestro:{base:product}});
+ firestoreFixture(t,{cachePublico:{meta:{dirty:false,version:'whatsapp-detail',updatedAt:new Date().toISOString(),policy:`data-modes-v10-area:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']},products:{items:[product]},offers:{items:rows},taxonomy:{categories:[],subcategories:[],families:[]}},productosMaestro:{base:product}});
  const res=response();await handler({query:{slug:'foco-mahindra-kuv-100-2016-2020',vista:'ofertas'}},res);
  assert.equal(res.statusCode,200);assert.equal(res.body.data.stores[0].whatsappPhone,'+56991036780');assert.equal(res.body.data.stores[0].pilot,true);
 });
@@ -41,7 +42,7 @@ test('dynamic detail and offer responses expose owned images with server attribu
  const product={id:'photo-master',nombre:'Pieza con galería por local',estado:'activo',galeriaJson:['https://generic.example/catalog.webp']};
  const offerRow={productoMaestroId:product.id,productoFerreteriaId:'photo-offer',storeId:'store',storeName:'Desarmaduría Norte',price:12000,stock:1,condition:'usado'};
  const own={id:'photo',url:'https://cdn.example/own.webp',thumbnailUrl:'https://cdn.example/thumb.webp',storagePath:'private-key',uploadedBy:'private-uid'};
- firestoreFixture(t,{cachePublico:{meta:{dirty:false,version:'photo-detail',updatedAt:new Date().toISOString(),policy:`data-modes-v9-hardware:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']},products:{items:[product]},offers:{items:[offerRow]},taxonomy:{categories:[],subcategories:[],families:[]}},productosMaestro:{[product.id]:product},productosFerreteria:{'photo-offer':{productoMaestroId:product.id,ferreteriaId:'store',condicion:'usado',fotosPublicacion:[own]}}});
+ firestoreFixture(t,{cachePublico:{meta:{dirty:false,version:'photo-detail',updatedAt:new Date().toISOString(),policy:`data-modes-v10-area:${CURRENT_STORE_AGREEMENT_VERSION}:${storeAgreementDocumentHash()}:pilot=false`,taxonomyDocId:'taxonomy',productDocIds:['products'],offerDocIds:['offers']},products:{items:[product]},offers:{items:[offerRow]},taxonomy:{categories:[],subcategories:[],families:[]}},productosMaestro:{[product.id]:product},productosFerreteria:{'photo-offer':{productoMaestroId:product.id,ferreteriaId:'store',condicion:'usado',fotosPublicacion:[own]}}});
  for(const vista of [undefined,'ofertas']){
   const res=response();await handler({query:{producto:product.nombre.toLowerCase(),vista}},res);assert.equal(res.statusCode,200);
   assert.equal(res.body.data.storePhotos[0].storeName,'Desarmaduría Norte');assert.equal(res.body.data.storePhotos[0].condition,'usado');assert.equal(res.body.data.storePhotos[0].storagePath,undefined);assert.equal(res.body.data.storePhotos[0].uploadedBy,undefined);
