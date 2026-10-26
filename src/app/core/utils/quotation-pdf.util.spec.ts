@@ -75,3 +75,9 @@ it('includes saved professional contacts and construction assumptions but exclud
  const text=await new Promise<string>(resolve=>{const r=new FileReader();r.onload=()=>resolve(String(r.result));r.readAsText(file);});
  expect(text).toContain('Constructora Ejemplo');expect(text).toContain('ana@example.com');expect(text).toContain('2.200 m3');expect(text).not.toContain('PRIVATE_PAYMENT');expect(text).not.toContain('Recargo sobre costos');
 });
+it('exports observations and exclusions in separate client-visible sections while omitting empty ones',async()=>{
+ const budget:any={version:1,enabled:true,clientName:'Cliente',scope:'Pintar living',terms:'Dos jornadas',labor:[{description:'Pintura',unit:'trabajo',quantity:1,unitPrice:50000}],expenses:[],markupPercent:0,discloseCosts:false,observations:'Coordinar horario de acceso.\nProteger los muebles.',exclusions:'No incluye retiro de escombros.'};
+ const read=(file:File)=>new Promise<string>(resolve=>{const r=new FileReader();r.onload=()=>resolve(String(r.result));r.readAsText(file);});
+ const text=await read(buildQuotationPdfFile({...input,workBudget:budget}));expect(text).toContain('OBSERVACIONES');expect(text).toContain('Coordinar horario de acceso.');expect(text).toContain('Proteger los muebles.');expect(text).toContain('QUE NO INCLUYE EL PRESUPUESTO');expect(text).toContain('No incluye retiro de escombros.');
+ const empty=await read(buildQuotationPdfFile({...input,workBudget:{...budget,observations:'',exclusions:''}}));expect(empty).not.toContain('(OBSERVACIONES)');expect(empty).not.toContain('(QUE NO INCLUYE EL PRESUPUESTO)');
+});

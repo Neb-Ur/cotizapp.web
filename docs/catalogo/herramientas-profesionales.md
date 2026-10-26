@@ -28,3 +28,7 @@ Las rutas nuevas requieren sesión y rol. Las rutas de maestro validan también 
 Al alternar entre piso, tabique y radier se conservan las medidas aún no aplicadas de cada formulario. Cambiar el estado de guardado tampoco restaura valores anteriores. Abrir otro presupuesto carga sus propios cálculos.
 
 Crear y duplicar cotizaciones respeta el cupo de cada cuenta, incluido cero y valores superiores a 50. En PostgreSQL se toma `users.quotation_limit` como autoridad, aunque el JSON del usuario conserve un valor antiguo. El perfil de sesión, el panel y la ficha de producto usan ese mismo cupo; 50 sigue siendo el valor predeterminado para cuentas sin cupo explícito. No se modifican cupos existentes ni migraciones históricas.
+
+## Observaciones y exclusiones del presupuesto
+
+Todas las plantillas comparten campos opcionales de **Observaciones** y **Qué no incluye el presupuesto**, de hasta 3.000 caracteres cada uno. Se conservan al guardar, restaurar borradores y combinar plantillas. El PDF del presupuesto muestra cada sección si tiene contenido, tanto en la versión para el cliente como en la de costos internos. Las cotizaciones anteriores siguen funcionando sin esos campos.

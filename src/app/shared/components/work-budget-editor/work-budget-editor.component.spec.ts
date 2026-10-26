@@ -30,3 +30,11 @@ it('clears a copied contact if the quotation client name is replaced manually',(
  const c:any=new WorkBudgetEditorComponent();c.budget={...emptyWorkBudget(),clientName:'Ana',client:{id:'c',name:'Ana',phone:'555',email:'ana@example.com',address:'Casa Ana'}};
  c.clientNameChanged();expect(c.budget.client).toBeDefined();c.budget.clientName='Pedro';c.clientNameChanged();expect(c.budget.client).toBeUndefined();
 });
+it('allows independent observations and exclusions without changing cost entries',async()=>{
+ const f=TestBed.createComponent(WorkBudgetEditorComponent),c:any=f.componentInstance;c.budget={...emptyWorkBudget(),enabled:true};f.detectChanges();await f.whenStable();
+ const labels=Array.from(f.nativeElement.querySelectorAll('label')) as HTMLLabelElement[];
+ const observations=labels.find(l=>l.textContent?.includes('Observaciones (opcional)'))!.querySelector('textarea')!;
+ const exclusions=labels.find(l=>l.textContent?.includes('Qué no incluye el presupuesto (opcional)'))!.querySelector('textarea')!;
+ observations.value='Coordinar horario de acceso';observations.dispatchEvent(new Event('input',{bubbles:true}));exclusions.value='No incluye retiro de escombros';exclusions.dispatchEvent(new Event('input',{bubbles:true}));f.detectChanges();await f.whenStable();
+ expect(c.budget.observations).toBe('Coordinar horario de acceso');expect(c.budget.exclusions).toBe('No incluye retiro de escombros');expect(c.budget.labor).toEqual([]);f.destroy();
+});

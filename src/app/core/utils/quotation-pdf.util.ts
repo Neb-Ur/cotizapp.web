@@ -159,6 +159,8 @@ function buildWorkBudgetPdfLines(input:QuotationPdfInput,exportedAt:Date):string
  if(budget.discloseCosts)lines.push(`Costo materiales: ${formatCurrency(totals.materials)}`,`Costo mano de obra: ${formatCurrency(totals.labor)}`,`Otros gastos: ${formatCurrency(totals.expenses)}`,`Costo total: ${formatCurrency(totals.cost)}`,`Recargo sobre costos (${budget.markupPercent}%): ${formatCurrency(totals.markup)}`);
  lines.push(`Total presupuestado: ${formatCurrency(totals.total)}`);
  if(budget.terms)lines.push('','CONDICIONES DEL TRABAJO',budget.terms);
+ if(budget.observations)lines.push('','OBSERVACIONES',budget.observations);
+ if(budget.exclusions)lines.push('','QUE NO INCLUYE EL PRESUPUESTO',budget.exclusions);
  if(input.quotation.lines.length){
   lines.push('','REFERENCIA DE MATERIALES');
   if(input.verificationCode)lines.push(`Codigo de verificacion de materiales: ${input.verificationCode}`);
@@ -265,7 +267,7 @@ function buildPdfPageContent(lines: string[], pageNumber: number, pageCount: num
 
   lines.forEach((line, index) => {
     const y = 727 - index * 14;
-    const heading = line.startsWith('ESTIMACION DE ') || ['COTIZACION DE PRODUCTOS', 'DETALLE DE ARTICULOS', 'RESUMEN DE COTIZACION', 'TOTALES POR LOCAL','PRESUPUESTO DE TRABAJO','ALCANCE DEL TRABAJO','MATERIALES','MANO DE OBRA','OTROS GASTOS','RESUMEN DEL PRESUPUESTO','CONDICIONES DEL TRABAJO','ESTIMACION DE PINTURA','ESTIMACION DE CERAMICAS Y PORCELANATOS','REFERENCIA DE MATERIALES'].includes(line);
+    const heading = line.startsWith('ESTIMACION DE ') || ['COTIZACION DE PRODUCTOS', 'DETALLE DE ARTICULOS', 'RESUMEN DE COTIZACION', 'TOTALES POR LOCAL','PRESUPUESTO DE TRABAJO','ALCANCE DEL TRABAJO','MATERIALES','MANO DE OBRA','OTROS GASTOS','RESUMEN DEL PRESUPUESTO','CONDICIONES DEL TRABAJO','OBSERVACIONES','QUE NO INCLUYE EL PRESUPUESTO','ESTIMACION DE PINTURA','ESTIMACION DE CERAMICAS Y PORCELANATOS','REFERENCIA DE MATERIALES'].includes(line);
     const total = line.startsWith('Total final (IVA incluido):') || line.startsWith('Total presupuestado:');
     if (total) commands.push('q 1 0.950 0.890 rg', roundedPdfRect(39, y - 3, 517, 14, 4), 'f Q');
     commands.push(`BT /${heading || total ? 'F2' : 'F1'} ${heading ? 11 : 10} Tf ${heading || total ? navy : gray} rg 44 ${y} Td (${escapePdfText(line)}) Tj ET`);

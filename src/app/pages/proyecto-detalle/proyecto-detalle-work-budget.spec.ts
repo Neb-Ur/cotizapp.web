@@ -1,7 +1,7 @@
 import {vi} from 'vitest';
 import {ProyectoDetalleComponent} from './proyecto-detalle.component';
 import {GuestQuotationService} from '../../core/services/guest-quotation.service';
-import {emptyWorkBudget} from '../../core/utils/work-budget.util';
+import {emptyWorkBudget,restoreWorkBudgetDraft} from '../../core/utils/work-budget.util';
 import {buildQuotationOptimization} from '../../core/utils/quotation-optimizer.util';
 function fixture(){
  const guest=new GuestQuotationService();
@@ -40,4 +40,9 @@ it('records manual local status without changing work costs and resets status af
  await component.saveProject(false,false);await component.changeStatus('sent');expect(guest.get(component.projectId)?.workflowStatus).toBe('sent');expect(component.workflowStatus).toBe('sent');
  component.persistDraftIfNeeded();expect(guest.get(component.projectId)?.workflowStatus).toBe('sent');expect(component.workflowStatus).toBe('sent');
  component.projectDescription='Nuevo alcance';component.persistDraftIfNeeded();expect(guest.get(component.projectId)?.workflowStatus).toBe('draft');expect(component.workflowStatus).toBe('draft');
+});
+
+it('retains observations and exclusions when an unfinished cost input is recovered',()=>{
+ const restored=restoreWorkBudgetDraft({...emptyWorkBudget(),enabled:true,observations:'Coordinar acceso',exclusions:'Retiro no incluido',labor:[{description:'Pintura',unit:'trabajo',quantity:1,unitPrice:null}]});
+ expect(restored.observations).toBe('Coordinar acceso');expect(restored.exclusions).toBe('Retiro no incluido');expect(restored.labor[0].unitPrice).toBeNull();
 });

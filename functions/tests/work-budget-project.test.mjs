@@ -4,7 +4,7 @@ import {emptyWorkBudget} from '../lib/domain/work-budget.js';
 import {firestoreFixture} from './helpers/firestore-fixture.mjs';
 const handler=(method,path)=>projectsRouter.stack.find(l=>l.route?.path===path&&l.route.methods[method]).route.stack.at(-1).handle;
 const response=()=>({statusCode:200,status(code){this.statusCode=code;return this;},json(body){this.body=body;return this;}});
-const budget={...emptyWorkBudget(),enabled:true,clientName:'Cliente',markupPercent:25,labor:[{description:'Pintura',quantity:2,unit:'jornada',unitPrice:50000}]};
+const budget={...emptyWorkBudget(),enabled:true,clientName:'Cliente',observations:'Coordinar acceso a la obra.',exclusions:'No incluye retiro de escombros.',markupPercent:25,labor:[{description:'Pintura',quantity:2,unit:'jornada',unitPrice:50000}]};
 const plan={version:1,length:5,height:4,surfaces:1,openings:0,coats:2,coverage:10,wastePercent:10,packLiters:4,productId:'paint',productName:'Pintura'};
 test('budget and painting assumptions survive create, edit, legacy updates and item additions without leaking costs through verification',async t=>{
  const f=firestoreFixture(t,{usuarios:{master:{rol:'maestro',estadoCuenta:'activo'}}});

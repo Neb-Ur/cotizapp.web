@@ -2,7 +2,7 @@ import {normalizeContact,normalizeProfessionalProfile,type ClientContact,type Pr
 import {normalizeConstructionPlan,type ConstructionPlan} from './construction-calculator.js';
 export interface CostEntry { description: string; unit: 'trabajo' | 'hora' | 'jornada' | 'unidad'; quantity: number; unitPrice: number; }
 export type WorkTemplateId='painting-v1'|'tiles-v1'|'floor-v1'|'partition-v1'|'slab-v1';
-export interface WorkBudget { client?:ClientContact; professional?:ProfessionalProfile; constructionPlans?:ConstructionPlan[]; templateId?: WorkTemplateId; templateIds?: WorkTemplateId[]; version: 1; enabled: boolean; clientName: string; scope: string; terms: string; labor: CostEntry[]; expenses: CostEntry[]; markupPercent: number; discloseCosts: boolean; }
+export interface WorkBudget { observations?:string; exclusions?:string; client?:ClientContact; professional?:ProfessionalProfile; constructionPlans?:ConstructionPlan[]; templateId?: WorkTemplateId; templateIds?: WorkTemplateId[]; version: 1; enabled: boolean; clientName: string; scope: string; terms: string; labor: CostEntry[]; expenses: CostEntry[]; markupPercent: number; discloseCosts: boolean; }
 export class WorkBudgetError extends Error {}
 export const emptyWorkBudget = (): WorkBudget => ({version:1,enabled:false,clientName:'',scope:'',terms:'',labor:[],expenses:[],markupPercent:0,discloseCosts:false});
 const text=(value:unknown,max:number)=>typeof value==='string'?value.trim().slice(0,max):'';
@@ -16,6 +16,7 @@ export function normalizeWorkBudget(value:unknown): WorkBudget {
  const v=value as WorkBudget;
  if(v.version!==1||typeof v.enabled!=='boolean'||typeof v.discloseCosts!=='boolean')throw new WorkBudgetError('Formato de presupuesto no válido.');
  const extras:Partial<WorkBudget>={};
+ for(const key of ['observations','exclusions'] as const){const content=text(v[key],3000);if(content)extras[key]=content;}
  try{if(v.client)extras.client=normalizeContact(v.client);if(v.professional)extras.professional=normalizeProfessionalProfile(v.professional);if(v.constructionPlans){if(!Array.isArray(v.constructionPlans)||v.constructionPlans.length>3)throw new Error('Usa hasta tres cálculos de construcción.');extras.constructionPlans=v.constructionPlans.map(normalizeConstructionPlan);}}catch(e){throw new WorkBudgetError(e instanceof Error?e.message:'Revisa los datos profesionales.');}
  if(!v.enabled)return {...emptyWorkBudget(),...extras,clientName:text(v.clientName,200),scope:text(v.scope,3000),terms:text(v.terms,2000)};
  const entries=(input:unknown):CostEntry[]=>{
