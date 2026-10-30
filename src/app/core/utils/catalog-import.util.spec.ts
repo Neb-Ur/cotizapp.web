@@ -72,3 +72,14 @@ describe('parseCatalogImportContent', () => {
     expect(rows[0].error).toContain('nombre');
   });
 });
+
+it('rejects malformed stock rather than changing it silently to zero', async () => {
+ for (const stock of ['1-2', '1,,2', '2.3.4']) {
+  const [row]=await parseCatalogImportContent(`nombre;precio;stock\nCemento;5490;${stock}`);
+  expect(row.valid,stock).toBe(false);expect(row.error).toContain('numero valido');
+ }
+});
+it('preserves decimal-comma and grouped Chilean quantities', async () => {
+ const rows=await parseCatalogImportContent('nombre;precio;stock\nCemento;$5.490;1.250\nOSB;16.990,50;2,5');
+ expect(rows.map(row=>[row.valid,row.price,row.stock])).toEqual([[true,5490,1250],[true,16990.5,2]]);
+});

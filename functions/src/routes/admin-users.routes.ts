@@ -10,6 +10,7 @@ import { rows, row, createRow } from '../repositories/firestore.repository.js';
 import { authUserResponse } from '../services/user.service.js';
 import { deleteAccountData } from '../services/account-data.service.js';
 export const adminUsersRouter = Router();
+const validAccountStatus = (value: unknown): boolean => value === 'activo' || value === 'pendiente' || value === 'bloqueado';
 
 adminUsersRouter.get('/admin/usuarios', requireAuth, requireRole('admin'), async (_req, res) => {
   return ok(res, await Promise.all((await rows(COLLECTIONS.users)).map((item) => authUserResponse(item.id))));
@@ -20,6 +21,7 @@ adminUsersRouter.post('/admin/usuarios', requireAuth, requireRole('admin'), asyn
   if (req.body?.tipoNegocio !== undefined && (role !== 'ferreteria' || !isBusinessType(req.body.tipoNegocio))) return fail(res, 'BUSINESS_TYPE_INVALID', 'Selecciona un tipo de negocio válido para el local.', 400);
   if (req.body?.esPrueba !== undefined && (role !== 'ferreteria' || typeof req.body.esPrueba !== 'boolean')) return fail(res, 'STORE_TEST_INVALID', 'La opción de local de prueba debe ser verdadera o falsa y solo aplica a locales.', 400);
   if (!validRole(role)) return fail(res, 'ADMIN_INVALID_ROLE', 'Rol invalido.', 400);
+  if (req.body?.estadoCuenta !== undefined && !validAccountStatus(req.body.estadoCuenta)) return fail(res, 'ADMIN_INVALID_ACCOUNT_STATUS', 'Estado de cuenta invalido.', 400);
   if (!validStrongPassword(req.body?.password)) {
     return fail(
       res,
@@ -40,7 +42,7 @@ adminUsersRouter.post('/admin/usuarios', requireAuth, requireRole('admin'), asyn
   }
   const firebaseUser = await adminAuth.createUser({
     email: normalizeText(req.body?.correo).toLowerCase(),
-    password: normalizeText(req.body?.password),
+    password: String(req.body.password),
     displayName: normalizeText(req.body?.nombre)
   });
   await db.collection(COLLECTIONS.users).doc(firebaseUser.uid).set({
@@ -74,6 +76,8 @@ adminUsersRouter.post('/admin/usuarios', requireAuth, requireRole('admin'), asyn
 adminUsersRouter.patch('/admin/usuarios/:id', requireAuth, requireRole('admin'), async (req, res) => {
   const current = await row(COLLECTIONS.users, req.params.id);
   if (!current) return fail(res, 'AUTH_USER_NOT_FOUND', 'Usuario no encontrado.', 404);
+  if (req.body?.rol !== undefined && !validRole(req.body.rol)) return fail(res, 'ADMIN_INVALID_ROLE', 'Rol invalido.', 400);
+  if (req.body?.estadoCuenta !== undefined && !validAccountStatus(req.body.estadoCuenta)) return fail(res, 'ADMIN_INVALID_ACCOUNT_STATUS', 'Estado de cuenta invalido.', 400);
   const allowed = ['rol', 'nombre', 'telefono', 'ciudad', 'comuna', 'direccion', 'estadoCuenta'];
   const patch: Record<string, unknown> = {};
   allowed.forEach((key) => { if (req.body?.[key] !== undefined) patch[key] = req.body[key]; });

@@ -55,6 +55,7 @@ export class LoginComponent {
   }
 
   protected async submit(): Promise<void> {
+    if (this.isSubmitting) return;
     this.errorMessage = '';
     this.supportBannerMessage = '';
     if (this.form.invalid) {

@@ -25,6 +25,23 @@ async function catalog(db){
  await db.collection('productosMaestro').doc('product').set({nombre:'MDF negro 18 mm',familiaId:'family',categoriaId:'cat',subcategoriaId:'sub',marcaId:'brand',marca:'Marca de prueba',estado:'activo',galeriaJson:[],caracteristicasDestacadas:['18 mm']});
  await db.collection('real_ferreterias').doc('store').set({usuarioDuenoId:'store-owner',nombreComercial:'Local de prueba',estado:'activo'});
 }
+test('taxonomy deletion reports conflicts while preserving SQL catalog relationships',async t=>{
+ const {db,pg}=await fixture(t);await catalog(db);
+ const firebase=await import('../lib/lib/firebase.js');
+ t.mock.method(firebase.db,'collection',db.collection.bind(db));
+ const {taxonomyRouter}=await import('../lib/routes/taxonomy.routes.js');
+ for(const [path,id] of [['/categorias/:id','cat'],['/subcategorias/:id','sub'],['/familias/:id','family']]){
+  const handler=taxonomyRouter.stack.find(layer=>layer.route?.path===path&&layer.route.methods.delete).route.stack.at(-1).handle;
+  const res={statusCode:200,status(code){this.statusCode=code;return this;},json(body){this.body=body;return this;}};
+  await handler({params:{id}},res);
+  assert.equal(res.statusCode,409,path);
+  assert.equal(res.body.error.code,'TAXONOMIA_IN_USE');
+ }
+ assert.equal((await pg.query('SELECT count(*)::int n FROM findi.categories')).rows[0].n,1);
+ assert.equal((await pg.query('SELECT count(*)::int n FROM findi.subcategories')).rows[0].n,1);
+ assert.equal((await pg.query('SELECT count(*)::int n FROM findi.families')).rows[0].n,1);
+ assert.equal((await pg.query('SELECT count(*)::int n FROM findi.products')).rows[0].n,1);
+});
 test('HTTP quotation lifecycle enforces roles and ownership while persisting frozen and renewed SQL prices',async context=>{
  const {db,pg}=await fixture(context);await catalog(db);
  const express=(await import('express')).default;

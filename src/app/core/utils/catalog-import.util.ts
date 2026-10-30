@@ -215,9 +215,9 @@ export async function parseCatalogImportContent(content: string): Promise<Parsed
     let error = '';
     if (!name) {
       error = 'El nombre del producto es obligatorio.';
-    } else if (!isNumericField(rawPrice) || price <= 0) {
+    } else if (!isNumericField(rawPrice) || !Number.isFinite(price) || price <= 0) {
       error = 'El precio debe ser un numero mayor a 0.';
-    } else if (rawStock && !isNumericField(rawStock)) {
+    } else if (rawStock && (!isNumericField(rawStock) || !Number.isSafeInteger(stock))) {
       error = 'El stock debe ser un numero valido.';
     } else if (parsedStock < 0) {
       error = 'El stock no puede ser negativo.';
@@ -300,19 +300,19 @@ function parseChileanNumber(value: string): number {
   }
 
   if (clean.includes('.') && clean.includes(',')) {
-    return Number(clean.replace(/\./g, '').replace(',', '.')) || 0;
+    return Number(clean.replace(/\./g, '').replace(',', '.'));
   }
 
   if (clean.includes(',')) {
     const decimals = clean.split(',').pop()?.length || 0;
     return decimals <= 2
-      ? Number(clean.replace(',', '.')) || 0
-      : Number(clean.replace(/,/g, '')) || 0;
+      ? Number(clean.replace(',', '.'))
+      : Number(clean.replace(/,/g, ''));
   }
 
   if (/^-?\d{1,3}(\.\d{3})+$/.test(clean)) {
-    return Number(clean.replace(/\./g, '')) || 0;
+    return Number(clean.replace(/\./g, ''));
   }
 
-  return Number(clean) || 0;
+  return Number(clean);
 }

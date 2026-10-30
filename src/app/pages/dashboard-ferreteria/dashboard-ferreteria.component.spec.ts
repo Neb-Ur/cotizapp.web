@@ -58,3 +58,39 @@ it('limits category choices to the business type and keeps tools in hardware sto
  component.authService.currentUser=()=>({id:'owner',businessType:'ferreteria'});
  expect(component.categoryOptions.map((c:any)=>c.id)).toEqual(['materials','tools']);
 });
+
+it('does not import stale catalog content after a selected file fails to load', async () => {
+ const {component,api}=fixture();
+ api.importCatalogBatch=vi.fn();
+ component.selectedProductArea='materiales';component.csvContent='nombre,precio,stock\nAnterior,1000,5';component.csvNotice='Anterior.csv cargado';
+ const event={target:{files:[{name:'nuevo.csv',text:async()=>{throw new Error('No se pudo leer');}}],value:'nuevo.csv'}};
+ await component.onCatalogFileSelected(event);
+ await component.importCatalogFile();
+ expect(component.csvContent).toBe('');expect(component.csvNotice).toBe('');expect(api.importCatalogBatch).not.toHaveBeenCalled();
+});
+it('blocks processing while the replacement catalog file is still being read', async () => {
+ const {component,api}=fixture();api.importCatalogBatch=vi.fn();
+ component.selectedProductArea='materiales';component.csvContent='nombre,precio,stock\nAnterior,1000,5';
+ let resolveText!:(value:string)=>void;
+ const pending=component.onCatalogFileSelected({target:{files:[{name:'nuevo.csv',text:()=>new Promise<string>(resolve=>resolveText=resolve)}],value:'nuevo.csv'}});
+ await component.importCatalogFile();expect(api.importCatalogBatch).not.toHaveBeenCalled();
+ resolveText('nombre,precio,stock\nNuevo,2000,6');await pending;
+ expect(component.csvContent).toContain('Nuevo');
+});
+it('submits one new-product request while it is pending and preserves a zero initial stock', async () => {
+ const {component,api}=fixture();let resolveRequest!:()=>void;
+ api.requestCatalogProductCreation=vi.fn(()=>new Promise<void>(resolve=>resolveRequest=resolve));
+ component.selectedProductArea='materiales';component.requestDraft={name:'Mortero especial',barcode:'',quantity:0,price:3500};
+ const first=component.submitProductRequest(),second=component.submitProductRequest();
+ expect(api.requestCatalogProductCreation).toHaveBeenCalledTimes(1);
+ expect(api.requestCatalogProductCreation.mock.calls[0][2]).toEqual(expect.objectContaining({quantity:0}));
+ resolveRequest();await Promise.all([first,second]);
+ expect(component.requestSaving).toBe(false);
+});
+it('rejects nonfinite or negative new-product amounts without submitting', async () => {
+ const {component,api}=fixture();api.requestCatalogProductCreation=vi.fn();component.selectedProductArea='materiales';
+ for(const [price,quantity] of [[Infinity,2],[1500,-1],[1500,Infinity]]) {
+  component.requestDraft={name:'Mortero especial',barcode:'',quantity,price};await component.submitProductRequest();
+ }
+ expect(api.requestCatalogProductCreation).not.toHaveBeenCalled();expect(component.requestError).toBeTruthy();
+});

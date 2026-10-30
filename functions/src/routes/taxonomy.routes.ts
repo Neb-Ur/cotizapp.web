@@ -19,6 +19,11 @@ export const taxonomyRouter = Router();
 const categoryIcons = new Set(['building', 'home', 'bolt', 'wrench', 'filter', 'sun', 'palette', 'th-large', 'shield', 'box', 'truck', 'cog', 'sitemap', 'cloud', 'objects-column', 'hashtag']);
 const iconOf = (value: unknown) => categoryIcons.has(String(value)) ? String(value) : 'box';
 
+async function taxonomyInUse(id: string, references: Array<[string, string]>): Promise<boolean> {
+  const snapshots = await Promise.all(references.map(([collection, field]) => db.collection(collection).where(field, '==', id).get()));
+  return snapshots.some(snapshot => !snapshot.empty);
+}
+
 taxonomyRouter.get('/categorias', async (_req, res) => ok(res, (await rows(COLLECTIONS.categories)).filter(item=>item.id!==AUTOMOTIVE_CATEGORY_ID).sort((a, b) => a.nombre.localeCompare(b.nombre))));
 
 taxonomyRouter.post('/categorias', requireAuth, requireRole('admin'), async (req, res) => {
@@ -36,6 +41,9 @@ taxonomyRouter.patch('/categorias/:id', requireAuth, requireRole('admin'), async
 });
 
 taxonomyRouter.delete('/categorias/:id', requireAuth, requireRole('admin'), async (req, res) => {
+  if (await taxonomyInUse(req.params.id, [[COLLECTIONS.subcategories, 'categoriaId'], [COLLECTIONS.masterProducts, 'categoriaId']])) {
+    return fail(res, 'TAXONOMIA_IN_USE', 'La categoría tiene subcategorías o productos asociados. Reasígnalos antes de eliminarla.', 409);
+  }
   await db.collection(COLLECTIONS.categories).doc(req.params.id).delete();
   await invalidateTaxonomy();
   return ok(res, { deleted: true });
@@ -65,6 +73,9 @@ taxonomyRouter.patch('/subcategorias/:id', requireAuth, requireRole('admin'), as
 });
 
 taxonomyRouter.delete('/subcategorias/:id', requireAuth, requireRole('admin'), async (req, res) => {
+  if (await taxonomyInUse(req.params.id, [[COLLECTIONS.families, 'subcategoriaId'], [COLLECTIONS.masterProducts, 'subcategoriaId']])) {
+    return fail(res, 'TAXONOMIA_IN_USE', 'La subcategoría tiene familias o productos asociados. Reasígnalos antes de eliminarla.', 409);
+  }
   await db.collection(COLLECTIONS.subcategories).doc(req.params.id).delete();
   await invalidateTaxonomy();
   return ok(res, { deleted: true });
@@ -95,6 +106,9 @@ taxonomyRouter.patch('/familias/:id', requireAuth, requireRole('admin'), async (
 });
 
 taxonomyRouter.delete('/familias/:id', requireAuth, requireRole('admin'), async (req, res) => {
+  if (await taxonomyInUse(req.params.id, [[COLLECTIONS.masterProducts, 'familiaId'], [COLLECTIONS.familyDefinitions, 'familiaId']])) {
+    return fail(res, 'TAXONOMIA_IN_USE', 'La familia tiene productos o atributos asociados. Reasígnalos antes de eliminarla.', 409);
+  }
   await db.collection(COLLECTIONS.families).doc(req.params.id).delete();
   await invalidateTaxonomy();
   return ok(res, { deleted: true });

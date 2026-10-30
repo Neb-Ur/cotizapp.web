@@ -212,6 +212,7 @@ export class AuthService implements OnDestroy {
   async updateProfile(partial: Partial<SessionUser>): Promise<SessionUser> {
     const current = this.currentUserState();
     const token = this.tokenState();
+    const generation = this.sessionGeneration;
     if (!current || !token) throw new Error('No hay sesion activa.');
 
     const payload = this.mapProfilePatchToApiPayload(partial);
@@ -223,6 +224,10 @@ export class AuthService implements OnDestroy {
           })
         )
         : { ok: true, data: this.mapSessionUserToApiUser(current) };
+
+      if (generation !== this.sessionGeneration || this.currentUserState()?.id !== current.id) {
+        throw new Error('La sesión cambió mientras se actualizaba el perfil. Inicia sesión nuevamente si corresponde.');
+      }
 
       const merged: SessionUser = {
         ...current,

@@ -26,12 +26,14 @@ export class ForgotPasswordComponent {
   ) {}
 
   protected async submit(): Promise<void> {
+    if (this.isSubmitting) return;
+    this.sent = false;
+    this.errorMessage = '';
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
-    this.errorMessage = '';
     this.isSubmitting = true;
     try {
       await this.authService.sendPasswordReset(this.form.getRawValue().email);

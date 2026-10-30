@@ -266,11 +266,11 @@
           <label>Nombre<input [(ngModel)]="requestDraft.name" /></label>
           <label>Código de barras<input [(ngModel)]="requestDraft.barcode" /></label>
           <label>Precio<input [(ngModel)]="requestDraft.price" type="number" min="1" /></label>
-          <label>Stock inicial<input [(ngModel)]="requestDraft.quantity" type="number" min="1" /></label>
+          <label>Stock inicial<input [(ngModel)]="requestDraft.quantity" type="number" min="0" /></label>
         </div>
         <p *ngIf="requestError" class="error-text">{{ requestError }}</p>
         <p *ngIf="requestNotice" class="saved">{{ requestNotice }}</p>
-        <button type="button" (click)="submitProductRequest()">Crear y publicar producto</button>
+        <button type="button" (click)="submitProductRequest()" [disabled]="requestSaving">{{ requestSaving ? 'Publicando producto…' : 'Crear y publicar producto' }}</button>
       </section>
     </article>
 

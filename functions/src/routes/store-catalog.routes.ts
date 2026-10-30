@@ -15,6 +15,25 @@ export const storeCatalogRouter = Router();
 
 const measurementUnits = ['kg', 'l', 'm', 'm2', 'm3', 'unidad'];
 
+function catalogNumber(value: unknown): number | null {
+  if (typeof value !== 'number' && typeof value !== 'string') return null;
+  if (typeof value === 'string' && !value.trim()) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function invalidCatalogAmount(body: Record<string, unknown> | undefined, creating: boolean): 'precio' | 'stock' | null {
+  if (creating || body?.['precio'] !== undefined) {
+    const price = catalogNumber(body?.['precio']);
+    if (price === null || price <= 0) return 'precio';
+  }
+  if (body?.['stock'] !== undefined) {
+    const stock = catalogNumber(body['stock']);
+    if (stock === null || !Number.isSafeInteger(stock) || stock < 0) return 'stock';
+  }
+  return null;
+}
+
 function optionalOfferDate(value: unknown): string | null {
   const text = normalizeText(value);
   if (!text) return null;
@@ -62,6 +81,8 @@ storeCatalogRouter.get('/ferreterias/:storeId/catalogo', requireAuth, requireRol
 storeCatalogRouter.post('/ferreterias/:storeId/catalogo', requireAuth, requireRole('ferreteria', 'admin'), async (req, res) => {
   if (!(await requireStoreWriteAccess(req, res, req.params.storeId))) return;
   if (!(await requireCurrentStoreAgreement(req, res, req.params.storeId))) return;
+  const invalidAmount = invalidCatalogAmount(req.body, true);
+  if (invalidAmount) return fail(res, 'CATALOGO_INVALID_AMOUNT', invalidAmount === 'precio' ? 'El precio debe ser un número mayor a 0.' : 'El stock debe ser un número entero igual o mayor a 0.', 400);
   if (req.body?.condicion !== undefined && !isOfferCondition(req.body.condicion)) return fail(res, 'OFFER_CONDITION_INVALID', 'Selecciona una condición válida.', 400);
   const masterId = normalizeText(req.body?.productoMaestroId);
   const product = await row(COLLECTIONS.masterProducts, masterId);
@@ -123,6 +144,8 @@ storeCatalogRouter.post('/ferreterias/:storeId/catalogo', requireAuth, requireRo
 storeCatalogRouter.patch('/ferreterias/:storeId/catalogo/:offerId', requireAuth, requireRole('ferreteria', 'admin'), async (req, res) => {
   if (!(await requireStoreWriteAccess(req, res, req.params.storeId))) return;
   if (!(await requireCurrentStoreAgreement(req, res, req.params.storeId))) return;
+  const invalidAmount = invalidCatalogAmount(req.body, false);
+  if (invalidAmount) return fail(res, 'CATALOGO_INVALID_AMOUNT', invalidAmount === 'precio' ? 'El precio debe ser un número mayor a 0.' : 'El stock debe ser un número entero igual o mayor a 0.', 400);
   const existing = await row(COLLECTIONS.storeProducts, req.params.offerId);
   if (!existing || existing.ferreteriaId !== req.params.storeId) return fail(res, 'CATALOGO_NOT_FOUND', 'Producto de ferreteria no encontrado.', 404);
   const store = await row(COLLECTIONS.stores, req.params.storeId);

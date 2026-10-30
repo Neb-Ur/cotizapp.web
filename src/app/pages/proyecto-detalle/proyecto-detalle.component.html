@@ -244,6 +244,7 @@
           type="button"
           class="secondary"
           (click)="useMixedPurchase()"
+          [disabled]="isSaving || statusBusy"
         >
           Volver a compra combinada
         </button>
@@ -281,7 +282,7 @@
           <button
             type="button"
             (click)="applySingleStore(option.storeName, option.storeId)"
-            [disabled]="(option.storeId ? option.storeId === quotation.appliedStoreId : option.storeName === quotation.appliedStoreName)"
+            [disabled]="isSaving || statusBusy || (option.storeId ? option.storeId === quotation.appliedStoreId : option.storeName === quotation.appliedStoreName)"
           >
             {{ (option.storeId ? option.storeId === quotation.appliedStoreId : option.storeName === quotation.appliedStoreName) ? 'Aplicada' : 'Aplicar' }}
           </button>

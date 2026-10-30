@@ -143,6 +143,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   protected requestDraft = { name: '', barcode: '', quantity: 1, price: 0 };
   protected requestError = '';
   protected requestNotice = '';
+  protected requestSaving = false;
 
   protected totalProducts = 0;
   protected outOfStock = 0;
@@ -598,6 +599,8 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
 
     this.isReadingCatalogFile = true;
     this.csvError = '';
+    this.csvNotice = '';
+    this.csvContent = '';
     this.catalogFileName = file.name;
     try {
       this.csvContent = await catalogFileToCsv(file);
@@ -642,7 +645,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
 
   protected async importCatalogFile(): Promise<void> {
     await this.writeFeedback.run('dashboard-ferreteria:importCatalogFile', async () => {
-      if (!this.user || !this.csvContent.trim()) return;
+      if (!this.user || this.isReadingCatalogFile || !this.csvContent.trim()) return;
       if (!this.selectedProductArea) { this.csvError = 'Selecciona el tipo de producto antes de subir el archivo.'; return; }
       this.csvError = '';
       this.csvNotice = '';
@@ -678,15 +681,23 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
   }
 
   protected async submitProductRequest(): Promise<void> {
-    if (!this.user) return;
+    if (!this.user || this.requestSaving) return;
     if (!this.selectedProductArea) { this.requestError = 'Selecciona Material o Herramienta.'; return; }
     const name = this.requestDraft.name.trim();
-    const price = Math.round(Number(this.requestDraft.price) || 0);
-    if (name.length < 3 || price <= 0) {
+    const price = Math.round(Number(this.requestDraft.price));
+    const quantity = Math.floor(Number(this.requestDraft.quantity));
+    if (name.length < 3 || !Number.isFinite(price) || price <= 0) {
       this.requestError = 'Ingresa nombre y precio validos.';
       return;
     }
+    if (!Number.isSafeInteger(quantity) || quantity < 0) {
+      this.requestError = 'El stock debe ser un número igual o mayor a 0.';
+      return;
+    }
 
+    this.requestSaving = true;
+    this.requestError = '';
+    this.requestNotice = '';
     try {
       await this.apiService.requestCatalogProductCreation(
         this.user.id,
@@ -694,7 +705,7 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
         {
           name, area: this.selectedProductArea, categoryId: this.uploadCategoryId, subcategoryId: this.uploadSubcategoryId, familyId: this.uploadFamilyId,
           barcode: this.requestDraft.barcode.trim(),
-          quantity: Math.max(1, Math.floor(Number(this.requestDraft.quantity) || 1)),
+          quantity,
           price
         }
       );
@@ -706,6 +717,9 @@ export class DashboardFerreteriaComponent implements OnInit, OnDestroy {
       this.requestDraft = { name: '', barcode: '', quantity: 1, price: 0 };
     } catch (error) {
       this.requestError = error instanceof Error ? error.message : 'No se pudo enviar la solicitud.';
+    } finally {
+      this.requestSaving = false;
+      this.changeDetector.markForCheck();
     }
   }
 

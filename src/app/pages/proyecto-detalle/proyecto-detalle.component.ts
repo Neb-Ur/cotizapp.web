@@ -55,6 +55,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
   protected loadError = '';
   private loadGeneration = 0;
   private importedGuestId = '';
+  private pendingCreatedDraftCleanup = false;
   private handledDownloadIntent = false;
   private handledAccountSaveIntent=false;
   protected isPreparingAccount=false;
@@ -128,6 +129,20 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
   protected verificationCode = '';
   private savedFingerprint = '';
   private quotationFingerprint():string {return JSON.stringify([this.projectName,this.projectAddress,this.projectDescription,this.workBudget,this.paintingPlan,this.tilePlan,this.projectItems,this.projectProximity,this.selectedSingleStoreName,this.selectedSingleStoreId]);}
+  private recordSavedQuotation(requestFingerprint: string, returnedBudget?: WorkBudget): void {
+    if (this.quotationFingerprint() === requestFingerprint) {
+      this.workBudget = normalizeWorkBudget(returnedBudget ?? this.workBudget);
+      this.savedFingerprint = this.quotationFingerprint();
+    } else {
+      // Later edits remain local and must be saved by a subsequent request.
+      this.savedFingerprint = requestFingerprint;
+    }
+  }
+  private clearCreatedQuotationDraft(): void {
+    this.clearDraft();
+    if (this.importedGuestId) this.guestQuotations?.remove(this.importedGuestId);
+    this.pendingCreatedDraftCleanup = false;
+  }
   protected get hasUnsavedChanges():boolean {return !this.isNewProject && this.savedFingerprint !== this.quotationFingerprint();}
   protected async copyVerificationCode():Promise<void>{try{await navigator.clipboard.writeText(this.verificationCode);this.saveNotice='Código copiado.';}catch{this.saveNotice='Puedes seleccionar y copiar el código visible.';}}
   protected get quotationExpired(): boolean { return !!this.validUntil && Date.parse(this.validUntil) <= Date.now(); }
@@ -317,16 +332,22 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
     this.persistDraftIfNeeded();
   }
 
+  private quotationLineForItem(item: ProjectItem): ProjectQuotationView['lines'][number] | undefined {
+    // The optimizer omits blank products; preserve that same ordering in the table.
+    const index = this.projectItems.filter(row => row.productName.trim()).indexOf(item);
+    return index < 0 ? undefined : this.quotation.lines[index];
+  }
+
   protected getRowUnitPrice(item: ProjectItem): number {
-    return this.quotation.lines[this.projectItems.indexOf(item)]?.unitPrice || 0;
+    return this.quotationLineForItem(item)?.unitPrice || 0;
   }
 
   protected getRowCondition(item: ProjectItem): string {
-    return this.conditionLabel(this.quotation.lines[this.projectItems.indexOf(item)]?.condition);
+    return this.conditionLabel(this.quotationLineForItem(item)?.condition);
   }
 
   protected getRowBestStore(item: ProjectItem): string {
-    return this.quotation.lines[this.projectItems.indexOf(item)]?.bestStoreName || 'Sin datos';
+    return this.quotationLineForItem(item)?.bestStoreName || 'Sin datos';
   }
 
   protected getRowTotal(item: ProjectItem): number {
@@ -370,6 +391,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
         return;
       }
 
+      const requestFingerprint = this.quotationFingerprint();
       if (this.isNewProject) {
         try {
           const created = await this.apiService.saveProject(
@@ -383,15 +405,19 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
             this.projectDescription, this.workBudget, this.paintingPlan ?? null, this.tilePlan ?? null
           );
           this.saveNotice = 'Cotizacion creada correctamente.';
-          this.clearDraft();
-          if (this.importedGuestId) this.guestQuotations?.remove(this.importedGuestId);
           this.workflowStatus=quotationStatus(created.workflowStatus);this.workflowUpdatedAt=created.workflowUpdatedAt || '';
           this.projectId = created.id; this.isNewProject = false;
           this.verificationCode = created.verificationCode || ''; this.validUntil = created.validUntil || '';
           this.pricesCapturedAt = created.pricesCapturedAt || ''; this.pricingOffers = created.pricingOffers;
-          this.workBudget=normalizeWorkBudget(created.workBudget ?? this.workBudget);
-          this.savedFingerprint = this.quotationFingerprint();
-          if (navigateAfterSave) this.router.navigate(['/dashboard/maestro/cotizaciones', created.id]);
+          this.recordSavedQuotation(requestFingerprint, created.workBudget);
+          if (this.hasUnsavedChanges) {
+            this.pendingCreatedDraftCleanup = true;
+            this.persistDraftIfNeeded();
+            this.saveNotice = 'Cotización creada. Hay cambios pendientes; guárdalos antes de salir.';
+          } else {
+            this.clearCreatedQuotationDraft();
+            if (navigateAfterSave) this.router.navigate(['/dashboard/maestro/cotizaciones', created.id]);
+          }
         } catch (error) {
           this.saveNotice = apiErrorMessage(error,'No se pudo guardar la cotización.');
         }
@@ -416,13 +442,18 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       }
 
       this.workflowStatus=quotationStatus(updated.workflowStatus);this.workflowUpdatedAt=updated.workflowUpdatedAt || '';
-      this.workBudget=normalizeWorkBudget(updated.workBudget ?? this.workBudget);
       this.verificationCode = updated.verificationCode || "";
       this.pricingOffers = updated.pricingOffers;
       this.validUntil = updated.validUntil || '';
       this.pricesCapturedAt = updated.pricesCapturedAt || '';
-      this.savedFingerprint = this.quotationFingerprint();
+      this.recordSavedQuotation(requestFingerprint, updated.workBudget);
       this.saveNotice = renewPrices ? 'Precios de la cotización actualizados.' : 'Cotización actualizada conservando los precios guardados.';
+      if (this.hasUnsavedChanges) {
+        this.saveNotice += ' Hay cambios pendientes; guárdalos antes de salir.';
+      } else if (this.pendingCreatedDraftCleanup) {
+        this.clearCreatedQuotationDraft();
+        if (navigateAfterSave) this.router.navigate(['/dashboard/maestro/cotizaciones', this.projectId]);
+      }
       } catch (error) { this.saveNotice = error instanceof Error ? error.message : 'No se pudo guardar la cotización.'; }
       finally { this.isSaving = false; }
 
@@ -460,6 +491,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
   }
 
   protected async applySingleStore(storeName: string, storeId?: string): Promise<void> {
+    if (this.isSaving || this.statusBusy) return;
     const option = this.singleStoreOptions.find((item) => storeId ? item.storeId === storeId : item.storeName === storeName);
     if (!option) {
       this.singleStoreNotice = 'Este local ya no tiene todos los productos disponibles.';
@@ -484,6 +516,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
   }
 
   protected async useMixedPurchase(): Promise<void> {
+    if (this.isSaving || this.statusBusy) return;
     if (!this.selectedSingleStoreName && !this.selectedSingleStoreId) return;
 
     const previous = this.selectedSingleStoreName;
@@ -556,9 +589,8 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
   }
 
   protected async shareQuotation(): Promise<void> {
-    if (!await this.preparePdf()) return;
-
     try {
+      if (!await this.preparePdf()) return;
       const result = await this.pdf.share({
         projectName: this.projectName.trim() || 'Cotizacion',
         projectAddress: this.projectAddress,
@@ -645,6 +677,9 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
         singleStoreName: this.selectedSingleStoreName, singleStoreId: this.selectedSingleStoreId };
       if (!guestId) guestId = this.guestQuotations.create(data.name, data.address, data.items).id;
       this.guestQuotations.update(guestId, data);
+      if (this.guestQuotations.storageWarning) {
+        throw new Error(this.guestQuotations.storageWarning + ' Mantén esta página abierta para conservar tu trabajo.');
+      }
       const returnUrl = `/dashboard/maestro/cotizaciones/nuevo?cotizacionLocal=${encodeURIComponent(guestId)}&descargar=1`;
       if (this.user) await this.router.navigateByUrl(returnUrl);
       else await this.router.navigate(['/login'], { queryParams: { returnUrl } });
@@ -669,6 +704,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
   private async loadProject(projectId: string, draftName = '', draftAddress = ''): Promise<void> {
     this.saveNotice = '';
     this.importedGuestId = '';
+    this.pendingCreatedDraftCleanup = false;
     this.workflowStatus='draft';this.workflowUpdatedAt='';this.workflowNotice='';
     this.selectedCalculator=this.route.snapshot?.queryParamMap?.get('herramienta')==='ceramicas'?'tiles':'painting';
     this.projectId = projectId;
@@ -737,7 +773,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
 
   protected persistDraftIfNeeded(): void {
     if (typeof window === 'undefined') return;
-    if (this.importedGuestId && this.isNewProject && this.guestQuotations?.get(this.importedGuestId)) {
+    if (this.importedGuestId && (this.isNewProject || this.pendingCreatedDraftCleanup) && this.guestQuotations?.get(this.importedGuestId)) {
       this.guestQuotations.update(this.importedGuestId, { name: this.projectName, address: this.projectAddress, description: this.projectDescription, workBudget:this.workBudget, paintingPlan:this.paintingPlan, tilePlan:this.tilePlan, items: this.projectItems, proximity: this.projectProximity, singleStoreName: this.selectedSingleStoreName, singleStoreId: this.selectedSingleStoreId });
     }
     if (this.isLocalQuotation && !this.isNewProject && this.guestQuotations) {
@@ -745,7 +781,7 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
       this.workflowStatus=quotationStatus(updated.workflowStatus);this.workflowUpdatedAt=updated.workflowUpdatedAt || '';
       this.savedFingerprint = this.quotationFingerprint(); return;
     }
-    if (!this.isNewProject) {
+    if (!this.isNewProject && !this.pendingCreatedDraftCleanup) {
       return;
     }
 
@@ -805,27 +841,37 @@ export class ProyectoDetalleComponent implements OnInit, OnDestroy {
     const currentUser = this.user;
     if (!currentUser || this.isNewProject || this.isLocalQuotation) { this.persistDraftIfNeeded(); return true; }
 
-    const updated = await this.apiService.updateProject(
-      currentUser.id,
-      this.projectId,
-      this.projectName.trim() || 'Cotizacion',
-      this.projectItems,
-      this.projectAddress,
-      this.projectProximity,
-      this.quotation.appliedStoreName,
-      this.quotation.appliedStoreId,
-      this.projectDescription, false, this.workBudget, this.paintingPlan ?? null, this.tilePlan ?? null
-    );
+    this.isSaving = true;
+    const requestFingerprint = this.quotationFingerprint();
+    try {
+      const updated = await this.apiService.updateProject(
+        currentUser.id,
+        this.projectId,
+        this.projectName.trim() || 'Cotizacion',
+        this.projectItems,
+        this.projectAddress,
+        this.projectProximity,
+        this.quotation.appliedStoreName,
+        this.quotation.appliedStoreId,
+        this.projectDescription, false, this.workBudget, this.paintingPlan ?? null, this.tilePlan ?? null
+      );
 
-    if(updated){
-      this.workflowStatus=quotationStatus(updated.workflowStatus);this.workflowUpdatedAt=updated.workflowUpdatedAt || '';
-      this.verificationCode=updated.verificationCode || '';
-      this.pricingOffers=updated.pricingOffers;
-      this.validUntil=updated.validUntil || '';
-      this.pricesCapturedAt=updated.pricesCapturedAt || '';
-      this.savedFingerprint=this.quotationFingerprint();
+      if (updated) {
+        this.workflowStatus = quotationStatus(updated.workflowStatus);
+        this.workflowUpdatedAt = updated.workflowUpdatedAt || '';
+        this.verificationCode = updated.verificationCode || '';
+        this.pricingOffers = updated.pricingOffers;
+        this.validUntil = updated.validUntil || '';
+        this.pricesCapturedAt = updated.pricesCapturedAt || '';
+        this.recordSavedQuotation(requestFingerprint, updated.workBudget);
+      }
+      return !!updated;
+    } catch {
+      return false;
+    } finally {
+      this.isSaving = false;
+      this.changeDetector?.markForCheck();
     }
-    return !!updated;
   }
 
   private syncNearbyPreference(): void {

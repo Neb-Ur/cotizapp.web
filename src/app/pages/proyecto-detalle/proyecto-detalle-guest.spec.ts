@@ -48,6 +48,23 @@ describe('guest quotation and PDF account requirement', () => {
     const {component,navigate}=setup();const blocked=vi.spyOn(Storage.prototype,'setItem').mockImplementation(()=>{throw new Error('Blocked');});
     try{await component.continueWithAccount('registro');expect(navigate).not.toHaveBeenCalled();expect(component.saveNotice).toContain('Mantén esta página abierta');}finally{blocked.mockRestore();}
   });
+  for (const action of ['exportQuotation', 'shareQuotation']) {
+    it(`keeps the guest budget open if storage fails before ${action}`, async () => {
+      const {component,guest,navigate,navigateByUrl}=setup();
+      const quote=guest.create('Obra','Dirección',[{productName:'Cemento',quantity:3}]);
+      await component.loadQuotation(quote.id);
+      component.projectItems[0].quantity=4;
+      const blocked=vi.spyOn(Storage.prototype,'setItem').mockImplementation(()=>{throw new Error('Blocked');});
+      try {
+        await component[action]();
+        expect(navigate).not.toHaveBeenCalled();
+        expect(navigateByUrl).not.toHaveBeenCalled();
+        expect(component.saveNotice).toContain('Mantén esta página abierta');
+        expect(guest.get(quote.id)?.items[0].quantity).toBe(4);
+        expect(downloadQuotationPdf).not.toHaveBeenCalled();
+      } finally { blocked.mockRestore(); }
+    });
+  }
   it('allows guests to create, open and edit a quotation without navigating to registration',async()=>{
     const {component,guest,api,navigate}=setup();component.projectName='Cocina';component.projectItems=[{productName:'Cemento',quantity:3,storeId:'s'}];
     await component.saveProject();expect(api.saveProject).not.toHaveBeenCalled();
