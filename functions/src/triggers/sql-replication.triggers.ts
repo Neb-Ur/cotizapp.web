@@ -1,11 +1,11 @@
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { mappingByCollection } from '../database/codec.js';
 import { useSqlDatabase } from '../database/config.js';
-import { sqlPassword, sqlPool } from '../database/pool.js';
+import { databaseSecrets, sqlPool } from '../database/pool.js';
 import { firestoreVersion, replicateDocument } from '../database/replication.js';
 // One stream covers the 29 known collections. Unknown collections are ignored.
 // Enabled only while Firestore is the authority; never overwrite active SQL data.
-export const replicateFirestoreToSql = onDocumentWritten({document:'{collectionName}/{documentId}',region:'us-east4',secrets:[sqlPassword],retry:true,maxInstances:4,concurrency:4}, async event=>{
+export const replicateFirestoreToSql = onDocumentWritten({document:'{collectionName}/{documentId}',region:'us-east4',secrets:databaseSecrets(),retry:true,maxInstances:4,concurrency:4}, async event=>{
  if(useSqlDatabase()||process.env['SQL_REPLICATION_ENABLED']!=='true')return;
  const {collectionName,documentId}=event.params;
  if(!mappingByCollection.has(collectionName)||!event.data)return;

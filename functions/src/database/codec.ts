@@ -1,6 +1,8 @@
 import mappings from './source-mapping.json' with {type:'json'};
 import columns from './table-columns.json' with {type:'json'};
 import { createHash } from 'node:crypto';
+import {sqlSchemaVariant} from './config.js';
+import {compactFields,packCompactDocument,sqlTableName} from './compact.js';
 import type { PoolClient } from 'pg';
 import type { Data } from './port.js';
 import { isOfferCondition } from '../domain/offer-condition.js';
@@ -27,13 +29,13 @@ export function primaryKey(table:string,id:string,data:Data):Data {
 export async function upsert(client:SqlClient,table:string,values:Data,keys:string[]) {
  const cols=Object.keys(values), params=cols.map(c=>values[c]);
  const updates=cols.filter(c=>!keys.includes(c)).map(c=>`${quote(c)}=EXCLUDED.${quote(c)}`);
- await client.query(`INSERT INTO findi.${quote(table)} (${cols.map(quote).join(',')}) VALUES (${cols.map((_,i)=>'$'+(i+1)).join(',')}) ON CONFLICT (${keys.map(quote).join(',')}) DO ${updates.length?'UPDATE SET '+updates.join(','):'NOTHING'}`,params);
+ await client.query(`INSERT INTO findi.${quote(sqlTableName(table))} (${cols.map(quote).join(',')}) VALUES (${cols.map((_,i)=>'$'+(i+1)).join(',')}) ON CONFLICT (${keys.map(quote).join(',')}) DO ${updates.length?'UPDATE SET '+updates.join(','):'NOTHING'}`,params);
 }
 const digest=(value:string)=>createHash('sha256').update(value).digest('hex');
 const get=(data:Data,path:string)=>path.split('.').reduce((v,k)=>v?.[k],data);
-async function resolved(client:SqlClient,table:string,id:any):Promise<string|null>{if(!id)return null;const rows=await client.query(`SELECT id FROM findi.${quote(table)} WHERE id=$1`,[id]);return rows.rows.length?String(id):null;}
+async function resolved(client:SqlClient,table:string,id:any):Promise<string|null>{if(!id)return null;const rows=await client.query(`SELECT id FROM findi.${quote(sqlTableName(table))} WHERE id=$1`,[id]);return rows.rows.length?String(id):null;}
 export async function writeDocument(client:SqlClient,collection:string,id:string,input:Data) {
- const mapping=mappingFor(collection),key=mapping.key;
+ const mapping=mappingFor(collection),key=mapping.key,compact=sqlSchemaVariant()==='compact';
  if(key==='brands'){
   if(input.usos!==undefined&&!validBrandUses(input.usos))throw new Error('BRAND_USES_INVALID');
   input={...input,usos:brandUses(input.usos)};
@@ -102,13 +104,18 @@ export async function writeDocument(client:SqlClient,collection:string,id:string
  }
  if(key==='storeDailyAnalytics')for(const [field,col]of Object.entries({total:'catalog_total',published:'catalog_published',inStock:'catalog_in_stock',outOfStock:'catalog_out_of_stock',stalePrices:'catalog_stale_prices'}))values[col]=data.catalog?.[field]??0;
  if(key==='quotationVerifications')values.store_lines=JSON.stringify(data.lines || []);
+ if(compact){
+  for(const field of compactFields(table))if(data[field.source]!==undefined&&!Object.hasOwn(values,field.column))values[field.column]=data[field.source];
+  if(key==='masterProducts')values.features=Array.isArray(data.caracteristicasDestacadas)?data.caracteristicasDestacadas:[];
+  delete values.api_payload;Object.assign(values,packCompactDocument(table,input,values));
+ }
  const keys=Object.keys(primaryKey(table,id,data));
- const missing=tableColumns(table).filter(c=>c.is_nullable==='NO'&&c.column_default===null&&values[c.column_name]===undefined);
+ const missing=tableColumns(table).filter(c=>(!compact||c.column_name!=='api_payload')&&c.is_nullable==='NO'&&c.column_default===null&&values[c.column_name]===undefined);
  if(missing.length)throw new Error(`SQL_REQUIRED_FIELDS:${collection}:${missing.map(c=>c.column_name).join(',')}`);
  await upsert(client,table,values,keys);
- await materializeChildren(client,key,id,data);
+ await materializeChildren(client,key,id,data,compact);
 }
-async function materializeChildren(client:SqlClient,key:string,id:string,data:Data) {
+async function materializeChildren(client:SqlClient,key:string,id:string,data:Data,compact=false) {
  if(key==='brands'){
   const uses=brandUses(data.usos);
   for(const use of uses)await upsert(client,'brand_uses',{brand_id:id,use_kind:use},['brand_id','use_kind']);
@@ -124,9 +131,11 @@ async function materializeChildren(client:SqlClient,key:string,id:string,data:Da
  if(key==='masterProducts'){
   const parent=await client.query('SELECT s.id subcategory_id,s.category_id FROM findi.families f JOIN findi.subcategories s ON s.id=f.subcategory_id WHERE f.id=$1',[data.familiaId]);
   if(!parent.rows.length||data.categoriaId&&data.categoriaId!==parent.rows[0].category_id||data.subcategoriaId&&data.subcategoriaId!==parent.rows[0].subcategory_id)throw new Error('SQL_PRODUCT_TAXONOMY_MISMATCH');
-  await client.query('DELETE FROM findi.product_features WHERE product_id=$1',[id]);
-  for(const [position,text]of (Array.isArray(data.caracteristicasDestacadas)?data.caracteristicasDestacadas:[]).entries())await upsert(client,'product_features',{product_id:id,position,text},['product_id','position']);
-  await client.query('DELETE FROM findi.product_media WHERE product_id=$1',[id]);
+  if(!compact){
+   await client.query('DELETE FROM findi.product_features WHERE product_id=$1',[id]);
+   for(const [position,text]of (Array.isArray(data.caracteristicasDestacadas)?data.caracteristicasDestacadas:[]).entries())await upsert(client,'product_features',{product_id:id,position,text},['product_id','position']);
+   await client.query('DELETE FROM findi.product_media WHERE product_id=$1',[id]);
+  }else await client.query('UPDATE findi.media_assets SET is_primary=false WHERE product_id=$1',[id]);
   const gallery=Array.isArray(data.galeriaJson)?data.galeriaJson:[];
   const urls=gallery.map((url:any)=>({url, in_gallery:true}));
   for(const url of [data.imagenStorageUrl,data.imagenPrincipalUrl,data.imagenExternaUrl,data.imagenMiniaturaUrl])if(url&&!urls.some(item=>item.url===url))urls.push({url,in_gallery:false});
@@ -140,10 +149,11 @@ async function materializeChildren(client:SqlClient,key:string,id:string,data:Da
   for(const [position,item]of urls.entries()){
    const assetId=digest(`product-media:${id}:${position}`),isPrimary:boolean=!primaryChosen&&item.url===data.imagenPrincipalUrl;primaryChosen ||= isPrimary;
    const externalFallback=item.url===data.imagenExternaUrl&&item.url!==data.imagenPrincipalUrl;
-   await upsert(client,'media_assets',{id:assetId,url:item.url,storage_path:item.url===data.imagenStorageUrl?data.imagenStoragePath||null:item.url===data.imagenMiniaturaUrl?data.imagenMiniaturaPath||null:null,origin:item.url===data.imagenStorageUrl||item.url===data.imagenMiniaturaUrl?'storage':externalFallback?'external_url':data.origenImagen||'unknown',rights_id:data.referenciaAutorizacion&&!externalFallback?imageRights:null},['id']);
-   await upsert(client,'product_media',{product_id:id,asset_id:assetId,position,in_gallery:item.in_gallery,is_primary:isPrimary},['product_id','asset_id']);
+   await upsert(client,'media_assets',{id:assetId,url:item.url,storage_path:item.url===data.imagenStorageUrl?data.imagenStoragePath||null:item.url===data.imagenMiniaturaUrl?data.imagenMiniaturaPath||null:null,...(compact?{product_id:id,position,in_gallery:item.in_gallery,is_primary:isPrimary}:{}),origin:item.url===data.imagenStorageUrl||item.url===data.imagenMiniaturaUrl?'storage':externalFallback?'external_url':data.origenImagen||'unknown',rights_id:data.referenciaAutorizacion&&!externalFallback?imageRights:null},['id']);
+   if(!compact)await upsert(client,'product_media',{product_id:id,asset_id:assetId,position,in_gallery:item.in_gallery,is_primary:isPrimary},['product_id','asset_id']);
   }
-  await client.query('DELETE FROM findi.media_assets a WHERE a.id=ANY($1::text[]) AND NOT EXISTS(SELECT 1 FROM findi.product_media m WHERE m.asset_id=a.id)',[Array.from({length:200},(_,position)=>digest(`product-media:${id}:${position}`))]);
+  if(compact)await client.query('DELETE FROM findi.media_assets WHERE product_id=$1 AND NOT(id=ANY($2::text[]))',[id,urls.map((_item:any,position:number)=>digest(`product-media:${id}:${position}`))]);
+  else await client.query('DELETE FROM findi.media_assets a WHERE a.id=ANY($1::text[]) AND NOT EXISTS(SELECT 1 FROM findi.product_media m WHERE m.asset_id=a.id)',[Array.from({length:200},(_,position)=>digest(`product-media:${id}:${position}`))]);
  }
  if(key==='projects'){
   await client.query('DELETE FROM findi.quotation_items WHERE quotation_id=$1',[id]);

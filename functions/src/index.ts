@@ -11,9 +11,10 @@ import { mvpRouter } from './routes/mvp.routes.js';
 import { publicCatalogRouter } from './routes/public-catalog.routes.js';
 import { accountRateLimit, generalRateLimit, sensitiveWriteRateLimit, statusLookupRateLimit, writeRateLimit } from './lib/rate-limit.js';
 
-import { sqlPassword } from './database/pool.js';
+import { databaseSecrets } from './database/pool.js';
 import { imageStorageStatus } from './services/image-storage.service.js';
 import { acquireFirestoreWriteLease,activateSqlIfRequested } from './database/cutover.js';
+import { sqlProvider, sqlSchemaVariant } from './database/config.js';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -73,7 +74,7 @@ app.use(async (req,res,next) => {
 });
 app.get(['/api/config', '/config'], (_req, res) => {
   res.set('Cache-Control', 'no-store');
-  res.json({ ok: true, data: { dataMode: 'real', pilotStoresEnabled: pilotStoresEnabled(), imageStorage: imageStorageStatus() } });
+  res.json({ ok: true, data: { dataMode: 'real', pilotStoresEnabled: pilotStoresEnabled(), imageStorage: imageStorageStatus(), database: { provider:sqlProvider(), schemaVariant:sqlSchemaVariant(), writesManaged:true } } });
 });
 
 // Supports Firebase Hosting rewrites (/api/**) and the direct function URL.
@@ -116,6 +117,9 @@ forwardAsyncErrors((app as any)._router);
 app.use((error: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Request failed', error?.code || error?.name || 'ERROR');
   if (res.headersSent) return _next(error);
+  if(error?.message==='DATABASE_WRITES_PAUSED'){
+    res.status(503).json({ok:false,error:{code:'DATABASE_WRITES_PAUSED',message:'Estamos trasladando la base de datos. Conserva tus cambios e intenta guardarlos nuevamente en unos momentos.'}});return;
+  }
   if (['DATABASE_CUTOVER_IN_PROGRESS','SQL_MIGRATION_NOT_VERIFIED'].includes(error?.message)) {
     res.status(503).json({ok:false,error:{code:error.message,message:'Estamos preparando la base de datos. Intenta nuevamente en unos momentos.'}});return;
   }
@@ -133,7 +137,7 @@ export const api = onRequest(
     concurrency: 4,
     // Discovery can run before dotenv is loaded. Bind provisioned R2 secrets
     // explicitly; the provider flag still controls whether uploads are allowed.
-    secrets: [sqlPassword, visitAnalyticsKey, 'FINDI_R2_ACCESS_KEY_ID', 'FINDI_R2_SECRET_ACCESS_KEY']
+    secrets: [...databaseSecrets(), visitAnalyticsKey, 'FINDI_R2_ACCESS_KEY_ID', 'FINDI_R2_SECRET_ACCESS_KEY']
   },
   app
 );

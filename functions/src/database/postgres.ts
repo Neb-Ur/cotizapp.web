@@ -1,4 +1,6 @@
 import { randomUUID } from 'node:crypto';
+import {sqlSchemaVariant} from './config.js';
+import {compactDocumentSql,sqlTableName} from './compact.js';
 import type pg from 'pg';
 import { mappingFor, quote, writeDocument, tableColumns, type SqlClient } from './codec.js';
 import type { Database, Data, DocumentReference, DocumentSnapshot, CollectionReference, Query, QuerySnapshot, WriteBatch, Transaction } from './port.js';
@@ -9,6 +11,9 @@ type Operation = {kind:'set'|'update'|'create'|'delete';ref:SqlDocument;data?:Da
 const conditions=(collection:string,filters:Filter[],params:any[])=>filters.map(([field,op,value])=>{
  if(!['==','<','<=','>','>='].includes(op))throw new Error('SQL_QUERY_OPERATOR_UNSUPPORTED');
  const mapping=mappingFor(collection),table=mapping.tables[0];
+ if(sqlSchemaVariant()==='compact'){
+  params.push(field,JSON.stringify(value));return `${compactDocumentSql(table)} -> $${params.length-1} ${op==='=='?'=':op} $${params.length}::jsonb`;
+ }
  const target=(mapping.fields as Record<string,string>)[field];
  const column=target?.startsWith(table+'.')?target.slice(table.length+1):undefined;
  if(column&&tableColumns(table).some(c=>c.column_name===column)){
@@ -21,6 +26,13 @@ function selection(collection:string,id?:string) {
  const mapping=mappingFor(collection),key=mapping.key,table=key==='publicCache'?'public_cache_artifacts':mapping.tables[0];
  const idColumn=key==='marketingSuppressions'?'email_hash':['storeMetrics','storeDailyAnalytics'].includes(key)?'store_id':key==='analyticsJobs'?'job_name':key==='publicCache'?'key':'id';
  return {key,table,idColumn,payload:key==='publicCache'?'payload':'api_payload',latest:['storeDailyAnalytics','analyticsJobs'].includes(key)};
+}
+async function acquireWriteGuard(client:SqlClient):Promise<void>{
+ if(sqlSchemaVariant()==='compact')return;
+ // Share the cutover row lock on this transaction's existing connection. The
+ // exclusive pause waits for writes already in flight; later writes see the flag.
+ const state=await client.query("SELECT manifest FROM findi.database_migration_state WHERE id='firestore-to-sql' FOR SHARE");
+ if(state.rows[0]?.manifest?.writesPaused===true)throw Object.assign(new Error('DATABASE_WRITES_PAUSED'),{code:'DATABASE_WRITES_PAUSED'});
 }
 function materialize(value:any,previous:any):any {
  // Translate only the Admin SDK's increment transform used by counters/revisions.
@@ -37,7 +49,12 @@ export class PostgresDatabase implements Database {
  constructor(private readonly pool:ConnectionPool,private readonly requireReady=true){}
  async withClient<T>(callback:(client:SqlClient)=>Promise<T>):Promise<T>{
   const client=await this.pool.connect();try{
-   if(this.requireReady && !this.activatedReady){const state=await client.query("SELECT status FROM findi.database_migration_state WHERE id='firestore-to-sql'");if(!['verified','active'].includes(state.rows[0]?.status))throw new Error('SQL_MIGRATION_NOT_VERIFIED');this.activatedReady=state.rows[0]?.status==='active';}
+   if(this.requireReady && !this.activatedReady){
+    const compact=sqlSchemaVariant()==='compact';
+    const state=await client.query(compact?"SELECT status FROM findi.app_state WHERE id='baseline'":"SELECT status FROM findi.database_migration_state WHERE id='firestore-to-sql'");
+    if(!(compact?['ready']:['verified','active']).includes(state.rows[0]?.status))throw new Error(compact?'SQL_BASELINE_NOT_READY':'SQL_MIGRATION_NOT_VERIFIED');
+    this.activatedReady=state.rows[0]?.status===(compact?'ready':'active');
+   }
    return await callback(client);
   }finally{client.release();}
  }
@@ -47,7 +64,7 @@ export class PostgresDatabase implements Database {
   for(let attempt=0;attempt<5;attempt++){
    try{return await this.withClient(async client=>{
     await client.query('BEGIN ISOLATION LEVEL SERIALIZABLE');
-    try{const tx=new SqlTransaction(this,client);const result=await callback(tx);await tx.flush(client);await client.query('COMMIT');return result;}
+    try{await acquireWriteGuard(client);const tx=new SqlTransaction(this,client);const result=await callback(tx);await tx.flush(client);await client.query('COMMIT');return result;}
     catch(error){await client.query('ROLLBACK');throw error;}
    });}catch(error){if(!['40001','40P01'].includes((error as pg.DatabaseError).code||'')||attempt===4)throw error;}
   }throw new Error('SQL_TRANSACTION_RETRY_EXHAUSTED');
@@ -58,14 +75,14 @@ export class PostgresDatabase implements Database {
    if(id)await client.query('SELECT id FROM findi.users WHERE id=$1 FOR UPDATE',[id]);
    return {docs:[],size:0,empty:true};
   }
-  const meta=selection(collection),params:any[]=[],clauses=[`${meta.payload} IS NOT NULL`];
+  const meta=selection(collection),compact=sqlSchemaVariant()==='compact'&&meta.key!=='publicCache',params:any[]=[],clauses=[`${compact?'api_extra':meta.payload} IS NOT NULL`];
   if(id!==undefined){params.push(id);clauses.push(`${quote(meta.idColumn)}=$1`);}
   if(meta.key==='masterProducts')clauses.push('deleted_at IS NULL');
   if(meta.key==='publicCache'&&filters.length){
    for(const [field,op,value]of filters){if(!['==','<'].includes(op))throw new Error('SQL_QUERY_OPERATOR_UNSUPPORTED');params.push(field,JSON.stringify(value));clauses.push(`payload -> $${params.length-1} ${op==='=='?'=':op} $${params.length}::jsonb`);}
   }else clauses.push(...conditions(collection,filters,params));
   const distinct=meta.latest?`DISTINCT ON (${quote(meta.idColumn)}) `:'';
-  const sql=`SELECT ${distinct}${quote(meta.idColumn)} AS id,${meta.payload} AS data${meta.key==='users'?',quotation_limit AS quotation_limit':''} FROM findi.${quote(meta.table)} WHERE ${clauses.join(' AND ')} ORDER BY ${quote(meta.idColumn)}${meta.latest?',local_date DESC':''}${limit!==undefined?' LIMIT '+Math.max(0,Math.floor(limit)):''}`;
+  const sql=`SELECT ${distinct}${quote(meta.idColumn)} AS id,${compact?compactDocumentSql(meta.table):meta.payload} AS data${meta.key==='users'?',quotation_limit AS quotation_limit':''} FROM findi.${quote(sqlTableName(meta.table))} WHERE ${clauses.join(' AND ')} ORDER BY ${quote(meta.idColumn)}${meta.latest?',local_date DESC':''}${limit!==undefined?' LIMIT '+Math.max(0,Math.floor(limit)):''}`;
   const result=await client.query(sql,params);
   const docs=result.rows.map(value=>{
    // The SQL quota is authoritative; payloads may still contain a legacy value.
@@ -84,8 +101,8 @@ export class PostgresDatabase implements Database {
    const meta=selection(ref.collectionName);
    if(meta.key==='projectOwnerLocks')return;
    if(meta.key==='projects')await client.query('UPDATE findi.account_preferences SET selected_quotation_id=NULL WHERE selected_quotation_id=$1',[ref.id]);
-   if(meta.key==='masterProducts')await client.query('UPDATE findi.products SET deleted_at=now(),status=\'inactivo\',api_payload=NULL WHERE id=$1',[ref.id]);
-   else await client.query(`DELETE FROM findi.${quote(meta.table)} WHERE ${quote(meta.idColumn)}=$1`,[ref.id]);
+   if(meta.key==='masterProducts')await client.query(sqlSchemaVariant()==='compact'?'UPDATE findi.products SET deleted_at=now(),status=\'inactivo\',api_extra=NULL,api_fields=\'{}\'::jsonb WHERE id=$1':'UPDATE findi.products SET deleted_at=now(),status=\'inactivo\',api_payload=NULL WHERE id=$1',[ref.id]);
+   else await client.query(`DELETE FROM findi.${quote(sqlTableName(meta.table))} WHERE ${quote(meta.idColumn)}=$1`,[ref.id]);
   }else{
    const values=materialize(operation.data,previous);
    const data=operation.merge||operation.kind==='update'?{...previous,...values}:values;

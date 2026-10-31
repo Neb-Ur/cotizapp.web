@@ -1,15 +1,16 @@
 import { createHash } from 'node:crypto';
 import { getFirestore } from 'firebase-admin/firestore';
-import { useSqlDatabase } from './config.js';
+import { useSqlDatabase, sqlSchemaVariant } from './config.js';
 import { sqlPool } from './pool.js';
 import { mappingByCollection,writeDocument } from './codec.js';
-import { PostgresDatabase } from './postgres.js';
+import { PostgresDatabase, type ConnectionPool } from './postgres.js';
 const stable=(value:any):string=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
 const hash=(value:any)=>createHash('sha256').update(stable(value)??'null').digest('hex');
 // Hold the shared lease until the complete Firestore operation finishes. Activation
 // takes an exclusive lock, then reconciles the final source changes under that lock.
 export async function acquireFirestoreWriteLease():Promise<()=>Promise<void>>{
- if(useSqlDatabase()||process.env['SQL_REPLICATION_ENABLED']!=='true')return async()=>{};
+ if(useSqlDatabase())return sqlSchemaVariant()==='compact'?async()=>{}:acquireSqlWriteLease(await sqlPool());
+ if(process.env['SQL_REPLICATION_ENABLED']!=='true')return async()=>{};
  const client=await (await sqlPool()).connect();
  try{
   await client.query('BEGIN');
@@ -18,10 +19,28 @@ export async function acquireFirestoreWriteLease():Promise<()=>Promise<void>>{
   let released=false;return async()=>{if(released)return;released=true;try{await client.query('COMMIT');}finally{client.release();}};
  }catch(error){await client.query('ROLLBACK');client.release();throw error;}
 }
+// Admission check for a useful HTTP 503. PostgresDatabase takes the actual
+// shared lock inside each write transaction, using its existing connection.
+export async function acquireSqlWriteLease(pool:ConnectionPool):Promise<()=>Promise<void>>{
+ const client=await pool.connect();
+ try{
+  const state=await client.query("SELECT manifest FROM findi.database_migration_state WHERE id='firestore-to-sql'");
+  if(state.rows[0]?.manifest?.writesPaused===true)throw new Error('DATABASE_WRITES_PAUSED');
+  return async()=>{};
+ }finally{client.release();}
+}
+export async function assertCompactReady(pool:ConnectionPool):Promise<void>{
+ const client=await pool.connect();
+ try{
+  const state=await client.query("SELECT status FROM findi.app_state WHERE id='baseline'");
+  if(state.rows[0]?.status!=='ready')throw new Error('SQL_MIGRATION_NOT_VERIFIED');
+ }finally{client.release();}
+}
 export async function assertFirestoreWritesAllowed():Promise<void>{const release=await acquireFirestoreWriteLease();await release();}
 let activated=false;
 export async function activateSqlIfRequested():Promise<void>{
  if(!useSqlDatabase()||activated)return;
+ if(sqlSchemaVariant()==='compact'){await assertCompactReady(await sqlPool());activated=true;return;}
  const pool=await sqlPool(),client=await pool.connect();
  try{
   await client.query('BEGIN');
